@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="p5" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$USER_HOME$/Downloads/p5/p5/p5.js" />
+        <item url="file://$USER_HOME$/Downloads/p5/p5/addons/p5.sound.js" />
+        <item url="file://$USER_HOME$/Downloads/p5/p5/addons/p5.dom.js" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$USER_HOME$/Downloads/p5/p5/p5.js" />
+      <root url="file://$USER_HOME$/Downloads/p5/p5/addons/p5.sound.js" />
+      <root url="file://$USER_HOME$/Downloads/p5/p5/addons/p5.dom.js" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>
