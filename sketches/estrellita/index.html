@@ -379,7 +379,7 @@
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
 
-            mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 1000.0, pMatrix);
+            mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 10000.0, pMatrix);
 
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
             gl.enable(gl.BLEND);
@@ -423,13 +423,13 @@
 
             if(explosionImpulse == impMax)
             {
-                explosionForce = 0.1;
+                explosionForce = 0.75;
                 explosionImpulse -= 1;
             }
             else if(explosionImpulse > 0)
             {
                 explosionImpulse -= 1;
-                explosionForce *= 1.1;
+                explosionForce *= 1.07;
             }
             else
             {
@@ -450,7 +450,9 @@
 
             document.onkeydown = handleKeyDown;
             document.onkeyup = handleKeyUp;
-            document.onclick = handleClick;
+            //document.onclick = handleClick;
+
+            canvas.addEventListener('click', handleClick, true);
 
             tick();
         }
