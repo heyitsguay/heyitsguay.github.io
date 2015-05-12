@@ -267,6 +267,8 @@ function Star(startingDistance, rotationSpeed)
     this.angle = 0;
     this.dist = startingDistance;
     this.rotationSpeed = rotationSpeed;
+    this.phase = Math.random() * 2 * Math.PI;
+    this.period = 50 + Math.random() * 250;
 
     this.randomiseColors();
 }
@@ -286,7 +288,7 @@ Star.prototype.draw = function(spin, twinkle)
 
     if(twinkle)
     {
-        var c = 0.5*(1 + Math.cos(lastTime / 100)); // Twinkle scaling
+        var c = 0.5*(1 + Math.cos(lastTime / this.period + this.phase)); // Twinkle scaling
         gl.uniform3f(shaderProgram.colorUniform, c*this.twinkleR, c*this.twinkleG, c*this.twinkleB);
         drawStar();
     }
@@ -456,6 +458,10 @@ var numStars;
 function webGLStart()
 {
     var canvas = document.getElementById("canvas");
+
+    canvas.height = Math.floor(0.66 * screen.height);
+    canvas.width = Math.floor(0.94 * screen.width);
+
     initGL(canvas);
     initShaders();
     initBuffers();
