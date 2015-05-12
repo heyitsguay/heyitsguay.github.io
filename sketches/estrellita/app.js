@@ -311,7 +311,7 @@ Star.prototype.animate = function(elapsedTime)
     this.dist -= 0.01 * effectiveFPMS * elapsedTime;
     if(this.dist + explosionForce < 0.)
     {
-        this.dist += 7 * (numStars / 100.);
+        this.dist += 5 * (numStars / 100.);
         this.randomiseColors();
     }
 };
