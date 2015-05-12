@@ -188,6 +188,16 @@ function handleKeys()
         // Rotate clockwise around X axis
         xtilt = (xtilt - 2) % 360;
     }
+    if(keys[81]) // Q
+    {
+        // Zoom out
+        z -= 1;
+    }
+    if(keys[69]) // E
+    {
+        // Zoom in
+        z = Math.min(0, z + 1);
+    }
 }
 
 var b_starVs; // star vertex buffer
@@ -282,7 +292,7 @@ Star.prototype.animate = function(elapsedTime)
     this.dist -= 0.01 * effectiveFPMS * elapsedTime;
     if(this.dist + explosionForce < 0.)
     {
-        this.dist += 15.;
+        this.dist += 5 * (numStars / 100.);
         this.randomiseColors();
     }
 };
@@ -306,11 +316,11 @@ Star.prototype.randomiseColors = function()
 
 var stars = [];
 
-function initWorldObjects(numStars)
+function initWorldObjects()
 {
     for(var i=0; i<numStars; i++)
     {
-        stars.push(new Star((i / numStars) * 15.0, i / numStars));
+        stars.push(new Star((i / 60.), i / numStars));
     }
 }
 
@@ -408,7 +418,7 @@ function tick()
     explosionUpdate();
 }
 
-
+var numStars;
 function webGLStart()
 {
     var canvas = document.getElementById("canvas");
@@ -416,7 +426,17 @@ function webGLStart()
     initShaders();
     initBuffers();
     initTexture();
-    initWorldObjects(500);
+    var platform = navigator.platform;
+    if(platform.indexOf("Linux") > -1 || platform == "Android" || platform == "iPhone" || platform == "iPad" ||
+        platform == "iPod") // On a mobile device (or, accidentally, Linux), render fewer stars
+    {
+        numStars = 70;
+    }
+    else
+    {
+        numStars = 300;
+    }
+    initWorldObjects();
 
     gl.clearColor(0., 0., 0., 1.);
 
