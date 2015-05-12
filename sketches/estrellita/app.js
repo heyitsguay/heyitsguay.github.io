@@ -337,25 +337,16 @@ function drawScene()
     }
 }
 
-var lastTime = 0;
-var fps = 0;
-var fpsFilter = 30;
 function animate()
 {
-    var timeNow = new Date().getTime();
     if(lastTime != 0)
     {
-        var elapsed = timeNow - lastTime;
         for(var i=0; i<stars.length; i++)
         {
             stars[i].animate(elapsed);
         }
-        if(elapsed>0)
-        {
-            fps += (1000. / elapsed - fps) / fpsFilter;
-        }
+
     }
-    lastTime = timeNow;
 }
 
 function drawFPS()
@@ -392,9 +383,24 @@ function explosionUpdate()
     }
 }
 
+var lastTime = new Date().getTime();
+var elapsed = 0;
+var fps = 0;
+var fpsFilter = 30;
+function updateFPS()
+{
+    var timeNow = new Date().getTime();
+    elapsed = timeNow - lastTime;
+    if(elapsed>0)
+    {
+        fps += (1000. / elapsed - fps) / fpsFilter;
+    }
+    lastTime = timeNow;
+}
 
 function tick()
 {
+    updateFPS();
     requestAnimationFrame(tick);
     handleKeys();
     drawScene();

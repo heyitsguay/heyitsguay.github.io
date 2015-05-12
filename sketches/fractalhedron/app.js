@@ -506,26 +506,15 @@ function drawScene()
     gl.drawElements(gl.TRIANGLES, b_cubeIdxs.numItems, gl.UNSIGNED_SHORT, 0);
 }
 
-var lastTime = 0.;
 var time = 0.;
-var fps = 0;
-var fpsFilter = 30;
 function animate()
 {
-    var timeNow = new Date().getTime();
     if(lastTime != 0)
     {
-        var elapsed = timeNow - lastTime;
-
         xRot = (xRot + xSpeed * elapsed / 1000.0) % 360;
         yRot = (yRot + ySpeed * elapsed / 1000.0) % 360;
         time = (time + elapsed / 500.) % 10000;
     }
-    if(elapsed>0)
-    {
-        fps += (1000. / elapsed - fps) / fpsFilter;
-    }
-    lastTime = timeNow;
 }
 
 function drawFPS()
@@ -534,8 +523,24 @@ function drawFPS()
     counter.innerHTML = fps.toFixed(1) + " fps";
 }
 
+var lastTime = new Date().getTime();
+var elapsed = 0;
+var fps = 0;
+var fpsFilter = 30;
+function updateFPS()
+{
+    var timeNow = new Date().getTime();
+    elapsed = timeNow - lastTime;
+    if(elapsed>0)
+    {
+        fps += (1000. / elapsed - fps) / fpsFilter;
+    }
+    lastTime = timeNow;
+}
+
 function tick()
 {
+    updateFPS();
     requestAnimationFrame(tick);
     handleKeys();
     drawScene();
