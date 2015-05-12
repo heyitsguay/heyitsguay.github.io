@@ -310,7 +310,7 @@ function initWorldObjects(numStars)
 {
     for(var i=0; i<numStars; i++)
     {
-        stars.push(new Star((i / numStars)*15.0, i / numStars));
+        stars.push(new Star((i / numStars) * 15.0, i / numStars));
     }
 }
 
