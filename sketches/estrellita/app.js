@@ -79,6 +79,7 @@ function initShaders() {
 }
 
 function handleLoadedTexture(texture) {
+    //noinspection JSCheckFunctionSignatures
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
@@ -198,6 +199,22 @@ function handleKeys()
         // Zoom in
         z = Math.min(0, z + 1);
     }
+    if(keys[90]) // Z
+    {
+        // Decrement the number of stars drawn.
+        numStarsToDraw = Math.max(1, numStarsToDraw - 1);
+        writeStarCount();
+    }
+    if(keys[67]) // C
+    {
+        // Increment the number of stars drawn.
+        numStarsToDraw += 1;
+        if(numStarsToDraw > numStars)
+        {
+            addStars(numStarsToDraw - numStars);
+        }
+        writeStarCount();
+    }
 }
 
 var b_starVs; // star vertex buffer
@@ -292,7 +309,7 @@ Star.prototype.animate = function(elapsedTime)
     this.dist -= 0.01 * effectiveFPMS * elapsedTime;
     if(this.dist + explosionForce < 0.)
     {
-        this.dist += 5 * (numStars / 100.);
+        this.dist += 7 * (numStars / 100.);
         this.randomiseColors();
     }
 };
@@ -324,7 +341,18 @@ function initWorldObjects()
     }
 }
 
+function addStars(numStarsToAdd)
+{
+    // Add new stars to this thing.
+    for(var i = 0; i < numStarsToAdd; i++)
+    {
+        stars.push(new Star((numStars + i) / 60., (numStars + i) / numStars));
+    }
+    numStars += numStarsToAdd;
+}
+
 var spin=0;
+var numStarsToDraw = 0;
 function drawScene()
 {
     gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
@@ -340,7 +368,7 @@ function drawScene()
     mat4.rotate(mvMatrix, degToRad(xtilt), [1., 0., 0.]);
     mat4.rotate(mvMatrix, degToRad(ytilt), [0., 1., 0.]);
 
-    for(var i=0; i<stars.length; i++)
+    for(var i=0; i<numStarsToDraw; i++)
     {
         stars[i].draw(spin, twinkle);
         spin += 0.02;
@@ -351,7 +379,7 @@ function animate()
 {
     if(lastTime != 0)
     {
-        for(var i=0; i<stars.length; i++)
+        for(var i=0; i<numStarsToDraw; i++)
         {
             stars[i].animate(elapsed);
         }
@@ -359,10 +387,16 @@ function animate()
     }
 }
 
-function drawFPS()
+function writeFPS()
 {
     var counter = document.getElementById("fpscounter");
     counter.innerHTML = fps.toFixed(1) + " fps";
+}
+
+function writeStarCount()
+{
+    var counter = document.getElementById("starcounter");
+    counter.innerHTML = numStarsToDraw.toString() + " stars";
 }
 
 var explosionForce = 0.;
@@ -434,8 +468,10 @@ function webGLStart()
     }
     else
     {
-        numStars = 300;
+        numStars = 500;
     }
+    numStarsToDraw = numStars; // Start by rendering them all. Increment/decrement as needed.
+    writeStarCount();
     initWorldObjects();
 
     gl.clearColor(0., 0., 0., 1.);
@@ -447,7 +483,7 @@ function webGLStart()
     canvas.addEventListener('mousewheel', handleWheel, false);
     canvas.addEventListener('DOMMouseScroll', handleWheel, false);
 
-    setInterval(drawFPS, 500);
+    setInterval(writeFPS, 500);
 
     tick();
 }

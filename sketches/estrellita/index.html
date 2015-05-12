@@ -37,6 +37,8 @@
         .mydiv {
             display: block;
             width: 100%;
+            background-color: black;
+            color: #CECECE;
         }
         .mydiv br {
             display: none;
@@ -78,14 +80,17 @@
 
 <body onload="webGLStart();">
     <h1>Estrellita</h1>
-    <div class="mydiv" id="fpscounter" style="background-color: black; color: #CECECE">
+    <div class="mydiv" id="fpscounter">
         <h3> </h3>
     </div>
     <canvas id="canvas" style="border: none;" width="1024" height="768"></canvas>
-
+    <div class="mydiv" id="starcounter">
+        <h3> </h3>
+    </div>
     <br/>
 
     <h3>Cursor keys or WASD to rotate, mouse wheel or Q/E to zoom.</h3>
     <h3>Click to scatter stars, F to toggle twinkling.</h3>
+    <h3>Z to decrease the number of stars drawn, C to increase it.</h3>
 </body>
 </html>
