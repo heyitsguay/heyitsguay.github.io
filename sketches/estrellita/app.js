@@ -136,6 +136,14 @@ function handleClick()
     }
 }
 
+function handleWheel(e)
+{
+    // cross-browser wheel delta
+    //var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+    var delta = e.wheelDelta || -e.detail;
+    z = Math.min(-1, z + delta);
+}
+
 var keys = {};
 
 function handleKeyDown(event)
@@ -153,42 +161,32 @@ function handleKeyUp(event)
     keys[event.keyCode] = false;
 }
 
-var z = -30;
+var z = -50;
 var xtilt = 90.;
 var ytilt = 0.;
 var twinkle = true;
 
 function handleKeys()
 {
-    if(keys[37]) // Left cursor key
+    if(keys[37] || keys[65]) // Left cursor key or A
     {
         // Rotate clockwise around Y axis
         ytilt = (ytilt - 2) % 360;
     }
-    if(keys[38]) // Up cursor key
+    if(keys[38] || keys[87]) // Up cursor key or W
     {
         // Rotate counterclockwise around X axis
         xtilt = (xtilt + 2) % 360;
     }
-    if(keys[39]) // Right cursor key
+    if(keys[39] || keys[68]) // Right cursor key or D
     {
         // Rotate counterclockwise around Y axis
         ytilt = (ytilt + 2) % 360;
     }
-    if(keys[40]) // Down cursor key
+    if(keys[40] || keys[83]) // Down cursor key or S
     {
         // Rotate clockwise around X axis
         xtilt = (xtilt - 2) % 360;
-    }
-    if(keys[83]) // S
-    {
-        // Zoom out
-        z -= 1;
-    }
-    if(keys[87]) // W
-    {
-        // Zoom in
-        z = Math.min(0, z + 1);
     }
 }
 
@@ -419,7 +417,9 @@ function webGLStart()
     document.onkeydown = handleKeyDown;
     document.onkeyup = handleKeyUp;
 
-    canvas.addEventListener('click', handleClick, true);
+    canvas.addEventListener('click', handleClick, false);
+    canvas.addEventListener('mousewheel', handleWheel, false);
+    canvas.addEventListener('DOMMouseScroll', handleWheel, false);
 
     setInterval(drawFPS, 500);
 
