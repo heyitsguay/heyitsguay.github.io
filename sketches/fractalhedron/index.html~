@@ -77,7 +77,7 @@
 </head>
 
 <body onload="webGLStart();">
-<h1>fractalhedron</h1>
+<h1>Fractalhedron</h1>
 <div class="mydiv" id="fpscounter" style="background-color: black; color: #CECECE">
     <h3> </h3>
 </div>
