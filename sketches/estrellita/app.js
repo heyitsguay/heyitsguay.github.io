@@ -398,7 +398,16 @@ function writeFPS()
 function writeStarCount()
 {
     var counter = document.getElementById("starcounter");
-    counter.innerHTML = numStarsToDraw.toString() + " stars";
+    var starStr;
+    if(numStarsToDraw > 1)
+    {
+        starStr = " stars"
+    }
+    else
+    {
+        starStr = " star";
+    }
+    counter.innerHTML = numStarsToDraw.toString() + starStr;
 }
 
 var explosionForce = 0.;
