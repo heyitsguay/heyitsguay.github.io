@@ -151,7 +151,7 @@ var xRot = 0;
 var xSpeed = 0;
 var yRot = 0;
 var ySpeed = 0;
-var maxSpeed = 1000;
+var maxSpeed = 10000;
 
 var dz = -5.0;
 var dx = 0;
@@ -223,16 +223,117 @@ function handleKeys()
 //                filter = (filter+1)%3;
 //            }
 
-    if(!keys[37] && !keys[39])
+    if(!fingerDown && !keys[37] && !keys[39])
     {
         ySpeed *= 0.995;
     }
-    if(!keys[38] && !keys[40])
+    if(!fingerDown && !keys[38] && !keys[40])
     {
         xSpeed *= 0.995;
     }
 
 }
+
+var fingerDown = false;
+var twoFingersDown = false;
+var lastFingerDistance;
+var finger0x, finger0y, finger1x, finger1y;
+var ticksSinceTouchMove = 100;
+function handleTouchStart(e)
+{
+    e.preventDefault();
+    var touches = e.targetTouches;
+
+    fingerDown = true;
+    finger0x = touches[0].pageX;
+    finger0y = touches[0].pageY;
+
+    if(touches.length > 1)
+    {
+        twoFingersDown = true;
+        finger1x = touches[1].pageX;
+        finger1y = touches[1].pageY;
+        lastFingerDistance = Math.abs(finger1x - finger0x) + Math.abs(finger1y - finger0y);
+    }
+}
+
+var new0x, new0y;
+function handleTouchMove(e)
+{
+    e.preventDefault();
+    ticksSinceTouchMove = 0;
+    var touches = e.targetTouches;
+    new0x = touches[0].pageX;
+    new0y = touches[0].pageY;
+
+    if(!twoFingersDown)
+    {
+        xSpeed += new0x - finger0x;
+        ySpeed += new0y - finger0y;
+        finger0x = new0x;
+        finger0y = new0y;
+    }
+    else
+    {
+        finger0x = new0x;
+        finger0y = new0y;
+        finger1x = touches[1].pageX;
+        finger1y = touches[1].pageY;
+
+        var newFingerDistance = Math.abs(finger1x - finger0x) + Math.abs(finger1y - finger0y);
+        var distTol = 3;
+
+        if(lastFingerDistance - newFingerDistance > distTol)
+        {
+            dz *= 1.015;
+        }
+        else if(newFingerDistance - lastFingerDistance > distTol)
+        {
+            if(dz > -5)
+            {
+                dz = -1.5 + 9 * (dz + 1.5) / 10;
+            }
+            else
+            {
+                dz *= 0.985;
+            }
+        }
+
+        lastFingerDistance = newFingerDistance;
+    }
+}
+
+var lastTap = new Date().getTime();
+var timeSinceTap;
+var doubleTapInterval = 334;
+function handleTouchEnd(e)
+{
+    e.preventDefault();
+    var touches = e.targetTouches;
+
+    // All fingers removed
+    if(touches.length == 0)
+    {
+        // Single finger double-tap detection
+        if(!twoFingersDown)
+        {
+            var newTap = new Date().getTime();
+            timeSinceTap = newTap - lastTap;
+            if(timeSinceTap < doubleTapInterval)
+            {
+                filter = (filter + 1) % numImages;
+            }
+        }
+
+        fingerDown = false;
+        twoFingersDown = false;
+    }
+    else if(touches.length == 1)
+    {
+        twoFingersDown = false;
+    }
+}
+
 
 var b_cubeVs; // Cube vertex positions buffer
 var b_cubeTexCs; // Cube vertex texture coordinate buffer
@@ -374,6 +475,11 @@ function drawScene()
 
 function animate()
 {
+    if(isTouchscreen && fingerDown && !twoFingersDown && ticksSinceTouchMove > 6)
+    {
+        xSpeed = 0;
+        ySpeed = 0;
+    }
     if(lastTime != 0)
     {
         xRot = (xRot + xSpeed * elapsed / 1000.0) % 360;
@@ -411,6 +517,29 @@ function tick()
     animate();
 }
 
+function resizeCanvas()
+{
+    var canvas = document.getElementById("canvas01");
+    var w = window;
+    var d = document;
+    var e = d.documentElement;
+    var g = d.getElementsByTagName('body')[0];
+    var x = w.innerWidth || e.clientWidth || g.clientWidth;
+    var y = w.innerHeight || e.clientHeight || g.clientHeight;
+    canvas.height = Math.floor(0.5 * y);
+    canvas.width = Math.floor(0.5 * x);
+    gl.viewportHeight = canvas.height;
+    gl.viewportWidth = canvas.width;
+}
+
+function touchCheck()
+{
+    return(('ontouchstart' in window) || (navigator.MaxTouchPoints > 0)
+        || (navigator.msMaxTouchPoints > 0));
+}
+
+
+var isTouchscreen = false;
 function webGLStart()
 {
     var canvas = document.getElementById("canvas01");
@@ -422,8 +551,25 @@ function webGLStart()
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
+    isTouchscreen = touchCheck();
+
+    if(isTouchscreen)
+    {
+        var instr = document.getElementById("instructions");
+        instr.innerHTML = "Touch and drag to rotate, pinch to zoom, double-tap to switch Daves.";
+    }
+
     document.onkeydown = handleKeyDown;
     document.onkeyup = handleKeyUp;
+
+    canvas.addEventListener("touchstart", handleTouchStart, false);
+    canvas.addEventListener("touchleave", handleTouchEnd, false);
+    canvas.addEventListener("touchend", handleTouchEnd, false);
+    canvas.addEventListener("touchmove", handleTouchMove, false);
+
+    // Window resize handler
+    resizeCanvas(); // Set up initial width
+    window.onresize = resizeCanvas;
 
     setInterval(drawFPS, 500);
 
