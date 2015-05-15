@@ -349,8 +349,16 @@ function planetUpdate()
 {
     texNow = theTextures[planetIdx];
     radNow = radii[planetIdx];
-    maxz = -0.05 - radNow;
-    z = Math.min(z, 2 * maxz);
+    if(planetIdx == 8)
+    {
+        // Fix for pluto acting up when zooming.
+        maxz = -1.8 * radNow;
+    }
+    else
+    {
+        maxz = -1.5 * radNow;
+    }
+    z = Math.min(z, 1.5 * maxz);
     initBuffers();
     var planetText = document.getElementById("planet");
     planetText.innerHTML = planets[planetIdx];
