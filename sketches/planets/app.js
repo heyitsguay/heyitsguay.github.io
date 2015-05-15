@@ -244,7 +244,7 @@ var lastFingerDistance;
 function handleTouchStart(e)
 {
     e.preventDefault();
-    var touches = e.touches;
+    var touches = e.targetTouches;
 
 
     mouseDown = true;
@@ -267,7 +267,7 @@ function handleTouchStart(e)
 function handleTouchMove(e)
 {
     e.preventDefault();
-    var touches = e.touches;
+    var touches = e.targetTouches;
     newX = touches[0].pageX;
     newY = touches[0].pageY;
 
@@ -283,6 +283,8 @@ function handleTouchMove(e)
     }
     else if(touches.length > 1)
     {
+        lastMouseX = newX;
+        lastMouseY = newY;
         finger2X = touches[1].pageX;
         finger2Y = touches[1].pageY;
 
@@ -310,9 +312,9 @@ function handleTouchMove(e)
 function handleTouchEnd(e)
 {
     e.preventDefault();
-    var touches = e.touches;
-    vRotX = 0;
-    vRotY = 0;
+    var touches = e.targetTouches;
+    //vRotX = 0;
+    //vRotY = 0;
     if(touches.length < 2)
     {
         twoFingersDown = false;
