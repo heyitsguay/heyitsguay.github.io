@@ -278,8 +278,8 @@ function handleTouchMove(e)
 
     if(touches.length == 1)
     {
-        vRotX = 2 * (newX - lastMouseX);
-        vRotY = 2 * (newY - lastMouseY);
+        vRotX = 1 * (newX - lastMouseX);
+        vRotY = 1 * (newY - lastMouseY);
 
         lastMouseX = newX;
         lastMouseY = newY;
