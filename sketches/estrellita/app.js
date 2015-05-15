@@ -217,6 +217,119 @@ function handleKeys()
     }
 }
 
+var fingerDown = false;
+var twoFingersDown = false;
+var lastFingerDistance;
+var finger0x, finger0y, finger1x, finger1y;
+function handleTouchStart(e)
+{
+    e.preventDefault();
+    var touches = e.targetTouches;
+
+    fingerDown = true;
+    finger0x = touches[0].pageX;
+    finger0y = touches[0].pageY;
+
+    if(touches.length > 1)
+    {
+        twoFingersDown = true;
+        finger1x = touches[1].pageX;
+        finger1y = touches[1].pageY;
+        lastFingerDistance = Math.abs(finger1x - finger0x) + Math.abs(finger1y - finger0y);
+    }
+}
+
+var new0x, new0y;
+function handleTouchMove(e)
+{
+    e.preventDefault();
+    var touches = e.targetTouches;
+    new0x = touches[0].pageX;
+    new0y = touches[0].pageY;
+
+    if(!twoFingersDown)
+    {
+        ytilt += new0x - finger0x;
+        xtilt += new0y - finger0y;
+    }
+    else
+    {
+        finger0x = new0x;
+        finger0y = new0y;
+        finger1x = touches[1].pageX;
+        finger1y = touches[1].pageY;
+
+        var newFingerDistance = Math.abs(finger1x - finger0x) + Math.abs(finger1y - finger0y);
+        var distTol = 3;
+
+        if(lastFingerDistance - newFingerDistance > distTol)
+        {
+            z *= 1.015;
+        }
+        else if(newFingerDistance - lastFingerDistance > distTol)
+        {
+            if(z > -5)
+            {
+                z = -1.5 + 9 * (z + 1.5) / 10;
+            }
+            else
+            {
+                z *= 0.985;
+            }
+        }
+        lastFingerDistance = newFingerDistance;
+    }
+}
+
+var lastTap = new Date().getTime();
+var timeSinceTap;
+var doubleTapInterval = 200;
+function handleTouchEnd(e)
+{
+    e.preventDefault();
+    var touches = e.targetTouches;
+
+    // All fingers removed
+    if(touches.length == 0)
+    {
+        // Single finger double-tap detection
+        if(!twoFingersDown)
+        {
+            var newTap = new Date().getTime();
+            timeSinceTap = newTap - lastTap;
+
+            if(timeSinceTap < doubleTapInterval)
+            {
+                handleClick();
+            }
+            lastTap = newTap;
+        }
+
+        fingerDown = false;
+        twoFingersDown = false;
+    }
+    else if(touches.length == 1)
+    {
+        twoFingersDown = false;
+    }
+}
+
+function button0click()
+{
+    numStarsToDraw = Math.max(1, numStarsToDraw - 10);
+    writeStarCount();
+}
+
+function button1click()
+{
+    numStarsToDraw += 10;
+    if(numStarsToDraw > numStars)
+    {
+        addStars(numStarsToDraw - numStars);
+    }
+    writeStarCount();
+}
+
 var b_starVs; // star vertex buffer
 var b_starTCs; // star texture coordinate buffer
 
@@ -463,33 +576,58 @@ function tick()
     explosionUpdate();
 }
 
+function touchCheck()
+{
+    return(('ontouchstart' in window) || (navigator.MaxTouchPoints > 0)
+    || (navigator.msMaxTouchPoints > 0));
+}
+
+function resizeCanvas()
+{
+    var canvas = document.getElementById("canvas");
+    var w = window;
+    var d = document;
+    var e = d.documentElement;
+    var g = d.getElementsByTagName('body')[0];
+    var x = w.innerWidth || e.clientWidth || g.clientWidth;
+    var y = w.innerHeight || e.clientHeight || g.clientHeight;
+    canvas.height = Math.floor(0.75 * y);
+    canvas.width = Math.floor(0.75 * x);
+    gl.viewportHeight = canvas.height;
+    gl.viewportWidth = canvas.width;
+}
+
+
 var numStars;
+var isTouchscreen = false;
 function webGLStart()
 {
     var canvas = document.getElementById("canvas");
-
-    canvas.height = Math.floor(0.66 * screen.height);
-    canvas.width = Math.floor(0.94 * screen.width);
 
     initGL(canvas);
     initShaders();
     initBuffers();
     initTexture();
-    var platform = navigator.platform;
-    if(platform.indexOf("Linux") > -1 || platform == "Android" || platform == "iPhone" || platform == "iPad" ||
-        platform == "iPod") // On a mobile device (or, accidentally, Linux), render fewer stars
+
+    gl.clearColor(0., 0., 0., 1.);
+
+    isTouchscreen = touchCheck();
+
+    if(isTouchscreen) // On a tablet or smartphone, Linux), render fewer stars
     {
         numStars = 100;
+        var instructions = document.getElementById("instructions");
+        instructions.innerHTML = "<h4>Touch and drag to rotate. Pinch to zoom. Double tap to scatter stars.</h4>";
     }
     else
     {
         numStars = 700;
+        var buttons = document.getElementById("buttons");
+        buttons.innerHTML = "";
     }
     numStarsToDraw = numStars; // Start by rendering them all. Increment/decrement as needed.
     writeStarCount();
     initWorldObjects();
-
-    gl.clearColor(0., 0., 0., 1.);
 
     document.onkeydown = handleKeyDown;
     document.onkeyup = handleKeyUp;
@@ -498,6 +636,14 @@ function webGLStart()
     canvas.addEventListener('mousewheel', handleWheel, false);
     canvas.addEventListener('DOMMouseScroll', handleWheel, false);
 
+    canvas.addEventListener("touchstart", handleTouchStart, false);
+    canvas.addEventListener("touchleave", handleTouchEnd, false);
+    canvas.addEventListener("touchend", handleTouchEnd, false);
+    canvas.addEventListener("touchmove", handleTouchMove, false);
+
+    // Window resize handler
+    resizeCanvas(); // Set up initial width
+    window.onresize = resizeCanvas;
     setInterval(writeFPS, 500);
 
     tick();
