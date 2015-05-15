@@ -225,13 +225,13 @@ function handleKeys()
     if(keys[87]) // W
     {
         // Zoom in
-        if(z > -1)
+        if(z > 4 * maxz)
         {
-            z = -0.05 + 9 * (z + 0.05) / 10;
+            z = maxz + 9 * (z - maxz) / 10;
         }
         else
         {
-            z += 0.05;
+            z += 0.15;
         }
     }
 
@@ -275,8 +275,8 @@ function handleTouchMove(e)
 
     if(touches.length == 1)
     {
-        vRotX = newX - lastMouseX;
-        vRotY = newY - lastMouseY;
+        vRotX = 2 * (newX - lastMouseX);
+        vRotY = 2 * (newY - lastMouseY);
 
         lastMouseX = newX;
         lastMouseY = newY;
@@ -289,17 +289,17 @@ function handleTouchMove(e)
         newFingerDistance = Math.abs(finger2X - newX) + Math.abs(finger2Y - newY);
         if(newFingerDistance < lastFingerDistance) // Fingers came together, zoom out.
         {
-            z -= 0.1;
+            z -= 0.02;
         }
         else if(newFingerDistance > lastFingerDistance) // Fingers spread apart, zoom in.
         {
-            if(z > -1)
+            if(z > 4 * maxz)
             {
-                z = -0.05 + 9 * (z + 0.05) / 10;
+                z = maxz + 9 * (z - maxz) / 10;
             }
             else
             {
-                z += 0.05;
+                z += 0.02;
             }
         }
         lastFingerDistance = newFingerDistance;
@@ -311,6 +311,8 @@ function handleTouchEnd(e)
 {
     e.preventDefault();
     var touches = e.touches;
+    vRotX = 0;
+    vRotY = 0;
     if(touches.length < 2)
     {
         twoFingersDown = false;
@@ -338,14 +340,18 @@ function button1click()
 }
 var texNow;
 var radNow;
+var maxz;
 function planetUpdate()
 {
     texNow = theTextures[planetIdx];
     radNow = radii[planetIdx];
+    maxz = -0.05 - radNow;
+    z = Math.min(z, 2 * maxz);
     initBuffers();
     var planetText = document.getElementById("planet");
     planetText.innerHTML = planets[planetIdx];
     oldPlanetIdx = planetIdx;
+
 }
 
 var newRotationMatrix = mat4.create();
@@ -556,7 +562,7 @@ function resizeCanvas()
     var g = d.getElementsByTagName('body')[0];
     var x = w.innerWidth || e.clientWidth || g.clientWidth;
     //canvas.height = Math.floor(0.5 * screen.height);
-    canvas.width = Math.floor(0.94 * x);
+    canvas.width = Math.floor(0.75 * x);
     gl.viewportWidth = canvas.width;
 }
 
