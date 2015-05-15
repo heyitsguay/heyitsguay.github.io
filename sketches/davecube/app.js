@@ -547,8 +547,9 @@ function resizeCanvas()
     var g = d.getElementsByTagName('body')[0];
     var x = w.innerWidth || e.clientWidth || g.clientWidth;
     var y = w.innerHeight || e.clientHeight || g.clientHeight;
-    canvas.height = Math.floor(0.5 * y);
-    canvas.width = Math.floor(0.5 * x);
+    var z = Math.min(x,y);
+    canvas.height = Math.floor(0.5 * z);
+    canvas.width = Math.floor(0.5 * z);
     gl.viewportHeight = canvas.height;
     gl.viewportWidth = canvas.width;
 }
@@ -570,7 +571,7 @@ function webGLStart()
     if(isTouchscreen)
     {
         var instr = document.getElementById("instructions");
-        instr.innerHTML = "Touch and drag to rotate, pinch to zoom, double-tap to switch Daves.";
+        instr.innerHTML = "<h4>Touch and drag to rotate, pinch to zoom, double-tap to switch Daves.</h4>";
     }
 
     document.onkeydown = handleKeyDown;

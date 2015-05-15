@@ -615,7 +615,7 @@ function webGLStart()
     if(isTouchscreen)
     {
         var instructions = document.getElementById("instructions");
-        instructions.innerHTML = "Touch and drag to rotate, pinch to zoom.";
+        instructions.innerHTML = "<h4>Touch and drag to rotate, pinch to zoom.</h4>";
     }
 
     gl.clearColor(0., 0., 0., 1.);
