@@ -122,15 +122,15 @@ function initTexture()
         })(j);
     }
 
-    ims[0].src = "mercury.png";
-    ims[1].src = "venus.png";
-    ims[2].src = "earth.png";
-    ims[3].src = "moon.gif";
-    ims[4].src = "mars.png";
-    ims[5].src = "jupiter.png";
-    ims[6].src = "saturn.png";
-    ims[7].src = "neptune.png";
-    ims[8].src = "pluto.png";
+    ims[0].src = "mercury.jpg";
+    ims[1].src = "venus.jpg";
+    ims[2].src = "earth.jpg";
+    ims[3].src = "moon.jpg";
+    ims[4].src = "mars.jpg";
+    ims[5].src = "jupiter.jpg";
+    ims[6].src = "saturn.jpg";
+    ims[7].src = "neptune.jpg";
+    ims[8].src = "pluto.jpg";
 }
 
 var mvMatrix = mat4.create();
@@ -291,7 +291,7 @@ function handleTouchMove(e)
         newFingerDistance = Math.abs(finger2X - newX) + Math.abs(finger2Y - newY);
         if(newFingerDistance < lastFingerDistance) // Fingers came together, zoom out.
         {
-            z *= 1.1;
+            z *= 1.03;
         }
         else if(newFingerDistance > lastFingerDistance) // Fingers spread apart, zoom in.
         {
@@ -301,7 +301,7 @@ function handleTouchMove(e)
             }
             else
             {
-                z *= 0.9;
+                z *= 0.97;
             }
         }
         lastFingerDistance = newFingerDistance;
@@ -563,7 +563,8 @@ function resizeCanvas()
     var e = d.documentElement;
     var g = d.getElementsByTagName('body')[0];
     var x = w.innerWidth || e.clientWidth || g.clientWidth;
-    //canvas.height = Math.floor(0.5 * screen.height);
+    var y = w.innerHeight || e.clientHeight || g.clientHeight;
+    canvas.height = Math.floor(0.66 * y);
     canvas.width = Math.floor(0.75 * x);
     gl.viewportWidth = canvas.width;
 }
