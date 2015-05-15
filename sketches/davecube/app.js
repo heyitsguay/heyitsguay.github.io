@@ -268,8 +268,19 @@ function handleTouchMove(e)
 
     if(!twoFingersDown)
     {
-        ySpeed += new0x - finger0x;
-        xSpeed += new0y - finger0y;
+        var dtol = 3;
+        var dx = new0x - finger0x;
+        if(Math.abs(dx) > dtol)
+        {
+            ySpeed += dx;
+        }
+
+        var dy = new0y - finger0y;
+        if(Math.abs(dy) > dtol)
+        {
+            xSpeed += dy;
+        }
+        
         finger0x = new0x;
         finger0y = new0y;
     }
@@ -305,7 +316,7 @@ function handleTouchMove(e)
 
 var lastTap = new Date().getTime();
 var timeSinceTap;
-var doubleTapInterval = 280;
+var doubleTapInterval = 200;
 function handleTouchEnd(e)
 {
     e.preventDefault();
