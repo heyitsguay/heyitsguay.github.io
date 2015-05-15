@@ -366,7 +366,7 @@ function planetUpdate()
     z = Math.min(z, 1.5 * maxz);
     initBuffers();
     var planetText = document.getElementById("planet");
-    planetText.innerHTML = planets[planetIdx];
+    planetText.innerHTML = "<h3>" + planets[planetIdx] + "</h3>";
     oldPlanetIdx = planetIdx;
 
 }
@@ -496,28 +496,6 @@ function drawScene()
     var lighting = false;
     //noinspection JSCheckFunctionSignatures
     gl.uniform1i(shaderProgram.useLightingUniform, lighting);
-    //if(lighting)
-    //{
-    //    gl.uniform3f(shaderProgram.ambientColorUniform,
-    //        parseFloat(document.getElementById("ambientR").value),
-    //        parseFloat(document.getElementById("ambientG").value),
-    //        parseFloat(document.getElementById("ambientB").value));
-    //
-    //    var lightingDirection = [
-    //        parseFloat(document.getElementById("lightDirectionX").value),
-    //        parseFloat(document.getElementById("lightDirectionY").value),
-    //        parseFloat(document.getElementById("lightDirectionZ").value)
-    //    ];
-    //    var adjustedLD = vec3.create();
-    //    vec3.normalize(lightingDirection, adjustedLD);
-    //    vec3.scale(adjustedLD, -1);
-    //    gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
-    //
-    //    gl.uniform3f(shaderProgram.directionalColorUniform,
-    //        parseFloat(document.getElementById("directionalR").value),
-    //        parseFloat(document.getElementById("directionalG").value),
-    //        parseFloat(document.getElementById("directionalB").value));
-    //}
 
     mat4.identity(mvMatrix);
     mat4.translate(mvMatrix, [0, 0, z]);
