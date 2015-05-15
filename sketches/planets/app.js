@@ -176,10 +176,12 @@ function handleMouseUp(e)
 }
 
 var newX, newY;
+var ticksSinceMouseMove = 100;
 function handleMouseMove(e)
 {
     if(!mouseDown){return;}
 
+    ticksSinceMouseMove = 0;
     newX = e.clientX;
     newY = e.clientY;
 
@@ -285,6 +287,8 @@ function handleTouchMove(e)
     {
         lastMouseX = newX;
         lastMouseY = newY;
+        vRotX = 0;
+        vRotY = 0;
         finger2X = touches[1].pageX;
         finger2Y = touches[1].pageY;
 
@@ -383,6 +387,11 @@ function rotateSphere()
         {
             vRotY = 0;
         }
+    }
+    if(mouseDown && ticksSinceMouseMove > 5)
+    {
+        vRotX = 0;
+        vRotY = 0;
     }
     mat4.identity(newRotationMatrix);
     mat4.rotate(newRotationMatrix, degToRad(vRotX / 2), [0, 1, 0]);
@@ -561,6 +570,9 @@ function tick()
         planetUpdate();
     }
     requestAnimationFrame(tick);
+
+    // Cap at 1000 to prevent overflows.
+    ticksSinceMouseMove = Math.min(1000, ticksSinceMouseMove + 1);
     rotateSphere();
     drawScene();
 }
