@@ -220,7 +220,7 @@ function handleKeys()
     if(keys[83]) // S
     {
         // Zoom out
-        z -= 0.05;
+        z -= 0.15;
     }
     if(keys[87]) // W
     {
@@ -287,11 +287,11 @@ function handleTouchMove(e)
         finger2Y = touches[1].pageY;
 
         newFingerDistance = Math.abs(finger2X - newX) + Math.abs(finger2Y - newY);
-        if(newFingerDistance > lastFingerDistance) // Fingers spread apart, zoom out.
+        if(newFingerDistance < lastFingerDistance) // Fingers came together, zoom out.
         {
             z -= 0.1;
         }
-        else if(newFingerDistance < lastFingerDistance) // Fingers came together, zoom in
+        else if(newFingerDistance > lastFingerDistance) // Fingers spread apart, zoom in.
         {
             if(z > -1)
             {
@@ -320,6 +320,21 @@ function handleTouchEnd(e)
     }
 }
 
+function button0click()
+{
+    // Decrement planetIdx (previous planet)
+    planetIdx -= 1;
+    if(planetIdx < 0)
+    {
+        planetIdx = 8;
+    }
+}
+
+function button1click()
+{
+    // Increment planetIdx (next planet)
+    planetIdx = (planetIdx + 1) % 9;
+}
 var texNow;
 var radNow;
 function planetUpdate()
@@ -531,12 +546,22 @@ function tick()
     drawScene();
 }
 
+function resizeCanvas()
+{
+    var canvas = document.getElementById("canvas");
+    var w = window;
+    var d = document;
+    var e = d.documentElement;
+    var g = d.getElementsByTagName('body')[0];
+    var x = w.innerWidth || e.clientWidth || g.clientWidth;
+    //canvas.height = Math.floor(0.5 * screen.height);
+    canvas.width = Math.floor(0.94 * x);
+    gl.viewportWidth = canvas.width;
+}
+
 function webGLStart()
 {
     var canvas = document.getElementById("canvas");
-
-    //canvas.height = Math.floor(0.5 * screen.height);
-    //canvas.width = Math.floor(1 * canvas.height);
 
     initGL(canvas);
     initShaders();
@@ -558,6 +583,10 @@ function webGLStart()
     canvas.addEventListener("touchleave", handleTouchEnd, false);
     document.addEventListener("touchend", handleTouchEnd, false);
     document.addEventListener("touchmove", handleTouchMove, false);
+
+    // Window resize handler
+    resizeCanvas(); // Set up initial width
+    window.onresize = resizeCanvas;
 
     setInterval(writeFPS, 500);
 
