@@ -305,7 +305,7 @@ function handleTouchMove(e)
 
 var lastTap = new Date().getTime();
 var timeSinceTap;
-var doubleTapInterval = 334;
+var doubleTapInterval = 334.;
 function handleTouchEnd(e)
 {
     e.preventDefault();
@@ -319,10 +319,12 @@ function handleTouchEnd(e)
         {
             var newTap = new Date().getTime();
             timeSinceTap = newTap - lastTap;
+
             if(timeSinceTap < doubleTapInterval)
             {
                 filter = (filter + 1) % numImages;
             }
+            lastTap = newTap;
         }
 
         fingerDown = false;
@@ -475,7 +477,7 @@ function drawScene()
 
 function animate()
 {
-    if(isTouchscreen && fingerDown && !twoFingersDown && ticksSinceTouchMove > 6)
+    if(isTouchscreen && fingerDown && !twoFingersDown && ticksSinceTouchMove > 15)
     {
         xSpeed = 0;
         ySpeed = 0;
