@@ -316,18 +316,55 @@ function handleTouchEnd(e)
 
 function button0click()
 {
-    numStarsToDraw = Math.max(1, numStarsToDraw - 10);
-    writeStarCount();
+    //numStarsToDraw = Math.max(1, numStarsToDraw - 10);
+    //writeStarCount();
 }
 
 function button1click()
 {
-    numStarsToDraw += 10;
-    if(numStarsToDraw > numStars)
+    //numStarsToDraw += 10;
+    //if(numStarsToDraw > numStars)
+    //{
+    //    addStars(numStarsToDraw - numStars);
+    //}
+    //writeStarCount();
+}
+
+var button0pushed = false;
+var button1pushed = false;
+function handleButton0Push()
+{
+    button0pushed = true;
+}
+function handleButton0Release()
+{
+    button0pushed = false;
+}
+function handleButton1Push()
+{
+    button1pushed = true;
+}
+function handleButton1Release()
+{
+    button1pushed = false;
+}
+
+function handleButtons()
+{
+    if(button0pushed)
     {
-        addStars(numStarsToDraw - numStars);
+        numStarsToDraw = Math.max(1, numStarsToDraw - 1);
+        writeStarCount();
     }
-    writeStarCount();
+    if(button1pushed)
+    {
+        numStarsToDraw += 1;
+        if(numStarsToDraw > numStars)
+        {
+            addStars(numStarsToDraw - numStars);
+        }
+        writeStarCount();
+    }
 }
 
 var b_starVs; // star vertex buffer
@@ -571,6 +608,7 @@ function tick()
     updateFPS();
     requestAnimationFrame(tick);
     handleKeys();
+    handleButtons();
     drawScene();
     animate();
     explosionUpdate();
@@ -640,6 +678,20 @@ function webGLStart()
     canvas.addEventListener("touchleave", handleTouchEnd, false);
     canvas.addEventListener("touchend", handleTouchEnd, false);
     canvas.addEventListener("touchmove", handleTouchMove, false);
+
+    var button0 = document.getElementById("button0");
+    var button1 = document.getElementById("button1");
+
+    if(isTouchscreen)
+    {
+        button0.addEventListener("touchstart", handleButton0Push, false);
+        button0.addEventListener("touchleave", handleButton0Release, false);
+        button0.addEventListener("touchend", handleButton0Release, false);
+
+        button1.addEventListener("touchstart", handleButton1Push, false);
+        button1.addEventListener("touchleave", handleButton1Release, false);
+        button1.addEventListener("touchend", handleButton1Release, false);
+    }
 
     // Window resize handler
     resizeCanvas(); // Set up initial width
