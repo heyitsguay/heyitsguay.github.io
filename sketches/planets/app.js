@@ -588,8 +588,8 @@ function webGLStart()
     // Touch thangs
     canvas.addEventListener("touchstart", handleTouchStart, false);
     canvas.addEventListener("touchleave", handleTouchEnd, false);
-    document.addEventListener("touchend", handleTouchEnd, false);
-    document.addEventListener("touchmove", handleTouchMove, false);
+    canvas.addEventListener("touchend", handleTouchEnd, false);
+    canvas.addEventListener("touchmove", handleTouchMove, false);
 
     // Window resize handler
     resizeCanvas(); // Set up initial width
