@@ -479,11 +479,11 @@ function webGLStart()
     if(platform.indexOf("Linux") > -1 || platform == "Android" || platform == "iPhone" || platform == "iPad" ||
         platform == "iPod") // On a mobile device (or, accidentally, Linux), render fewer stars
     {
-        numStars = 70;
+        numStars = 100;
     }
     else
     {
-        numStars = 500;
+        numStars = 700;
     }
     numStarsToDraw = numStars; // Start by rendering them all. Increment/decrement as needed.
     writeStarCount();
