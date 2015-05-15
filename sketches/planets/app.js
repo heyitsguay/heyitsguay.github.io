@@ -268,6 +268,7 @@ function handleTouchStart(e)
 
 function handleTouchMove(e)
 {
+    ticksSinceMouseMove = 0;
     e.preventDefault();
     var touches = e.targetTouches;
     newX = touches[0].pageX;
