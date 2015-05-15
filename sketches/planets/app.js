@@ -289,11 +289,13 @@ function handleTouchMove(e)
         finger2Y = touches[1].pageY;
 
         newFingerDistance = Math.abs(finger2X - newX) + Math.abs(finger2Y - newY);
-        if(newFingerDistance < lastFingerDistance) // Fingers came together, zoom out.
+        var distTol = 2; // Ignore changes smaller than this tolerance, for better stability.
+
+        if(lastFingerDistance - newFingerDistance > distTol) // Fingers came together, zoom out.
         {
             z *= 1.03;
         }
-        else if(newFingerDistance > lastFingerDistance) // Fingers spread apart, zoom in.
+        else if(newFingerDistance - lastFingerDistance > distTol) // Fingers spread apart, zoom in.
         {
             if(z > 4 * maxz)
             {
