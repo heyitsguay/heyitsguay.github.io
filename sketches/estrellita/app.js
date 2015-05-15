@@ -591,7 +591,7 @@ function resizeCanvas()
     var g = d.getElementsByTagName('body')[0];
     var x = w.innerWidth || e.clientWidth || g.clientWidth;
     var y = w.innerHeight || e.clientHeight || g.clientHeight;
-    canvas.height = Math.floor(0.75 * y);
+    canvas.height = Math.floor(0.7 * y);
     canvas.width = Math.floor(0.75 * x);
     gl.viewportHeight = canvas.height;
     gl.viewportWidth = canvas.width;
