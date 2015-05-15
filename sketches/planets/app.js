@@ -302,6 +302,7 @@ function handleTouchMove(e)
                 z += 0.05;
             }
         }
+        lastFingerDistance = newFingerDistance;
 
     }
 }
