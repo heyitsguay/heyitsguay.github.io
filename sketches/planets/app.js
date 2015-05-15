@@ -578,6 +578,13 @@ function tick()
     drawScene();
 }
 
+function touchCheck()
+{
+    return(('ontouchstart' in window) || (navigator.MaxTouchPoints > 0)
+    || (navigator.msMaxTouchPoints > 0));
+}
+
+
 function resizeCanvas()
 {
     var canvas = document.getElementById("canvas");
@@ -593,6 +600,7 @@ function resizeCanvas()
     gl.viewportWidth = canvas.width;
 }
 
+var isTouchscreen;
 function webGLStart()
 {
     var canvas = document.getElementById("canvas");
@@ -601,6 +609,14 @@ function webGLStart()
     initShaders();
     initBuffers();
     initTexture();
+
+    isTouchscreen = touchCheck();
+
+    if(isTouchscreen)
+    {
+        var instructions = document.getElementById("instructions");
+        instructions.innerHTML = "Touch and drag to rotate, pinch to zoom.";
+    }
 
     gl.clearColor(0., 0., 0., 1.);
     gl.enable(gl.DEPTH_TEST);

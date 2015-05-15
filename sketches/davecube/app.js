@@ -223,11 +223,11 @@ function handleKeys()
 //                filter = (filter+1)%3;
 //            }
 
-    if(!fingerDown && !keys[37] && !keys[39])
+    if((!keys[37] && !keys[39]) || (isTouchscreen && ticksSinceTouchMove > 45))
     {
         ySpeed *= 0.995;
     }
-    if(!fingerDown && !keys[38] && !keys[40])
+    if((!keys[38] && !keys[40]) || (isTouchscreen && ticksSinceTouchMove > 45))
     {
         xSpeed *= 0.995;
     }
@@ -305,7 +305,7 @@ function handleTouchMove(e)
 
 var lastTap = new Date().getTime();
 var timeSinceTap;
-var doubleTapInterval = 334.;
+var doubleTapInterval = 280;
 function handleTouchEnd(e)
 {
     e.preventDefault();
@@ -477,7 +477,7 @@ function drawScene()
 
 function animate()
 {
-    if(isTouchscreen && fingerDown && !twoFingersDown && ticksSinceTouchMove > 15)
+    if(isTouchscreen && fingerDown && !twoFingersDown && ticksSinceTouchMove > 20)
     {
         xSpeed = 0;
         ySpeed = 0;
@@ -535,13 +535,6 @@ function resizeCanvas()
     gl.viewportHeight = canvas.height;
     gl.viewportWidth = canvas.width;
 }
-
-function touchCheck()
-{
-    return(('ontouchstart' in window) || (navigator.MaxTouchPoints > 0)
-        || (navigator.msMaxTouchPoints > 0));
-}
-
 
 var isTouchscreen = false;
 function webGLStart()
