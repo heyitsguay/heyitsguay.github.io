@@ -250,7 +250,7 @@ function handleTouchMove(e)
     if(!twoFingersDown)
     {
         ytilt = (ytilt + 0.02 * (new0x - finger0x)) % 360;
-        xtilt += (xtilt + 0.02 * (new0y - finger0y)) % 360;
+        xtilt = (xtilt + 0.02 * (new0y - finger0y)) % 360;
     }
     else
     {
