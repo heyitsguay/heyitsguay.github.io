@@ -268,8 +268,8 @@ function handleTouchMove(e)
 
     if(!twoFingersDown)
     {
-        xSpeed += new0x - finger0x;
-        ySpeed += new0y - finger0y;
+        ySpeed += new0x - finger0x;
+        xSpeed += new0y - finger0y;
         finger0x = new0x;
         finger0y = new0y;
     }
@@ -514,6 +514,8 @@ function tick()
     requestAnimationFrame(tick);
     handleKeys();
     drawScene();
+
+    ticksSinceTouchMove = Math.min(1000, ticksSinceTouchMove + 1);
     animate();
 }
 
