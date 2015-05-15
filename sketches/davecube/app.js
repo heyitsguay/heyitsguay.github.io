@@ -510,6 +510,12 @@ function drawFPS()
     counter.innerHTML = fps.toFixed(1) + " fps";
 }
 
+function touchCheck()
+{
+    return(('ontouchstart' in window) || (navigator.MaxTouchPoints > 0)
+    || (navigator.msMaxTouchPoints > 0));
+}
+
 function tick()
 {
     updateFPS();
