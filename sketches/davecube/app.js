@@ -83,23 +83,11 @@ function initShaders()
 
 function handleLoadedTexture(texture)
 {
-
-
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-//            gl.bindTexture(gl.TEXTURE_2D, textures[1]);
-//            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textures[1].image);
-//            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-//            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-//
-//            gl.bindTexture(gl.TEXTURE_2D, textures[2]);
-//            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textures[2].image);
-//            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-//            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
@@ -223,11 +211,11 @@ function handleKeys()
 //                filter = (filter+1)%3;
 //            }
 
-    if((!keys[37] && !keys[39]) || (isTouchscreen && ticksSinceTouchMove > 45))
+    if((!keys[37] && !keys[39]) || (isTouchscreen && ticksSinceTouchMove > 25))
     {
         ySpeed *= 0.995;
     }
-    if((!keys[38] && !keys[40]) || (isTouchscreen && ticksSinceTouchMove > 45))
+    if((!keys[38] && !keys[40]) || (isTouchscreen && ticksSinceTouchMove > 25))
     {
         xSpeed *= 0.995;
     }
@@ -261,7 +249,6 @@ var new0x, new0y;
 function handleTouchMove(e)
 {
     e.preventDefault();
-    ticksSinceTouchMove = 0;
     var touches = e.targetTouches;
     new0x = touches[0].pageX;
     new0y = touches[0].pageY;
@@ -272,12 +259,14 @@ function handleTouchMove(e)
         var dx = new0x - finger0x;
         if(Math.abs(dx) > dtol)
         {
+            ticksSinceTouchMove = 0;
             ySpeed += dx;
         }
 
         var dy = new0y - finger0y;
         if(Math.abs(dy) > dtol)
         {
+            ticksSinceTouchMove = 0;
             xSpeed += dy;
         }
 
@@ -286,6 +275,7 @@ function handleTouchMove(e)
     }
     else
     {
+        ticksSinceTouchMove = 0;
         finger0x = new0x;
         finger0y = new0y;
         finger1x = touches[1].pageX;
