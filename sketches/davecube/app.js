@@ -478,7 +478,7 @@ function drawScene()
 
 function animate()
 {
-    if(isTouchscreen && fingerDown && !twoFingersDown && ticksSinceTouchMove > 30)
+    if(isTouchscreen && fingerDown && !twoFingersDown && ticksSinceTouchMove > 15)
     {
         xSpeed = 0;
         ySpeed = 0;
