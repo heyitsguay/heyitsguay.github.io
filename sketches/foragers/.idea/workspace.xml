@@ -33,20 +33,20 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="forager.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="forager.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/forager.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.30141845">
+                <state vertical-scroll-proportion="0.0">
                   <caret line="16" column="41" selection-start-line="16" selection-start-column="41" selection-end-line="16" selection-end-column="41" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="inits.js" pinned="false" current-in-tab="false">
+          <file leaf-file-name="inits.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/inits.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
+                <state vertical-scroll-proportion="0.30141845">
                   <caret line="61" column="30" selection-start-line="61" selection-start-column="30" selection-end-line="61" selection-end-column="30" />
                   <folding />
                 </state>
@@ -60,8 +60,8 @@
           <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.36802974">
-                  <caret line="141" column="26" selection-start-line="141" selection-start-column="26" selection-end-line="141" selection-end-column="26" />
+                <state vertical-scroll-proportion="0.7788104">
+                  <caret line="154" column="9" selection-start-line="154" selection-start-column="9" selection-end-line="154" selection-end-column="9" />
                   <folding>
                     <marker date="1432093586134" expanded="true" signature="1842:1923" placeholder="{...}" />
                     <marker date="1432093586134" expanded="true" signature="2454:3978" placeholder="{...}" />
@@ -117,9 +117,9 @@
         <option value="vm:119" />
         <option value="$PROJECT_DIR$/glhelpers.js" />
         <option value="$PROJECT_DIR$/main.js" />
-        <option value="$PROJECT_DIR$/inits.js" />
         <option value="$PROJECT_DIR$/forager.js" />
         <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/inits.js" />
       </list>
     </option>
   </component>
@@ -676,17 +676,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/inits.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="46" column="16" selection-start-line="46" selection-start-column="16" selection-end-line="46" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/forager.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.30141845">
+        <state vertical-scroll-proportion="0.0">
           <caret line="16" column="41" selection-start-line="16" selection-start-column="41" selection-end-line="16" selection-end-column="41" />
           <folding />
         </state>
@@ -694,8 +686,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.36802974">
-          <caret line="141" column="26" selection-start-line="141" selection-start-column="26" selection-end-line="141" selection-end-column="26" />
+        <state vertical-scroll-proportion="0.7788104">
+          <caret line="154" column="9" selection-start-line="154" selection-start-column="9" selection-end-line="154" selection-end-column="9" />
           <folding>
             <marker date="1432093586134" expanded="true" signature="1842:1923" placeholder="{...}" />
             <marker date="1432093586134" expanded="true" signature="2454:3978" placeholder="{...}" />
@@ -707,6 +699,14 @@
             <marker date="1432093586134" expanded="true" signature="5542:5608" placeholder="{...}" />
             <marker date="1432093586134" expanded="true" signature="5811:5910" placeholder="{...}" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inits.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.30141845">
+          <caret line="61" column="30" selection-start-line="61" selection-start-column="30" selection-end-line="61" selection-end-column="30" />
+          <folding />
         </state>
       </provider>
     </entry>

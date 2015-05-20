@@ -59,7 +59,7 @@ function initGLVars()
     uniformValues = {
         u_dst: {data: [1 / texX, 1 / texY], type: gl.FLOAT_VEC2},
         u_cdiff: {data: 0.16, type: gl.FLOAT},
-        u_cdecay: {data: 0.999, type: gl.FLOAT},
+        u_cdecay: {data: 0.993, type: gl.FLOAT},
         u_heatH: {data: 0.09, type: gl.FLOAT},
         s_heat: {data: 0, type: gl.INT},
         s_entity: {data: 1, type: gl.INT}
