@@ -1,3 +1,6 @@
+const maxfdr = 100; // Maximum radial velocity  magnitude for foragers.
+const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
+
 // the webgl canvas context
 var gl;
 
@@ -18,13 +21,13 @@ var spAttributes = {
     vs_foragerdraw: ['a_fposition', 'a_fcolor']
 };
 
-// Vertex attribute arrays
+// Vertex attribute arrays. Initialized in
 var attributeArrays;
 
 // Fragment shader uniform variable names
 var spUniforms = {
     fs_foragerupdate: [],
-    fs_diffuse: ['u_dst', 'u_cdiff', 's_heat', 's_entity'],
+    fs_diffuse: ['u_dst', 'u_cdiff', 'u_cdecay', 's_heat', 's_entity'],
     fs_drawheat: ['u_dst', 'u_heatH', 's_heat'],
     fs_foragerdraw: []
 };
@@ -33,8 +36,8 @@ var spUniforms = {
 var uniformValues;
 
 // Array of FullBuffers used in this sketch.
-var fullBuffers = {};
-var fullBufferIds = ['heat0', 'heat1', 'entity'];
+var floatBuffers = {};
+var floatBufferIds = ['heat0', 'heat1', 'entity'];
 
 // Array containing all Foragers used in the sketch.
 var foragers = [];
@@ -50,23 +53,27 @@ var texY = 512;
 // Used to toggle between the two heat framebuffers.
 var fbidx = 0;
 
-function deg2rad(degrees)
-{
-    return degrees * Math.PI / 180;
-}
+//function deg2rad(degrees)
+//{
+//    return degrees * Math.PI / 180;
+//}
 
 function updateForagers()
 {
     for(var i = 0; i < foragers.length; i++)
     {
+        var dt = 0.1;
+        var dth = dthrands[i] * 1;
+        foragers[i].update(dt, 0, 0, dth);
         foragers[i].draw();
     }
 }
 
+var dcount = 2; // Number of diffusion steps to perform per frame.
 function updateHeat()
 {
-    // Step 1: Add entity heat contributions to the entity fullBuffer. -----------------------------------------------//
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fullBuffers['entity'].fb);
+    // Step 1: Add entity heat contributions to the entity FloatBuffer. -----------------------------------------------//
+    gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers['entity'].fb);
     gl.viewport(0, 0, texX, texY);
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -76,34 +83,48 @@ function updateHeat()
     gl.drawArrays(gl.TRIANGLES, 0, attributeArrays.a_fposition.numItems);
 
     // Step 2: Combine the entity heat texture with the heat map and diffuse. ----------------------------------------//
-    fbidx = (fbidx + 1) % 2;
-    // ID of the heat map FullBuffer updated last time.
-    var ping = ['heat0', 'heat1'][1-fbidx];
-    // ID of the heat map FullBuffer to update this time.
-    var pong = ['heat0', 'heat1'][fbidx];
+    for(var i=0; i<dcount; i++)
+    {
+        fbidx = (fbidx + 1) % 2;
+        // ID of the heat map FullBuffer updated last time.
+        var ping = ['heat0', 'heat1'][1 - fbidx];
+        // ID of the heat map FullBuffer to update this time.
+        var pong = ['heat0', 'heat1'][fbidx];
 
-    // Bind the previous heat map to texture unit 0, and the entity heat map to texture unit 1.
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, fullBuffers[ping].tex);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, fullBuffers['entity'].tex);
-    // Bind the current heat map framebuffer.
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fullBuffers[pong].fb);
-    gl.viewport(0, 0, texX, texY);
-    gl.clearColor(0, 0, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    // Prepare the diffuse shader program to draw.
-    sps['diffuse'].prep();
-    // Draw
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, attributeArrays.a_sposition.numItems);
+        // Bind the previous heat map to texture unit 0, and the entity heat map to texture unit 1.
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, floatBuffers[ping].tex);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, floatBuffers['entity'].tex);
+        // Bind the current heat map framebuffer.
+        gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers[pong].fb);
+        gl.viewport(0, 0, texX, texY);
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        // Prepare the diffuse shader program to draw.
+        sps['diffuse'].prep();
+        // Draw
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, attributeArrays.a_sposition.numItems);
+    }
 
+}
+
+var dthrands = [];
+function changeRands()
+{
+    var newrands = [];
+    for(var i=0; i < foragers.length; i++)
+    {
+        newrands.push(Math.random() - 0.5);
+    }
+    return newrands;
 }
 
 function draw()
 {
     var draw_id = ['heat0', 'heat1'][fbidx];
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, fullBuffers[draw_id].tex);
+    gl.bindTexture(gl.TEXTURE_2D, floatBuffers[draw_id].tex);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, worldX, worldY);
     gl.clearColor(0, 0, 0, 1);

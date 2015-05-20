@@ -63,9 +63,11 @@
 
         varying float v_fheat;
 
+        const float hoffsetinv = 0.00001;
+
         void main()
         {
-            gl_FragColor = vec4(v_fheat, 0.0, 0.0, 1.0);
+            gl_FragColor = vec4(hoffsetinv * v_fheat, 0.0, 0.0, 1.0);
         }
     </script>
     <script id="fs_diffuse" type="x-shader/x-fragment">
@@ -73,9 +75,11 @@
 
         uniform vec2 u_dst;
         uniform float u_cdiff;
+        uniform float u_cdecay;
         uniform sampler2D s_heat;
         uniform sampler2D s_entity;
 
+        const vec2 rad = vec2(1.0, 1.0);
         const float w1 = 1.0;//0.1464466; // NESW neighbor weighting
         const float w2 = 0.5;//0.1035534; // diagonal neighbor weighting
         const float w3 = 6.0;//1.0; // self weighting
@@ -86,14 +90,14 @@
             float dt = u_dst[1];
 
             vec2 p  = gl_FragCoord.xy * u_dst;
-            vec2 n  = p + vec2( 0.,  dt);
-            vec2 ne = p + vec2( ds,  dt);
-            vec2 e  = p + vec2( ds,  0.);
-            vec2 se = p + vec2( ds, -dt);
-            vec2 s  = p + vec2( 0., -dt);
-            vec2 sw = p + vec2(-ds, -dt);
-            vec2 w  = p + vec2(-ds,  0.);
-            vec2 nw = p + vec2(-ds,  dt);
+            vec2 n  = p + rad * vec2( 0.,  dt);
+            vec2 ne = p + rad * vec2( ds,  dt);
+            vec2 e  = p + rad * vec2( ds,  0.);
+            vec2 se = p + rad * vec2( ds, -dt);
+            vec2 s  = p + rad * vec2( 0., -dt);
+            vec2 sw = p + rad * vec2(-ds, -dt);
+            vec2 w  = p + rad * vec2(-ds,  0.);
+            vec2 nw = p + rad * vec2(-ds,  dt);
 
             float valp  = texture2D(s_heat, p ).r + texture2D(s_entity, p ).r;
             float valn  = texture2D(s_heat, n ).r + texture2D(s_entity, n ).r;
@@ -109,7 +113,7 @@
                             + w2 * (valne + valse + valsw + valnw)
                             - w3 * valp;
 
-            float newval =  valp + u_cdiff * laplacian;
+            float newval =  u_cdecay * (valp + u_cdiff * laplacian);
 
             gl_FragColor = vec4(newval, 0.0, 0.0, 1.0);
         }
@@ -121,7 +125,7 @@
         uniform float u_heatH;
         uniform sampler2D s_heat;
 
-        const float heatOffset = 100000.;
+        const float hoffset = 10000.;
         const vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
 
         // Thanks to sam at http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl (May 19, 2015).
@@ -134,9 +138,10 @@
 
         void main()
         {
-            float heat = heatOffset * texture2D(s_heat, gl_FragCoord.xy * u_dst).r;
-            float t = mod((0.01 * heat), 1.0);
-            gl_FragColor = vec4(hsv2rgb(vec3(u_heatH + t, 1., min(1.0, heat))), 1.0);
+            float heat = hoffset * texture2D(s_heat, gl_FragCoord.xy * u_dst).r;
+            float t = 0.04 * heat;
+            float H = mod(u_heatH + t, 1.0);
+            gl_FragColor = vec4(hsv2rgb(vec3(H , 1., min(1.0, heat))), 1.0);
         }
     </script>
     <script id="fs_foragerdraw" type="x-shader/x-fragment">
@@ -195,19 +200,19 @@
 
 <body onload="webGLStart();">
     <!--Title-->
-    <h1>diffusion foragers</h1>
+    <h1>foragers</h1>
     <!--FPS counter-->
     <div class="mydiv" id="fpscounter"> </div>
     <!--The canvas-->
     <canvas id="canvas" width="512" height="512" style="border:1px solid #CECECE"></canvas><br/>
     <!--Diffusion speed slider bar-->
-    <label for="range-cdiff"></label><input type="range" id="range-cdiff" min="0" max="0.16666666" value="0.05" step="0.002" onchange="showValue(this.value)" />Diffusion speed<br/>
-    <span id="range-cdiff-disp">0.1</span>
-    <script type="text/javascript">
-        function showValue(val)
-        {
-            document.getElementById("range-cdiff-disp").innerHTML = val;
-        }
-    </script>
+    <!--<label for="range-cdiff"></label><input type="range" id="range-cdiff" min="0" max="0.16666666" value="0.1" step="0.002" onchange="showValue(this.value)" />Diffusion speed<br/>-->
+    <!--<span id="range-cdiff-disp">0.1</span>-->
+    <!--<script type="text/javascript">-->
+        <!--function showValue(val)-->
+        <!--{-->
+            <!--document.getElementById("range-cdiff-disp").innerHTML = val;-->
+        <!--}-->
+    <!--</script>-->
 </body>
 </html>

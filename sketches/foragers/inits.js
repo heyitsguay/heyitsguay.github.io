@@ -1,7 +1,7 @@
 var successGL = false;
 var successForagers = false;
 var successShaderPrograms = false;
-var successFullBuffers = false;
+var successFloatBuffers = false;
 var successBuffers = false;
 var initialized = false;
 
@@ -10,8 +10,45 @@ function webGLStart()
     var canvas = document.getElementById("canvas");
 
     successGL = initGL(canvas);
-    if(!successGL){throw "initGL failed";}
 
+    successForagers = initForagers();
+
+    successBuffers = initBuffers();
+
+    successShaderPrograms = initShaderPrograms();
+
+    successFloatBuffers = initFloatBuffers();
+
+    initialized = true;
+
+    setInterval(writeFPS, 500);
+
+    dthrands = changeRands();
+    setInterval(function(){dthrands = changeRands();}, 1000);
+
+    tick();
+}
+
+//function validateNoneOfTheArgsAreUndefined(functionName, args) {
+//    for (var ii = 0; ii < args.length; ++ii) {
+//        if (args[ii] === undefined) {
+//            console.error("undefined passed to gl." + functionName + "(" +
+//                WebGLDebugUtils.glFunctionArgsToString(functionName, args) + ")");
+//        }
+//    }
+//}
+
+function initGL(canvas)
+{
+    gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    //var rawgl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    //gl = WebGLDebugUtils.makeDebugContext(rawgl, undefined, validateNoneOfTheArgsAreUndefined);
+    initGLVars();
+    return true;
+}
+
+function initGLVars()
+{
     attributeArrays = {
         a_fposition: {data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, numItems: 0, dynamic: true},
         a_fheat: {data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 1, numItems: 0, dynamic: true},
@@ -21,53 +58,23 @@ function webGLStart()
 
     uniformValues = {
         u_dst: {data: [1 / texX, 1 / texY], type: gl.FLOAT_VEC2},
-        u_cdiff: {data: parseFloat(document.getElementById("range-cdiff").value), type: gl.FLOAT},
+        u_cdiff: {data: 0.16, type: gl.FLOAT},
+        u_cdecay: {data: 0.999, type: gl.FLOAT},
         u_heatH: {data: 0.09, type: gl.FLOAT},
         s_heat: {data: 0, type: gl.INT},
         s_entity: {data: 1, type: gl.INT}
     };
-
-    successForagers = initForagers();
-    if(!successForagers){throw "initForagers failed";}
-
-    successBuffers = initBuffers();
-    if(!successBuffers){throw "initBuffers failed";}
-
-    successShaderPrograms = initShaderPrograms();
-    if(!successShaderPrograms){throw "initShaderPrograms failed";}
-
-    successFullBuffers = initFullBuffers();
-    if(!successFullBuffers){throw "initFullBuffers failed";}
-
-    initialized = true;
-
-    setInterval(writeFPS, 500);
-
-    tick();
-}
-
-//noinspection JSUnusedGlobalSymbols
-function validateNoneOfTheArgsAreUndefined(functionName, args) {
-    for (var ii = 0; ii < args.length; ++ii) {
-        if (args[ii] === undefined) {
-            console.error("undefined passed to gl." + functionName + "(" +
-                WebGLDebugUtils.glFunctionArgsToString(functionName, args) + ")");
-        }
-    }
-}
-
-function initGL(canvas)
-{
-    gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    //var rawgl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    //gl = WebGLDebugUtils.makeDebugContext(rawgl, undefined, validateNoneOfTheArgsAreUndefined);
-    return true;
 }
 
 function initForagers()
 {
-    foragers.push(new Forager(-0.5, -0.5, 75, 0.00001));
-    foragers.push(new Forager(0.3, 0, -60, 0.00004));
+    var nforagers = 20;
+    for(i=0; i<nforagers; i++)
+    {
+        foragers.push(new Forager());
+    }
+    //foragers.push(new Forager(-0.5, -0.5, 75, 0.0000001));
+    //foragers.push(new Forager(0.3, 0, -60, 0.0000004));
     return true;
 }
 
@@ -131,11 +138,11 @@ function initShaderPrograms()
     return true;
 }
 
-function initFullBuffers()
+function initFloatBuffers()
 {
-    for(var i=0; i<fullBufferIds.length; i++)
+    for(var i=0; i<floatBufferIds.length; i++)
     {
-        fullBuffers[fullBufferIds[i]] = new FullBuffer(fullBufferIds[i]);
+        floatBuffers[floatBufferIds[i]] = new FloatBuffer(floatBufferIds[i]);
     }
     return true;
 

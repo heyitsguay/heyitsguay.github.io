@@ -1,7 +1,7 @@
-// FullBuffer object. Simplifies rendering to textures. ---------------------------------------------//
-function FullBuffer(id)
+// FloatBuffer object. Simplifies rendering to textures. ---------------------------------------------//
+function FloatBuffer(id)
 {
-    // fullBuffer ID.
+    // floatBuffer ID.
     this.id = id;
 
     // Make sure we can render to float textures.
@@ -11,11 +11,11 @@ function FullBuffer(id)
         alert("Could not get OES_texture_float for " + this.id);
     }
 
-    // fullBuffer's framebuffer.
+    // floatBuffer's framebuffer.
     this.fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
 
-    // The texture this fullBuffer renders to.
+    // The texture this floatBuffer renders to.
     this.tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this.tex);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -27,7 +27,7 @@ function FullBuffer(id)
 
 }
 
-FullBuffer.prototype.framebufferCheck = function()
+FloatBuffer.prototype.framebufferCheck = function()
 {
     var fb_status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
     if(fb_status != gl.FRAMEBUFFER_COMPLETE)
