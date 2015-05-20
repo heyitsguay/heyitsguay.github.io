@@ -50,12 +50,12 @@
         }
     </style>
 
-    <!--<style type="text/css" id="table-center">-->
-        <!--table.center {-->
-            <!--margin-left: auto;-->
-            <!--margin-right: auto;-->
-        <!--}-->
-    <!--</style>-->
+    <style type="text/css" id="table-center">
+        table.center {
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
 
     <!--Fragment shaders-->
     <script id="fs_foragerupdate" type="x-shader/x-fragment">
@@ -79,7 +79,7 @@
         uniform sampler2D s_heat;
         uniform sampler2D s_entity;
 
-        const vec2 rad = vec2(1.0, 1.0);
+        //const vec2 rad = vec2(4.0, 4.0);
         const float w1 = 1.0;//0.1464466; // NESW neighbor weighting
         const float w2 = 0.5;//0.1035534; // diagonal neighbor weighting
         const float w3 = 6.0;//1.0; // self weighting
@@ -90,14 +90,14 @@
             float dt = u_dst[1];
 
             vec2 p  = gl_FragCoord.xy * u_dst;
-            vec2 n  = p + rad * vec2( 0.,  dt);
-            vec2 ne = p + rad * vec2( ds,  dt);
-            vec2 e  = p + rad * vec2( ds,  0.);
-            vec2 se = p + rad * vec2( ds, -dt);
-            vec2 s  = p + rad * vec2( 0., -dt);
-            vec2 sw = p + rad * vec2(-ds, -dt);
-            vec2 w  = p + rad * vec2(-ds,  0.);
-            vec2 nw = p + rad * vec2(-ds,  dt);
+            vec2 n  = p + vec2( 0.,  dt);
+            vec2 ne = p + vec2( ds,  dt);
+            vec2 e  = p + vec2( ds,  0.);
+            vec2 se = p + vec2( ds, -dt);
+            vec2 s  = p + vec2( 0., -dt);
+            vec2 sw = p + vec2(-ds, -dt);
+            vec2 w  = p + vec2(-ds,  0.);
+            vec2 nw = p + vec2(-ds,  dt);
 
             float valp  = texture2D(s_heat, p ).r + texture2D(s_entity, p ).r;
             float valn  = texture2D(s_heat, n ).r + texture2D(s_entity, n ).r;
@@ -145,6 +145,9 @@
             float tS = u_Sgate * heat;
             float H = mod(u_heatH + tH, 1.0);
             float S = max(0., 1. - tS);
+            //float fheat = fract(heat * 0.25);
+            //float Bramp = 1.0 - max(0., 4.0 * (fheat - 0.75));
+            //float Sramp = 1.0 - 0.7 * max(0., 5.0 * (0.2 - fheat))* float(heat * 0.025 > 1.0);
             gl_FragColor = vec4(hsv2rgb(vec3(H , S, min(1.0, heat))), 1.0);
         }
     </script>
@@ -209,41 +212,62 @@
     <div class="mydiv" id="fpscounter"> </div>
     <!--The canvas-->
     <canvas id="canvas" width="512" height="512" style="border:1px solid #CECECE"></canvas><br/>
-    <!--Heat scale slider bar-->
-    <label for="range-heatscale"></label><input type="range" id="range-heatscale"
-         min="0.1" max="100" value="1" step="1"
-         onchange="heatscaleSlider(this.value)"
-         oninput="heatscaleSlider(this.value)"/> Forager heat scale:
-    <span id="range-heatscale-disp">1</span> <br/>
-    <!--Heat decay slider bar-->
-    <label for="range-cdecay"></label><input type="range" id="range-cdecay"
-           min="0" max="15" value="5" step="1"
-           onchange="cdecaySlider(this.value)"
-           oninput="cdecaySlider(this.value)"/> Decay rate:
-    <span id="range-cdecay-disp">5</span> <br/>
-    <!--Diffusion speed slider bar-->
-    <label for="range-cdiff"></label><input type="range" id="range-cdiff"
-            min="0" max="0.16666666" value="0.1" step="0.002"
-            onchange="cdiffSlider(this.value)"
-            oninput="cdiffSlider(this.value)"/>Diffusion speed:
-    <span id="range-cdiff-disp">0.1</span> <br/>
-    <!--Base heat color slider bar-->
-    <label for="range-heatH"></label><input type="range" id="range-heatH"
-            min="0" max="1" value="0.09" step="0.01"
-            onchange="heatHSlider(this.value)"
-            oninput="heatHSlider(this.value)"/> Base heat hue:
-    <span id="range-heatH-disp">0.09</span> <br/>
-    <!--Hgate slider bar-->
-    <label for="range-Hgate"></label><input type="range" id="range-Hgate"
-           min="0" max="100" value="0" step="0.5"
-           onchange="HgateSlider(this.value)"
-           oninput="HgateSlider(this.value)"/> Hgate:
-    <span id="range-Hgate-disp">0.05</span><br/>
-    <!--Sgate slider bar-->
-    <label for="range-Sgate"></label><input type="range" id="range-Sgate"
-                                            min="0" max="100" value="14" step="0.5"
-                                            onchange="SgateSlider(this.value)"
-                                            oninput="SgateSlider(this.value)"/> Sgate:
-    <span id="range-Sgate-disp">14</span><br/>
+    <!--Slider bar table-->
+    <table class="center" style="border: 0; padding: 1px; border-spacing: 25px 0;">
+        <!--Heat scale slider bar-->
+        <tr>
+            <td>Forager heat scale</td>
+            <td><label for="range-heatscale"></label><input type="range" id="range-heatscale"
+                 min="0" max="100" value="1" step="1"
+                 onchange="heatscaleSlider(this.value)"
+                 oninput="heatscaleSlider(this.value)"/></td>
+            <td id="range-heatscale-disp">1</td>
+        </tr>
+        <!--Heat decay slider bar-->
+        <tr>
+            <td>Decay rate</td>
+            <td><label for="range-cdecay"></label><input type="range" id="range-cdecay"
+                   min="0" max="15" value="5" step="1"
+                   onchange="cdecaySlider(this.value)"
+                   oninput="cdecaySlider(this.value)"/></td>
+            <td id="range-cdecay-disp">5</td>
+        </tr>
+        <!--Diffusion speed slider bar-->
+        <tr>
+            <td>Diffusion speed</td>
+            <td><label for="range-cdiff"></label><input type="range" id="range-cdiff"
+                    min="0" max="1" value="0.6" step="0.01"
+                    onchange="cdiffSlider(this.value)"
+                    oninput="cdiffSlider(this.value)"/></td>
+            <td id="range-cdiff-disp">0.6</td>
+        </tr>
+        <!--Base heat color slider bar-->
+        <tr>
+            <td>Hue base</td>
+            <td><label for="range-heatH"></label><input type="range" id="range-heatH"
+                    min="0" max="1" value="0.09" step="0.01"
+                    onchange="heatHSlider(this.value)"
+                    oninput="heatHSlider(this.value)"/></td>
+            <td id="range-heatH-disp">0.09</td>
+        </tr>
+        <!--Hgate slider bar-->
+        <tr>
+            <td>Hue multiplier</td>
+            <td><label for="range-Hgate"></label><input type="range" id="range-Hgate"
+                   min="0" max="100" value="0" step="0.5"
+                   onchange="HgateSlider(this.value)"
+                   oninput="HgateSlider(this.value)"/></td>
+            <td id="range-Hgate-disp">0.05</td>
+        </tr>
+        <!--Sgate slider bar-->
+        <tr>
+            <td>Saturation multiplier</td>
+            <td><label for="range-Sgate"></label><input type="range" id="range-Sgate"
+                    min="0" max="100" value="0" step="0.5"
+                    onchange="SgateSlider(this.value)"
+                    oninput="SgateSlider(this.value)"/></td>
+            <td id="range-Sgate-disp">0</td>
+        </tr>
+    </table>
 </body>
 </html>

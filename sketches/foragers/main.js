@@ -57,7 +57,7 @@ var fbidx = 0;
 var dthrands = [];
 
 // Scales starting heat for the Foragers uniformly.
-var heatscale = 1;
+var heatscale;
 
 function heatscaleSlider(val)
 {
@@ -73,7 +73,7 @@ function cdecaySlider(val)
 }
 function cdiffSlider(val)
 {
-    uniformValues.u_cdiff.data = parseFloat(val);
+    uniformValues.u_cdiff.data = 0.1666666 * parseFloat(val);
     var disp = document.getElementById("range-cdiff-disp");
     disp.innerHTML = val;
 }
@@ -88,7 +88,7 @@ function heatHSlider(val)
 function HgateSlider(val)
 {
     var fval = parseFloat(val);
-    uniformValues.u_Hgate.data = 0.05 * (Math.log(1 + 0.2 * val) + (fval >= 30) * 0.2 * (fval - 30));
+    uniformValues.u_Hgate.data = 0.05 * (Math.log(1 + 0.2 * fval) + (fval >= 30) * 0.2 * (fval - 30));
 
     var disp = document.getElementById("range-Hgate-disp");
     disp.innerHTML = val;
@@ -97,7 +97,7 @@ function HgateSlider(val)
 function SgateSlider(val)
 {
     var fval = parseFloat(val);
-    uniformValues.u_Sgate.data = 0.005 * (Math.log(1 + 0.04 * val) + (fval >= 70) * 0.1 * (fval - 70));
+    uniformValues.u_Sgate.data = 0.005 * (Math.log(1 + 0.04 * fval) + (fval >= 70) * 0.1 * (fval - 70));
 
     var disp = document.getElementById("range-Sgate-disp");
     disp.innerHTML = val;
