@@ -21,18 +21,18 @@ var spAttributes = {
     vs_foragerdraw: ['a_fposition', 'a_fcolor']
 };
 
-// Vertex attribute arrays. Initialized in
+// Vertex attribute arrays. Initialized in initGLVars under init.js.
 var attributeArrays;
 
 // Fragment shader uniform variable names
 var spUniforms = {
     fs_foragerupdate: [],
     fs_diffuse: ['u_dst', 'u_cdiff', 'u_cdecay', 's_heat', 's_entity'],
-    fs_drawheat: ['u_dst', 'u_heatH', 'u_Hgate', 'u_Sgate', 's_heat'],
+    fs_drawheat: ['u_dst', 'u_heatH', 'u_Hgate', 's_heat'],
     fs_foragerdraw: []
 };
 
-// Uniform variable values
+// Uniform variable values. Initialized in initGLVars under init.js.
 var uniformValues;
 
 // Array of FullBuffers used in this sketch.
@@ -94,20 +94,13 @@ function HgateSlider(val)
     disp.innerHTML = val;
 }
 
-function SgateSlider(val)
-{
-    var fval = parseFloat(val);
-    uniformValues.u_Sgate.data = 0.005 * (Math.log(1 + 0.04 * fval) + (fval >= 70) * 0.1 * (fval - 70));
-
-    var disp = document.getElementById("range-Sgate-disp");
-    disp.innerHTML = val;
-}
-
-
-
-//function deg2rad(degrees)
+//function SgateSlider(val)
 //{
-//    return degrees * Math.PI / 180;
+//    var fval = parseFloat(val);
+//    uniformValues.u_Sgate.data = 0.005 * (Math.log(1 + 0.04 * fval) + (fval >= 70) * 0.1 * (fval - 70));
+//
+//    var disp = document.getElementById("range-Sgate-disp");
+//    disp.innerHTML = val;
 //}
 
 function updateForagers()
@@ -115,7 +108,7 @@ function updateForagers()
     for(var i = 0; i < foragers.length; i++)
     {
         var dt = 0.1;
-        var dth = dthrands[i] * 1;
+        var dth = dthrands[i] * 0.3;
         foragers[i].update(dt, 0, 0, dth);
         foragers[i].draw();
     }

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.1.0/gl-matrix-min.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Arvo' rel='stylesheet' type='text/css'>
+    <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
     <!--<script type="text/javascript" src="libs/webgl-debug.js"></script>-->
     <style id="body">
         * {margin: 0; padding: 0;}
         body {
+            /*font-family: 'Arvo', serif;*/
             text-align: center;
             background-color: #000000;
             color: #CECECE;
@@ -54,6 +56,19 @@
         table.center {
             margin-left: auto;
             margin-right: auto;
+        }
+    </style>
+
+    <style type="text/css" id="table-ss">
+        table.ss{
+            font-family: 'Helvetica', sans-serif;;
+            margin-left: auto;
+            margin-right: auto;
+            table-layout: fixed;
+            width: 400px;
+            border: 1px solid;
+            border-spacing: 10px;
+
         }
     </style>
 
@@ -124,7 +139,7 @@
         uniform vec2 u_dst;
         uniform float u_heatH;
         uniform float u_Hgate;
-        uniform float u_Sgate;
+//        uniform float u_Sgate;
         uniform sampler2D s_heat;
 
         const float hoffset = 10000.;
@@ -142,13 +157,13 @@
         {
             float heat = hoffset * texture2D(s_heat, gl_FragCoord.xy * u_dst).r;
             float tH = u_Hgate * heat;
-            float tS = u_Sgate * heat;
+            //float tS = u_Sgate * heat;
             float H = mod(u_heatH + tH, 1.0);
-            float S = max(0., 1. - tS);
+            //float S = max(0., 1. - tS);
             //float fheat = fract(heat * 0.25);
             //float Bramp = 1.0 - max(0., 4.0 * (fheat - 0.75));
             //float Sramp = 1.0 - 0.7 * max(0., 5.0 * (0.2 - fheat))* float(heat * 0.025 > 1.0);
-            gl_FragColor = vec4(hsv2rgb(vec3(H , S, min(1.0, heat))), 1.0);
+            gl_FragColor = vec4(hsv2rgb(vec3(H , 1.0, min(1.0, 0.8 * heat))), 1.0);
         }
     </script>
     <script id="fs_foragerdraw" type="x-shader/x-fragment">
@@ -211,9 +226,14 @@
     <!--FPS counter-->
     <div class="mydiv" id="fpscounter"> </div>
     <!--The canvas-->
-    <canvas id="canvas" width="512" height="512" style="border:1px solid #CECECE"></canvas><br/>
+    <canvas id="canvas" width="512" height="512" style="border:1px solid #CECECE"></canvas>
     <!--Slider bar table-->
-    <table class="center" style="border: 0; padding: 1px; border-spacing: 25px 0;">
+    <table class="ss">
+        <colgroup>
+            <col span="1" style="width: 40%;">
+            <col span="1" style="width: 40%;">
+            <col span="1" style="width: 20%;">
+        </colgroup>
         <!--Heat scale slider bar-->
         <tr>
             <td>Forager heat scale</td>
@@ -254,20 +274,20 @@
         <tr>
             <td>Hue multiplier</td>
             <td><label for="range-Hgate"></label><input type="range" id="range-Hgate"
-                   min="0" max="100" value="0" step="0.5"
+                   min="0" max="100" value="0" step="1"
                    onchange="HgateSlider(this.value)"
                    oninput="HgateSlider(this.value)"/></td>
-            <td id="range-Hgate-disp">0.05</td>
+            <td id="range-Hgate-disp">0</td>
         </tr>
-        <!--Sgate slider bar-->
-        <tr>
-            <td>Saturation multiplier</td>
-            <td><label for="range-Sgate"></label><input type="range" id="range-Sgate"
-                    min="0" max="100" value="0" step="0.5"
-                    onchange="SgateSlider(this.value)"
-                    oninput="SgateSlider(this.value)"/></td>
-            <td id="range-Sgate-disp">0</td>
-        </tr>
+        <!--&lt;!&ndash;Sgate slider bar&ndash;&gt;-->
+        <!--<tr>-->
+            <!--<td>Saturation multiplier</td>-->
+            <!--<td><label for="range-Sgate"></label><input type="range" id="range-Sgate"-->
+                    <!--min="0" max="100" value="0" step="1"-->
+                    <!--onchange="SgateSlider(this.value)"-->
+                    <!--oninput="SgateSlider(this.value)"/></td>-->
+            <!--<td id="range-Sgate-disp">0</td>-->
+        <!--</tr>-->
     </table>
 </body>
 </html>
