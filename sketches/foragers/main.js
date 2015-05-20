@@ -1,0 +1,156 @@
+// the webgl canvas context
+var gl;
+
+// Array of ShaderPrograms used in this sketch.
+var sps = {};
+var spIds = ['foragerupdate', 'diffuse', 'drawheat', 'foragerdraw'];
+// Fragment/vertex shader pairs for each ShaderProgram.
+var spPairs = {
+    foragerupdate: ['fs_foragerupdate', 'vs_foragerupdate'],
+    diffuse: ['fs_diffuse', 'vs_screen'],
+    drawheat: ['fs_drawheat', 'vs_screen'],
+    foragerdraw: ['fs_foragerdraw', 'vs_foragerdraw']
+};
+// Vertex shader attribute variable names.
+var spAttributes = {
+    vs_foragerupdate: ['a_fposition', 'a_fheat'],
+    vs_screen: ['a_sposition'],
+    vs_foragerdraw: ['a_fposition', 'a_fcolor']
+};
+
+// Vertex attribute arrays
+var attributeArrays;
+
+// Fragment shader uniform variable names
+var spUniforms = {
+    fs_foragerupdate: [],
+    fs_diffuse: ['u_dst', 'u_cdiff', 's_heat', 's_entity'],
+    fs_drawheat: ['u_dst', 'u_heatH', 's_heat'],
+    fs_foragerdraw: []
+};
+
+// Uniform variable values
+var uniformValues;
+
+// Array of FullBuffers used in this sketch.
+var fullBuffers = {};
+var fullBufferIds = ['heat0', 'heat1', 'entity'];
+
+// Array containing all Foragers used in the sketch.
+var foragers = [];
+
+// World dimensions (currently just the same as canvas dimensions).
+var worldX = 512;
+var worldY = 512;
+// For better performance, one can use a smaller heat map by dividing the world dimensions by heatMapScale.
+//var heatMapScale = 1; // should be a power of 2.
+var texX = 512;
+var texY = 512;
+
+// Used to toggle between the two heat framebuffers.
+var fbidx = 0;
+
+function deg2rad(degrees)
+{
+    return degrees * Math.PI / 180;
+}
+
+function updateForagers()
+{
+    for(var i = 0; i < foragers.length; i++)
+    {
+        foragers[i].draw();
+    }
+}
+
+function updateHeat()
+{
+    // Step 1: Add entity heat contributions to the entity fullBuffer. -----------------------------------------------//
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fullBuffers['entity'].fb);
+    gl.viewport(0, 0, texX, texY);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    // Prepare the foragerupdate shader program to draw.
+    sps['foragerupdate'].prep();
+    // Draw
+    gl.drawArrays(gl.TRIANGLES, 0, attributeArrays.a_fposition.numItems);
+
+    // Step 2: Combine the entity heat texture with the heat map and diffuse. ----------------------------------------//
+    fbidx = (fbidx + 1) % 2;
+    // ID of the heat map FullBuffer updated last time.
+    var ping = ['heat0', 'heat1'][1-fbidx];
+    // ID of the heat map FullBuffer to update this time.
+    var pong = ['heat0', 'heat1'][fbidx];
+
+    // Bind the previous heat map to texture unit 0, and the entity heat map to texture unit 1.
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, fullBuffers[ping].tex);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, fullBuffers['entity'].tex);
+    // Bind the current heat map framebuffer.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fullBuffers[pong].fb);
+    gl.viewport(0, 0, texX, texY);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    // Prepare the diffuse shader program to draw.
+    sps['diffuse'].prep();
+    // Draw
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, attributeArrays.a_sposition.numItems);
+
+}
+
+function draw()
+{
+    var draw_id = ['heat0', 'heat1'][fbidx];
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, fullBuffers[draw_id].tex);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, worldX, worldY);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    sps['drawheat'].prep();
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, attributeArrays.a_sposition.numItems);
+}
+
+function update()
+{
+    updateForagers();
+    updateHeat();
+}
+
+function writeFPS()
+{
+    var counter = document.getElementById("fpscounter");
+    counter.innerHTML = fps.toFixed(1) + " fps";
+}
+
+var lastTime = new Date().getTime();
+var elapsed = 0;
+var fps = 0;
+var fpsFilter = 30;
+function updateFPS()
+{
+    var timeNow = new Date().getTime();
+    elapsed = timeNow - lastTime;
+    if(elapsed>0)
+    {
+        fps += (1000. / elapsed - fps) / fpsFilter;
+    }
+    lastTime = timeNow;
+}
+
+function tick()
+{
+    updateFPS();
+    requestAnimationFrame(tick);
+    if(!gl.getError())
+    {
+        update();
+        draw();
+    }
+    else
+    {
+        alert("Unknown WebGL error! :(");
+    }
+}
