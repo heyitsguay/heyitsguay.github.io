@@ -28,7 +28,7 @@ var attributeArrays;
 var spUniforms = {
     fs_foragerupdate: [],
     fs_diffuse: ['u_dst', 'u_cdiff', 'u_cdecay', 's_heat', 's_entity'],
-    fs_drawheat: ['u_dst', 'u_heatH', 's_heat'],
+    fs_drawheat: ['u_dst', 'u_heatH', 'u_tgate', 's_heat'],
     fs_foragerdraw: []
 };
 
@@ -52,6 +52,39 @@ var texY = 512;
 
 // Used to toggle between the two heat framebuffers.
 var fbidx = 0;
+
+// Contains the random values added to dth on each Forager update.
+var dthrands = [];
+
+function cdecaySlider(val)
+{
+    uniformValues.u_cdecay.data = 1 - Math.pow(2, -15+parseFloat(val));
+    var disp = document.getElementById("range-cdecay-disp");
+    disp.innerHTML = val;
+}
+function cdiffSlider(val)
+{
+    uniformValues.u_cdiff.data = parseFloat(val);
+    var disp = document.getElementById("range-cdiff-disp");
+    disp.innerHTML = val;
+}
+
+function heatHSlider(val)
+{
+    uniformValues.u_heatH.data = parseFloat(val);
+    var disp = document.getElementById("range-heatH-disp");
+    disp.innerHTML = val;
+}
+
+function tgateSlider(val)
+{
+    var fval = parseFloat(val);
+    uniformValues.u_tgate.data = 0.05 * (Math.log(1 + 0.2 * val) + (fval >= 30) * (fval - 30));
+
+    var disp = document.getElementById("range-tgate-disp");
+    disp.innerHTML = val;
+}
+
 
 //function deg2rad(degrees)
 //{
@@ -109,7 +142,6 @@ function updateHeat()
 
 }
 
-var dthrands = [];
 function changeRands()
 {
     var newrands = [];
