@@ -50,9 +50,9 @@ Forager.prototype.draw = function()
     // Update vertex heat Float32Array
     idx0 = this.id * 3;
     var arrH = attributeArrays.a_fheat.data;
-    arrH[idx0] = this.heat;
-    arrH[idx0+1] = this.heat;
-    arrH[idx0+2] = this.heat;
+    arrH[idx0] = heatscale * this.heat;
+    arrH[idx0+1] = heatscale * this.heat;
+    arrH[idx0+2] = heatscale * this.heat;
 
     // Update vertex color Float32Array
     idx0 = this.id * 12;

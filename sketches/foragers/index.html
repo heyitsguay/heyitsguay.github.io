@@ -123,7 +123,8 @@
 
         uniform vec2 u_dst;
         uniform float u_heatH;
-        uniform float u_tgate;
+        uniform float u_Hgate;
+        uniform float u_Sgate;
         uniform sampler2D s_heat;
 
         const float hoffset = 10000.;
@@ -140,9 +141,11 @@
         void main()
         {
             float heat = hoffset * texture2D(s_heat, gl_FragCoord.xy * u_dst).r;
-            float t = u_tgate * heat;
-            float H = mod(u_heatH + t, 1.0);
-            gl_FragColor = vec4(hsv2rgb(vec3(H , 1., min(1.0, heat))), 1.0);
+            float tH = u_Hgate * heat;
+            float tS = u_Sgate * heat;
+            float H = mod(u_heatH + tH, 1.0);
+            float S = max(0., 1. - tS);
+            gl_FragColor = vec4(hsv2rgb(vec3(H , S, min(1.0, heat))), 1.0);
         }
     </script>
     <script id="fs_foragerdraw" type="x-shader/x-fragment">
@@ -206,12 +209,18 @@
     <div class="mydiv" id="fpscounter"> </div>
     <!--The canvas-->
     <canvas id="canvas" width="512" height="512" style="border:1px solid #CECECE"></canvas><br/>
+    <!--Heat scale slider bar-->
+    <label for="range-heatscale"></label><input type="range" id="range-heatscale"
+         min="0.1" max="100" value="1" step="1"
+         onchange="heatscaleSlider(this.value)"
+         oninput="heatscaleSlider(this.value)"/> Forager heat scale:
+    <span id="range-heatscale-disp">1</span> <br/>
     <!--Heat decay slider bar-->
     <label for="range-cdecay"></label><input type="range" id="range-cdecay"
-           min="0" max="15" value="4" step="1"
+           min="0" max="15" value="5" step="1"
            onchange="cdecaySlider(this.value)"
            oninput="cdecaySlider(this.value)"/> Decay rate:
-    <span id="range-cdecay-disp">1</span> <br/>
+    <span id="range-cdecay-disp">5</span> <br/>
     <!--Diffusion speed slider bar-->
     <label for="range-cdiff"></label><input type="range" id="range-cdiff"
             min="0" max="0.16666666" value="0.1" step="0.002"
@@ -224,11 +233,17 @@
             onchange="heatHSlider(this.value)"
             oninput="heatHSlider(this.value)"/> Base heat hue:
     <span id="range-heatH-disp">0.09</span> <br/>
-    <!--tgate slider bar-->
-    <label for="range-tgate"></label><input type="range" id="range-tgate"
+    <!--Hgate slider bar-->
+    <label for="range-Hgate"></label><input type="range" id="range-Hgate"
            min="0" max="100" value="0" step="0.5"
-           onchange="tgateSlider(this.value)"
-           oninput="tgateSlider(this.value)"/> tgate:
-    <span id="range-tgate-disp">0.05</span><br/>
+           onchange="HgateSlider(this.value)"
+           oninput="HgateSlider(this.value)"/> Hgate:
+    <span id="range-Hgate-disp">0.05</span><br/>
+    <!--Sgate slider bar-->
+    <label for="range-Sgate"></label><input type="range" id="range-Sgate"
+                                            min="0" max="100" value="14" step="0.5"
+                                            onchange="SgateSlider(this.value)"
+                                            oninput="SgateSlider(this.value)"/> Sgate:
+    <span id="range-Sgate-disp">14</span><br/>
 </body>
 </html>

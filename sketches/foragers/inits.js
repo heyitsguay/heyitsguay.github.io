@@ -8,6 +8,8 @@ var initialized = false;
 function webGLStart()
 {
     var canvas = document.getElementById("canvas");
+    canvas.width = worldX;
+    canvas.height = worldY;
 
     successGL = initGL(canvas);
 
@@ -23,8 +25,8 @@ function webGLStart()
 
     setInterval(writeFPS, 500);
 
-    dthrands = changeRands();
-    setInterval(function(){dthrands = changeRands();}, 1000);
+    changeRands();
+    setInterval(changeRands, 1000);
 
     tick();
 }
@@ -59,9 +61,10 @@ function initGLVars()
     uniformValues = {
         u_dst: {data: [1 / texX, 1 / texY], type: gl.FLOAT_VEC2},
         u_cdiff: {data: 0.1, type: gl.FLOAT},
-        u_cdecay: {data: 0.99, type: gl.FLOAT},
+        u_cdecay: {data: 0.99902, type: gl.FLOAT},
         u_heatH: {data: 0.09, type: gl.FLOAT},
-        u_tgate: {data: 0.05, type: gl.FLOAT},
+        u_Hgate: {data: 0.05, type: gl.FLOAT},
+        u_Sgate: {data: 0.0005, type: gl.FLOAT},
         s_heat: {data: 0, type: gl.INT},
         s_entity: {data: 1, type: gl.INT}
     };
@@ -70,7 +73,7 @@ function initGLVars()
 function initForagers()
 {
     var nforagers = 20;
-    for(i=0; i<nforagers; i++)
+    for(var i=0; i<nforagers; i++)
     {
         foragers.push(new Forager());
     }

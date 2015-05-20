@@ -28,7 +28,7 @@ var attributeArrays;
 var spUniforms = {
     fs_foragerupdate: [],
     fs_diffuse: ['u_dst', 'u_cdiff', 'u_cdecay', 's_heat', 's_entity'],
-    fs_drawheat: ['u_dst', 'u_heatH', 'u_tgate', 's_heat'],
+    fs_drawheat: ['u_dst', 'u_heatH', 'u_Hgate', 'u_Sgate', 's_heat'],
     fs_foragerdraw: []
 };
 
@@ -46,9 +46,9 @@ var foragers = [];
 var worldX = 512;
 var worldY = 512;
 // For better performance, one can use a smaller heat map by dividing the world dimensions by heatMapScale.
-//var heatMapScale = 1; // should be a power of 2.
-var texX = 512;
-var texY = 512;
+var heatMapScale = 1; // should be a power of 2.
+var texX = worldX / heatMapScale;
+var texY = worldY / heatMapScale;
 
 // Used to toggle between the two heat framebuffers.
 var fbidx = 0;
@@ -56,6 +56,15 @@ var fbidx = 0;
 // Contains the random values added to dth on each Forager update.
 var dthrands = [];
 
+// Scales starting heat for the Foragers uniformly.
+var heatscale = 1;
+
+function heatscaleSlider(val)
+{
+    heatscale = parseFloat(val);
+    var disp = document.getElementById("range-heatscale-disp");
+    disp.innerHTML = val;
+}
 function cdecaySlider(val)
 {
     uniformValues.u_cdecay.data = 1 - Math.pow(2, -15+parseFloat(val));
@@ -76,14 +85,24 @@ function heatHSlider(val)
     disp.innerHTML = val;
 }
 
-function tgateSlider(val)
+function HgateSlider(val)
 {
     var fval = parseFloat(val);
-    uniformValues.u_tgate.data = 0.05 * (Math.log(1 + 0.2 * val) + (fval >= 30) * (fval - 30));
+    uniformValues.u_Hgate.data = 0.05 * (Math.log(1 + 0.2 * val) + (fval >= 30) * 0.2 * (fval - 30));
 
-    var disp = document.getElementById("range-tgate-disp");
+    var disp = document.getElementById("range-Hgate-disp");
     disp.innerHTML = val;
 }
+
+function SgateSlider(val)
+{
+    var fval = parseFloat(val);
+    uniformValues.u_Sgate.data = 0.005 * (Math.log(1 + 0.04 * val) + (fval >= 70) * 0.1 * (fval - 70));
+
+    var disp = document.getElementById("range-Sgate-disp");
+    disp.innerHTML = val;
+}
+
 
 
 //function deg2rad(degrees)
@@ -149,7 +168,7 @@ function changeRands()
     {
         newrands.push(Math.random() - 0.5);
     }
-    return newrands;
+    dthrands = newrands;
 }
 
 function draw()
