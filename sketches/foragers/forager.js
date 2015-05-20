@@ -1,7 +1,6 @@
 //const SQRT2 = 1.414214;
 const ISQRT2 = 0.707107;
 
-const wander = 0.9;
 var newestID = 0;
 function Forager(x, y, heading, heat, vr, vth)
 {

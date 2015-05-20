@@ -23,6 +23,9 @@ function webGLStart()
 
     initialized = true;
 
+    document.onkeydown = handleKeyDown;
+    document.onkeyup = handleKeyUp;
+
     setInterval(writeFPS, 500);
 
     changeRands();
@@ -30,15 +33,6 @@ function webGLStart()
 
     tick();
 }
-
-//function validateNoneOfTheArgsAreUndefined(functionName, args) {
-//    for (var ii = 0; ii < args.length; ++ii) {
-//        if (args[ii] === undefined) {
-//            console.error("undefined passed to gl." + functionName + "(" +
-//                WebGLDebugUtils.glFunctionArgsToString(functionName, args) + ")");
-//        }
-//    }
-//}
 
 function initGL(canvas)
 {
@@ -58,7 +52,7 @@ function initGLVars()
         a_sposition: {data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, numItems: 0, dynamic: false}
     };
 
-    heatscale = parseFloat(document.getElementById("range-heatscale").value);
+    heatscale = 1;//parseFloat(document.getElementById("range-heatscale").value);
     // Initial uniform variable values
     var cdiff0 = 0.1666666 * parseFloat(document.getElementById("range-cdiff").value);
     var cdecay0 = 1 - Math.pow(2, -15 + parseFloat(document.getElementById("range-cdecay").value));
@@ -82,13 +76,14 @@ function initGLVars()
 
 function initForagers()
 {
-    var nforagers = 20;
+    var nforagers = 5;
     for(var i=0; i<nforagers; i++)
     {
         foragers.push(new Forager());
     }
-    //foragers.push(new Forager(-0.5, -0.5, 75, 0.0000001));
-    //foragers.push(new Forager(0.3, 0, -60, 0.0000004));
+
+    player = new Forager(0.001, 0.001, Math.PI/2, 1, 0.0001, 0.00001);
+    foragers.push(player);
     return true;
 }
 

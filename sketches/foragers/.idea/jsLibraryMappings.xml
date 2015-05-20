@@ -3,6 +3,7 @@
   <component name="JavaScriptLibraryMappings">
     <file url="file://$PROJECT_DIR$/forager.js" libraries="{WebGL, gl-matrix}" />
     <file url="file://$PROJECT_DIR$/glhelpers.js" libraries="{WebGL, gl-matrix}" />
+    <file url="file://$PROJECT_DIR$/handles.js" libraries="{WebGL, gl-matrix}" />
     <file url="file://$PROJECT_DIR$/index.html" libraries="{WebGL, gl-matrix}" />
     <file url="file://$PROJECT_DIR$/inits.js" libraries="{WebGL, gl-matrix}" />
     <file url="file://$PROJECT_DIR$/main.js" libraries="{WebGL, gl-matrix}" />

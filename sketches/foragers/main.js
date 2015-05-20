@@ -1,5 +1,6 @@
 const maxfdr = 100; // Maximum radial velocity  magnitude for foragers.
 const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
+const maxplayerdr = 2;
 
 // the webgl canvas context
 var gl;
@@ -42,6 +43,8 @@ var floatBufferIds = ['heat0', 'heat1', 'entity'];
 // Array containing all Foragers used in the sketch.
 var foragers = [];
 
+var player; // A special forager that the user can control.
+
 // World dimensions (currently just the same as canvas dimensions).
 var worldX = 512;
 var worldY = 512;
@@ -59,12 +62,12 @@ var dthrands = [];
 // Scales starting heat for the Foragers uniformly.
 var heatscale;
 
-function heatscaleSlider(val)
-{
-    heatscale = parseFloat(val);
-    var disp = document.getElementById("range-heatscale-disp");
-    disp.innerHTML = val;
-}
+//function heatscaleSlider(val)
+//{
+//    heatscale = parseFloat(val);
+//    var disp = document.getElementById("range-heatscale-disp");
+//    disp.innerHTML = val;
+//}
 function cdecaySlider(val)
 {
     uniformValues.u_cdecay.data = 1 - Math.pow(2, -15+parseFloat(val));
@@ -114,6 +117,14 @@ function updateForagers()
     }
 }
 
+function updatePlayer()
+{
+    if(!keys[87] && !keys[83])
+    {
+        player.dr *= 0.95;
+    }
+}
+
 var dcount = 2; // Number of diffusion steps to perform per frame.
 function updateHeat()
 {
@@ -157,10 +168,11 @@ function updateHeat()
 function changeRands()
 {
     var newrands = [];
-    for(var i=0; i < foragers.length; i++)
+    for(var i=0; i < foragers.length-1; i++)
     {
         newrands.push(Math.random() - 0.5);
     }
+    newrands.push(0);
     dthrands = newrands;
 }
 
@@ -181,6 +193,7 @@ function draw()
 function update()
 {
     updateForagers();
+    updatePlayer();
     updateHeat();
 }
 
@@ -209,13 +222,8 @@ function tick()
 {
     updateFPS();
     requestAnimationFrame(tick);
-    if(!gl.getError())
-    {
-        update();
-        draw();
-    }
-    else
-    {
-        alert("Unknown WebGL error! :(");
-    }
+    handleKeys();
+    update();
+    draw();
+
 }
