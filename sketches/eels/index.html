@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.1.0/gl-matrix-min.js"></script>
+    <!--<script type="text/javascript" src="libs/webgl-debug.js"></script>-->
+    <style id="body">
+        * {margin: 0; padding: 0;}
+        body {
+            text-align: center;
+            background-color: #000000;
+            color: #CECECE;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+    </style>
+    <style id="h1-4">
+        h1 {
+            color: #CECECE;
+            margin-top: 10px;
+            /*border-bottom: 1px solid;*/
+            padding-bottom: 3px;
+        }
+        h2,h3,h4 {
+            color: #CECECE;
+        }
+    </style>
+
+    <style type="text/css" id="canvas-noselect">
+        canvas {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            outline: none;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+        }
+    </style>
+
+    <style type="text/css" id="mydiv">
+        .mydiv {
+            display: block;
+            width: 100%;
+            background-color: black;
+            color: #CECECE;
+        }
+        .mydiv br {
+            display: none;
+        }
+    </style>
+
+    <!--<style type="text/css" id="table-center">-->
+        <!--table.center {-->
+            <!--margin-left: auto;-->
+            <!--margin-right: auto;-->
+        <!--}-->
+    <!--</style>-->
+
+    <!--Fragment shaders-->
+    <script id="fs_foragerupdate" type="x-shader/x-fragment">
+        precision highp float;
+
+        varying float v_fheat;
+
+        const float hoffsetinv = 0.00001;
+
+        void main()
+        {
+            gl_FragColor = vec4(hoffsetinv * v_fheat, 0.0, 0.0, 1.0);
+        }
+    </script>
+    <script id="fs_diffuse" type="x-shader/x-fragment">
+        precision highp float;
+
+        uniform vec2 u_dst;
+        uniform float u_cdiff;
+        uniform float u_cdecay;
+        uniform sampler2D s_heat;
+        uniform sampler2D s_entity;
+
+        const vec2 rad = vec2(1.0, 1.0);
+        const float w1 = 1.0;//0.1464466; // NESW neighbor weighting
+        const float w2 = 0.5;//0.1035534; // diagonal neighbor weighting
+        const float w3 = 6.0;//1.0; // self weighting
+
+        void main()
+        {
+            float ds = u_dst[0];
+            float dt = u_dst[1];
+
+            vec2 p  = gl_FragCoord.xy * u_dst;
+            vec2 n  = p + rad * vec2( 0.,  dt);
+            vec2 ne = p + rad * vec2( ds,  dt);
+            vec2 e  = p + rad * vec2( ds,  0.);
+            vec2 se = p + rad * vec2( ds, -dt);
+            vec2 s  = p + rad * vec2( 0., -dt);
+            vec2 sw = p + rad * vec2(-ds, -dt);
+            vec2 w  = p + rad * vec2(-ds,  0.);
+            vec2 nw = p + rad * vec2(-ds,  dt);
+
+            float valp  = texture2D(s_heat, p ).r + texture2D(s_entity, p ).r;
+            float valn  = texture2D(s_heat, n ).r + texture2D(s_entity, n ).r;
+            float valne = texture2D(s_heat, ne).r + texture2D(s_entity, ne).r;
+            float vale  = texture2D(s_heat, e ).r + texture2D(s_entity, e ).r;
+            float valse = texture2D(s_heat, se).r + texture2D(s_entity, se).r;
+            float vals  = texture2D(s_heat, s ).r + texture2D(s_entity, s ).r;
+            float valsw = texture2D(s_heat, sw).r + texture2D(s_entity, sw).r;
+            float valw  = texture2D(s_heat, w ).r + texture2D(s_entity, w ).r;
+            float valnw = texture2D(s_heat, nw).r + texture2D(s_entity, nw).r;
+
+            float laplacian = w1 * (valn  + vale  + vals  + valw )
+                            + w2 * (valne + valse + valsw + valnw)
+                            - w3 * valp;
+
+            float newval =  u_cdecay * (valp + u_cdiff * laplacian);
+
+            gl_FragColor = vec4(newval, 0.0, 0.0, 1.0);
+        }
+    </script>
+    <script id="fs_drawheat" type="x-shader/x-fragment">
+        precision highp float;
+
+        uniform vec2 u_dst;
+        uniform float u_heatH;
+        uniform float u_Hgate;
+        uniform float u_Sgate;
+        uniform sampler2D s_heat;
+
+        const float hoffset = 10000.;
+        const vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+
+        // Thanks to sam at http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl (May 19, 2015).
+        vec3 hsv2rgb(vec3 c)
+        {
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            vec3 rgb = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+            return rgb;
+        }
+
+        void main()
+        {
+            float heat = hoffset * texture2D(s_heat, gl_FragCoord.xy * u_dst).r;
+            float tH = u_Hgate * heat;
+            float tS = u_Sgate * heat;
+            float H = mod(u_heatH + tH, 1.0);
+            float S = max(0., 1. - tS);
+            gl_FragColor = vec4(hsv2rgb(vec3(H , S, min(1.0, heat))), 1.0);
+        }
+    </script>
+    <script id="fs_foragerdraw" type="x-shader/x-fragment">
+        precision highp float;
+
+        varying vec4 v_fcolor;
+
+        void main()
+        {
+            gl_FragColor = v_fcolor;
+        }
+    </script>
+
+    <!--Vertex shaders-->
+    <script id="vs_foragerupdate" type="x-shader/x-vertex">
+        attribute vec2 a_fposition;
+        attribute float a_fheat;
+
+        varying float v_fheat;
+
+        void main()
+        {
+            gl_Position = vec4(a_fposition, 0.0, 1.0);
+            v_fheat = a_fheat;
+        }
+    </script>
+    <script id="vs_screen" type = "x-shader/x-vertex">
+        attribute vec2 a_sposition;
+
+        void main()
+        {
+            gl_Position = vec4(a_sposition, 0.0, 1.0);
+        }
+    </script>
+    <script id="vs_foragerdraw" type="x-shader/x-vertex">
+        attribute vec2 a_fposition;
+        attribute vec4 a_fcolor;
+
+        varying vec4 v_fcolor;
+
+        void main()
+        {
+            gl_Position = vec4(a_fposition, 0.0, 1.0);
+            v_fcolor = a_fcolor;
+        }
+    </script>
+
+    <script type="text/javascript" src="glhelpers.js"></script>
+    <!--Contains all the initialization scripts.-->
+    <script type="text/javascript" src="inits.js"></script>
+    <!--Contains properties and methods of the Forager object.-->
+    <script type="text/javascript" src="forager.js"></script>
+    <!--Common global variable definitions, update and drawing functions, some auxiliary functions.-->
+    <script type="text/javascript" src="main.js"></script>
+</head>
+
+<body onload="webGLStart();">
+    <!--Title-->
+    <h1>Electric eels</h1>
+    <!--FPS counter-->
+    <div class="mydiv" id="fpscounter"> </div>
+    <!--The canvas-->
+    <canvas id="canvas" width="512" height="512" style="border:1px solid #CECECE"></canvas><br/>
+    <!--Heat scale slider bar-->
+    <!--<label for="range-heatscale"></label><input type="range" id="range-heatscale"-->
+         <!--min="0.1" max="100" value="1" step="1"-->
+         <!--onchange="heatscaleSlider(this.value)"-->
+         <!--oninput="heatscaleSlider(this.value)"/> Forager heat scale:-->
+    <!--<span id="range-heatscale-disp">1</span> <br/>-->
+    <!--&lt;!&ndash;Heat decay slider bar&ndash;&gt;-->
+    <!--<label for="range-cdecay"></label><input type="range" id="range-cdecay"-->
+           <!--min="0" max="15" value="5" step="1"-->
+           <!--onchange="cdecaySlider(this.value)"-->
+           <!--oninput="cdecaySlider(this.value)"/> Decay rate:-->
+    <!--<span id="range-cdecay-disp">5</span> <br/>-->
+    <!--&lt;!&ndash;Diffusion speed slider bar&ndash;&gt;-->
+    <!--<label for="range-cdiff"></label><input type="range" id="range-cdiff"-->
+            <!--min="0" max="0.16666666" value="0.1" step="0.002"-->
+            <!--onchange="cdiffSlider(this.value)"-->
+            <!--oninput="cdiffSlider(this.value)"/>Diffusion speed:-->
+    <!--<span id="range-cdiff-disp">0.1</span> <br/>-->
+    <!--&lt;!&ndash;Base heat color slider bar&ndash;&gt;-->
+    <!--<label for="range-heatH"></label><input type="range" id="range-heatH"-->
+            <!--min="0" max="1" value="0.09" step="0.01"-->
+            <!--onchange="heatHSlider(this.value)"-->
+            <!--oninput="heatHSlider(this.value)"/> Base heat hue:-->
+    <!--<span id="range-heatH-disp">0.09</span> <br/>-->
+    <!--&lt;!&ndash;Hgate slider bar&ndash;&gt;-->
+    <!--<label for="range-Hgate"></label><input type="range" id="range-Hgate"-->
+           <!--min="0" max="100" value="0" step="0.5"-->
+           <!--onchange="HgateSlider(this.value)"-->
+           <!--oninput="HgateSlider(this.value)"/> Hgate:-->
+    <!--<span id="range-Hgate-disp">0.05</span><br/>-->
+    <!--&lt;!&ndash;Sgate slider bar&ndash;&gt;-->
+    <!--<label for="range-Sgate"></label><input type="range" id="range-Sgate"-->
+                                            <!--min="0" max="100" value="14" step="0.5"-->
+                                            <!--onchange="SgateSlider(this.value)"-->
+                                            <!--oninput="SgateSlider(this.value)"/> Sgate:-->
+    <!--<span id="range-Sgate-disp">14</span><br/>-->
+</body>
+</html>
