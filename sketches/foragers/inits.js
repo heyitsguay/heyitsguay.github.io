@@ -1,5 +1,7 @@
 var successGL = false;
 var successForagers = false;
+var successPellets = false;
+var successQuadtree = false;
 var successShaderPrograms = false;
 var successFloatBuffers = false;
 var successBuffers = false;
@@ -14,6 +16,10 @@ function webGLStart()
     successGL = initGL(canvas);
 
     successForagers = initForagers();
+
+    successPellets = initPellets();
+
+    successQuadtree = initQuadtree();
 
     successBuffers = initBuffers();
 
@@ -31,6 +37,8 @@ function webGLStart()
     changeRands();
     setInterval(changeRands, 250);
 
+    setInterval(addPellet, 2000);
+
     tick();
 }
 
@@ -46,10 +54,13 @@ function initGL(canvas)
 function initGLVars()
 {
     attributeArrays = {
-        a_fposition: {data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, numItems: 0, dynamic: true},
-        a_fheat: {data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 1, numItems: 0, dynamic: true},
-        a_fcolor: {data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 4, numItems: 0, dynamic: true},
-        a_sposition: {data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, numItems: 0, dynamic: false}
+        a_fposition: {glvar: 'a_position', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, dynamic: true},
+        a_fheat: {glvar: 'a_heat', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 1, dynamic: true},
+        a_fcolor: {glvar: 'a_color', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 4, dynamic: true},
+        a_pposition: {glvar: 'a_position', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, dynamic: false},
+        a_pheat: {glvar: 'a_heat', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 1, dynamic: false},
+        a_pcolor: {glvar: 'a_color', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 4, dynamic: false},
+        a_sposition: {glvar: 'a_position', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, dynamic: false}
     };
 
     heatscale = 1;//parseFloat(document.getElementById("range-heatscale").value);
@@ -76,7 +87,7 @@ function initGLVars()
 
 function initForagers()
 {
-    var nforagers = 5;
+    var nforagers = 2;
     for(var i=0; i<nforagers; i++)
     {
         foragers.push(new Forager());
@@ -84,6 +95,30 @@ function initForagers()
 
     player = new Forager(0.001, 0.001, Math.PI/2, 1, 0.0001, 0.00001);
     foragers.push(player);
+    return true;
+}
+
+function initPellets()
+{
+    var npellets = 1;
+    for(var i=0; i<npellets; i++)
+    {
+        pellets.push(new Pellet());
+    }
+    return true;
+}
+
+function initQuadtree()
+{
+    var args = {
+        x: -1,
+        y: -1,
+        w: 2,
+        h: 2,
+        maxChildren: 5
+    };
+
+    tree = QUAD.init(args);
     return true;
 }
 
@@ -97,16 +132,18 @@ function initBuffers()
 
     // Initialize attribute array data.
     attributeArrays.a_fposition.data = new Float32Array(foragers.length * 6);
-    attributeArrays.a_fposition.numItems = foragers.length * 3;
 
     attributeArrays.a_fheat.data = new Float32Array(foragers.length * 3);
-    attributeArrays.a_fheat.numItems = foragers.length * 3;
 
     attributeArrays.a_fcolor.data = new Float32Array(foragers.length * 12);
-    attributeArrays.a_fcolor.numItems = foragers.length * 3;
+
+    attributeArrays.a_pposition.data = new Float32Array(maxPellets * 12);
+
+    attributeArrays.a_pheat.data = new Float32Array(maxPellets * 6);
+
+    attributeArrays.a_pcolor.data = new Float32Array(maxPellets * 24);
 
     attributeArrays.a_sposition.data = new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]);
-    attributeArrays.a_sposition.numItems = 4;
 
     //for(var i=0; i<attributeArrays.length; i++)
     var akeys = Object.keys(attributeArrays);

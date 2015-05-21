@@ -64,18 +64,21 @@ function ShaderProgram(id)
     this.attributes = {};
     this.uniforms = {};
 
-    for(var i=0; i<spAttributes[this.vs_id].length; i++)
+    //for(var i=0; i<spAttributes[this.vs_id].length; i++)
+    for(var i=0; i<spVars[this.id].attributes.length; i++)
     {
-        var att = spAttributes[this.vs_id][i];
-        this.attributes[att] = gl.getAttribLocation(this.program, att);
+        var att = spVars[this.id].attributes[i];
+        var gl_att = attributeArrays[att].glvar;
+        this.attributes[att] = gl.getAttribLocation(this.program, gl_att);
         gl.enableVertexAttribArray(this.attributes[att]);
     }
     // Check if the associated fragment shader has any uniform variables.
-    if(spUniforms[this.fs_id].length > 0)
+    //if(spUniforms[this.fs_id].length > 0)
+    if(spVars[this.id].uniforms.length > 0)
     {
-        for (i = 0; i < spUniforms[this.fs_id].length; i++)
+        for (i = 0; i < spVars[this.id].uniforms.length; i++)
         {
-            var uni = spUniforms[this.fs_id][i];
+            var uni = spVars[this.id].uniforms[i];
             this.uniforms[uni] = gl.getUniformLocation(this.program, uni);
         }
     }
@@ -83,12 +86,12 @@ function ShaderProgram(id)
 
 // NOTICE: This function shouldn't be called until you've bound whatever textures you plan to use to their
 // appropriate texture units.
-ShaderProgram.prototype.prep = function()
+ShaderProgram.prototype.prep = function(redraw)
 {
     gl.useProgram(this.program);
 
     // Set uniform variable values, if there are any
-    var unames = spUniforms[this.fs_id];
+    var unames = spVars[this.id].uniforms;
     if(unames.length > 0)
     {
         for (var i = 0; i < unames.length; i++) {
@@ -122,17 +125,23 @@ ShaderProgram.prototype.prep = function()
         }
     }
     // Set attribute arrays
-    var anames = spAttributes[this.vs_id];
+    var anames = spVars[this.id].attributes;
     for(i=0; i<anames.length; i++)
     {
         var aname = anames[i];
         var att = attributeArrays[aname];
         gl.bindBuffer(att.type, att.buffer);
-        if(att.dynamic)
+        if(redraw)
         {
             gl.bufferData(att.type, att.data, gl.DYNAMIC_DRAW);
         }
         gl.vertexAttribPointer(this.attributes[aname], att.itemSize, gl.FLOAT, false, 0, 0);
+    }
+
+    // Update the redraw trigger if needed.
+    if(redraw)
+    {
+        return false;
     }
 };
 

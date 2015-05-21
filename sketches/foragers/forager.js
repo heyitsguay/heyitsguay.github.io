@@ -1,23 +1,51 @@
-//const SQRT2 = 1.414214;
-const ISQRT2 = 0.707107;
+var foragerID = 0;
 
-var newestID = 0;
 function Forager(x, y, heading, heat, vr, vth)
 {
-    this.id = newestID;
-    newestID += 1;
-    this.x = x || 1.8 * Math.random() - 0.9;
-    this.y = y || 1.8 * Math.random() - 0.9;
+    this.type = 'forager';
+    this.id = foragerID;
+    foragerID += 1;
+    this.xc = (typeof x !== 'undefined')? x : 1.8 * Math.random() - 0.9;
+    this.yc = (typeof y !== 'undefined')? y : 1.8 * Math.random() - 0.9;
     this.dx = 0;
     this.dy = 0;
-    this.dr = vr || 1.1 * Math.random() + 0.05;
-    this.th = heading || Math.random() * 2 * Math.PI; // Note: a heading of 0 is due east
-    this.dth = vth || 0;
-    this.heat = heat || Math.random() * 2;
+    this.dr = (typeof vr !== 'undefined')? vr : 1.1 * Math.random() + 0.05;
+    this.th = (typeof heading !== 'undefined')? heading : Math.random() * 2 * Math.PI; // Note: a heading of 0 is due east
+    this.dth = (typeof vth !== 'undefined') ? vth : 0;
+    this.heat = (typeof heat !== 'undefined')? heat : Math.random() * 2;
     this.dh = 0;
-    this.size = 10.0 / worldX;
+    this.size = 12.0 / worldX;
     this.color = vec4.fromValues(Math.random(), Math.random(), Math.random(), 1.0);
+
+    // Vertex locations relative to a center (0,0)
+    this.vert0 = vec2.fromValues(-ISQRT2 * this.size, ISQRT2 * this.size);
+    this.vert1 = vec2.fromValues(1.6 * this.size, 0);
+    this.vert2 = vec2.fromValues(-ISQRT2 * this.size, -ISQRT2 * this.size);
+    // Rotated vertex locations
+    this.tvert0 = vec2.create();
+    this.tvert1 = vec2.create();
+    this.tvert2 = vec2.create();
+
+    // Stuff necessary for the quadtree
+    this.x = this.xc - ISQRT2 * this.size;
+    this.y = this.yc - ISQRT2 * this.size;
+    this.w = SQRT2 * this.size;
+    this.h = SQRT2 * this.size;
+
+    // Radius-squared used for collision detection
+    this.rad2 = this.size * this.size;
+
+    // How bouncy the Forager is.
+    this.bounce = 1.5;
+
+    // Use to keep track of collisions
+    this.alreadyCollided = false;
+
+    // Impulse imparted by a collision in the last frame
+    this.dxcollide = 0;
+    this.dycollide = 0;
 }
+
 
 var headingMatrix = mat2.create();
 
@@ -26,25 +54,20 @@ Forager.prototype.draw = function()
     // Set heading rotation matrix.
     mat2.identity(headingMatrix);
     mat2.rotate(headingMatrix, headingMatrix, -this.th);
-    // Figure out vertex locations relative to a center (0,0).
-    var vert0 = vec2.fromValues(-ISQRT2 * this.size, ISQRT2 * this.size);
-    vec2.transformMat2(vert0, vert0, headingMatrix);
 
-    var vert1 = vec2.fromValues(1.6 * this.size, 0);
-    vec2.transformMat2(vert1, vert1, headingMatrix);
-
-    var vert2 = vec2.fromValues(-ISQRT2 * this.size, -ISQRT2 * this.size);
-    vec2.transformMat2(vert2, vert2, headingMatrix);
+    vec2.transformMat2(this.tvert0, this.vert0, headingMatrix);
+    vec2.transformMat2(this.tvert1, this.vert1, headingMatrix);
+    vec2.transformMat2(this.tvert2, this.vert2, headingMatrix);
 
     // Update vertex position Float32Array
     var idx0 = this.id * 6;
     var arrP = attributeArrays.a_fposition.data;
-    arrP[idx0]   = this.x + vert0[0];
-    arrP[idx0+1] = this.y + vert0[1];
-    arrP[idx0+2] = this.x + vert1[0];
-    arrP[idx0+3] = this.y + vert1[1];
-    arrP[idx0+4] = this.x + vert2[0];
-    arrP[idx0+5] = this.y + vert2[1];
+    arrP[idx0]   = this.xc + this.tvert0[0];
+    arrP[idx0+1] = this.yc + this.tvert0[1];
+    arrP[idx0+2] = this.xc + this.tvert1[0];
+    arrP[idx0+3] = this.yc + this.tvert1[1];
+    arrP[idx0+4] = this.xc + this.tvert2[0];
+    arrP[idx0+5] = this.yc + this.tvert2[1];
 
     // Update vertex heat Float32Array
     idx0 = this.id * 3;
@@ -76,33 +99,39 @@ Forager.prototype.draw = function()
 Forager.prototype.update = function(dt, fh, fr, fth)
 {
     this.th = ((this.th) + dt * this.dth) % (2 * Math.PI);
-    this.dx = dt * this.dr * Math.cos(this.th);
-    this.dy = dt * this.dr * Math.sin(this.th);
+    this.dx = dt * this.dr * Math.cos(this.th) + this.dxcollide;
+    this.dy = dt * this.dr * Math.sin(this.th) + this.dycollide;
 
     var dh = dt * this.dh;
     var d2h = dt * fh;
     var d2r = dt * fr;
     var d2th = dt * fth;
 
-    this.x += dt * this.dx;
-    if(this.x > 1)
+    this.xc += dt * this.dx;
+    if(this.xc > 1)
     {
-        this.x -= 2;
+        this.xc -= 2;
     }
-    if(this.x < -1)
+    if(this.xc < -1)
     {
-        this.x += 2;
+        this.xc += 2;
     }
-    this.y += dt * this.dy;
-    if(this.y > 1)
+    this.yc += dt * this.dy;
+    if(this.yc > 1)
     {
-        this.y -= 2;
+        this.yc -= 2;
     }
-    if(this.y < -1)
+    if(this.yc < -1)
     {
-        this.y += 2;
+        this.yc += 2;
     }
 
+    this.dxcollide = 0;
+    this.dycollide = 0;
+    this.alreadyCollided = false;
+
+    this.x = this.xc - ISQRT2 * this.size;
+    this.y = this.yc - ISQRT2 * this.size;
 
     this.heat += dh;
     this.dh += d2h;

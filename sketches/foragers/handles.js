@@ -33,12 +33,12 @@ function handleKeys()
         // Slow down
         player.dr = Math.max(0, player.dr - 0.02);
     }
-    if(keys[69]) // E
+    if(keys[80]) // P
     {
         // Increase player heat
         player.heat += 0.05;
     }
-    if(keys[81]) // Q
+    if(keys[79]) // O
     {
         // Decrease player heat
         player.heat = Math.max(0, player.heat - 0.05);

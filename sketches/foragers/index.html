@@ -3,6 +3,9 @@
 <head>
     <link href='http://fonts.googleapis.com/css?family=Arvo' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="libs/lodash.min.js"></script>
+    <script type="text/javascript" src="libs/quadtree.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
     <!--<script type="text/javascript" src="libs/webgl-debug.js"></script>-->
     <style id="body">
         * {margin: 0; padding: 0;}
@@ -66,7 +69,7 @@
             margin-left: auto;
             margin-right: auto;
             table-layout: fixed;
-            width: 670px;
+            width: 650px;
             //border: 1px solid;
             border-spacing: 10px;
 
@@ -74,16 +77,16 @@
     </style>
 
     <!--Fragment shaders-->
-    <script id="fs_foragerupdate" type="x-shader/x-fragment">
+    <script id="fs_entityupdate" type="x-shader/x-fragment">
         precision highp float;
 
-        varying float v_fheat;
+        varying float v_heat;
 
         const float hoffsetinv = 0.00001;
 
         void main()
         {
-            gl_FragColor = vec4(hoffsetinv * v_fheat, 0.0, 0.0, 1.0);
+            gl_FragColor = vec4(hoffsetinv * v_heat, 0.0, 0.0, 1.0);
         }
     </script>
     <script id="fs_diffuse" type="x-shader/x-fragment">
@@ -167,61 +170,64 @@
             gl_FragColor = vec4(hsv2rgb(vec3(H , 1.0, min(1.0, 0.8 * heat))), 1.0);
         }
     </script>
-    <script id="fs_foragerdraw" type="x-shader/x-fragment">
+    <script id="fs_entitydraw" type="x-shader/x-fragment">
         precision highp float;
 
-        varying vec4 v_fcolor;
+        varying vec4 v_color;
 
         void main()
         {
-            gl_FragColor = v_fcolor;
+            gl_FragColor = v_color;
         }
     </script>
 
     <!--Vertex shaders-->
-    <script id="vs_foragerupdate" type="x-shader/x-vertex">
-        attribute vec2 a_fposition;
-        attribute float a_fheat;
+    <script id="vs_entityupdate" type="x-shader/x-vertex">
+        attribute vec2 a_position;
+        attribute float a_heat;
 
-        varying float v_fheat;
+        varying float v_heat;
 
         void main()
         {
-            gl_Position = vec4(a_fposition, 0.0, 1.0);
-            v_fheat = a_fheat;
+            gl_Position = vec4(a_position, 0.0, 1.0);
+            v_heat = a_heat;
         }
     </script>
     <script id="vs_screen" type = "x-shader/x-vertex">
-        attribute vec2 a_sposition;
+        attribute vec2 a_position;
 
         void main()
         {
-            gl_Position = vec4(a_sposition, 0.0, 1.0);
+            gl_Position = vec4(a_position, 0.0, 1.0);
         }
     </script>
-    <script id="vs_foragerdraw" type="x-shader/x-vertex">
-        attribute vec2 a_fposition;
-        attribute vec4 a_fcolor;
+    <script id="vs_entitydraw" type="x-shader/x-vertex">
+        attribute vec2 a_position;
+        attribute vec4 a_color;
 
-        varying vec4 v_fcolor;
+        varying vec4 v_color;
 
         void main()
         {
-            gl_Position = vec4(a_fposition, 0.0, 1.0);
-            v_fcolor = a_fcolor;
+            gl_Position = vec4(a_position, 0.0, 1.0);
+            v_color = a_color;
         }
     </script>
 
-    <!--Objects to simplify working with WebGL-->
+    <!--Objects to simplify working with WebGL.-->
     <script type="text/javascript" src="glhelpers.js"></script>
-    <!--Event handlers-->
+    <!--Event handlers.-->
     <script type="text/javascript" src="handles.js"></script>
     <!--Contains all the initialization scripts.-->
     <script type="text/javascript" src="inits.js"></script>
+    <!--Contains properties and methods of the Pellet object.-->
+    <script type="text/javascript" src="pellet.js"></script>
     <!--Contains properties and methods of the Forager object.-->
     <script type="text/javascript" src="forager.js"></script>
     <!--Common global variable definitions, update and drawing functions, some auxiliary functions.-->
     <script type="text/javascript" src="main.js"></script>
+
 </head>
 
 <body onload="webGLStart();">
@@ -231,9 +237,11 @@
     <div class="mydiv" id="fpscounter"> </div>
     <!--The canvas-->
     <canvas id="canvas" width="512" height="512" style="border:1px solid #CECECE"></canvas>
-    <h4>WASD to move, Q/E to change player heat.</h4>
+    <h4>WASD to move, O/P to change player heat.</h4>
+    Add pellets: <label for="check-pellets"></label><input type="checkbox" id="check-pellets" onchange="pelletToggle()" checked/>
+    Show sliders: <label for="check-sliders"></label><input type="checkbox" id="check-sliders" onchange="sliderToggle(this.checked)" checked/>
     <!--Slider bar table-->
-    <table class="ss">
+    <table class="ss" id="table-sliders">
         <colgroup>
             <col span="1" style="width: 20%;">
             <col span="1" style="width: 17.5%;">
@@ -242,19 +250,10 @@
             <col span="1" style="width: 17.5%;">
             <col span="1" style="width: 12.5%;">
         </colgroup>
-        <!--Heat scale slider bar-->
-        <!--<tr>-->
-            <!--<td>Forager heat scale</td>-->
-            <!--<td><label for="range-heatscale"></label><input type="range" id="range-heatscale"-->
-                 <!--min="0" max="100" value="1" step="1"-->
-                 <!--onchange="heatscaleSlider(this.value)"-->
-                 <!--oninput="heatscaleSlider(this.value)"/></td>-->
-            <!--<td id="range-heatscale-disp">1</td>-->
-        <!--</tr>-->
         <!--Heat decay slider bar-->
         <tr>
             <td>Decay rate</td>
-            <td><label for="range-cdecay"></label><input type="range" id="range-cdecay"
+            <td><label for="range-cdecay"></label><input type="range" id="range-cdecay" style="width: 110px;"
                    min="0" max="15" value="5" step="1"
                    onchange="cdecaySlider(this.value)"
                    oninput="cdecaySlider(this.value)"/></td>
@@ -263,7 +262,7 @@
         <!--Diffusion speed slider bar-->
         <!--<tr>-->
             <td>Diffusion speed</td>
-            <td><label for="range-cdiff"></label><input type="range" id="range-cdiff"
+            <td><label for="range-cdiff"></label><input type="range" id="range-cdiff" style="width: 110px;"
                     min="0" max="1" value="0.6" step="0.01"
                     onchange="cdiffSlider(this.value)"
                     oninput="cdiffSlider(this.value)"/></td>
@@ -272,20 +271,20 @@
         <!--Base heat color slider bar-->
         <tr>
             <td>Hue base</td>
-            <td><label for="range-heatH"></label><input type="range" id="range-heatH"
-                    min="0" max="1" value="0.09" step="0.01"
+            <td><label for="range-heatH"></label><input type="range" id="range-heatH" style="width: 110px;"
+                    min="0" max="1" value="0" step="0.01"
                     onchange="heatHSlider(this.value)"
                     oninput="heatHSlider(this.value)"/></td>
-            <td id="range-heatH-disp">0.09</td>
+            <td id="range-heatH-disp">0</td>
         <!--</tr>-->
         <!--Hgate slider bar-->
         <!--<tr>-->
             <td>Hue multiplier</td>
-            <td><label for="range-Hgate"></label><input type="range" id="range-Hgate"
-                   min="0" max="100" value="0" step="1"
+            <td><label for="range-Hgate"></label><input type="range" id="range-Hgate" style="width: 110px;"
+                   min="0" max="100" value="3" step="1"
                    onchange="HgateSlider(this.value)"
                    oninput="HgateSlider(this.value)"/></td>
-            <td id="range-Hgate-disp">0</td>
+            <td id="range-Hgate-disp">3</td>
         </tr>
         <!--&lt;!&ndash;Sgate slider bar&ndash;&gt;-->
         <!--<tr>-->
