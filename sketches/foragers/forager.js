@@ -49,6 +49,7 @@ function Forager(x, y, heading, heat, vr, vth)
 
 var headingMatrix = mat2.create();
 
+var foragerCount = 0;
 Forager.prototype.draw = function()
 {
     // Set heading rotation matrix.
@@ -60,7 +61,7 @@ Forager.prototype.draw = function()
     vec2.transformMat2(this.tvert2, this.vert2, headingMatrix);
 
     // Update vertex position Float32Array
-    var idx0 = this.id * 6;
+    var idx0 = foragerCount * 6;
     var arrP = attributeArrays.a_fposition.data;
     arrP[idx0]   = this.xc + this.tvert0[0];
     arrP[idx0+1] = this.yc + this.tvert0[1];
@@ -70,14 +71,14 @@ Forager.prototype.draw = function()
     arrP[idx0+5] = this.yc + this.tvert2[1];
 
     // Update vertex heat Float32Array
-    idx0 = this.id * 3;
+    idx0 = foragerCount * 3;
     var arrH = attributeArrays.a_fheat.data;
     arrH[idx0] = heatscale * this.heat;
     arrH[idx0+1] = heatscale * this.heat;
     arrH[idx0+2] = heatscale * this.heat;
 
     // Update vertex color Float32Array
-    idx0 = this.id * 12;
+    idx0 = foragerCount * 12;
     var arrC = attributeArrays.a_fcolor.data;
     // Vertex 0
     arrC[idx0]    = this.color[0];
@@ -94,6 +95,8 @@ Forager.prototype.draw = function()
     arrC[idx0+9]  = this.color[1];
     arrC[idx0+10] = this.color[2];
     arrC[idx0+11] = this.color[3];
+
+    foragerCount += 1;
 };
 
 Forager.prototype.update = function(dt, fh, fr, fth)

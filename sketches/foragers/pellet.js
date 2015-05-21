@@ -11,7 +11,7 @@ function Pellet(x, y, heat)
     this.size = 10.0 / worldX;
     this.w = this.size;
     this.h = this.size;
-    this.color = vec4.fromValues(0.05, 0.05, 0.95, 1.0);
+    this.color = vec4.fromValues(1, 0.93, 0.93, 1.0);
 
     // Center and radius-squared used for collision detection
     this.xc = this.x + this.w * 0.5;

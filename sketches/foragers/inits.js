@@ -94,6 +94,7 @@ function initForagers()
     }
 
     player = new Forager(0.001, 0.001, Math.PI/2, 1, 0.0001, 0.00001);
+    player.player = true;
     foragers.push(player);
     return true;
 }
@@ -131,11 +132,11 @@ function initBuffers()
     }
 
     // Initialize attribute array data.
-    attributeArrays.a_fposition.data = new Float32Array(foragers.length * 6);
+    attributeArrays.a_fposition.data = new Float32Array(maxForagers * 6);
 
-    attributeArrays.a_fheat.data = new Float32Array(foragers.length * 3);
+    attributeArrays.a_fheat.data = new Float32Array(maxForagers * 3);
 
-    attributeArrays.a_fcolor.data = new Float32Array(foragers.length * 12);
+    attributeArrays.a_fcolor.data = new Float32Array(maxForagers * 12);
 
     attributeArrays.a_pposition.data = new Float32Array(maxPellets * 12);
 

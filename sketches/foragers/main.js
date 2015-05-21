@@ -145,13 +145,26 @@ function sliderToggle(checked)
     }
 }
 
+function entityDrawToggle()
+{
+    drawEntities = !drawEntities;
+}
 function updateForagers()
 {
+    // Reset before each round of updates.
+    foragerCount = 0;
     for(var i = 0; i < foragers.length; i++)
     {
         var dt = 0.1;
-        var dth = dthrands[i] * 0.3;
-        foragers[i].update(dt, 0, 0, dth);
+        if(foragers[i].player || i >= dthrands.length)
+        {
+            foragers[i].update(dt, 0, 0, 0);
+        }
+        else
+        {
+            var dth = dthrands[i] * 0.3;
+            foragers[i].update(dt, 0, 0, dth);
+        }
         foragers[i].draw();
     }
 }
@@ -258,7 +271,14 @@ function updateHeat()
     gl.drawArrays(gl.TRIANGLES, 0, foragers.length * 3);
 
     // Step 2: Add Pellet heat contributions to the entity FloatBuffer. ----------------------------------------------//
-    pellets.redraw = sps['pelletupdate'].prep(pellets.redraw);
+    if(drawEntities)
+    {
+        sps['pelletupdate'].prep(pellets.redraw);
+    }
+    else
+    {
+        pellets.redraw = sps['pelletupdate'].prep(pellets.redraw);
+    }
     // If the pellet vertex arrays were just redrawn, reset pellets.redraw
     gl.drawArrays(gl.TRIANGLES, 0, pellets.length * 6);
 
@@ -282,7 +302,7 @@ function updateHeat()
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         // Prepare the diffuse shader program to draw.
-        sps['diffuse'].prep(false);
+        sps['diffuse'].prep();
         // Draw
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
@@ -292,13 +312,14 @@ function updateHeat()
 function changeRands()
 {
     var newrands = [];
-    for(var i=0; i < foragers.length-1; i++)
+    for(var i=0; i < foragers.length; i++)
     {
         newrands.push(Math.random() - 0.5);
     }
-    newrands.push(0);
     dthrands = newrands;
 }
+
+var drawEntities = true;
 
 function draw()
 {
@@ -312,6 +333,15 @@ function draw()
 
     sps['drawheat'].prep();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    if(drawEntities)
+    {
+        sps['foragerdraw'].prep(true);
+        gl.drawArrays(gl.TRIANGLES, 0, foragers.length * 3);
+
+        pellets.redraw = sps['pelletdraw'].prep(pellets.redraw);
+        gl.drawArrays(gl.TRIANGLES, 0, pellets.length * 6);
+    }
 }
 
 function update()
@@ -359,6 +389,30 @@ function addPellet()
     {
         pellets.push(new Pellet());
         pellets.redraw = true;
+    }
+}
+
+function addForager()
+{
+    if(foragers.length < maxForagers)
+    {
+        foragers.push(new Forager());
+    }
+}
+
+function removeForager()
+{
+    if(foragers.length > 1)
+    {
+        var forager = foragers[0];
+        if(forager.player)
+        {
+            _.pullAt(foragers, 1);
+        }
+        else
+        {
+            _.pullAt(foragers, 0);
+        }
     }
 }
 

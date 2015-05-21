@@ -64,7 +64,6 @@ function ShaderProgram(id)
     this.attributes = {};
     this.uniforms = {};
 
-    //for(var i=0; i<spAttributes[this.vs_id].length; i++)
     for(var i=0; i<spVars[this.id].attributes.length; i++)
     {
         var att = spVars[this.id].attributes[i];
@@ -73,7 +72,6 @@ function ShaderProgram(id)
         gl.enableVertexAttribArray(this.attributes[att]);
     }
     // Check if the associated fragment shader has any uniform variables.
-    //if(spUniforms[this.fs_id].length > 0)
     if(spVars[this.id].uniforms.length > 0)
     {
         for (i = 0; i < spVars[this.id].uniforms.length; i++)

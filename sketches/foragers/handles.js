@@ -43,4 +43,14 @@ function handleKeys()
         // Decrease player heat
         player.heat = Math.max(0, player.heat - 0.05);
     }
+    if(keys[75]) // K
+    {
+        // Remove a Forager
+        removeForager();
+    }
+    if(keys[76]) // L
+    {
+        // Add a Forager
+        addForager();
+    }
 }
