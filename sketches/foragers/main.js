@@ -1,3 +1,6 @@
+// TODO:
+// - 20150520 Give pellets and foragers a proper object structure with methods to handle e.g. triggering redraws.
+
 const maxfdr = 100; // Maximum radial velocity  magnitude for foragers.
 const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
 const maxplayerdr = 2;
@@ -148,7 +151,9 @@ function sliderToggle(checked)
 function entityDrawToggle()
 {
     drawEntities = !drawEntities;
+    pellets.redraw = true;
 }
+
 function updateForagers()
 {
     // Reset before each round of updates.
@@ -319,7 +324,7 @@ function changeRands()
     dthrands = newrands;
 }
 
-var drawEntities = true;
+var drawEntities = false;
 
 function draw()
 {
