@@ -26,12 +26,12 @@ function handleKeys()
     if(keys[87]) // W
     {
         // Speed up
-        player.dr = Math.min(maxplayerdr, player.dr + 0.02);
+        player.dr = Math.min(maxplayerdr, player.dr + 5);
     }
     if(keys[83]) // S
     {
         // Slow down
-        player.dr = Math.max(0, player.dr - 0.02);
+        player.dr = Math.max(0, player.dr - 5);
     }
     if(keys[80]) // P
     {

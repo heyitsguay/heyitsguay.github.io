@@ -53,7 +53,11 @@ function initGL(canvas)
 
 function initGLVars()
 {
-    heatMap = new Float32Array(texX * texY * 4);
+    // Aspect ratio matrix values.
+    armat[0] = 2/worldX;
+    armat[3] = 2/worldY;
+
+    heatMap = new Float32Array(worldX * worldY * 4);
 
     attributeArrays = {
         a_fposition: {glvar: 'a_position', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, dynamic: true},
@@ -97,7 +101,7 @@ function initForagers()
         foragers.push(new Forager());
     }
 
-    player = new Forager(0, 0, 0.001, 0.001, Math.PI/2, 1, 15, 1, 0.0001, 0.00001);
+    player = new Forager(0, 0, 500, 500, Math.PI/2, 1, null, 1, 0, 0);
     player.player = true;
     player.immortal = true;
     foragers.push(player);
@@ -154,6 +158,10 @@ function initBuffers()
     attributeArrays.a_pcolor.data = new Float32Array(maxPellets * 24);
 
     attributeArrays.a_sposition.data = new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]);
+    // Set screen position vertices.
+    //var xs = 2 * worldX / texX - 1;
+    //var ys = 2 * worldY / texY - 1;
+    //attributeArrays.a_sposition.data = new Float32Array([-1, -1, -1, ys, xs, -1, xs, ys]);
 
     //for(var i=0; i<attributeArrays.length; i++)
     var akeys = Object.keys(attributeArrays);

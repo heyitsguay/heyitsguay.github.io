@@ -30,11 +30,12 @@ function Forager(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr
     this.type = 'forager';
     this.id = foragerID;
     foragerID += 1;
-    this.xc = !(x == null)? x : 1.8 * Math.random() - 0.9;
-    this.yc = !(y == null)? y : 1.8 * Math.random() - 0.9;
+    this.xc = !(x == null)? x : Math.random() * worldX;
+    this.yc = !(y == null)? y : Math.random() * worldY;
+    this.pc = vec2.fromValues(this.xc, this.yc);
     this.dx = 0;
     this.dy = 0;
-    this.dr = !(vr == null)? vr : 1.1 * Math.random() + 0.05;
+    this.dr = !(vr == null)? vr : 100 * Math.random() + 10;
     this.th = !(heading == null) ? heading : Math.random() * 2 * Math.PI; // Note: a heading of 0 is due east
     this.dth = !(heading == null) ? vth : 0;
     this.heat = !(heading == null) ? heat : Math.random() * 2;
@@ -42,7 +43,7 @@ function Forager(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr
     this.lifetime = !(heading == null) ? lifetime : 1 + 60 * Math.random() * 30 ;
     this.life0 = 1 / this.lifetime;
     this.lifeleft = this.life0 * this.lifetime;
-    this.size = !(size == null) ? size / worldX : 12.0 / worldX;
+    this.size = !(size == null) ? size : 7;
     this.color = vec4.fromValues(Math.random(), Math.random(), Math.random(), 1.0);
 
     // True for the player.
@@ -100,15 +101,21 @@ Forager.prototype.draw = function()
     vec2.transformMat2(this.tvert1, this.vert1, headingMatrix);
     vec2.transformMat2(this.tvert2, this.vert2, headingMatrix);
 
+    vec2.add(this.tvert0, this.tvert0, this.pc);
+    vec2.add(this.tvert1, this.tvert1, this.pc);
+    vec2.add(this.tvert2, this.tvert2, this.pc);
+
+    // Convert to clip space coordinates.
+    this.tvert0 = clipSpace(this.tvert0);
+    this.tvert1 = clipSpace(this.tvert1);
+    this.tvert2 = clipSpace(this.tvert2);
+
     // Update vertex position Float32Array
     var idx0 = foragerCount * 6;
     var arrP = attributeArrays.a_fposition.data;
-    arrP[idx0]   = this.xc + this.tvert0[0];
-    arrP[idx0+1] = this.yc + this.tvert0[1];
-    arrP[idx0+2] = this.xc + this.tvert1[0];
-    arrP[idx0+3] = this.yc + this.tvert1[1];
-    arrP[idx0+4] = this.xc + this.tvert2[0];
-    arrP[idx0+5] = this.yc + this.tvert2[1];
+    arrP[idx0]   = this.tvert0[0]; arrP[idx0+1] = this.tvert0[1];
+    arrP[idx0+2] = this.tvert1[0]; arrP[idx0+3] = this.tvert1[1];
+    arrP[idx0+4] = this.tvert2[0]; arrP[idx0+5] = this.tvert2[1];
 
     updateArray(attributeArrays.a_fheat.data, this.heat, foragerCount, 3, 1);
 
@@ -169,23 +176,25 @@ Forager.prototype.update = function(dt, fh, fr, fth)
     var d2th = dt * fth;
 
     this.xc += dt * this.dx;
-    if(this.xc > 1)
+    if(this.xc > worldX)
     {
-        this.xc -= 2;
+        this.xc -= worldX
     }
-    if(this.xc < -1)
+    if(this.xc < 0)
     {
-        this.xc += 2;
+        this.xc += worldX;
     }
     this.yc += dt * this.dy;
-    if(this.yc > 1)
+    if(this.yc > worldY)
     {
-        this.yc -= 2;
+        this.yc -= worldY;
     }
-    if(this.yc < -1)
+    if(this.yc < 0)
     {
-        this.yc += 2;
+        this.yc += worldY;
     }
+    this.pc[0] = this.xc;
+    this.pc[1] = this.yc;
 
     //this.dxcollide = 0;
     //this.dycollide = 0;

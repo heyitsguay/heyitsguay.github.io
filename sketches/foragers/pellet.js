@@ -5,10 +5,10 @@ function Pellet(x, y, heat, lifetime)
     this.type = 'pellet';
     this.id = pelletID;
     pelletID += 1;
-    this.x = (typeof x !== 'undefined')? x : 2 * Math.random() - 1;
-    this.y = (typeof y !== 'undefined')? y : 2 * Math.random() - 1;
-    this.heat = (typeof heat !== 'undefined')? heat : Math.random() * 4;
-    this.size = 10.0 / worldX;
+    this.x = (typeof x !== 'undefined')? x : Math.random() * worldX;
+    this.y = (typeof y !== 'undefined')? y : Math.random() * worldY;
+    this.heat = (typeof heat !== 'undefined')? heat : randexp(0.08);
+    this.size = 6;
     this.w = this.size;
     this.h = this.size;
     this.color = vec4.fromValues(1, 0.93, 0.93, 1.0);
@@ -19,12 +19,12 @@ function Pellet(x, y, heat, lifetime)
     this.rad2 = Math.pow(0.5 * (this.w + this.h), 2);
 
     // Vertex locations (fixed).
-    this.vert0 = vec2.fromValues(this.x,this.y);
-    this.vert1 = vec2.fromValues(this.x, this.y + this.h);
-    this.vert2 = vec2.fromValues(this.x + this.w, this.y);
-    this.vert3 = vec2.fromValues(this.x, this.y + this.h);
-    this.vert4 = vec2.fromValues(this.x + this.w, this.y);
-    this.vert5 = vec2.fromValues(this.x + this.w, this.y + this.h);
+    this.vert0 = clipSpace(vec2.fromValues(this.x, this.y));
+    this.vert1 = clipSpace(vec2.fromValues(this.x, this.y + this.h));
+    this.vert2 = clipSpace(vec2.fromValues(this.x + this.w, this.y));
+    this.vert3 = clipSpace(vec2.fromValues(this.x, this.y + this.h));
+    this.vert4 = clipSpace(vec2.fromValues(this.x + this.w, this.y));
+    this.vert5 = clipSpace(vec2.fromValues(this.x + this.w, this.y + this.h));
 
     // Lifetime variables
     this.lifetime = !(lifetime == null) ? lifetime : 60000;

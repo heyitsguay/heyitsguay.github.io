@@ -1,19 +1,28 @@
 // TODO:
 // - 20150520 Give pellets and foragers a proper object structure with methods to handle e.g. triggering redraws.
 
-const maxfdr = 3; // Maximum radial velocity  magnitude for foragers.
+const maxfdr = 300; // Maximum radial velocity  magnitude for foragers.
 const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
-const maxplayerdr = 2.5;
+const maxplayerdr = 300;
 const maxPellets = 150;
 const maxForagers = 200;
 
 const SQRT2 = 1.414214;
 const ISQRT2 = 0.707107;
 
+const worldX = 1000;
+const worldY = 600;
+
 // Modulo operation variant with no negative numbers
 function mod(m, n)
 {
     return ((m % n) + n) % n;
+}
+
+function randexp(L)
+{
+    var u = Math.random();
+    return Math.log(1 - u) / (-L);
 }
 
 // the webgl canvas context
@@ -74,13 +83,10 @@ var player;
 // When true, draw entity shapes.
 var drawEntities = false;
 
-// World dimensions (currently just the same as canvas dimensions).
-var worldX = 512;
-var worldY = 512;
 // For better performance, one can use a smaller heat map by dividing the world dimensions by heatMapScale.
-var heatMapScale = 1; // should be a power of 2.
-var texX = worldX / heatMapScale;
-var texY = worldY / heatMapScale;
+//var heatMapScale = 1; // should be a power of 2.
+var texX = Math.pow(2, Math.ceil(Math.log2(worldX)));
+var texY = Math.pow(2, Math.ceil(Math.log2(worldY)));
 
 // Used to toggle between the two heat framebuffers.
 var fbidx = 0;
@@ -244,16 +250,16 @@ function collide(obj0, obj1)
             // Bounce off each other
             var cmag = Math.sqrt(drad2); // collision normal magnitude
             var cnormalx = dx / cmag; // normalized collision normal x value.
-            var cnormaly = dy / cmag; // normalized collision normal y value.
+            var cnormaly = dy / cmag; // normalized collision normal y value.waaaa
 
-            var d0dotn = obj0.dx * cnormalx + obj0.dy * cnormaly;
-            var d1dotn = - obj1.dx * cnormalx - obj1.dy * cnormaly;
+            var d0dotn = obj0.dr * Math.cos(obj0.th) * cnormalx + obj0.dr * Math.sin(obj0.th) * cnormaly;
+            var d1dotn = - obj1.dr * Math.cos(obj1.th) * cnormalx - obj1.dr * Math.sin(obj1.th) * cnormaly;
 
             var deltax = d1dotn * cnormalx + d0dotn * cnormalx;
-            deltax = Math.sign(deltax) * Math.max(0.0005, Math.abs(deltax));
+            deltax = Math.sign(deltax) * Math.max(0.05, Math.abs(deltax));
 
             var deltay = d1dotn * cnormaly + d0dotn * cnormaly;
-            deltay = Math.sign(deltay) * Math.max(0.0005, Math.abs(deltay));
+            deltay = Math.sign(deltay) * Math.max(0.05, Math.abs(deltay));
 
             //var dx0 = obj0.dr * Math.cos(obj0.dth) - obj0.bounce * deltax;
             var dx0 = -obj0.bounce * deltax;
@@ -273,12 +279,6 @@ function collide(obj0, obj1)
             obj1.drcollide = Math.min(0.5 * maxfdr, c[0] * Math.sqrt(dx1 * dx1 + dy1 * dy1));
             obj1.dthcollide = c[0] * 0.2 * Math.atan2(dx1, dy1) + Math.PI * (dx1 < 0);
 
-
-            //obj0.dxcollide = -obj0.bounce * deltax;
-            //obj0.dycollide = -obj0.bounce * deltay;
-
-            //obj1.dxcollide = obj1.bounce * deltax;
-            //obj1.dycollide = obj1.bounce * deltay;
 
             obj0.alreadyCollided = true;
             obj1.alreadyCollided = true;
@@ -301,7 +301,7 @@ function updateHeat()
 {
     // Step 1: Add Forager heat contributions to the entity FloatBuffer. -----------------------------------------------//
     gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers['entity'].fb);
-    gl.viewport(0, 0, texX, texY);
+    gl.viewport(0, 0, worldX, worldY);
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     // Prepare the foragerupdate shader program to draw.
@@ -318,7 +318,7 @@ function updateHeat()
     {
         pellets.redraw = sps['pelletupdate'].prep(pellets.redraw);
     }
-    // If the pellet vertex arrays were just redrawn, reset pellets.redraw
+
     gl.drawArrays(gl.TRIANGLES, 0, pellets.length * 6);
 
     // Step 3: Combine the entity heat texture with the heat map and diffuse. ----------------------------------------//
@@ -337,7 +337,7 @@ function updateHeat()
         gl.bindTexture(gl.TEXTURE_2D, floatBuffers['entity'].tex);
         // Bind the current heat map framebuffer.
         gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers[pong].fb);
-        gl.viewport(0, 0, texX, texY);
+        gl.viewport(0, 0, worldX, worldY);
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         // Prepare the diffuse shader program to draw.
@@ -436,7 +436,7 @@ function readHeatMap()
 {
     var draw_id = ['heat0', 'heat1'][fbidx];
     gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers[draw_id].fb);
-    gl.readPixels(0, 0, texX, texY, gl.RGBA, gl.FLOAT, heatMap);
+    gl.readPixels(0, 0, worldX, worldY, gl.RGBA, gl.FLOAT, heatMap);
 }
 
 function tick()

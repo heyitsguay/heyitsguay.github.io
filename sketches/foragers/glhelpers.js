@@ -198,4 +198,16 @@ function updateArray(arr, data, counter, nverts, itemSize)
             }
         }
     }
-};
+}
+
+var armat = mat2.create();
+const arvec = vec2.fromValues(1, 1);
+function clipSpace(vecw)
+{
+    // Converts a 2D coordinate vector with components in ranges [0, worldX], [0, worldY] into a clip-space vector
+    // with coordinates in ranges [-1,1], [-1,1].
+    var vecc = vec2.create();
+    vec2.transformMat2(vecc, vecw, armat);
+    vec2.subtract(vecc, vecc, arvec);
+    return vecc;
+}
