@@ -178,7 +178,7 @@ function qualityChange()
     }
     else if(q1 === 'high')
     {
-        canvasScale = 0.9;
+        canvasScale = 0.8;
     }
     else if(q1 === 'best')
     {
@@ -188,9 +188,14 @@ function qualityChange()
     xstretch = false;
     ystretch = false;
     if(q2 === 'half'){
-        ystretch = true;
+        if(window.innerWidth >= window.innerHeight) {
+            ystretch = true;
+        }
+        else {
+            xstretch = true;
+        }
     }
-    else if(q2 === 'full'){
+    else if(q2 === 'full') {
         xstretch = true;
         ystretch = true;
     }
@@ -198,6 +203,7 @@ function qualityChange()
     resizeWindow();
 }
 
+//var dt;
 function updateForagers()
 {
     // Reset before each round of updates.

@@ -57,33 +57,43 @@ function resizeWindow() {
 }
 
 function updateSize(canvas) {
-    if(xstretch) {
-        worldX = Math.ceil(canvasScale * window.innerWidth);
-        worldY = Math.ceil(canvasScale * window.innerHeight);
+    var cw = window.innerWidth;
+    var $cw = cw.toString() + 'px';
+    var ch = window.innerHeight;
+    var $ch = ch.toString() + 'px';
+    if(xstretch && ystretch) {
+        worldX = Math.ceil(canvasScale * cw);
+        worldY = Math.ceil(canvasScale * ch);
 
         $(canvas).css({'left':'0', 'width':'100%', 'top':'0', 'height':'100%'});
     }
     else if(ystretch) {
-        worldX = worldY = Math.ceil(canvasScale * window.innerHeight);
+        worldX = worldY = Math.ceil(canvasScale * ch);
 
-        var cw = window.innerHeight;
-        var $cw = cw.toString() + 'px';
-
-        var cl = Math.floor((window.innerWidth - window.innerHeight) / 2);
+        var cl = Math.floor((cw - ch) / 2);
         var $cl = cl.toString() + 'px';
 
-        $(canvas).css({'left':$cl, 'width':$cw, 'top':'0', 'height':'100%'});
+        $(canvas).css({'left':$cl, 'width':$ch, 'top':'0', 'height':'100%'});
+    }
+    else if(xstretch)
+    {
+        worldX = worldY = Math.ceil(canvasScale * cw);
+
+        var ct = Math.floor((ch - cw) / 2);
+        var $ct = ct.toString() + 'px';
+
+        $(canvas).css({'left':'0', 'width':'100%', 'top':$ct, height:$cw })
     }
     else {
-        worldX = worldY = Math.ceil(canvasScale * window.innerHeight);
+        worldX = worldY = Math.ceil(canvasScale * Math.min(cw, ch));
 
         $cw = worldX.toString() + 'px';
-        var $ch = worldY.toString() + 'px';
+        $ch = worldY.toString() + 'px';
 
         cl = Math.floor((window.innerWidth - worldX) / 2);
         $cl = cl.toString() + 'px';
-        var ct = Math.floor((window.innerHeight - worldY) / 2);
-        var $ct = ct.toString() + 'px';
+        ct = Math.floor((window.innerHeight - worldY) / 2);
+        $ct = ct.toString() + 'px';
 
         $(canvas).css({'left':$cl, 'width':$cw, 'top':$ct, 'height':$ch});
     }
@@ -95,14 +105,14 @@ function updateSize(canvas) {
     //var left = window.innerWidth * 0.5;
     //var strleft = (left.toFixed(0)).toString() + 'px';
 
-    var right = window.innerWidth - 200;
+    var right = window.innerWidth - 270;
     var rightStr = right.toString() + 'px';
     $('#title').css({'left': '10px', 'top': '10px'});
-    $('#fpscounter').css({'left': '10px', 'top': '60px'});
+    $('#fpscounter').css({'left': '10px', 'top': '55px'});
     $('#settings').css({'left':'10px', 'top':'90px'});
     $('#checkboxes').css({'left': '10px', 'top': '180px'});
     $('#table-sliders').css({'left': '10px', 'top': '250px'});
-    $('#instructions').css({'left': rightStr, 'top': '15px'});
+    $('#instructions').css({'left': rightStr, 'top': '85px'});
 
     initGL(canvas);
 

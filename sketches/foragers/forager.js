@@ -83,7 +83,7 @@ function Forager(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr
 
     // Foragers will tend to head in this direction
     this.thbias = !(thbias == null) ? thbias : 2 * Math.PI * Math.random();
-    this.thbiasStrength = !(thbiasStrength == null)? thbiasStrength : Math.random();
+    this.thbiasStrength = !(thbiasStrength == null)? thbiasStrength : 0.1 * Math.random();
 
 }
 

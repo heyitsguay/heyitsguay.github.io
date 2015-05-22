@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href='http://fonts.googleapis.com/css?family=Arvo' rel='stylesheet' type='text/css'>
+    <!--<link href='http://fonts.googleapis.com/css?family=Arvo' rel='stylesheet' type='text/css'>-->
     <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
     <script type="text/javascript" src="libs/lodash.min.js"></script>
     <script type="text/javascript" src="libs/quadtree.js"></script>
@@ -11,7 +11,7 @@
         * {margin: 0; padding: 0;}
         html,
         body {
-            /*font-family: 'Arvo', serif;*/
+            font-family: Monospace;
             text-align: center;
             background-color: #000000;
             color: #CECECE;
@@ -45,7 +45,7 @@
             padding-bottom: 3px;
         }
         h2,h3,h4 {
-            font-family: 'Helvetica', sans-serif;
+            /*font-family: 'Helvetica', sans-serif;*/
             color: #CECECE;
         }
     </style>
@@ -68,7 +68,7 @@
             width: 100%;
             background-color: black;
             color: #CECECE;
-            font-family: 'Helvetica', sans-serif;
+            /*font-family: 'Helvetica', sans-serif;*/
         }
         .mydiv br {
             display: none;
@@ -82,7 +82,7 @@
             /*top: 0;*/
             /*left: 0;*/
             color: #CECECE
-            font-framily: 'Helvetica', sans-serif;
+            /*font-framily: 'Helvetica', sans-serif;*/
             font-size: 12pt;
             text-align: left;
             float: left;
@@ -99,13 +99,13 @@
     <style type="text/css" id="table-ss">
         table.ss{
             /*font-family: 'Helvetica', sans-serif;*/
-            font-size: 12pt;
+            font-size: 10pt;
             margin-left: auto;
             margin-right: auto;
             text-align: left;
             float: left;
             table-layout: fixed;
-            width: 200px;
+            width: 220px;
             /*border: 1px solid;*/
             border-spacing: 1px;
             position: absolute;
@@ -113,7 +113,7 @@
         }
     </style>
 
-    <style type="text/css">
+    <style type="text/css" id="table-checktable">
         table.checktable td {
             table-layout: fixed;
             width: 100px;
@@ -127,9 +127,10 @@
         div.instrdiv {
             text-align: right;
             float: right;
+            top: 10px;
             color: #CECECE;
             position: absolute;
-            /*font-size: 14pt;*/
+            font-size: 12pt;
         }
     </style>
 
@@ -323,7 +324,7 @@
     <!-- Quality settings-->
     <div class="mydiv1 toggle" id="settings" onchange="qualityChange()">
         Quality:<br/>
-        <table id="quality"><tr>
+        <table id="quality" style="border-spacing: 5px;"><tr>
             <td><input type="radio" name="q1" value="low"/></td><td>Low</td>
             <td><input type="radio" name="q1" value="medium" checked/></td><td>Medium</td>
             <td><input type="radio" name="q1" value="high" /></td><td>High</td>
@@ -331,7 +332,7 @@
         </tr></table>
 
         Size:<br/>
-        <table id="size"><tr>
+        <table id="size" style="border-spacing: 5px;"><tr>
             <td><input type="radio" name="q2" value="100" checked/></td><td>100%</td>
             <td><input type="radio" name="q2" value="half"/></td><td>Halfscreen</td>
             <td><input type="radio" name="q2" value="full"/></td><td>Fullscreen</td>
@@ -344,10 +345,10 @@
     <canvas id="canvas" width="512" height="512"></canvas>
 
     <div class="instrdiv toggle" id="instructions">
-        WASD to move <br/>
+        WASD to move<br/>
         P/O to raise/lower player heat<br/>
-        L/K to add/remove foragers.<br/>
-        H to toggle text display.
+        L/K to add/remove foragers<br/>
+        H to toggle text display
     </div>
 
     <div class="mydiv1 toggle" id="checkboxes">
