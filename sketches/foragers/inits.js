@@ -1,3 +1,4 @@
+var successSize = false;
 var successGL = false;
 var successForagers = false;
 var successPellets = false;
@@ -7,13 +8,29 @@ var successFloatBuffers = false;
 var successBuffers = false;
 var initialized = false;
 
-function webGLStart()
-{
-    var canvas = document.getElementById("canvas");
-    canvas.width = worldX;
-    canvas.height = worldY;
 
-    successGL = initGL(canvas);
+$(window).resize(resizeWindow);
+
+var firstTime;
+function webGLStart() {
+    setInterval(changeRands, 250);
+    setInterval(addPellet, 2000);
+    setInterval(writeFPS, 500);
+    firstTime = true;
+    qualityChange();
+}
+
+function resizeWindow() {
+    foragers = [];
+    pellets = [];
+    sps = {};
+    floatBuffers = {};
+
+    var canvas = document.getElementById("canvas");
+
+    successSize = updateSize(canvas);
+
+    //successGL = initGL(canvas);
 
     successForagers = initForagers();
 
@@ -32,14 +49,64 @@ function webGLStart()
     document.onkeydown = handleKeyDown;
     document.onkeyup = handleKeyUp;
 
-    setInterval(writeFPS, 500);
+    if (firstTime) {
+        changeRands();
+        tick();
+        firstTime = false;
+    }
+}
 
-    changeRands();
-    setInterval(changeRands, 250);
+function updateSize(canvas) {
+    if(xstretch) {
+        worldX = Math.ceil(canvasScale * window.innerWidth);
+        worldY = Math.ceil(canvasScale * window.innerHeight);
 
-    setInterval(addPellet, 2000);
+        $(canvas).css({'left':'0', 'width':'100%', 'top':'0', 'height':'100%'});
+    }
+    else if(ystretch) {
+        worldX = worldY = Math.ceil(canvasScale * window.innerHeight);
 
-    tick();
+        var cw = window.innerHeight;
+        var $cw = cw.toString() + 'px';
+
+        var cl = Math.floor((window.innerWidth - window.innerHeight) / 2);
+        var $cl = cl.toString() + 'px';
+
+        $(canvas).css({'left':$cl, 'width':$cw, 'top':'0', 'height':'100%'});
+    }
+    else {
+        worldX = worldY = Math.ceil(canvasScale * window.innerHeight);
+
+        $cw = worldX.toString() + 'px';
+        var $ch = worldY.toString() + 'px';
+
+        cl = Math.floor((window.innerWidth - worldX) / 2);
+        $cl = cl.toString() + 'px';
+        var ct = Math.floor((window.innerHeight - worldY) / 2);
+        var $ct = ct.toString() + 'px';
+
+        $(canvas).css({'left':$cl, 'width':$cw, 'top':$ct, 'height':$ch});
+    }
+    canvas.width = worldX;
+    canvas.height = worldY;
+    texX = Math.pow(2, Math.ceil(Math.log2(worldX)));
+    texY = Math.pow(2, Math.ceil(Math.log2(worldY)));
+
+    //var left = window.innerWidth * 0.5;
+    //var strleft = (left.toFixed(0)).toString() + 'px';
+
+    var right = window.innerWidth - 200;
+    var rightStr = right.toString() + 'px';
+    $('#title').css({'left': '10px', 'top': '10px'});
+    $('#fpscounter').css({'left': '10px', 'top': '60px'});
+    $('#settings').css({'left':'10px', 'top':'90px'});
+    $('#checkboxes').css({'left': '10px', 'top': '180px'});
+    $('#table-sliders').css({'left': '10px', 'top': '250px'});
+    $('#instructions').css({'left': rightStr, 'top': '15px'});
+
+    initGL(canvas);
+
+    return true;
 }
 
 function initGL(canvas)

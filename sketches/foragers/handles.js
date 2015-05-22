@@ -1,14 +1,37 @@
 // Tracks which keys are pressed.
 var keys = {};
 
+var htogglable = true;
 function handleKeyDown(e)
 {
     keys[e.keyCode] = true;
+
+    if(e.keyCode == 72 && htogglable)
+    {
+        htoggle();
+    }
+}
+
+function htoggle()
+{
+    htogglable = false;
+    showText = !showText;
+    if (showText) {
+        $('.toggle').show();
+    }
+    else {
+        $('.toggle').hide();
+    }
 }
 
 function handleKeyUp(e)
 {
     keys[e.keyCode] = false;
+
+    if(e.keyCode == 72)
+    {
+        htogglable = true;
+    }
 }
 
 function handleKeys()
@@ -31,7 +54,7 @@ function handleKeys()
     if(keys[83]) // S
     {
         // Slow down
-        player.dr = Math.max(0, player.dr - 5);
+        player.dr = Math.max(-maxplayerdr, player.dr - 5);
     }
     if(keys[80]) // P
     {
@@ -43,6 +66,7 @@ function handleKeys()
         // Decrease player heat
         player.heat = Math.max(0, player.heat - 0.1);
     }
+
     if(keys[75]) // K
     {
         // Remove a Forager

@@ -10,20 +10,12 @@ const maxForagers = 200;
 const SQRT2 = 1.414214;
 const ISQRT2 = 0.707107;
 
-const worldX = 1000;
-const worldY = 600;
+//const worldX = 512;
+//const worldY = 512;
+var worldX, worldY;
+//var canvasScale = 0.5;
 
-// Modulo operation variant with no negative numbers
-function mod(m, n)
-{
-    return ((m % n) + n) % n;
-}
-
-function randexp(L)
-{
-    var u = Math.random();
-    return Math.log(1 - u) / (-L);
-}
+var showText = true;
 
 // the webgl canvas context
 var gl;
@@ -85,8 +77,7 @@ var drawEntities = false;
 
 // For better performance, one can use a smaller heat map by dividing the world dimensions by heatMapScale.
 //var heatMapScale = 1; // should be a power of 2.
-var texX = Math.pow(2, Math.ceil(Math.log2(worldX)));
-var texY = Math.pow(2, Math.ceil(Math.log2(worldY)));
+var texX, texY;// = Math.pow(2, Math.ceil(Math.log2(worldY)));
 
 // Used to toggle between the two heat framebuffers.
 var fbidx = 0;
@@ -99,6 +90,18 @@ var heatscale;
 
 // Array containing the heat map values.
 var heatMap;
+
+// Modulo operation variant with no negative numbers
+function mod(m, n)
+{
+    return ((m % n) + n) % n;
+}
+
+function randexp(L)
+{
+    var u = Math.random();
+    return Math.log(1 - u) / (-L);
+}
 
 //function heatscaleSlider(val)
 //{
@@ -140,22 +143,59 @@ function pelletToggle()
     addPellets = !addPellets;
 }
 
-function sliderToggle(checked)
-{
-    if(checked)
-    {
-        $('#table-sliders').show();
-    }
-    else
-    {
-        $('#table-sliders').hide();
-    }
-}
+//function sliderToggle(checked)
+//{
+//    if(checked)
+//    {
+//        $('#table-sliders').show();
+//    }
+//    else
+//    {
+//        $('#table-sliders').hide();
+//    }
+//}
 
 function entityDrawToggle()
 {
     drawEntities = !drawEntities;
     pellets.redraw = true;
+}
+
+var canvasScale, xstretch, ystretch;
+
+function qualityChange()
+{
+    var q1 = $('input[name="q1"]:checked').val();
+    var q2 = $('input[name="q2"]:checked').val();
+
+    if(q1 === 'low')
+    {
+        canvasScale = 0.3;
+    }
+    else if(q1 === 'medium')
+    {
+        canvasScale = 0.6;
+    }
+    else if(q1 === 'high')
+    {
+        canvasScale = 0.9;
+    }
+    else if(q1 === 'best')
+    {
+        canvasScale = 1;
+    }
+
+    xstretch = false;
+    ystretch = false;
+    if(q2 === 'half'){
+        ystretch = true;
+    }
+    else if(q2 === 'full'){
+        xstretch = true;
+        ystretch = true;
+    }
+
+    resizeWindow();
 }
 
 function updateForagers()
@@ -446,6 +486,6 @@ function tick()
     handleKeys();
     update();
     draw();
-    readHeatMap();
+    //readHeatMap();
 
 }
