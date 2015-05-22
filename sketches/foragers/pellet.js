@@ -1,6 +1,6 @@
 var pelletID = 0;
 
-function Pellet(x, y, heat)
+function Pellet(x, y, heat, lifetime)
 {
     this.type = 'pellet';
     this.id = pelletID;
@@ -25,6 +25,11 @@ function Pellet(x, y, heat)
     this.vert3 = vec2.fromValues(this.x, this.y + this.h);
     this.vert4 = vec2.fromValues(this.x + this.w, this.y);
     this.vert5 = vec2.fromValues(this.x + this.w, this.y + this.h);
+
+    // Lifetime variables
+    this.lifetime = !(lifetime == null) ? lifetime : 60000;
+    this.life0 = 1 / this.lifetime;
+    this.lifeleft = this.life0 * this.lifetime;
 }
 
 // Track the number of Pellets that have already updated in this frame,
@@ -43,48 +48,13 @@ Pellet.prototype.draw = function()
     arrP[idx0+10] = this.vert5[0]; arrP[idx0+11] = this.vert5[1];
 
     // Update vertex heat Float32Array.
-    idx0 = pelletCount * 6;
-    var arrH = attributeArrays.a_pheat.data;
-    arrH[idx0]   = this.heat;
-    arrH[idx0+1] = this.heat;
-    arrH[idx0+2] = this.heat;
-    arrH[idx0+3] = this.heat;
-    arrH[idx0+4] = this.heat;
-    arrH[idx0+5] = this.heat;
+    updateArray(attributeArrays.a_pheat.data, this.heat, pelletCount, 6, 1);
+
+    // Update vertex lifeleft Float32array.
+    updateArray(attributeArrays.a_plifeleft.data, this.lifeleft, pelletCount, 6, 1);
 
     // Update vertex color Float32Array.
-    idx0 = pelletCount * 24;
-    var arrC = attributeArrays.a_pcolor.data;
-    // Vertex 0
-    arrC[idx0]    = this.color[0];
-    arrC[idx0+1]  = this.color[1];
-    arrC[idx0+2]  = this.color[2];
-    arrC[idx0+3]  = this.color[3];
-    // Vertex 1
-    arrC[idx0+4]  = this.color[0];
-    arrC[idx0+5]  = this.color[1];
-    arrC[idx0+6]  = this.color[2];
-    arrC[idx0+7]  = this.color[3];
-    // Vertex 2
-    arrC[idx0+8]  = this.color[0];
-    arrC[idx0+9]  = this.color[1];
-    arrC[idx0+10] = this.color[2];
-    arrC[idx0+11] = this.color[3];
-    // Vertex 3
-    arrC[idx0+12] = this.color[0];
-    arrC[idx0+13] = this.color[1];
-    arrC[idx0+14] = this.color[2];
-    arrC[idx0+15] = this.color[3];
-    // Vertex 4
-    arrC[idx0+16] = this.color[0];
-    arrC[idx0+17] = this.color[1];
-    arrC[idx0+18] = this.color[2];
-    arrC[idx0+19] = this.color[3];
-    // Vertex 5
-    arrC[idx0+20] = this.color[0];
-    arrC[idx0+21] = this.color[1];
-    arrC[idx0+22] = this.color[2];
-    arrC[idx0+23] = this.color[3];
+    updateArray(attributeArrays.a_pcolor.data, this.color, pelletCount, 6, 4);
 
     pelletCount += 1;
 };

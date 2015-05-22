@@ -36,12 +36,12 @@ function handleKeys()
     if(keys[80]) // P
     {
         // Increase player heat
-        player.heat += 0.05;
+        player.heat += 0.1;
     }
     if(keys[79]) // O
     {
         // Decrease player heat
-        player.heat = Math.max(0, player.heat - 0.05);
+        player.heat = Math.max(0, player.heat - 0.1);
     }
     if(keys[75]) // K
     {

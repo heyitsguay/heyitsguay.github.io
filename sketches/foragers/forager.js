@@ -1,22 +1,55 @@
-var foragerID = 0;
+function addForager()
+{
+    if(foragers.length < maxForagers)
+    {
+        foragers.push(new Forager(null, null));
+    }
+}
 
-function Forager(x, y, heading, heat, vr, vth)
+function removeForager()
+{
+    if(foragers.length > 1)
+    {
+        var forager = foragers[0];
+        if(forager.player)
+        {
+            _.pullAt(foragers, 1);
+        }
+        else
+        {
+            _.pullAt(foragers, 0);
+        }
+    }
+}
+
+
+// Forager object stuff ----------------------------------------------------------------------------------------------//
+var foragerID = 0;
+function Forager(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr, vth)
 {
     this.type = 'forager';
     this.id = foragerID;
     foragerID += 1;
-    this.xc = (typeof x !== 'undefined')? x : 1.8 * Math.random() - 0.9;
-    this.yc = (typeof y !== 'undefined')? y : 1.8 * Math.random() - 0.9;
+    this.xc = !(x == null)? x : 1.8 * Math.random() - 0.9;
+    this.yc = !(y == null)? y : 1.8 * Math.random() - 0.9;
     this.dx = 0;
     this.dy = 0;
-    this.dr = (typeof vr !== 'undefined')? vr : 1.1 * Math.random() + 0.05;
-    this.th = (typeof heading !== 'undefined')? heading : Math.random() * 2 * Math.PI; // Note: a heading of 0 is due east
-    this.dth = (typeof vth !== 'undefined') ? vth : 0;
-    this.heat = (typeof heat !== 'undefined')? heat : Math.random() * 2;
+    this.dr = !(vr == null)? vr : 1.1 * Math.random() + 0.05;
+    this.th = !(heading == null) ? heading : Math.random() * 2 * Math.PI; // Note: a heading of 0 is due east
+    this.dth = !(heading == null) ? vth : 0;
+    this.heat = !(heading == null) ? heat : Math.random() * 2;
     this.dh = 0;
-    this.size = 12.0 / worldX;
+    this.lifetime = !(heading == null) ? lifetime : 1 + 60 * Math.random() * 30 ;
+    this.life0 = 1 / this.lifetime;
+    this.lifeleft = this.life0 * this.lifetime;
+    this.size = !(size == null) ? size / worldX : 12.0 / worldX;
     this.color = vec4.fromValues(Math.random(), Math.random(), Math.random(), 1.0);
 
+    // True for the player.
+    this.player = false;
+
+    // May be true more generally
+    this.immortal = false;
     // Vertex locations relative to a center (0,0)
     this.vert0 = vec2.fromValues(-ISQRT2 * this.size, ISQRT2 * this.size);
     this.vert1 = vec2.fromValues(1.6 * this.size, 0);
@@ -36,14 +69,21 @@ function Forager(x, y, heading, heat, vr, vth)
     this.rad2 = this.size * this.size;
 
     // How bouncy the Forager is.
-    this.bounce = 1.5;
+    this.bounce = 2;
 
     // Use to keep track of collisions
     this.alreadyCollided = false;
 
-    // Impulse imparted by a collision in the last frame
-    this.dxcollide = 0;
-    this.dycollide = 0;
+    // Impulse imparted by a collision in the previous frame.
+    //this.dxcollide = 0;
+    //this.dycollide = 0;
+    this.drcollide = 0;
+    this.dthcollide = 0;
+
+    // Foragers will tend to head in this direction
+    this.thbias = !(thbias == null) ? thbias : 2 * Math.PI * Math.random();
+    this.thbiasStrength = !(thbiasStrength == null)? thbiasStrength : Math.random();
+
 }
 
 
@@ -70,40 +110,58 @@ Forager.prototype.draw = function()
     arrP[idx0+4] = this.xc + this.tvert2[0];
     arrP[idx0+5] = this.yc + this.tvert2[1];
 
-    // Update vertex heat Float32Array
-    idx0 = foragerCount * 3;
-    var arrH = attributeArrays.a_fheat.data;
-    arrH[idx0] = heatscale * this.heat;
-    arrH[idx0+1] = heatscale * this.heat;
-    arrH[idx0+2] = heatscale * this.heat;
+    updateArray(attributeArrays.a_fheat.data, this.heat, foragerCount, 3, 1);
+
+    updateArray(attributeArrays.a_flifeleft.data, this.lifeleft, foragerCount, 3, 1);
 
     // Update vertex color Float32Array
-    idx0 = foragerCount * 12;
-    var arrC = attributeArrays.a_fcolor.data;
-    // Vertex 0
-    arrC[idx0]    = this.color[0];
-    arrC[idx0+1]  = this.color[1];
-    arrC[idx0+2]  = this.color[2];
-    arrC[idx0+3]  = this.color[3];
-    // Vertex 1
-    arrC[idx0+4]  = this.color[0];
-    arrC[idx0+5]  = this.color[1];
-    arrC[idx0+6]  = this.color[2];
-    arrC[idx0+7]  = this.color[3];
-    // Vertex 2
-    arrC[idx0+8]  = this.color[0];
-    arrC[idx0+9]  = this.color[1];
-    arrC[idx0+10] = this.color[2];
-    arrC[idx0+11] = this.color[3];
+    updateArray(attributeArrays.a_fcolor.data, this.color, foragerCount, 3, 4);
 
     foragerCount += 1;
 };
 
 Forager.prototype.update = function(dt, fh, fr, fth)
 {
-    this.th = ((this.th) + dt * this.dth) % (2 * Math.PI);
-    this.dx = dt * this.dr * Math.cos(this.th) + this.dxcollide;
-    this.dy = dt * this.dr * Math.sin(this.th) + this.dycollide;
+    // Update lifetime and lifeleft if not immortal.
+    if(!this.immortal)
+    {
+        this.lifetime = Math.max(0, this.lifetime - 1);
+        if (this.lifetime < 1) {
+            // Die.
+            deadForagers.push(this);
+        }
+        this.lifeleft = this.life0 * this.lifetime;
+    }
+    else
+    {
+        this.lifeleft = 1;
+    }
+
+
+    // Heading update.
+    this.th = mod((this.th) + dt * (this.dth + this.dthcollide), 2 * Math.PI);
+
+    if(!this.player)
+    {
+        // Heading bias update
+        var dist1 = this.thbias - this.th;
+        //var dist2 = 2 * Math.PI - dist1;
+
+        var biasupdate;
+        if(Math.abs(dist1) <= Math.PI)
+        {
+            biasupdate = this.thbiasStrength * dist1;
+        }
+        else
+        {
+            biasupdate = this.thbiasStrength * (Math.sign(dist1) * 2 * Math.PI - dist1);
+        }
+
+        this.th = mod(this.th + biasupdate, 2 * Math.PI);
+    }
+
+    this.dx = dt * (this.dr + this.drcollide) * Math.cos(this.th);
+    this.dy = dt * (this.dr + this.drcollide) * Math.sin(this.th);
 
     var dh = dt * this.dh;
     var d2h = dt * fh;
@@ -129,8 +187,8 @@ Forager.prototype.update = function(dt, fh, fr, fth)
         this.yc += 2;
     }
 
-    this.dxcollide = 0;
-    this.dycollide = 0;
+    //this.dxcollide = 0;
+    //this.dycollide = 0;
     this.alreadyCollided = false;
 
     this.x = this.xc - ISQRT2 * this.size;
@@ -143,4 +201,21 @@ Forager.prototype.update = function(dt, fh, fr, fth)
     this.dr = Math.min(maxfdr, Math.max(-maxfdr, this.dr + d2r));
     this.dth = Math.min(maxfdth, Math.max(-maxfdth, this.dth + d2th));
 
+    this.drcollide *= 0.99;
+    this.dthcollide *= 0.8;
+
 };
+
+// Emitter object stuff ----------------------------------------------------------------------------------------------//
+function Emitter(x, y, v, vvar, heat, heatvar, lifetime, lifetimevar)
+{
+    this.x = x;
+    this.y = y;
+    this.v = !(v == null)? v : 0.5 + Math.random();
+    this.vvar = !(vvar == null)? vvar : 0.5;
+    this.heat = !(heat == null)? heat : 3 * Math.random();
+    this.heatvar = !(heatvar == null)? heatvar : 1;
+    this.lifetime = !(lifetime == null)? lifetime : 60 * 30 * Math.random();
+    this.lifetimevar = !(lifetimevar == null)? lifetimevar: 60 * 10 * Math.random();
+    this.foragers = [];
+}

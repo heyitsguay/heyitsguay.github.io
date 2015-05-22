@@ -1,14 +1,20 @@
 // TODO:
 // - 20150520 Give pellets and foragers a proper object structure with methods to handle e.g. triggering redraws.
 
-const maxfdr = 100; // Maximum radial velocity  magnitude for foragers.
+const maxfdr = 3; // Maximum radial velocity  magnitude for foragers.
 const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
-const maxplayerdr = 2;
+const maxplayerdr = 2.5;
 const maxPellets = 150;
-const maxForagers = 100;
+const maxForagers = 200;
 
 const SQRT2 = 1.414214;
 const ISQRT2 = 0.707107;
+
+// Modulo operation variant with no negative numbers
+function mod(m, n)
+{
+    return ((m % n) + n) % n;
+}
 
 // the webgl canvas context
 var gl;
@@ -27,9 +33,9 @@ var spPairs = {
 };
 // Shader program uniform and attribute variables
 var spVars = {
-    foragerupdate: {attributes: ['a_fposition', 'a_fheat'],
+    foragerupdate: {attributes: ['a_fposition', 'a_fheat', 'a_flifeleft'],
                     uniforms: []},
-    pelletupdate:  {attributes: ['a_pposition', 'a_pheat'],
+    pelletupdate:  {attributes: ['a_pposition', 'a_pheat', 'a_plifeleft'],
                     uniforms: []},
     diffuse:       {attributes: ['a_sposition'],
                     uniforms: ['u_dst', 'u_cdiff', 'u_cdecay', 's_heat', 's_entity']},
@@ -40,23 +46,8 @@ var spVars = {
     pelletdraw:    {attributes: ['a_pposition', 'a_pcolor'],
                     uniforms: []}
 };
-// Vertex shader attribute variable names.
-//var spAttributes = {
-//    vs_foragerupdate: ['a_fposition', 'a_fheat'],
-//    vs_screen: ['a_sposition'],
-//    vs_foragerdraw: ['a_fposition', 'a_fcolor']
-//};
 
-// Vertex attribute arrays. Initialized in initGLVars under init.js.
 var attributeArrays;
-
-// Fragment shader uniform variable names
-//var spUniforms = {
-//    fs_foragerupdate: [],
-//    fs_diffuse: ['u_dst', 'u_cdiff', 'u_cdecay', 's_heat', 's_entity'],
-//    fs_drawheat: ['u_dst', 'u_heatH', 'u_Hgate', 's_heat'],
-//    fs_foragerdraw: []
-//};
 
 // Uniform variable values. Initialized in initGLVars under init.js.
 var uniformValues;
@@ -67,6 +58,7 @@ var floatBufferIds = ['heat0', 'heat1', 'entity'];
 
 // Array containing all Foragers used in the sketch.
 var foragers = [];
+var deadForagers = [];
 
 // Quadtree used for collision detection.
 var tree;
@@ -78,6 +70,9 @@ pellets.redraw = true;
 
 // A special Forager that the user can control.
 var player;
+
+// When true, draw entity shapes.
+var drawEntities = false;
 
 // World dimensions (currently just the same as canvas dimensions).
 var worldX = 512;
@@ -95,6 +90,9 @@ var dthrands = [];
 
 // Scales starting heat for the Foragers uniformly.
 var heatscale;
+
+// Array containing the heat map values.
+var heatMap;
 
 //function heatscaleSlider(val)
 //{
@@ -125,7 +123,7 @@ function heatHSlider(val)
 function HgateSlider(val)
 {
     var fval = parseFloat(val);
-    uniformValues.u_Hgate.data = 0.05 * (Math.log(1 + 0.2 * fval) + (fval >= 30) * 0.2 * (fval - 30));
+    uniformValues.u_Hgate.data = 0.02 * (Math.log(1 + 0.2 * fval) + (fval >= 50) * 0.6 * (fval - 50));
 
     var disp = document.getElementById("range-Hgate-disp");
     disp.innerHTML = val;
@@ -172,6 +170,14 @@ function updateForagers()
         }
         foragers[i].draw();
     }
+
+    // Remove dead Foragers
+    for(i=deadForagers.length - 1; i>=0; i--)
+    {
+        _.pull(foragers, deadForagers[i]);
+        _.pullAt(deadForagers, i);
+
+    }
 }
 
 function updatePellets()
@@ -191,6 +197,7 @@ function updatePlayer()
     {
         player.dr *= 0.95;
     }
+    player.dth *= 0.95;
 }
 
 var forager;
@@ -248,11 +255,30 @@ function collide(obj0, obj1)
             var deltay = d1dotn * cnormaly + d0dotn * cnormaly;
             deltay = Math.sign(deltay) * Math.max(0.0005, Math.abs(deltay));
 
-            obj0.dxcollide = -obj0.bounce * deltax;
-            obj0.dycollide = -obj0.bounce * deltay;
+            //var dx0 = obj0.dr * Math.cos(obj0.dth) - obj0.bounce * deltax;
+            var dx0 = -obj0.bounce * deltax;
+            //var dy0 = obj0.dr * Math.sin(obj0.dth) - obj0.bounce * deltay;
+            var dy0 = -obj0.bounce * deltay;
 
-            obj1.dxcollide = obj1.bounce * deltax;
-            obj1.dycollide = obj1.bounce * deltay;
+            //var dx1 = obj1.dr * Math.cos(obj1.dth) + obj1.bounce * deltax;
+            //var dy1 = obj1.dr * Math.sin(obj1.dth) + obj1.bounce * deltay;
+            var dx1 = obj1.bounce + deltax;
+            var dy1 = obj1.bounce + deltay;
+
+            var c = collideHeatContribution(obj0, obj1);
+
+            obj0.drcollide = Math.min(0.5 * maxfdr, c[1] * Math.sqrt(dx0 * dx0 + dy0 * dy0));
+            obj0.dthcollide = 0.2 * c[1] * Math.atan2(dx0, dy0) + Math.PI * (dx0 < 0);
+
+            obj1.drcollide = Math.min(0.5 * maxfdr, c[0] * Math.sqrt(dx1 * dx1 + dy1 * dy1));
+            obj1.dthcollide = c[0] * 0.2 * Math.atan2(dx1, dy1) + Math.PI * (dx1 < 0);
+
+
+            //obj0.dxcollide = -obj0.bounce * deltax;
+            //obj0.dycollide = -obj0.bounce * deltay;
+
+            //obj1.dxcollide = obj1.bounce * deltax;
+            //obj1.dycollide = obj1.bounce * deltay;
 
             obj0.alreadyCollided = true;
             obj1.alreadyCollided = true;
@@ -260,6 +286,14 @@ function collide(obj0, obj1)
     }
 
 
+}
+
+function collideHeatContribution(obj0, obj1)
+{
+    var dheat = obj0.heat - obj1.heat;
+    var c0 = Math.exp(0.06 * dheat);
+    var c1 = 1 / c0;
+    return [c0, c1];
 }
 
 var dcount = 2; // Number of diffusion steps to perform per frame.
@@ -324,7 +358,7 @@ function changeRands()
     dthrands = newrands;
 }
 
-var drawEntities = false;
+
 
 function draw()
 {
@@ -373,6 +407,7 @@ function writeFPS()
 }
 
 var lastTime = new Date().getTime();
+var time0 = lastTime;
 var elapsed = 0;
 var fps = 0;
 var fpsFilter = 30;
@@ -397,28 +432,11 @@ function addPellet()
     }
 }
 
-function addForager()
+function readHeatMap()
 {
-    if(foragers.length < maxForagers)
-    {
-        foragers.push(new Forager());
-    }
-}
-
-function removeForager()
-{
-    if(foragers.length > 1)
-    {
-        var forager = foragers[0];
-        if(forager.player)
-        {
-            _.pullAt(foragers, 1);
-        }
-        else
-        {
-            _.pullAt(foragers, 0);
-        }
-    }
+    var draw_id = ['heat0', 'heat1'][fbidx];
+    gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers[draw_id].fb);
+    gl.readPixels(0, 0, texX, texY, gl.RGBA, gl.FLOAT, heatMap);
 }
 
 function tick()
@@ -428,5 +446,6 @@ function tick()
     handleKeys();
     update();
     draw();
+    readHeatMap();
 
 }

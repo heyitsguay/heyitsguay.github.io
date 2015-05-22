@@ -53,12 +53,16 @@ function initGL(canvas)
 
 function initGLVars()
 {
+    heatMap = new Float32Array(texX * texY * 4);
+
     attributeArrays = {
         a_fposition: {glvar: 'a_position', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, dynamic: true},
         a_fheat: {glvar: 'a_heat', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 1, dynamic: true},
+        a_flifeleft: {glvar: 'a_lifeleft', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 1, dynamic: true},
         a_fcolor: {glvar: 'a_color', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 4, dynamic: true},
         a_pposition: {glvar: 'a_position', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, dynamic: false},
         a_pheat: {glvar: 'a_heat', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 1, dynamic: false},
+        a_plifeleft: {glvar: 'a_lifeleft', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 1, dynamic: false},
         a_pcolor: {glvar: 'a_color', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 4, dynamic: false},
         a_sposition: {glvar: 'a_position', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, dynamic: false}
     };
@@ -93,8 +97,9 @@ function initForagers()
         foragers.push(new Forager());
     }
 
-    player = new Forager(0.001, 0.001, Math.PI/2, 1, 0.0001, 0.00001);
+    player = new Forager(0, 0, 0.001, 0.001, Math.PI/2, 1, 15, 1, 0.0001, 0.00001);
     player.player = true;
+    player.immortal = true;
     foragers.push(player);
     return true;
 }
@@ -136,11 +141,15 @@ function initBuffers()
 
     attributeArrays.a_fheat.data = new Float32Array(maxForagers * 3);
 
+    attributeArrays.a_flifeleft.data = new Float32Array(maxForagers * 3);
+
     attributeArrays.a_fcolor.data = new Float32Array(maxForagers * 12);
 
     attributeArrays.a_pposition.data = new Float32Array(maxPellets * 12);
 
     attributeArrays.a_pheat.data = new Float32Array(maxPellets * 6);
+
+    attributeArrays.a_plifeleft.data = new Float32Array(maxPellets * 6);
 
     attributeArrays.a_pcolor.data = new Float32Array(maxPellets * 24);
 

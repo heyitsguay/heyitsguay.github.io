@@ -178,3 +178,24 @@ function getShader(id)
 
     return shader;
 }
+
+function updateArray(arr, data, counter, nverts, itemSize)
+{
+    var idx = counter * nverts * itemSize;
+    var nidxs = nverts * itemSize;
+    for(var i = 0; i < nverts; i++)
+    {
+        if(itemSize == 1)
+        {
+            arr[idx] = data;
+            idx += 1;
+        }
+        else
+        {
+            for (var j = 0; j < itemSize; j++) {
+                arr[idx] = data[j];
+                idx += 1;
+            }
+        }
+    }
+};
