@@ -291,7 +291,7 @@
             float dx = abs(x - 0.5 * u_size[0]);
             float dy = abs(y - 0.5 * u_size[1]);
             float tH = n2 * u_Hgate * ((0.5 * heat + 10.0 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 800.0 * (1.0 - n1) * max(0.0, heat - 51.0));
-            float tHneg = n1 * (-0.5 + hcheck *(0.2 * u_time + 9.0 * u_Hgate * (dx - mod(60.0 * u_time + 1.9 * heat, dx) + dy - mod(30.0 * u_time + 1.9 * heat, dy))));// * (0.99 + 0.01 * sin(0.02 * heat))));
+            float tHneg = n1 * (-0.5 + hcheck *(0.2 * u_time + 9.0 * u_Hgate * (dx - mod(60.0 * u_time + 1.9 * heat, 1.0 + dx) + dy - mod(30.0 * u_time + 1.9 * heat, 1.0 + dy))));// * (0.99 + 0.01 * sin(0.02 * heat))));
             float H = mod(u_heatH + tH + tHneg, 1.0);
 
             const float m1 = 0.2;
