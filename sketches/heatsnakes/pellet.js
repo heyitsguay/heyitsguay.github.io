@@ -33,7 +33,7 @@ Pellet.prototype.build = function(x, y, heat, lifetime) {
     this.size = 6;
     this.w = this.size;
     this.h = this.size;
-    this.color = vec4.fromValues(1, 1, 1,0.0);
+    this.color = vec4.fromValues(0, 0, 0,1.0);
 
     // Center and radius-squared used for collision detection
     this.xc = this.x + this.w * 0.5;

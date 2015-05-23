@@ -12,6 +12,7 @@ var killTheCanvas = false;
 
 
 $(window).resize(resizeWindow);
+$('#pelletheat-text').on('input', handlePelletHeat);
 
 var firstTime;
 function webGLStart() {
@@ -19,7 +20,7 @@ function webGLStart() {
     setInterval(addPellet, 1000);
     setInterval(writeFPS, 500);
     firstTime = true;
-    qualityChange();
+    qualityChange(); // Which jumps back to resizeWindow
 }
 
 function resizeWindow() {
@@ -31,8 +32,6 @@ function resizeWindow() {
     var canvas = document.getElementById("canvas");
 
     successSize = updateSize(canvas);
-
-    //successGL = initGL(canvas);
 
     successForagers = initForagers();
 
@@ -65,6 +64,7 @@ function resizeWindow() {
         }
         else {
             tick();
+            $('#canvas').click(handleClick);
         }
         firstTime = false;
     }
@@ -130,6 +130,7 @@ function updateSize(canvas) {
     //$('#checkboxes').css({'left': '10px', 'top': '180px'});
     //$('#table-sliders').css({'left': '10px', 'top': '250px'});
     $('#instructions').css({'left': rightStr, 'top': '85px'});
+    $(canvas).css({'border': '1px solid #222222'});
 
     initGL(canvas);
 
@@ -193,6 +194,7 @@ function initGLVars()
     };
 }
 
+currentForagers = Math.floor(200);
 function initForagers()
 {
     // Preallocate all potential Foragers to avoid a lot of 'new' commands.
@@ -200,14 +202,14 @@ function initForagers()
     {
         foragersLimbo.push(new Forager());
     }
-    var nforagers = Math.floor(maxForagers/2);
-    for(var i=0; i<nforagers; i++)
+    for(var i=0; i<currentForagers; i++)
     {
         addForager();
     }
 
     player = new Forager(0, 0, worldX / 2, worldY / 2, Math.PI/2, 5, null, 1, 0, 0);
     player.heat = 5;
+    player.color[3] = 1.0;
     player.player = true;
     player.immortal = true;
     foragers.push(player);

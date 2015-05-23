@@ -493,8 +493,11 @@ function updateFPS()
 //    gl.readPixels(0, 0, worldX, worldY, gl.RGBA, gl.FLOAT, heatMap);
 //}
 
+var currentForagers;
 function tick()
 {
+    currentForagers = foragers.length - 1;
+
     updateFPS();
     totalElapsed = (lastTime - time0) * 0.001;
     //var elapsedTotal = lastTime - time0;

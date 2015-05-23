@@ -2,14 +2,26 @@
 var keys = {};
 
 var htogglable = true;
+var ftogglable = true;
 function handleKeyDown(e)
 {
     keys[e.keyCode] = true;
 
-    if(e.keyCode == 72 && htogglable)
+    if(e.keyCode == 70 && ftogglable) // F flip
+    {
+        ftoggle();
+    }
+
+    if(e.keyCode == 72 && htogglable) // H toggle menu
     {
         htoggle();
     }
+}
+
+function ftoggle()
+{
+    ftogglable = false;
+    player.heat *= -1;
 }
 
 function htoggle()
@@ -28,7 +40,11 @@ function handleKeyUp(e)
 {
     keys[e.keyCode] = false;
 
-    if(e.keyCode == 72)
+    if(e.keyCode == 70) // F
+    {
+        ftogglable = true;
+    }
+    if(e.keyCode == 72) // H
     {
         htogglable = true;
     }
@@ -77,8 +93,38 @@ function handleKeys()
         // Add a Forager
         addForager();
     }
-    if(keys[82]) { // R
+    if(keys[90]) {
+        // Set player heat to 0
+        player.heat = 0;
+    }
+    if(keys[32]) { // Space
         // Reset
         resizeWindow();
     }
+}
+
+var drawPelletHeat;
+function handlePelletHeat()
+{
+    var pelletHeat = $('#pelletheat-text');
+    var inputHeat = parseFloat(pelletHeat.val());
+    drawPelletHeat = Math.min(maxfheat, Math.max(-maxfheat, inputHeat));
+    pelletHeat.val(drawPelletHeat.toString());
+
+}
+function handleClick(evt)
+{
+    var canvas = $('#canvas');
+    var pos = getMousePos(canvas, evt);
+    if(keys[16] && pellets.length < maxPellets) {// When shift is pressed
+
+    }
+}
+
+function getMousePos(canvas, evt)
+{
+    return{
+        x: evt.offsetX,
+        y: evt.offsetY
+    };
 }

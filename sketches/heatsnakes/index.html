@@ -56,7 +56,7 @@
             /*width: 20%;*/
             /*height: 100%;*/
             margin: auto;
-            border: 1px solid #222222;
+            /*border: 1px solid #222222;*/
         }
     </style>
     <style id="h1-4">
@@ -175,9 +175,9 @@
             z-index: 2;
             background: rgba(1, 1, 1, 0.8);
             overflow: hidden;
-            width: 340px;
-            height: 520px;
-            border: 2px #CECECE;
+            width: 290px;
+            height: 550px;
+            /*border: 2px #CECECE;*/
         }
     </style>
 
@@ -384,21 +384,29 @@
         <h1>heat snakes</h1>
         <!--FPS counter-->
         <div class="leftdiv1 toggle" id="fpscounter"> </div>
+        <h3>snakes eat orbs <br/> to grow hotter or colder.</h3>
     </div>
     <div class="leftside toggle" id="leftdiv">
         <!--Instructions-->
-        <div class="leftdiv1 toggle" id="instructions">
-            WASD to move your snake<br/>
-            O/P to change your heat level<br/>
-            H to toggle menu display<br/>
-            R to restart the sketch<br/>
-            L/K to add/remove snakes
+        <div class="leftdiv1 toggle" style="font-size: 10pt" id="keys">
+            WASD: move your snake<br/>
+            <table class="checktable" id="keytable">
+                <tr><td>O: colder</td><td>P: hotter</td></tr>
+                <tr><td>K: remove snake</td><td>L: add snake</td></tr>
+                <tr><td>F: flip heat type</td><td>Z: zero heat</td></tr>
+                <tr><td>H: toggle menu</td><td>Space: restart</td></tr>
+            <!--O/P: change your heat level<br/>-->
+            <!--F: flip your heat type<br/>-->
+            <!--H: toggle menu display<br/>-->
+            <!--R: restart the sketch<br/>-->
+            <!--L/K to add/remove snakes-->
+            </table>
         </div>
 
         <!-- Quality settings-->
-        <div class="leftdiv1 toggle" id="settings" onchange="qualityChange()">
+        <div class="leftdiv1 toggle" id="settings" style="font-size: 10pt;" onchange="qualityChange()">
             Quality:<br/>
-            <table id="quality" style="border-spacing: 5px;"><tr>
+            <table id="quality" style="font-size: 10pt; border-spacing: 5px;"><tr>
                 <td><input type="radio" name="q1" value="low"/></td><td>Low</td>
                 <td><input type="radio" name="q1" value="medium" checked/></td><td>Medium</td>
                 <td><input type="radio" name="q1" value="high" /></td><td>High</td>
@@ -407,14 +415,21 @@
 
             Size:<br/>
             <table id="size" style="border-spacing: 5px;"><tr>
-                <td><input type="radio" name="q2" value="100"/></td><td>100%</td>
-                <td><input type="radio" name="q2" value="half"/></td><td>Half window</td>
-                <td><input type="radio" name="q2" value="full" checked/></td><td>Full window</td>
+                <td><input type="radio" name="q2" value="100"/></td><td>Window</td>
+                <td><input type="radio" name="q2" value="half"/></td><td>Half</td>
+                <td><input type="radio" name="q2" value="full" checked/></td><td>Full</td>
+            </tr></table>
+        </div>
+
+        <div class="leftdiv1 toggle" id="pelletheat">
+            <table id="pelletheat-table" style="font-size:10pt;"><tr>
+                <td>Orb heat&nbsp;&nbsp;</td>
+                <td><input type="text" id="pelletheat-text" style="width:60px;" value="10" /></td>
             </tr></table>
         </div>
 
         <div class="leftdiv1 toggle" id="checkboxes">
-            <table class="checktable">
+            <table class="checktable" style="width:200px;">
                 <colgroup>
                     <col span="1" style="width: 60%;">
                     <col span="1" style="width: 40%;">
@@ -422,11 +437,11 @@
                 <tr>
                     <td>Draw entities </td><td><label for="check-draw"></label><input type="checkbox" id="check-draw" onchange="entityDrawToggle()"/></td>
                 </tr>
+                <!--<tr>-->
+                    <!--<td>Snake collisions </td><td><label for="check-sliders"></label><input type="checkbox" id="check-sliders" onchange="collisionToggle(this.checked)"/></td>-->
+                <!--</tr>-->
                 <tr>
-                    <td>Snake collisions </td><td><label for="check-sliders"></label><input type="checkbox" id="check-sliders" onchange="collisionToggle(this.checked)"/></td>
-                </tr>
-                <tr>
-                    <td>Add orbs </td><td><label for="check-pellets"></label><input type="checkbox" id="check-pellets" onchange="pelletToggle()" checked/></td>
+                    <td>Spawn orbs </td><td><label for="check-pellets"></label><input type="checkbox" id="check-pellets" onchange="pelletToggle()" checked/></td>
                 </tr>
             </table>
         </div>
