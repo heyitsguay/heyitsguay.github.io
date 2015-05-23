@@ -14,7 +14,7 @@ $(window).resize(resizeWindow);
 var firstTime;
 function webGLStart() {
     setInterval(changeRands, 250);
-    setInterval(addPellet, 2000);
+    setInterval(addPellet, 1000);
     setInterval(writeFPS, 500);
     firstTime = true;
     qualityChange();
@@ -48,6 +48,8 @@ function resizeWindow() {
 
     document.onkeydown = handleKeyDown;
     document.onkeyup = handleKeyUp;
+
+    time0 = lastTime;
 
     if (firstTime) {
         changeRands();
@@ -107,11 +109,11 @@ function updateSize(canvas) {
 
     var right = window.innerWidth - 270;
     var rightStr = right.toString() + 'px';
-    $('#title').css({'left': '10px', 'top': '10px'});
-    $('#fpscounter').css({'left': '10px', 'top': '55px'});
-    $('#settings').css({'left':'10px', 'top':'90px'});
-    $('#checkboxes').css({'left': '10px', 'top': '180px'});
-    $('#table-sliders').css({'left': '10px', 'top': '250px'});
+    //$('#title').css({'left': '10px', 'top': '10px'});
+    //$('#fpscounter').css({'left': '10px', 'top': '55px'});
+    //$('#settings').css({'left':'10px', 'top':'90px'});
+    //$('#checkboxes').css({'left': '10px', 'top': '180px'});
+    //$('#table-sliders').css({'left': '10px', 'top': '250px'});
     $('#instructions').css({'left': rightStr, 'top': '85px'});
 
     initGL(canvas);
@@ -134,7 +136,7 @@ function initGLVars()
     armat[0] = 2/worldX;
     armat[3] = 2/worldY;
 
-    heatMap = new Float32Array(worldX * worldY * 4);
+    //heatMap = new Float32Array(worldX * worldY * 4);
 
     attributeArrays = {
         a_fposition: {glvar: 'a_position', data: [], buffer: null, type: gl.ARRAY_BUFFER, itemSize: 2, dynamic: true},
@@ -154,7 +156,7 @@ function initGLVars()
     var cdecay0 = 1 - Math.pow(2, -15 + parseFloat(document.getElementById("range-cdecay").value));
     var heatH0 = parseFloat(document.getElementById("range-heatH").value);
     var fval = parseFloat(document.getElementById("range-Hgate").value);
-    var Hgate0 = 0.05 * (Math.log(1 + 0.2 * fval) + (fval >= 30) * 0.2 * (fval - 30));
+    var Hgate0 = 0.002 * (Math.log(1 + 0.2 * fval) + (fval >= 30) * 0.6 * (fval - 30));
     //fval = parseFloat(document.getElementById("range-Sgate").value);
     //var Sgate0 = 0.005 * (Math.log(1 + 0.04 * fval) + (fval >= 70) * 0.1 * (fval - 70));
 
@@ -172,13 +174,18 @@ function initGLVars()
 
 function initForagers()
 {
-    var nforagers = 2;
+    // Preallocate all potential Foragers to avoid a lot of 'new' commands.
+    for(i=0; i<maxForagers+5;i++)
+    {
+        foragersLimbo.push(new Forager());
+    }
+    var nforagers = 100;
     for(var i=0; i<nforagers; i++)
     {
-        foragers.push(new Forager());
+        addForager();
     }
 
-    player = new Forager(0, 0, 500, 500, Math.PI/2, 1, null, 1, 0, 0);
+    player = new Forager(0, 0, worldX / 2, worldY / 2, Math.PI/2, 5, null, 1, 0, 0);
     player.player = true;
     player.immortal = true;
     foragers.push(player);
@@ -187,10 +194,14 @@ function initForagers()
 
 function initPellets()
 {
-    var npellets = 1;
-    for(var i=0; i<npellets; i++)
+    //var npellets = 1;
+    //for(var i=0; i<npellets; i++)
+    //{
+    //    pellets.push(new Pellet());
+    //}
+    for(var i=0; i<maxPellets; i++)
     {
-        pellets.push(new Pellet());
+        pelletsLimbo.push(new Pellet());
     }
     return true;
 }
@@ -285,6 +296,22 @@ function initFloatBuffers()
     {
         floatBuffers[floatBufferIds[i]] = new FloatBuffer(floatBufferIds[i]);
     }
-    return true;
 
+    // Set entity and heatmap textures to (0.5,*,*,*) to account for heat offset.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers['heat0'].fb);
+    gl.viewport(0, 0, texX, texY);
+    gl.clearColor(0.5, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers['heat1'].fb);
+    gl.viewport(0, 0, texX, texY);
+    gl.clearColor(0.5, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers['entity'].fb);
+    gl.viewport(0, 0, texX, texY);
+    gl.clearColor(0.5, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    return true;
 }

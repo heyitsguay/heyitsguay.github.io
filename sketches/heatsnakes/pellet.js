@@ -3,15 +3,19 @@ var pelletID = 0;
 function Pellet(x, y, heat, lifetime)
 {
     this.type = 'pellet';
-    this.id = pelletID;
-    pelletID += 1;
-    this.x = (typeof x !== 'undefined')? x : Math.random() * worldX;
-    this.y = (typeof y !== 'undefined')? y : Math.random() * worldY;
-    this.heat = (typeof heat !== 'undefined')? heat : randexp(0.08);
+    this.build(x, y, heat, lifetime);
+    //this.id = pelletID;
+    //pelletID += 1;
+}
+
+Pellet.prototype.build = function(x, y, heat, lifetime) {
+    this.x = !(x == null)? x : Math.random() * worldX;
+    this.y = !(y == null)? y : Math.random() * worldY;
+    this.heat = !(heat == null)? heat : randexp(0.08);
     this.size = 6;
     this.w = this.size;
     this.h = this.size;
-    this.color = vec4.fromValues(1, 0.93, 0.93, 1.0);
+    this.color = vec4.fromValues(1, 1, 1,0.0);
 
     // Center and radius-squared used for collision detection
     this.xc = this.x + this.w * 0.5;
@@ -30,7 +34,7 @@ function Pellet(x, y, heat, lifetime)
     this.lifetime = !(lifetime == null) ? lifetime : 60000;
     this.life0 = 1 / this.lifetime;
     this.lifeleft = this.life0 * this.lifetime;
-}
+};
 
 // Track the number of Pellets that have already updated in this frame,
 // for proper value placement in the various arrays.

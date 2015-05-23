@@ -3,6 +3,7 @@
 
 const maxfdr = 300; // Maximum radial velocity  magnitude for foragers.
 const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
+const maxfheat = 50000;
 const maxplayerdr = 300;
 const maxPellets = 150;
 const maxForagers = 200;
@@ -60,12 +61,17 @@ var floatBufferIds = ['heat0', 'heat1', 'entity'];
 // Array containing all Foragers used in the sketch.
 var foragers = [];
 var deadForagers = [];
+var foragersLimbo = [];
 
 // Quadtree used for collision detection.
 var tree;
+var foragerCollision;
 
 // Array containing all Pellets used in the sketch.
 var pellets = [];
+var deadPellets = [];
+var pelletsLimbo = [];
+
 // When true, update associated vertex attribute arrays.
 pellets.redraw = true;
 
@@ -132,7 +138,7 @@ function heatHSlider(val)
 function HgateSlider(val)
 {
     var fval = parseFloat(val);
-    uniformValues.u_Hgate.data = 0.02 * (Math.log(1 + 0.2 * fval) + (fval >= 50) * 0.6 * (fval - 50));
+    uniformValues.u_Hgate.data = 0.002 * (Math.log(1 + 0.2 * fval) + (fval >= 50) * 0.6 * (fval - 50));
 
     var disp = document.getElementById("range-Hgate-disp");
     disp.innerHTML = val;
@@ -143,17 +149,10 @@ function pelletToggle()
     addPellets = !addPellets;
 }
 
-//function sliderToggle(checked)
-//{
-//    if(checked)
-//    {
-//        $('#table-sliders').show();
-//    }
-//    else
-//    {
-//        $('#table-sliders').hide();
-//    }
-//}
+function collisionToggle(checked) {
+    //noinspection JSUnusedAssignment
+    checked? foragerCollision = true : foragerCollision = false;
+}
 
 function entityDrawToggle()
 {
@@ -203,21 +202,26 @@ function qualityChange()
     resizeWindow();
 }
 
-//var dt;
+var dt;
+var randOffset = 0;
 function updateForagers()
 {
     // Reset before each round of updates.
     foragerCount = 0;
+
+    randOffset = (randOffset + 1) % maxForagers;
+
+    dt = 0.1 * Math.max(1, 50 / fps);
     for(var i = 0; i < foragers.length; i++)
     {
-        var dt = 0.1;
+
         if(foragers[i].player || i >= dthrands.length)
         {
             foragers[i].update(dt, 0, 0, 0);
         }
         else
         {
-            var dth = dthrands[i] * 0.3;
+            var dth = dthrands[(randOffset + i) % dthrands.length] * 0.99;
             foragers[i].update(dt, 0, 0, dth);
         }
         foragers[i].draw();
@@ -226,6 +230,7 @@ function updateForagers()
     // Remove dead Foragers
     for(i=deadForagers.length - 1; i>=0; i--)
     {
+        foragersLimbo.push(deadForagers[i]);
         _.pull(foragers, deadForagers[i]);
         _.pullAt(deadForagers, i);
 
@@ -288,10 +293,11 @@ function collide(obj0, obj1)
         {
             // Remove the Pellet and absorb its heat.
             obj0.heat += obj1.heat;
+            pelletsLimbo.push(obj1);
             _.pull(pellets, obj1);
             pellets.redraw = true;
         }
-        else if(obj1.type == 'forager')
+        else if(obj1.type == 'forager' && foragerCollision)
         {
             // Bounce off each other
             var cmag = Math.sqrt(drad2); // collision normal magnitude
@@ -342,13 +348,13 @@ function collideHeatContribution(obj0, obj1)
     return [c0, c1];
 }
 
-var dcount = 2; // Number of diffusion steps to perform per frame.
+//var dcount = 1; // Number of diffusion steps to perform per frame.
 function updateHeat()
 {
     // Step 1: Add Forager heat contributions to the entity FloatBuffer. -----------------------------------------------//
     gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers['entity'].fb);
     gl.viewport(0, 0, worldX, worldY);
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(0.5, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     // Prepare the foragerupdate shader program to draw.
     sps['foragerupdate'].prep(true);
@@ -368,29 +374,29 @@ function updateHeat()
     gl.drawArrays(gl.TRIANGLES, 0, pellets.length * 6);
 
     // Step 3: Combine the entity heat texture with the heat map and diffuse. ----------------------------------------//
-    for(var i=0; i<dcount; i++)
-    {
-        fbidx = (fbidx + 1) % 2;
-        // ID of the heat map FullBuffer updated last time.
-        var ping = ['heat0', 'heat1'][1 - fbidx];
-        // ID of the heat map FullBuffer to update this time.
-        var pong = ['heat0', 'heat1'][fbidx];
+    //for(var i=0; i<dcount; i++)
+    //{
+    fbidx = (fbidx + 1) % 2;
+    // ID of the heat map FullBuffer updated last time.
+    var ping = ['heat0', 'heat1'][1 - fbidx];
+    // ID of the heat map FullBuffer to update this time.
+    var pong = ['heat0', 'heat1'][fbidx];
 
-        // Bind the previous heat map to texture unit 0, and the entity heat map to texture unit 1.
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, floatBuffers[ping].tex);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, floatBuffers['entity'].tex);
-        // Bind the current heat map framebuffer.
-        gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers[pong].fb);
-        gl.viewport(0, 0, worldX, worldY);
-        gl.clearColor(0, 0, 0, 1);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        // Prepare the diffuse shader program to draw.
-        sps['diffuse'].prep();
-        // Draw
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    }
+    // Bind the previous heat map to texture unit 0, and the entity heat map to texture unit 1.
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, floatBuffers[ping].tex);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, floatBuffers['entity'].tex);
+    // Bind the current heat map framebuffer.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers[pong].fb);
+    gl.viewport(0, 0, worldX, worldY);
+    gl.clearColor(0.5, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    // Prepare the diffuse shader program to draw.
+    sps['diffuse'].prep();
+    // Draw
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    //}
 
 }
 
@@ -421,11 +427,17 @@ function draw()
 
     if(drawEntities)
     {
+        gl.enable(gl.BLEND);
+        gl.disable(gl.DEPTH_TEST);
+        gl.blendEquation(gl.FUNC_REVERSE_SUBTRACT);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         sps['foragerdraw'].prep(true);
         gl.drawArrays(gl.TRIANGLES, 0, foragers.length * 3);
 
         pellets.redraw = sps['pelletdraw'].prep(pellets.redraw);
         gl.drawArrays(gl.TRIANGLES, 0, pellets.length * 6);
+
+        gl.disable(gl.BLEND);
     }
 }
 
@@ -473,17 +485,27 @@ function addPellet()
 {
     if(pellets.length < maxPellets && addPellets)
     {
-        pellets.push(new Pellet());
+        var newPellet = pelletsLimbo.pop();
+
+        var t = 0.001 * (lastTime - time0);
+        var lambda = Math.min(1, 1 / (0.35 * t));
+        var h = randexp(lambda);
+        if(Math.random() < 0.5) {
+            newPellet.build(null, null, h);
+        } else {
+            newPellet.build(null, null, -h);
+        }
+        pellets.push(newPellet);
         pellets.redraw = true;
     }
 }
 
-function readHeatMap()
-{
-    var draw_id = ['heat0', 'heat1'][fbidx];
-    gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers[draw_id].fb);
-    gl.readPixels(0, 0, worldX, worldY, gl.RGBA, gl.FLOAT, heatMap);
-}
+//function readHeatMap()
+//{
+//    var draw_id = ['heat0', 'heat1'][fbidx];
+//    gl.bindFramebuffer(gl.FRAMEBUFFER, floatBuffers[draw_id].fb);
+//    gl.readPixels(0, 0, worldX, worldY, gl.RGBA, gl.FLOAT, heatMap);
+//}
 
 function tick()
 {

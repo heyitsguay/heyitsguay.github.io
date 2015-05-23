@@ -23,6 +23,11 @@
             margin: 0;
             overflow-y: hidden;
             overflow-x: hidden;
+            text-shadow:
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000;
         }
         canvas {
             display: block;
@@ -41,6 +46,7 @@
         h1 {
             color: #CECECE;
             /*margin-top: 10px;*/
+            margin-bottom: 10px;
             /*border-bottom: 1px solid;*/
             padding-bottom: 3px;
         }
@@ -63,21 +69,11 @@
     </style>
 
     <style type="text/css" id="mydiv">
-        .mydiv {
-            display: block;
-            width: 100%;
-            background-color: black;
-            color: #CECECE;
-            /*font-family: 'Helvetica', sans-serif;*/
-        }
-        .mydiv br {
-            display: none;
-        }
 
-        .mydiv1 {
+        .leftdiv1 {
             display: block;
             background-color: transparent;
-            position: absolute;
+            /*position: absolute;*/
             z-index: 1;
             /*top: 0;*/
             /*left: 0;*/
@@ -85,7 +81,8 @@
             /*font-framily: 'Helvetica', sans-serif;*/
             font-size: 12pt;
             text-align: left;
-            float: left;
+            margin-bottom: 15px;
+            /*float: left;*/
         }
     </style>
 
@@ -116,10 +113,11 @@
     <style type="text/css" id="table-checktable">
         table.checktable td {
             table-layout: fixed;
-            width: 100px;
+            width: 150px;
             text-align: left;
             float: left;
             color: #CECECE;
+            font-size: 10pt;
         }
     </style>
 
@@ -128,6 +126,17 @@
             text-align: right;
             float: right;
             top: 10px;
+            color: #CECECE;
+            position: absolute;
+            font-size: 12pt;
+        }
+    </style>
+
+    <style type="text/css" id="lefttext">
+        div.leftside {
+            text-align: left;
+            top: 10px;
+            left: 10px;
             color: #CECECE;
             position: absolute;
             font-size: 12pt;
@@ -150,7 +159,7 @@
 
         void main()
         {
-            gl_FragColor = vec4(heatoffset * v_heat, v_lifeleft, 0.0, 1.0);
+            gl_FragColor = vec4(heatoffset * (v_heat + 50000.0), v_lifeleft, 0.0, 1.0);
         }
     </script>
     <script id="fs_diffuse" type="x-shader/x-fragment">
@@ -190,15 +199,15 @@
             vec2 w  = p + vec2(-ds,  0.);
             vec2 nw = p + vec2(-ds,  dt);
 
-            float valp  = texture2D(s_heat, p ).r + texture2D(s_entity, p ).r;
-            float valn  = texture2D(s_heat, n ).r + texture2D(s_entity, n ).r;
-            float valne = texture2D(s_heat, ne).r + texture2D(s_entity, ne).r;
-            float vale  = texture2D(s_heat, e ).r + texture2D(s_entity, e ).r;
-            float valse = texture2D(s_heat, se).r + texture2D(s_entity, se).r;
-            float vals  = texture2D(s_heat, s ).r + texture2D(s_entity, s ).r;
-            float valsw = texture2D(s_heat, sw).r + texture2D(s_entity, sw).r;
-            float valw  = texture2D(s_heat, w ).r + texture2D(s_entity, w ).r;
-            float valnw = texture2D(s_heat, nw).r + texture2D(s_entity, nw).r;
+            float valp  = texture2D(s_heat, p ).r + texture2D(s_entity, p ).r - 1.0;
+            float valn  = texture2D(s_heat, n ).r + texture2D(s_entity, n ).r - 1.0;
+            float valne = texture2D(s_heat, ne).r + texture2D(s_entity, ne).r - 1.0;
+            float vale  = texture2D(s_heat, e ).r + texture2D(s_entity, e ).r - 1.0;
+            float valse = texture2D(s_heat, se).r + texture2D(s_entity, se).r - 1.0;
+            float vals  = texture2D(s_heat, s ).r + texture2D(s_entity, s ).r - 1.0;
+            float valsw = texture2D(s_heat, sw).r + texture2D(s_entity, sw).r - 1.0;
+            float valw  = texture2D(s_heat, w ).r + texture2D(s_entity, w ).r - 1.0;
+            float valnw = texture2D(s_heat, nw).r + texture2D(s_entity, nw).r - 1.0;
 
 
 
@@ -206,11 +215,11 @@
                             + w2 * (valne + valse + valsw + valnw)
                             - w3 * valp;
 
-            float deathburst = 0.1 * max(0.0, 0.01 - lifeleft * lifeleft);
+            //float deathburst = 0.1 * max(0.0, 0.01 - lifeleft * lifeleft);
 
-            float newval =  u_cdecay * (valp + u_cdiff * laplacian) + deathburst;
+            float newval =  u_cdecay * (valp + u_cdiff * laplacian);
 
-            gl_FragColor = vec4(newval, lifeleft, 0.0, 1.0);
+            gl_FragColor = vec4(newval + 0.5, lifeleft, 0.0, 1.0);
         }
     </script>
     <script id="fs_drawheat" type="x-shader/x-fragment">
@@ -233,24 +242,25 @@
             return rgb;
         }
 
-//        void main()
-//        {
-//            vec2 texvals = texture2D(s_heat, gl_FragCoord.xy * u_dst).rg;
-//            float heat = hoffset * texvals[0];
-//            //float lifeleft = texvals[1];
-//
-//            float tH1 = min(0.15, u_Hgate * 0.2 * heat);
-//            float tH2 = max(0.0, u_Hgate * (heat - 50.0));
-//            gl_FragColor = vec4(hsv2rgb(vec3(mod(u_heatH + tH1 + tH2, 1.0), 1.0, min(1.0, 0.2 * heat))), 1.0);
-//        }
         void main()
         {
             vec2 texvals = texture2D(s_heat, gl_FragCoord.xy * u_dst).rg;
-            float heat = hoffset * texvals[0];
-            //float lifeleft = texvals[1];
+            float heat0 = texvals[0] - 0.5;
+            float heat = abs(hoffset * heat0);
+            float n1 = float(heat0 < 0.0);
+            float n2 = 1.0 - 2.0 * n1;
 
-            float tH = u_Hgate * heat;
-            gl_FragColor = vec4(hsv2rgb(vec3(mod(u_heatH + tH, 1.0), 1.0, min(1.0, heat))), 1.0);
+            // Hue effects
+            float tH = u_Hgate * ((0.5 * heat + 10.0 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 400.0 * max(0.0, heat - 51.0));
+            float H = mod(u_heatH - n1 * 0.5 + n2 * tH, 1.0);
+
+            // Using: c1 = 3, c2 = 10, c3 = 25, c4 = 32.
+            const float m = -0.04;//42857;
+            //float gB = 1.0 - (float(heat > 3.0) * max(0.0, m * (heat - 3.0) + 0.8) + float(heat > 50.0) * max(0.0, 0.33 * m * (heat - 50.0) + 0.9));
+            float gB = 1.0 - float(heat > 50.0) * max(0.0, 0.5 * m * (heat - 50.0) + 1.0);
+            float B = gB * min(1.0, 0.1 * heat);
+
+            gl_FragColor = vec4(hsv2rgb(vec3(H, 1.0, B)), 1.0);
         }
     </script>
     <script id="fs_entitydraw" type="x-shader/x-fragment">
@@ -317,109 +327,102 @@
 </head>
 
 <body onload="webGLStart();">
-    <!--Title-->
-    <div class="mydiv1 toggle" id="title"><h1>foragers</h1></div>
-    <!--FPS counter-->
-    <div class="mydiv1 toggle" id="fpscounter"> </div>
-    <!-- Quality settings-->
-    <div class="mydiv1 toggle" id="settings" onchange="qualityChange()">
-        Quality:<br/>
-        <table id="quality" style="border-spacing: 5px;"><tr>
-            <td><input type="radio" name="q1" value="low"/></td><td>Low</td>
-            <td><input type="radio" name="q1" value="medium" checked/></td><td>Medium</td>
-            <td><input type="radio" name="q1" value="high" /></td><td>High</td>
-            <td><input type="radio" name="q1" value="best" /></td><td>Best</td>
-        </tr></table>
-
-        Size:<br/>
-        <table id="size" style="border-spacing: 5px;"><tr>
-            <td><input type="radio" name="q2" value="100" checked/></td><td>100%</td>
-            <td><input type="radio" name="q2" value="half"/></td><td>Half window</td>
-            <td><input type="radio" name="q2" value="full"/></td><td>Full window</td>
-        </tr></table>
-
-        </fieldset>
-    </div>
-
     <!--The canvas-->
     <canvas id="canvas" width="512" height="512"></canvas>
 
-    <div class="instrdiv toggle" id="instructions">
-        WASD to move<br/>
-        P/O to raise/lower player heat<br/>
-        L/K to add/remove foragers<br/>
-        H to toggle text display
-    </div>
 
-    <div class="mydiv1 toggle" id="checkboxes">
-        <table class="checktable">
+    <div class="leftside toggle" id="leftdiv">
+        <!--Title-->
+        <h1>heat snakes</h1>
+        <!--Insructions-->
+        <div class="leftdiv1 toggle" id="instructions">
+            WASD to move<br/>
+            P/O to raise/lower player heat<br/>
+            L/K to add/remove foragers<br/>
+            H to toggle text display<br/>
+            R to restart the simulation
+        </div>
+        <!--FPS counter-->
+        <div class="leftdiv1 toggle" id="fpscounter"> </div>
+        <!-- Quality settings-->
+        <div class="leftdiv1 toggle" id="settings" onchange="qualityChange()">
+            Quality:<br/>
+            <table id="quality" style="border-spacing: 5px;"><tr>
+                <td><input type="radio" name="q1" value="low"/></td><td>Low</td>
+                <td><input type="radio" name="q1" value="medium" checked/></td><td>Medium</td>
+                <td><input type="radio" name="q1" value="high" /></td><td>High</td>
+                <td><input type="radio" name="q1" value="best" /></td><td>Best</td>
+            </tr></table>
+
+            Size:<br/>
+            <table id="size" style="border-spacing: 5px;"><tr>
+                <td><input type="radio" name="q2" value="100"/></td><td>100%</td>
+                <td><input type="radio" name="q2" value="half"/></td><td>Half window</td>
+                <td><input type="radio" name="q2" value="full" checked/></td><td>Full window</td>
+            </tr></table>
+        </div>
+
+        <div class="leftdiv1 toggle" id="checkboxes">
+            <table class="checktable">
+                <colgroup>
+                    <col span="1" style="width: 60%;">
+                    <col span="1" style="width: 40%;">
+                </colgroup>
+                <tr>
+                    <td>Draw entities </td><td><label for="check-draw"></label><input type="checkbox" id="check-draw" onchange="entityDrawToggle()"/></td>
+                </tr>
+                <tr>
+                    <td>Snake collisions </td><td><label for="check-sliders"></label><input type="checkbox" id="check-sliders" onchange="collisionToggle(this.checked)"/></td>
+                </tr>
+                <tr>
+                    <td>Add pellets </td><td><label for="check-pellets"></label><input type="checkbox" id="check-pellets" onchange="pelletToggle()" checked/></td>
+                </tr>
+            </table>
+        </div>
+    <!--Slider bar table-->
+        <table class="ss toggle" id="table-sliders">
             <colgroup>
-                <col span="1" style="width: 60%;">
-                <col span="1" style="width: 40%;">
+                <col span="1" style="width: 33%;">
+                <col span="1" style="width: 45%;">
+                <col span="1" style="width: 22%;">
             </colgroup>
+            <!--Heat decay slider bar-->
             <tr>
-                <td>Draw entities: </td><td><label for="check-draw"></label><input type="checkbox" id="check-draw" onchange="entityDrawToggle()"/></td>
+                <td>Decay</td>
+                <td><label for="range-cdecay"></label><input type="range" id="range-cdecay" style="width: 80px;"
+                       min="0" max="15" value="1" step="1"
+                       onchange="cdecaySlider(this.value)"
+                       oninput="cdecaySlider(this.value)"/></td>
+                <td id="range-cdecay-disp">1</td>
             </tr>
-            <!--<tr>-->
-                <!--<td>Show sliders: </td><td><label for="check-sliders"></label><input type="checkbox" id="check-sliders" onchange="sliderToggle(this.checked)" checked/></td>-->
-            <!--</tr>-->
+            <!--Diffusion speed slider bar-->
             <tr>
-                <td>Add pellets: </td><td><label for="check-pellets"></label><input type="checkbox" id="check-pellets" onchange="pelletToggle()" checked/></td>
+                <td>Diffusion</td>
+                <td><label for="range-cdiff"></label><input type="range" id="range-cdiff" style="width: 80px;"
+                        min="0" max="1" value="1" step="0.01"
+                        onchange="cdiffSlider(this.value)"
+                        oninput="cdiffSlider(this.value)"/></td>
+                <td id="range-cdiff-disp">10.</td>
+            </tr>
+            <!--Base heat color slider bar-->
+            <tr>
+                <td>Hue</td>
+                <td><label for="range-heatH"></label><input type="range" id="range-heatH" style="width: 80px;"
+                        min="0" max="1" value="0.03" step="0.01"
+                        onchange="heatHSlider(this.value)"
+                        oninput="heatHSlider(this.value)"/></td>
+                <td id="range-heatH-disp">0.03</td>
+            </tr>
+            <!--Hgate slider bar-->
+            <tr>
+                <td>Glow</td>
+                <td><label for="range-Hgate"></label><input type="range" id="range-Hgate" style="width: 80px;"
+                       min="0" max="100" value="3" step="1"
+                       onchange="HgateSlider(this.value)"
+                       oninput="HgateSlider(this.value)"/></td>
+                <td id="range-Hgate-disp">3</td>
             </tr>
         </table>
-    </div>
-    <!--Slider bar table-->
-    <table class="ss toggle" id="table-sliders">
-        <colgroup>
-            <col span="1" style="width: 33%;">
-            <col span="1" style="width: 45%;">
-            <col span="1" style="width: 22%;">
-        </colgroup>
-        <!--Heat decay slider bar-->
-        <tr>
-            <td>Decay</td>
-            <td><label for="range-cdecay"></label><input type="range" id="range-cdecay" style="width: 80px;"
-                   min="0" max="15" value="8" step="1"
-                   onchange="cdecaySlider(this.value)"
-                   oninput="cdecaySlider(this.value)"/></td>
-            <td id="range-cdecay-disp">8</td>
-        </tr>
-        <!--Diffusion speed slider bar-->
-        <tr>
-            <td>Diffusion</td>
-            <td><label for="range-cdiff"></label><input type="range" id="range-cdiff" style="width: 80px;"
-                    min="0" max="1" value="0.3" step="0.01"
-                    onchange="cdiffSlider(this.value)"
-                    oninput="cdiffSlider(this.value)"/></td>
-            <td id="range-cdiff-disp">0.3</td>
-        </tr>
-        <!--Base heat color slider bar-->
-        <tr>
-            <td>Hue</td>
-            <td><label for="range-heatH"></label><input type="range" id="range-heatH" style="width: 80px;"
-                    min="0" max="1" value="0" step="0.01"
-                    onchange="heatHSlider(this.value)"
-                    oninput="heatHSlider(this.value)"/></td>
-            <td id="range-heatH-disp">0</td>
-        </tr>
-        <!--Hgate slider bar-->
-        <tr>
-            <td>Glow</td>
-            <td><label for="range-Hgate"></label><input type="range" id="range-Hgate" style="width: 80px;"
-                   min="0" max="100" value="3" step="1"
-                   onchange="HgateSlider(this.value)"
-                   oninput="HgateSlider(this.value)"/></td>
-            <td id="range-Hgate-disp">3</td>
-        </tr>
-        <!--&lt;!&ndash;Sgate slider bar&ndash;&gt;-->
-        <!--<tr>-->
-            <!--<td>Saturation multiplier</td>-->
-            <!--<td><label for="range-Sgate"></label><input type="range" id="range-Sgate"-->
-                    <!--min="0" max="100" value="0" step="1"-->
-                    <!--onchange="SgateSlider(this.value)"-->
-                    <!--oninput="SgateSlider(this.value)"/></td>-->
-            <!--<td id="range-Sgate-disp">0</td>-->
-        <!--</tr>-->
-    </table>
+        </div>
 </body>
 </html>

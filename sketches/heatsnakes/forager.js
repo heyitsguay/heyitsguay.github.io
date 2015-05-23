@@ -2,7 +2,9 @@ function addForager()
 {
     if(foragers.length < maxForagers)
     {
-        foragers.push(new Forager(null, null));
+        var newForager = foragersLimbo.pop();
+        newForager.build(0, 0, null, null, null, 0.5 - Math.random(), null, 10000000);
+        foragers.push(newForager);
     }
 }
 
@@ -13,10 +15,12 @@ function removeForager()
         var forager = foragers[0];
         if(forager.player)
         {
+            foragersLimbo.push(foragers[1]);
             _.pullAt(foragers, 1);
         }
         else
         {
+            foragersLimbo.push(foragers[0]);
             _.pullAt(foragers, 0);
         }
     }
@@ -24,12 +28,15 @@ function removeForager()
 
 
 // Forager object stuff ----------------------------------------------------------------------------------------------//
-var foragerID = 0;
-function Forager(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr, vth)
-{
+//var foragerID = 0;
+function Forager(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr, vth) {
+    this.build(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr, vth);
+}
+
+Forager.prototype.build = function(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr, vth) {
     this.type = 'forager';
-    this.id = foragerID;
-    foragerID += 1;
+    //this.id = foragerID;
+    //foragerID += 1;
     this.xc = !(x == null)? x : Math.random() * worldX;
     this.yc = !(y == null)? y : Math.random() * worldY;
     this.pc = vec2.fromValues(this.xc, this.yc);
@@ -37,15 +44,15 @@ function Forager(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr
     this.dy = 0;
     this.dr = !(vr == null)? vr : 100 * Math.random() + 10;
     this.th = !(heading == null) ? heading : Math.random() * 2 * Math.PI; // Note: a heading of 0 is due east
-    this.dth = !(heading == null) ? vth : 0;
-    this.heat = !(heading == null) ? heat : Math.random() * 2;
+    this.dth = !(vth == null) ? vth : 0;
+    this.heat = !(heat == null) ? heat : Math.random() * 2;
     this.dh = 0;
-    this.lifetime = !(heading == null) ? lifetime : 1 + 60 * Math.random() * 30 ;
+    this.lifetime = !(lifetime == null) ? lifetime : 1 + 60 * Math.random() * 30 ;
     this.life0 = 1 / this.lifetime;
     this.lifeleft = this.life0 * this.lifetime;
     this.size = !(size == null) ? size : 7;
-    this.color = vec4.fromValues(Math.random(), Math.random(), Math.random(), 1.0);
-
+    //this.color = vec4.fromValues(Math.random(), Math.random(), Math.random(), 1.0);
+    this.color = vec4.fromValues(0.8,0.4,0.4,0.3);
     // True for the player.
     this.player = false;
 
@@ -203,7 +210,7 @@ Forager.prototype.update = function(dt, fh, fr, fth)
     this.x = this.xc - ISQRT2 * this.size;
     this.y = this.yc - ISQRT2 * this.size;
 
-    this.heat += dh;
+    this.heat = Math.max(-maxfheat, Math.min(maxfheat, this.heat + dh));
     this.dh += d2h;
 
     // maxfv defined in main.js

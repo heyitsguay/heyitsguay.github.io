@@ -131,7 +131,8 @@ ShaderProgram.prototype.prep = function(redraw)
         gl.bindBuffer(att.type, att.buffer);
         if(redraw)
         {
-            gl.bufferData(att.type, att.data, gl.DYNAMIC_DRAW);
+            //gl.bufferData(att.type, att.data, gl.DYNAMIC_DRAW);
+            gl.bufferSubData(att.type, 0, att.data);
         }
         gl.vertexAttribPointer(this.attributes[aname], att.itemSize, gl.FLOAT, false, 0, 0);
     }

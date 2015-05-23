@@ -39,32 +39,32 @@ function handleKeys()
     if(keys[65]) // A
     {
         // Turn counterclockwise.
-        player.th += 0.1;
+        player.th += dt;
     }
     if(keys[68]) // D
     {
         // Turn clockwise.
-        player.th -= 0.1;
+        player.th -= dt;
     }
     if(keys[87]) // W
     {
         // Speed up
-        player.dr = Math.min(maxplayerdr, player.dr + 5);
+        player.dr = Math.min(maxplayerdr, player.dr + 50 * dt);
     }
     if(keys[83]) // S
     {
         // Slow down
-        player.dr = Math.max(-maxplayerdr, player.dr - 5);
+        player.dr = Math.max(-maxplayerdr, player.dr - 50 * dt);
     }
     if(keys[80]) // P
     {
         // Increase player heat
-        player.heat += 0.1;
+        player.heat += 1;
     }
     if(keys[79]) // O
     {
         // Decrease player heat
-        player.heat = Math.max(0, player.heat - 0.1);
+        player.heat -= 1;
     }
 
     if(keys[75]) // K
@@ -76,5 +76,9 @@ function handleKeys()
     {
         // Add a Forager
         addForager();
+    }
+    if(keys[82]) { // R
+        // Reset
+        resizeWindow();
     }
 }
