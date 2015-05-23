@@ -8,6 +8,8 @@ var successFloatBuffers = false;
 var successBuffers = false;
 var initialized = false;
 
+var killTheCanvas = false;
+
 
 $(window).resize(resizeWindow);
 
@@ -53,7 +55,17 @@ function resizeWindow() {
 
     if (firstTime) {
         changeRands();
-        tick();
+        if(killTheCanvas) {
+            $('#canvas').hide();
+            $('#titlediv').html("Could not start the sketch!");
+            $('.leftside').hide();
+            //$('#instructions').hide();
+            //$('#fpscounter').hide();
+            //$('#settings').hide();
+        }
+        else {
+            tick();
+        }
         firstTime = false;
     }
 }
@@ -126,6 +138,10 @@ function initGL(canvas)
     gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
     //var rawgl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
     //gl = WebGLDebugUtils.makeDebugContext(rawgl, undefined, validateNoneOfTheArgsAreUndefined);
+    if(!gl)
+    {
+        killTheCanvas = true;
+    }
     initGLVars();
     return true;
 }
@@ -179,7 +195,7 @@ function initForagers()
     {
         foragersLimbo.push(new Forager());
     }
-    var nforagers = 100;
+    var nforagers = maxForagers - 1;
     for(var i=0; i<nforagers; i++)
     {
         addForager();

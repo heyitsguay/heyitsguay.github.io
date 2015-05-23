@@ -8,7 +8,7 @@ function FloatBuffer(id)
     var floatCheck = gl.getExtension('OES_texture_float');
     if(!floatCheck)
     {
-        alert("Could not get OES_texture_float for " + this.id);
+        killTheCanvas = true;
     }
 
     // floatBuffer's framebuffer.

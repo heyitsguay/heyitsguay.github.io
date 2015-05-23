@@ -135,11 +135,19 @@
     <style type="text/css" id="lefttext">
         div.leftside {
             text-align: left;
-            top: 10px;
+            top: 50px;
             left: 10px;
             color: #CECECE;
             position: absolute;
             font-size: 12pt;
+        }
+        div.lefttitle {
+            text-align: left;
+            top: 10px;
+            left: 10px;
+            color: #CECECE;
+            position: absolute;
+            /*font-size: 12pt;*/
         }
     </style>
 
@@ -330,11 +338,12 @@
     <!--The canvas-->
     <canvas id="canvas" width="512" height="512"></canvas>
 
-
-    <div class="leftside toggle" id="leftdiv">
+    <div class="lefttitle toggle" id="titlediv">
         <!--Title-->
         <h1>heat snakes</h1>
-        <!--Insructions-->
+    </div>
+    <div class="leftside toggle" id="leftdiv">
+        <!--Instructions-->
         <div class="leftdiv1 toggle" id="instructions">
             WASD to move<br/>
             P/O to raise/lower player heat<br/>
