@@ -42,7 +42,7 @@ var spVars = {
     diffuse:       {attributes: ['a_sposition'],
                     uniforms: ['u_dst', 'u_cdiff', 'u_cdecay', 's_heat', 's_entity']},
     drawheat:      {attributes: ['a_sposition'],
-                    uniforms: ['u_dst', 'u_heatH', 'u_Hgate', 'u_time', 's_heat']},
+                    uniforms: ['u_dst', 'u_size', 'u_heatH', 'u_Hgate', 'u_time', 's_heat']},
     foragerdraw:   {attributes: ['a_fposition', 'a_fcolor'],
                     uniforms: []},
     pelletdraw:    {attributes: ['a_pposition', 'a_pcolor'],

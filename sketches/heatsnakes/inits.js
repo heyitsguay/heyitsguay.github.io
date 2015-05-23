@@ -68,6 +68,9 @@ function resizeWindow() {
         }
         firstTime = false;
     }
+    else {
+        uniformValues['u_size'].data = [worldX, worldY];
+    }
 }
 
 function updateSize(canvas) {
@@ -178,6 +181,7 @@ function initGLVars()
 
     uniformValues = {
         u_dst: {data: [1 / texX, 1 / texY], type: gl.FLOAT_VEC2},
+        u_size: {data: [worldX, worldY], type: gl.FLOAT_VEC2},
         u_cdiff: {data: cdiff0, type: gl.FLOAT},
         u_cdecay: {data: cdecay0, type: gl.FLOAT},
         u_heatH: {data: heatH0, type: gl.FLOAT},
