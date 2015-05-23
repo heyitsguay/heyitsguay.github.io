@@ -6,7 +6,7 @@ const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
 const maxfheat = 5000;
 const maxplayerdr = 300;
 const maxPellets = 150;
-const maxForagers = 200;
+const maxForagers = 400;
 
 const SQRT2 = 1.414214;
 const ISQRT2 = 0.707107;

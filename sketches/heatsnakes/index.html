@@ -46,7 +46,7 @@
         h1 {
             color: #CECECE;
             /*margin-top: 10px;*/
-            margin-bottom: 10px;
+            /*margin-bottom: 10px;*/
             /*border-bottom: 1px solid;*/
             padding-bottom: 3px;
         }
@@ -362,17 +362,18 @@
     <div class="lefttitle toggle" id="titlediv">
         <!--Title-->
         <h1>heat snakes</h1>
+        <!--FPS counter-->
+        <div class="leftdiv1 toggle" id="fpscounter"> </div>
     </div>
     <div class="leftside toggle" id="leftdiv">
         <!--Instructions-->
         <div class="leftdiv1 toggle" id="instructions">
-            WASD to move<br/>
-            L/K to add/remove snakes<br/>
-            H to toggle text display<br/>
-            R to restart the sketch
+            WASD to move your snake<br/>
+            H to toggle menu display<br/>
+            R to restart the sketch<br/>
+            L/K to add/remove snakes
         </div>
-        <!--FPS counter-->
-        <div class="leftdiv1 toggle" id="fpscounter"> </div>
+
         <!-- Quality settings-->
         <div class="leftdiv1 toggle" id="settings" onchange="qualityChange()">
             Quality:<br/>

@@ -196,7 +196,7 @@ function initForagers()
     {
         foragersLimbo.push(new Forager());
     }
-    var nforagers = maxForagers - 1;
+    var nforagers = Math.floor(maxForagers/2);
     for(var i=0; i<nforagers; i++)
     {
         addForager();
