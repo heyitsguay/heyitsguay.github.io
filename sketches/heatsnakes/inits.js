@@ -181,6 +181,7 @@ function initGLVars()
         u_cdiff: {data: cdiff0, type: gl.FLOAT},
         u_cdecay: {data: cdecay0, type: gl.FLOAT},
         u_heatH: {data: heatH0, type: gl.FLOAT},
+        u_time: {data: time0, type: gl.FLOAT},
         u_Hgate: {data: Hgate0, type: gl.FLOAT},
         //u_Sgate: {data: Sgate0, type: gl.FLOAT},
         s_heat: {data: 0, type: gl.INT},
@@ -202,6 +203,7 @@ function initForagers()
     }
 
     player = new Forager(0, 0, worldX / 2, worldY / 2, Math.PI/2, 5, null, 1, 0, 0);
+    player.heat = 0;
     player.player = true;
     player.immortal = true;
     foragers.push(player);

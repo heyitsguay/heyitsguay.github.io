@@ -42,7 +42,7 @@ var spVars = {
     diffuse:       {attributes: ['a_sposition'],
                     uniforms: ['u_dst', 'u_cdiff', 'u_cdecay', 's_heat', 's_entity']},
     drawheat:      {attributes: ['a_sposition'],
-                    uniforms: ['u_dst', 'u_heatH', 'u_Hgate', 's_heat']},
+                    uniforms: ['u_dst', 'u_heatH', 'u_Hgate', 'u_time', 's_heat']},
     foragerdraw:   {attributes: ['a_fposition', 'a_fcolor'],
                     uniforms: []},
     pelletdraw:    {attributes: ['a_pposition', 'a_pcolor'],
@@ -472,6 +472,7 @@ function writeFPS()
 var lastTime = new Date().getTime();
 var time0 = lastTime;
 var elapsed = 0;
+var totalElapsed = 0;
 var fps = 0;
 var fpsFilter = 30;
 function updateFPS()
@@ -485,26 +486,6 @@ function updateFPS()
     lastTime = timeNow;
 }
 
-var addPellets = true;
-function addPellet()
-{
-    if(pellets.length < maxPellets && addPellets)
-    {
-        var newPellet = pelletsLimbo.pop();
-
-        var t = 0.001 * (lastTime - time0);
-        var lambda = Math.min(1, 1 / (0.35 * t));
-        var h = randexp(lambda);
-        if(Math.random() < 0.5) {
-            newPellet.build(null, null, h);
-        } else {
-            newPellet.build(null, null, -h);
-        }
-        pellets.push(newPellet);
-        pellets.redraw = true;
-    }
-}
-
 //function readHeatMap()
 //{
 //    var draw_id = ['heat0', 'heat1'][fbidx];
@@ -515,6 +496,10 @@ function addPellet()
 function tick()
 {
     updateFPS();
+    totalElapsed = (lastTime - time0) * 0.001;
+    //var elapsedTotal = lastTime - time0;
+    uniformValues['u_time'].data = totalElapsed;
+
     requestAnimationFrame(tick);
     handleKeys();
     update();

@@ -149,6 +149,14 @@
             position: absolute;
             /*font-size: 12pt;*/
         }
+        div.tbackground {
+            z-index: 100;
+            background-color: rgba(1, 1, 1, 0.3);
+            overflow: hidden;
+            width: 400px;
+            height: 600px;
+            border: 2px #CECECE;
+        }
     </style>
 
     <style type="text/css">
@@ -236,6 +244,7 @@
         uniform vec2 u_dst;
         uniform float u_heatH;
         uniform float u_Hgate;
+        uniform float u_time;
 //        uniform float u_Sgate;
         uniform sampler2D s_heat;
 
@@ -252,20 +261,24 @@
 
         void main()
         {
+            float x = gl_FragCoord.x;
+            float y = gl_FragCoord.y;
             vec2 texvals = texture2D(s_heat, gl_FragCoord.xy * u_dst).rg;
             float heat0 = texvals[0] - 0.5;
             float heat = abs(hoffset * heat0);
             float n1 = float(heat0 < 0.0);
             float n2 = 1.0 - 2.0 * n1;
+            float hcheck = float(heat > 50.0);
 
             // Hue effects
-            float tH = u_Hgate * ((0.5 * heat + 10.0 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 400.0 * max(0.0, heat - 51.0));
-            float H = mod(u_heatH - n1 * 0.5 + n2 * tH, 1.0);
+            float tH = n2 * u_Hgate * ((0.5 * heat + 10.0 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 800.0 * (1.0 - n1) * max(0.0, heat - 51.0));
+            float tHneg = n1 * (-0.5 + hcheck *(0.2 * u_time + 1000.0 * u_Hgate * (x - mod(60.0 * u_time + 1.9 * heat, 0.3 * x) + gl_FragCoord.y - mod(30.0 * u_time + 1.9 * heat, 0.3 * y)) * 0.006));// * (0.99 + 0.01 * sin(0.02 * heat))));
+            float H = mod(u_heatH + tH + tHneg, 1.0);
 
             const float m1 = 0.2;
             // Using: c1 = 3, c2 = 10, c3 = 25, c4 = 32.
             const float m2 = -0.04;//42857;
-            float hcheck = float(heat > 50.0);
+
             //float gB = 1.0 - (float(heat > 3.0) * max(0.0, m * (heat - 3.0) + 0.8) + float(heat > 50.0) * max(0.0, 0.33 * m * (heat - 50.0) + 0.9));
             float gB = 1.0 - (1.0 - hcheck) * max(0.0, m1 * (heat - 45.0)) - hcheck * max(0.0, 0.5 * m2 * (heat - 50.0) + 1.0);
             float B = gB * min(1.0, 0.1 * heat);
@@ -340,6 +353,7 @@
     <!--The canvas-->
     <canvas id="canvas" width="512" height="512"></canvas>
 
+    <div class = "tbackground" id="fullleft">
     <div class="lefttitle toggle" id="titlediv">
         <!--Title-->
         <h1>heat snakes</h1>
@@ -400,10 +414,10 @@
             <tr>
                 <td>Decay</td>
                 <td><label for="range-cdecay"></label><input type="range" id="range-cdecay" style="width: 80px;"
-                       min="0" max="15" value="1" step="1"
+                       min="0" max="15" value="5" step="1"
                        onchange="cdecaySlider(this.value)"
                        oninput="cdecaySlider(this.value)"/></td>
-                <td id="range-cdecay-disp">1</td>
+                <td id="range-cdecay-disp">5</td>
             </tr>
             <!--Diffusion speed slider bar-->
             <tr>
@@ -427,12 +441,13 @@
             <tr>
                 <td>Glow</td>
                 <td><label for="range-Hgate"></label><input type="range" id="range-Hgate" style="width: 80px;"
-                       min="0" max="100" value="3" step="1"
+                       min="0" max="100" value="1" step="1"
                        onchange="HgateSlider(this.value)"
                        oninput="HgateSlider(this.value)"/></td>
-                <td id="range-Hgate-disp">3</td>
+                <td id="range-Hgate-disp">1</td>
             </tr>
         </table>
+        </div>
         </div>
 </body>
 </html>

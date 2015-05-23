@@ -1,4 +1,22 @@
-var pelletID = 0;
+var addPellets = true;
+function addPellet()
+{
+    if(pellets.length < maxPellets && addPellets)
+    {
+        var newPellet = pelletsLimbo.pop();
+
+        var t = 0.002 * (lastTime - time0);
+        var lambda = Math.min(1, 1 / (0.35 * t));
+        var h = randexp(lambda);
+        if(Math.random() < 0.5) {
+            newPellet.build(null, null, h);
+        } else {
+            newPellet.build(null, null, -h);
+        }
+        pellets.push(newPellet);
+        pellets.redraw = true;
+    }
+}
 
 function Pellet(x, y, heat, lifetime)
 {
