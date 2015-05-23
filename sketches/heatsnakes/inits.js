@@ -113,8 +113,8 @@ function updateSize(canvas) {
     }
     canvas.width = worldX;
     canvas.height = worldY;
-    texX = Math.pow(2, Math.ceil(Math.log2(worldX)));
-    texY = Math.pow(2, Math.ceil(Math.log2(worldY)));
+    texX = Math.pow(2, Math.ceil(Math.log(worldX) / Math.log(2)));
+    texY = Math.pow(2, Math.ceil(Math.log(worldY) / Math.log(2)));
 
     //var left = window.innerWidth * 0.5;
     //var strleft = (left.toFixed(0)).toString() + 'px';

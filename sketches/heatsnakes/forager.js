@@ -168,7 +168,7 @@ Forager.prototype.update = function(dt, fh, fr, fth)
         }
         else
         {
-            biasupdate = this.thbiasStrength * (Math.sign(dist1) * 2 * Math.PI - dist1);
+            biasupdate = this.thbiasStrength * (sign(dist1) * 2 * Math.PI - dist1);
         }
 
         this.th = mod(this.th + biasupdate, 2 * Math.PI);

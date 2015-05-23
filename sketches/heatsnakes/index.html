@@ -163,11 +163,11 @@
         varying float v_heat;
         varying float v_lifeleft;
 
-        const float heatoffset = 0.00001;
+        const float heatoffset = 0.0001;
 
         void main()
         {
-            gl_FragColor = vec4(heatoffset * (v_heat + 50000.0), v_lifeleft, 0.0, 1.0);
+            gl_FragColor = vec4(heatoffset * (v_heat + 5000.0), v_lifeleft, 0.0, 1.0);
         }
     </script>
     <script id="fs_diffuse" type="x-shader/x-fragment">
@@ -239,7 +239,7 @@
 //        uniform float u_Sgate;
         uniform sampler2D s_heat;
 
-        const float hoffset = 10000.;
+        const float hoffset = 1000.;
         const vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
 
         // Thanks to sam at http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl (May 19, 2015).

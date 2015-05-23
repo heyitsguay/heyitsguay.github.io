@@ -3,7 +3,7 @@
 
 const maxfdr = 300; // Maximum radial velocity  magnitude for foragers.
 const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
-const maxfheat = 50000;
+const maxfheat = 5000;
 const maxplayerdr = 300;
 const maxPellets = 150;
 const maxForagers = 200;
@@ -107,6 +107,11 @@ function randexp(L)
 {
     var u = Math.random();
     return Math.log(1 - u) / (-L);
+}
+
+function sign(x)
+{
+    return (x > 0) - (x < 0);
 }
 
 //function heatscaleSlider(val)
@@ -308,10 +313,10 @@ function collide(obj0, obj1)
             var d1dotn = - obj1.dr * Math.cos(obj1.th) * cnormalx - obj1.dr * Math.sin(obj1.th) * cnormaly;
 
             var deltax = d1dotn * cnormalx + d0dotn * cnormalx;
-            deltax = Math.sign(deltax) * Math.max(0.05, Math.abs(deltax));
+            deltax = sign(deltax) * Math.max(0.05, Math.abs(deltax));
 
             var deltay = d1dotn * cnormaly + d0dotn * cnormaly;
-            deltay = Math.sign(deltay) * Math.max(0.05, Math.abs(deltay));
+            deltay = sign(deltay) * Math.max(0.05, Math.abs(deltay));
 
             //var dx0 = obj0.dr * Math.cos(obj0.dth) - obj0.bounce * deltax;
             var dx0 = -obj0.bounce * deltax;
