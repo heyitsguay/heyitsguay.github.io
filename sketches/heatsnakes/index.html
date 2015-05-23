@@ -262,10 +262,12 @@
             float tH = u_Hgate * ((0.5 * heat + 10.0 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 400.0 * max(0.0, heat - 51.0));
             float H = mod(u_heatH - n1 * 0.5 + n2 * tH, 1.0);
 
+            const float m1 = 0.2;
             // Using: c1 = 3, c2 = 10, c3 = 25, c4 = 32.
-            const float m = -0.04;//42857;
+            const float m2 = -0.04;//42857;
+            float hcheck = float(heat > 50.0);
             //float gB = 1.0 - (float(heat > 3.0) * max(0.0, m * (heat - 3.0) + 0.8) + float(heat > 50.0) * max(0.0, 0.33 * m * (heat - 50.0) + 0.9));
-            float gB = 1.0 - float(heat > 50.0) * max(0.0, 0.5 * m * (heat - 50.0) + 1.0);
+            float gB = 1.0 - (1.0 - hcheck) * max(0.0, m1 * (heat - 45.0)) - hcheck * max(0.0, 0.5 * m2 * (heat - 50.0) + 1.0);
             float B = gB * min(1.0, 0.1 * heat);
 
             gl_FragColor = vec4(hsv2rgb(vec3(H, 1.0, B)), 1.0);
