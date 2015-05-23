@@ -100,7 +100,7 @@
             margin-left: auto;
             margin-right: auto;
             text-align: left;
-            float: left;
+            /*float: left;*/
             table-layout: fixed;
             width: 220px;
             /*border: 1px solid;*/
@@ -115,7 +115,7 @@
             table-layout: fixed;
             width: 150px;
             text-align: left;
-            float: left;
+            /*float: left;*/
             color: #CECECE;
             font-size: 10pt;
         }
@@ -124,7 +124,7 @@
     <style type="text/css">
         div.instrdiv {
             text-align: right;
-            float: right;
+            /*float: right;*/
             top: 10px;
             color: #CECECE;
             position: absolute;
@@ -138,23 +138,28 @@
             top: 50px;
             left: 10px;
             color: #CECECE;
-            position: absolute;
+            position: relative;
             font-size: 12pt;
+            z-index: 2;
+            /*background: rgba(1, 1, 1, 0.5);*/
         }
         div.lefttitle {
             text-align: left;
             top: 10px;
             left: 10px;
             color: #CECECE;
-            position: absolute;
+            position: relative;
+            z-index: 2;
+            /*background: rgba(1, 1, 1, 0.5);*/
             /*font-size: 12pt;*/
         }
         div.tbackground {
-            z-index: 100;
-            background-color: rgba(1, 1, 1, 0.3);
+            position: relative;
+            z-index: 2;
+            background: rgba(1, 1, 1, 0.8);
             overflow: hidden;
-            width: 400px;
-            height: 600px;
+            width: 340px;
+            height: 520px;
             border: 2px #CECECE;
         }
     </style>
@@ -353,7 +358,7 @@
     <!--The canvas-->
     <canvas id="canvas" width="512" height="512"></canvas>
 
-    <div class = "tbackground" id="fullleft">
+    <div class = "tbackground toggle" id="fullleft">
     <div class="lefttitle toggle" id="titlediv">
         <!--Title-->
         <h1>heat snakes</h1>
@@ -448,6 +453,7 @@
             </tr>
         </table>
         </div>
+        &nbsp;
         </div>
 </body>
 </html>
