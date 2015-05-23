@@ -203,7 +203,7 @@ function initForagers()
     }
 
     player = new Forager(0, 0, worldX / 2, worldY / 2, Math.PI/2, 5, null, 1, 0, 0);
-    player.heat = 0;
+    player.heat = 5;
     player.player = true;
     player.immortal = true;
     foragers.push(player);

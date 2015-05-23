@@ -25,6 +25,8 @@ function FloatBuffer(id)
 
     this.framebufferCheck();
 
+
+
 }
 
 FloatBuffer.prototype.framebufferCheck = function()
