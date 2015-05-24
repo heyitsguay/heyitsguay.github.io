@@ -42,7 +42,7 @@ var spVars = {
     diffuse:       {attributes: ['a_sposition'],
                     uniforms: ['u_dst', 'u_cdiff', 'u_cdecay', 's_heat', 's_entity']},
     drawheat:      {attributes: ['a_sposition'],
-                    uniforms: ['u_dst', 'u_size', 'u_heatH', 'u_Hgate', 'u_time', 's_heat']},
+                    uniforms: ['u_dst', 'u_size', 'u_heatH', 'u_time', 's_heat']},
     foragerdraw:   {attributes: ['a_fposition', 'a_fcolor'],
                     uniforms: []},
     pelletdraw:    {attributes: ['a_pposition', 'a_pcolor'],
@@ -65,7 +65,7 @@ var foragersLimbo = [];
 
 // Array containing all Pellets used in the sketch.
 var pellets = [];
-var deadPellets = [];
+//var deadPellets = [];
 var pelletsLimbo = [];
 
 // Controls the size of the Foragers and Pellets.
@@ -99,7 +99,7 @@ var dthrands = [];
 var heatscale;
 
 // Array containing the heat map values.
-var heatMap;
+//var heatMap;
 
 // Modulo operation variant with no negative numbers
 function mod(m, n)
@@ -125,6 +125,7 @@ function escaleSlider(val)
     qualityChange();
 }
 
+//noinspection JSUnusedGlobalSymbols
 function escaleSlider2(val)
 {
     $('#range-escale-disp').html(val);
@@ -150,24 +151,15 @@ function heatHSlider(val)
     disp.innerHTML = val;
 }
 
-function HgateSlider(val)
-{
-    var fval = parseFloat(val);
-    uniformValues.u_Hgate.data = 0.002 * (Math.log(1 + 0.2 * fval) + (fval >= 50) * 0.6 * (fval - 50));
-
-    var disp = document.getElementById("range-Hgate-disp");
-    disp.innerHTML = val;
-}
-
 function pelletToggle()
 {
     addPellets = !addPellets;
 }
 
-function collisionToggle(checked) {
-    //noinspection JSUnusedAssignment
-    checked? foragerCollision = true : foragerCollision = false;
-}
+//function collisionToggle(checked) {
+//    //noinspection JSUnusedAssignment
+//    checked? foragerCollision = true : foragerCollision = false;
+//}
 
 function entityDrawToggle()
 {

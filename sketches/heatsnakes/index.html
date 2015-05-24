@@ -176,7 +176,7 @@
             background: rgba(1, 1, 1, 0.7);
             overflow: hidden;
             width: 290px;
-            height: 620px;
+            height: 570px;
             /*border: 2px #CECECE;*/
         }
     </style>
@@ -266,7 +266,7 @@
         uniform vec2 u_dst;
         uniform vec2 u_size;
         uniform float u_heatH;
-        uniform float u_Hgate;
+//        uniform float u_Hgate;
         uniform float u_time;
 //        uniform float u_Sgate;
         uniform sampler2D s_heat;
@@ -296,15 +296,19 @@
             // Hue effects
             float dx = abs(x - 0.5 * u_size[0]);
             float dy = abs(y - 0.5 * u_size[1]);
-            float tH = n2 * u_Hgate * ((0.5 * heat + 10.0 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 800.0 * (1.0 - n1) * max(0.0, heat - 51.0));
-            float tHneg = n1 * (-0.5 + hcheck *(0.2 * u_time + 9.0 * u_Hgate * (dx - mod(60.0 * u_time + 1.9 * heat, 1.0 + dx) + dy - mod(30.0 * u_time + 1.9 * heat, 1.0 + dy))));// * (0.99 + 0.01 * sin(0.02 * heat))));
+            float hcheck2 = float(heat < 3000.0);
+
+            float tH = n2 * ((0.000182322 * heat + 0.00364643 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 0.291714 * (1.0 - n1) * max(0.0, heat - 51.0));
+
+            float hSat = hcheck2 * 1.9 * heat + (1.0 - hcheck2) * (5100.0 + 0.2 * heat);
+            float tHneg = n1 * (-0.5 + hcheck *(0.2 * u_time + 0.00328179 * (dx - mod(60.0 * u_time + hSat, 1.0 + dx) + dy - mod(30.0 * u_time + hSat, 1.0 + dy))));
+
             float H = mod(u_heatH + tH + tHneg, 1.0);
 
+            // Brightness effects.
             const float m1 = 0.2;
-            // Using: c1 = 3, c2 = 10, c3 = 25, c4 = 32.
             const float m2 = -0.04;//42857;
 
-            //float gB = 1.0 - (float(heat > 3.0) * max(0.0, m * (heat - 3.0) + 0.8) + float(heat > 50.0) * max(0.0, 0.33 * m * (heat - 50.0) + 0.9));
             float gB = 1.0 - (1.0 - hcheck) * max(0.0, m1 * (heat - 45.0)) - hcheck * max(0.0, 0.5 * m2 * (heat - 50.0) + 1.0);
             float B = gB * min(1.0, 0.1 * heat);
 
@@ -483,15 +487,6 @@
                         onchange="heatHSlider(this.value)"
                         oninput="heatHSlider(this.value)"/></td>
                 <td id="range-heatH-disp">0.05</td>
-            </tr>
-            <!--Hgate slider bar-->
-            <tr>
-                <td>Glow</td>
-                <td><label for="range-Hgate"></label><input type="range" id="range-Hgate" style="width: 80px;"
-                       min="0" max="100" value="1" step="1"
-                       onchange="HgateSlider(this.value)"
-                       oninput="HgateSlider(this.value)"/></td>
-                <td id="range-Hgate-disp">1</td>
             </tr>
         </table>
         </div>

@@ -176,10 +176,7 @@ function initGLVars()
     var cdiff0 = 0.1666666 * parseFloat(document.getElementById("range-cdiff").value);
     var cdecay0 = 1 - Math.pow(2, -15 + parseFloat(document.getElementById("range-cdecay").value));
     var heatH0 = parseFloat(document.getElementById("range-heatH").value);
-    var fval = parseFloat(document.getElementById("range-Hgate").value);
-    var Hgate0 = 0.002 * (Math.log(1 + 0.2 * fval) + (fval >= 30) * 0.6 * (fval - 30));
-    //fval = parseFloat(document.getElementById("range-Sgate").value);
-    //var Sgate0 = 0.005 * (Math.log(1 + 0.04 * fval) + (fval >= 70) * 0.1 * (fval - 70));
+
 
     uniformValues = {
         u_dst: {data: [1 / texX, 1 / texY], type: gl.FLOAT_VEC2},
@@ -188,8 +185,6 @@ function initGLVars()
         u_cdecay: {data: cdecay0, type: gl.FLOAT},
         u_heatH: {data: heatH0, type: gl.FLOAT},
         u_time: {data: time0, type: gl.FLOAT},
-        u_Hgate: {data: Hgate0, type: gl.FLOAT},
-        //u_Sgate: {data: Sgate0, type: gl.FLOAT},
         s_heat: {data: 0, type: gl.INT},
         s_entity: {data: 1, type: gl.INT}
     };
