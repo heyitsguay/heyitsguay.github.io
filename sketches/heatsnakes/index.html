@@ -301,7 +301,7 @@
             float tH = n2 * ((0.000182322 * heat + 0.00364643 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 0.291714 * (1.0 - n1) * max(0.0, heat - 51.0));
 
             float hSat = hcheck2 * 1.9 * heat + (1.0 - hcheck2) * (5100.0 + 0.2 * heat);
-            float tHneg = n1 * (-0.5 + hcheck *(0.2 * u_time + 0.00328179 * (dx - mod(60.0 * u_time + hSat, 1.0 + dx) + dy - mod(30.0 * u_time + hSat, 1.0 + dy))));
+            float tHneg = n1 * (-0.5 + hcheck *(0.4 * u_time + 0.00328179 * (dx - mod(60.0 * u_time + hSat, 1.0 + dx) + dy - mod(30.0 * u_time + hSat, 1.0 + dy))));
 
             float H = mod(u_heatH + tH + tHneg, 1.0);
 
