@@ -85,8 +85,8 @@
           <file leaf-file-name="inits.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/inits.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="323" column="34" selection-start-line="323" selection-start-column="34" selection-end-line="323" selection-end-column="34" />
+                <state vertical-scroll-proportion="-5.793103">
+                  <caret line="10" column="17" selection-start-line="10" selection-start-column="4" selection-end-line="10" selection-end-column="17" />
                   <folding />
                 </state>
               </provider>
@@ -105,8 +105,8 @@
           <file leaf-file-name="glhelpers.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/glhelpers.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.43339586">
-                  <caret line="26" column="20" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
+                <state vertical-scroll-proportion="0.16468254">
+                  <caret line="23" column="94" selection-start-line="23" selection-start-column="94" selection-end-line="23" selection-end-column="94" />
                   <folding />
                 </state>
               </provider>
@@ -145,10 +145,10 @@
         <option value="extensions::messaging" />
         <option value="$PROJECT_DIR$/forager.js" />
         <option value="$PROJECT_DIR$/handles.js" />
-        <option value="$PROJECT_DIR$/inits.js" />
         <option value="$PROJECT_DIR$/main.js" />
-        <option value="$PROJECT_DIR$/glhelpers.js" />
         <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/inits.js" />
+        <option value="$PROJECT_DIR$/glhelpers.js" />
       </list>
     </option>
   </component>
@@ -1047,22 +1047,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/inits.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="323" column="34" selection-start-line="323" selection-start-column="34" selection-end-line="323" selection-end-column="34" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/glhelpers.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.43339586">
-          <caret line="26" column="20" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.6055227">
@@ -1091,6 +1075,22 @@
             <marker date="1432433090534" expanded="true" signature="11299:11364" placeholder="{...}" />
             <marker date="1432433090534" expanded="true" signature="11563:11659" placeholder="{...}" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inits.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.793103">
+          <caret line="10" column="17" selection-start-line="10" selection-start-column="4" selection-end-line="10" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/glhelpers.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.16468254">
+          <caret line="23" column="94" selection-start-line="23" selection-start-column="94" selection-end-line="23" selection-end-column="94" />
+          <folding />
         </state>
       </provider>
     </entry>
