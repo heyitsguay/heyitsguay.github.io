@@ -63,14 +63,18 @@ var foragers = [];
 var deadForagers = [];
 var foragersLimbo = [];
 
-// Quadtree used for collision detection.
-var tree;
-var foragerCollision;
-
 // Array containing all Pellets used in the sketch.
 var pellets = [];
 var deadPellets = [];
 var pelletsLimbo = [];
+
+// Controls the size of the Foragers and Pellets.
+var escale;
+
+// Quadtree used for collision detection.
+var tree;
+var foragerCollision;
+
 
 // When true, update associated vertex attribute arrays.
 pellets.redraw = true;
@@ -114,12 +118,18 @@ function sign(x)
     return (x > 0) - (x < 0);
 }
 
-//function heatscaleSlider(val)
-//{
-//    heatscale = parseFloat(val);
-//    var disp = document.getElementById("range-heatscale-disp");
-//    disp.innerHTML = val;
-//}
+function escaleSlider(val)
+{
+    escale = parseFloat(val);
+    $('#range-escale-disp').html(val);
+    qualityChange();
+}
+
+function escaleSlider2(val)
+{
+    $('#range-escale-disp').html(val);
+}
+
 function cdecaySlider(val)
 {
     uniformValues.u_cdecay.data = 1 - Math.pow(2, -15+parseFloat(val));

@@ -62,6 +62,16 @@ function handleKeys()
         // Turn clockwise.
         player.th -= dt;
     }
+    if(keys[69]) // E
+    {
+        // Decrease player heat
+        player.heat -= 1;
+    }
+    if(keys[82]) // R
+    {
+        // Increase player heat
+        player.heat += 1;
+    }
     if(keys[87]) // W
     {
         // Speed up
@@ -72,16 +82,7 @@ function handleKeys()
         // Slow down
         player.dr = Math.max(-maxplayerdr, player.dr - 50 * dt);
     }
-    if(keys[80]) // P
-    {
-        // Increase player heat
-        player.heat += 1;
-    }
-    if(keys[79]) // O
-    {
-        // Decrease player heat
-        player.heat -= 1;
-    }
+
 
     if(keys[75]) // K
     {

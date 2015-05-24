@@ -30,7 +30,7 @@ Pellet.prototype.build = function(x, y, heat, lifetime) {
     this.x = !(x == null)? x : Math.random() * worldX;
     this.y = !(y == null)? y : Math.random() * worldY;
     this.heat = !(heat == null)? heat : randexp(0.08);
-    this.size = 6;
+    this.size = 2 * escale;
     this.w = this.size;
     this.h = this.size;
     this.color = vec4.fromValues(0, 0, 0,1.0);

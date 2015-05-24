@@ -29,8 +29,8 @@ function removeForager()
 
 // Forager object stuff ----------------------------------------------------------------------------------------------//
 //var foragerID = 0;
-function Forager(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr, vth) {
-    this.build(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr, vth);
+function Forager(thbias, thbiasStrength, x, y, heading, heat, lifetime, vr, vth) {
+    this.build(thbias, thbiasStrength, x, y, heading, heat, lifetime, vr, vth);
 }
 
 Forager.prototype.build = function(thbias, thbiasStrength, x, y, heading, heat, size, lifetime, vr, vth) {
@@ -50,8 +50,7 @@ Forager.prototype.build = function(thbias, thbiasStrength, x, y, heading, heat, 
     this.lifetime = !(lifetime == null) ? lifetime : 1 + 60 * Math.random() * 30 ;
     this.life0 = 1 / this.lifetime;
     this.lifeleft = this.life0 * this.lifetime;
-    this.size = !(size == null) ? size : 7;
-    //this.color = vec4.fromValues(Math.random(), Math.random(), Math.random(), 1.0);
+    this.size =  (2.4 * escale);
     this.color = vec4.fromValues(0.8,0.4,0.4,0.3);
     // True for the player.
     this.player = false;

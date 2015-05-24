@@ -171,6 +171,7 @@ function initGLVars()
     };
 
     heatscale = 1;//parseFloat(document.getElementById("range-heatscale").value);
+    escale = parseFloat($('#range-escale').val());
     // Initial uniform variable values
     var cdiff0 = 0.1666666 * parseFloat(document.getElementById("range-cdiff").value);
     var cdecay0 = 1 - Math.pow(2, -15 + parseFloat(document.getElementById("range-cdecay").value));
@@ -194,7 +195,7 @@ function initGLVars()
     };
 }
 
-currentForagers = Math.floor(200);
+currentForagers = 100;
 function initForagers()
 {
     // Preallocate all potential Foragers to avoid a lot of 'new' commands.
