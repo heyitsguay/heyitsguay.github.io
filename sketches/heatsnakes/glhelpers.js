@@ -34,7 +34,7 @@ FloatBuffer.prototype.framebufferCheck = function()
     var fb_status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
     if(fb_status != gl.FRAMEBUFFER_COMPLETE)
     {
-        alert("Framebuffer " + this.id + " isn't complete!");
+        //alert("Framebuffer " + this.id + " isn't complete!");
     }
 };
 
@@ -57,7 +57,7 @@ function ShaderProgram(id)
 
     if(!gl.getProgramParameter(this.program, gl.LINK_STATUS))
     {
-        alert("Could not initialize shader program " + this.id);
+        //alert("Could not initialize shader program " + this.id);
     }
 
     gl.useProgram(this.program);
@@ -175,7 +175,7 @@ function getShader(id)
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        alert(gl.getShaderInfoLog(shader));
+        //alert(gl.getShaderInfoLog(shader));
         return null;
     }
 
