@@ -1,61 +1,36 @@
 // Tracks which keys are pressed.
 var keys = {};
+var togglables = [];
+// Initialize togglables to true
+var togglablesSize = 256;
+while(togglablesSize--){togglables.push(true);}
 
-var htogglable = true;
-var ftogglable = true;
 function handleKeyDown(e)
 {
     keys[e.keyCode] = true;
-
-    if(e.keyCode == 70 && ftogglable) // F flip
-    {
-        ftoggle();
-    }
-
-    if(e.keyCode == 72 && htogglable) // H toggle menu
-    {
-        htoggle();
-    }
-}
-
-function ftoggle()
-{
-    ftogglable = false;
-    player.heat *= -1;
-}
-
-function htoggle()
-{
-    htogglable = false;
-    showText = !showText;
-    if (showText) {
-        $('.toggle').show();
-    }
-    else {
-        $('.toggle').hide();
-    }
 }
 
 function handleKeyUp(e)
 {
     keys[e.keyCode] = false;
-
-    if(e.keyCode == 70) // F
-    {
-        ftogglable = true;
-    }
-    if(e.keyCode == 72) // H
-    {
-        htogglable = true;
-    }
+    togglables[e.keyCode] = true;
 }
 
 function handleKeys()
 {
-    if(keys[65]) // A
-    {
+    if(keys[32]) { // Space
+        // Reset
+        resizeWindow();
+    }
+    if(keys[65]) { // A
         // Turn counterclockwise.
         player.th += dt;
+    }
+    if(keys[67] && togglables[67]) // C
+    {
+        // Toggle entity drawing.
+        togglables[67] = false;
+        drawEntities = !drawEntities;
     }
     if(keys[68]) // D
     {
@@ -67,23 +42,11 @@ function handleKeys()
         // Decrease player heat
         player.heat -= 1;
     }
-    if(keys[82]) // R
-    {
-        // Increase player heat
-        player.heat += 1;
+    if(keys[70] && togglables[70]) { // F
+        // Flip player heat.
+        togglables[70] = false;
+        player.heat *= -1;
     }
-    if(keys[87]) // W
-    {
-        // Speed up
-        player.dr = Math.min(maxplayerdr, player.dr + 50 * dt);
-    }
-    if(keys[83]) // S
-    {
-        // Slow down
-        player.dr = Math.max(-maxplayerdr, player.dr - 50 * dt);
-    }
-
-
     if(keys[75]) // K
     {
         // Remove a Forager
@@ -94,13 +57,41 @@ function handleKeys()
         // Add a Forager
         addForager();
     }
-    if(keys[90]) {
+    if(keys[81] && togglables[81]) { // Q
+        // Toggle menu display.
+        togglables[81] = false;
+
+        showText = !showText;
+        if (showText) {
+            $('.toggle').show();
+        }
+        else {
+            $('.toggle').hide();
+        }
+    }
+    if(keys[82]) // R
+    {
+        // Increase player heat
+        player.heat += 1;
+    }
+    if(keys[83]) // S
+    {
+        // Slow down
+        player.dr = Math.max(-maxplayerdr, player.dr - 50 * dt);
+    }
+    if(keys[87]) // W
+    {
+        // Speed up
+        player.dr = Math.min(maxplayerdr, player.dr + 50 * dt);
+    }
+    if(keys[88] && togglables[88]) { // X
+        // Toggle orb spawning.
+        togglables[88] = false;
+        addPellets = !addPellets;
+    }
+    if(keys[90]) { // Z
         // Set player heat to 0
         player.heat = 0;
-    }
-    if(keys[32]) { // Space
-        // Reset
-        resizeWindow();
     }
 }
 

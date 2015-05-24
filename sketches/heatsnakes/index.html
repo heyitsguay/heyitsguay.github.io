@@ -130,7 +130,7 @@
     <style type="text/css" id="table-checktable">
         table.checktable td {
             table-layout: fixed;
-            width: 150px;
+            width: 180px;
             text-align: left;
             /*float: left;*/
             color: #CECECE;
@@ -175,8 +175,8 @@
             z-index: 2;
             background: rgba(1, 1, 1, 0.7);
             overflow: hidden;
-            width: 290px;
-            height: 590px;
+            width: 312px;
+            height: 570px;
             /*border: 2px #CECECE;*/
         }
     </style>
@@ -395,10 +395,11 @@
         <div class="leftdiv1 toggle" style="font-size: 10pt" id="keys">
             WASD: move your snake<br/>
             <table class="checktable" id="keytable">
-                <tr><td>E: colder</td><td>R: hotter</td></tr>
-                <tr><td>K: remove snake</td><td>L: add snake</td></tr>
-                <tr><td>F: flip heat type</td><td>Z: zero heat</td></tr>
-                <tr><td>H: toggle menu</td><td>Space: restart</td></tr>
+                <tr><td><b>E</b>: colder</td><td><b>R</b>: hotter</td></tr>
+                <tr><td><b>K</b>: remove snake</td><td><b>L</b>: add snake</td></tr>
+                <tr><td><b>X</b>: Toggle orb spawn</td><td><b>F</b>: flip heat</td></tr>
+                <tr><td><b>C</b>: Toggle outlines</td><td><b>Z</b>: zero heat</td></tr>
+                <tr><td><b>Q</b>: toggle menu</td><td><b>Space</b>: restart</td></tr>
             <!--O/P: change your heat level<br/>-->
             <!--F: flip your heat type<br/>-->
             <!--H: toggle menu display<br/>-->
@@ -406,7 +407,7 @@
             <!--L/K to add/remove snakes-->
             </table>
         </div>
-        <hr style="margin-bottom:5px;"/>
+        <hr style="margin-bottom:5px; width: 80%;"/>
         <!-- Quality settings-->
         <div class="leftdiv1 toggle" id="settings" style="font-size: 10pt;" onchange="qualityChange()">
             <h4>Quality (restart):</h4>
@@ -436,23 +437,8 @@
                 </tr>
             </table>
         </div>
-        <hr style="margin-bottom:5px;"/>
+        <hr style="width:80%; margin-bottom:5px;"/>
         <div class="leftdiv1 toggle" id="checkboxes">
-            <table class="checktable" style="width:200px;">
-                <colgroup>
-                    <col span="1" style="width: 60%;">
-                    <col span="1" style="width: 40%;">
-                </colgroup>
-                <tr>
-                    <td>Draw entities </td><td><label for="check-draw"></label><input type="checkbox" id="check-draw" onchange="entityDrawToggle()"/></td>
-                </tr>
-                <!--<tr>-->
-                    <!--<td>Snake collisions </td><td><label for="check-sliders"></label><input type="checkbox" id="check-sliders" onchange="collisionToggle(this.checked)"/></td>-->
-                <!--</tr>-->
-                <tr>
-                    <td>Spawn orbs </td><td><label for="check-pellets"></label><input type="checkbox" id="check-pellets" onchange="pelletToggle()" checked/></td>
-                </tr>
-            </table>
             <!--Slider bar table-->
             <table class="ss toggle" id="table-sliders">
                 <colgroup>
@@ -485,12 +471,12 @@
                                                                 min="0" max="1" value="0.03" step="0.01"
                                                                 onchange="heatHSlider(this.value)"
                                                                 oninput="heatHSlider(this.value)"/></td>
-                    <td id="range-heatH-disp">0.05</td>
+                    <td id="range-heatH-disp">0.03</td>
                 </tr>
             </table>
         </div>
         <div class="toggle">
-        <hr style="margin-bottom:2px; margin-top:80px;"/>
+        <hr style="width:80%; margin-bottom:2px; margin-top:80px;"/>
         <h4 style="padding-top: 0px; font-size:11pt;">matt.d.guay@gmail.com</h4>
         </div>
         </div>
