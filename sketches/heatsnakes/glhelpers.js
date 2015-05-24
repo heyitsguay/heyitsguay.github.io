@@ -23,6 +23,12 @@ function FloatBuffer(id)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texX, texY, 0, gl.RGBA, gl.FLOAT, null);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.tex, 0);
 
+    var bitDepth = gl.getParameter(gl.RED_BITS);
+    if(bitDepth < 16)
+    {
+        killTheCanvas = true;
+    }
+
     this.framebufferCheck();
 
 
@@ -34,7 +40,7 @@ FloatBuffer.prototype.framebufferCheck = function()
     var fb_status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
     if(fb_status != gl.FRAMEBUFFER_COMPLETE)
     {
-        //alert("Framebuffer " + this.id + " isn't complete!");
+        killTheCanvas = true;//alert("Framebuffer " + this.id + " isn't complete!");
     }
 };
 
