@@ -176,7 +176,7 @@
             background: rgba(1, 1, 1, 0.7);
             overflow: hidden;
             width: 290px;
-            height: 570px;
+            height: 590px;
             /*border: 2px #CECECE;*/
         }
     </style>
@@ -406,7 +406,7 @@
             <!--L/K to add/remove snakes-->
             </table>
         </div>
-
+        <hr style="margin-bottom:5px;"/>
         <!-- Quality settings-->
         <div class="leftdiv1 toggle" id="settings" style="font-size: 10pt;" onchange="qualityChange()">
             <h4>Quality (restart):</h4>
@@ -436,7 +436,7 @@
                 </tr>
             </table>
         </div>
-
+        <hr style="margin-bottom:5px;"/>
         <div class="leftdiv1 toggle" id="checkboxes">
             <table class="checktable" style="width:200px;">
                 <colgroup>
@@ -453,42 +453,46 @@
                     <td>Spawn orbs </td><td><label for="check-pellets"></label><input type="checkbox" id="check-pellets" onchange="pelletToggle()" checked/></td>
                 </tr>
             </table>
+            <!--Slider bar table-->
+            <table class="ss toggle" id="table-sliders">
+                <colgroup>
+                    <col span="1" style="width: 38%;">
+                    <col span="1" style="width: 40%;">
+                    <col span="1" style="width: 22%;">
+                </colgroup>
+                <!--Heat decay slider bar-->
+                <tr>
+                    <td>Decay</td>
+                    <td><label for="range-cdecay"></label><input type="range" id="range-cdecay" style="width: 80px;"
+                                                                 min="0" max="15" value="5" step="1"
+                                                                 onchange="cdecaySlider(this.value)"
+                                                                 oninput="cdecaySlider(this.value)"/></td>
+                    <td id="range-cdecay-disp">5</td>
+                </tr>
+                <!--Diffusion speed slider bar-->
+                <tr>
+                    <td>Diffusion</td>
+                    <td><label for="range-cdiff"></label><input type="range" id="range-cdiff" style="width: 80px;"
+                                                                min="0" max="1" value="1" step="0.01"
+                                                                onchange="cdiffSlider(this.value)"
+                                                                oninput="cdiffSlider(this.value)"/></td>
+                    <td id="range-cdiff-disp">10.</td>
+                </tr>
+                <!--Base heat color slider bar-->
+                <tr>
+                    <td>Hue</td>
+                    <td><label for="range-heatH"></label><input type="range" id="range-heatH" style="width: 80px;"
+                                                                min="0" max="1" value="0.03" step="0.01"
+                                                                onchange="heatHSlider(this.value)"
+                                                                oninput="heatHSlider(this.value)"/></td>
+                    <td id="range-heatH-disp">0.05</td>
+                </tr>
+            </table>
         </div>
-    <!--Slider bar table-->
-        <table class="ss toggle" id="table-sliders">
-            <colgroup>
-                <col span="1" style="width: 38%;">
-                <col span="1" style="width: 40%;">
-                <col span="1" style="width: 22%;">
-            </colgroup>
-            <!--Heat decay slider bar-->
-            <tr>
-                <td>Decay</td>
-                <td><label for="range-cdecay"></label><input type="range" id="range-cdecay" style="width: 80px;"
-                       min="0" max="15" value="5" step="1"
-                       onchange="cdecaySlider(this.value)"
-                       oninput="cdecaySlider(this.value)"/></td>
-                <td id="range-cdecay-disp">5</td>
-            </tr>
-            <!--Diffusion speed slider bar-->
-            <tr>
-                <td>Diffusion</td>
-                <td><label for="range-cdiff"></label><input type="range" id="range-cdiff" style="width: 80px;"
-                        min="0" max="1" value="1" step="0.01"
-                        onchange="cdiffSlider(this.value)"
-                        oninput="cdiffSlider(this.value)"/></td>
-                <td id="range-cdiff-disp">10.</td>
-            </tr>
-            <!--Base heat color slider bar-->
-            <tr>
-                <td>Hue</td>
-                <td><label for="range-heatH"></label><input type="range" id="range-heatH" style="width: 80px;"
-                        min="0" max="1" value="0.03" step="0.01"
-                        onchange="heatHSlider(this.value)"
-                        oninput="heatHSlider(this.value)"/></td>
-                <td id="range-heatH-disp">0.05</td>
-            </tr>
-        </table>
+        <div class="toggle">
+        <hr style="margin-bottom:2px; margin-top:80px;"/>
+        <h4 style="padding-top: 0px; font-size:11pt;">matt.d.guay@gmail.com</h4>
+        </div>
         </div>
         &nbsp;
         </div>
