@@ -32,7 +32,7 @@ function mobileSetup()
     // Detect mobile devices
     onMobile = mobileDetect(navigator.userAgent||navigator.vendor||window.opera);
     if(onMobile) {
-        heatRange = 500;
+        heatRange = 256;
     }
     else {
         heatRange = 10000;
@@ -85,7 +85,7 @@ function resizeWindow() {
         //    $('#canvas').hide();
         //    $('#titlediv').html("Mobile devices not currently supported :(");
         //    $('.leftside').hide();
-        //} 
+        //}
         else {
             tick();
             $('#canvas').click(handleClick);
