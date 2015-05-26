@@ -120,8 +120,9 @@ function getMousePos(canvas, evt) {
 }
 
 function handleTouch(evt) {
-    var x = evt.offsetX;
-    var y = evt.offsetY;
+    evt.preventDefault();
+    var x = evt.targetTouches[0].clientX;
+    var y = evt.targetTouches[0].clientY;
     var mdx = player.x - x;
     var mdy = player.y - y;
     var mr2 = mdx * mdx + mdy * mdy;
