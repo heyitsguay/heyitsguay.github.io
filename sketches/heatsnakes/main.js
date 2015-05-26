@@ -3,7 +3,7 @@
 
 const maxfdr = 300; // Maximum radial velocity  magnitude for foragers.
 const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
-const maxfheat = 5000;
+var maxfheat;
 const maxplayerdr = 300;
 const maxPellets = 150;
 const maxForagers = 400;

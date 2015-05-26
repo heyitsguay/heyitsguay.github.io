@@ -1,5 +1,5 @@
 var successSize = false;
-var successGL = false;
+//var successGL = false;
 var successForagers = false;
 var successPellets = false;
 var successQuadtree = false;
@@ -15,12 +15,30 @@ $(window).resize(resizeWindow);
 $('#pelletheat-text').on('input', handlePelletHeat);
 
 var firstTime;
+var onMobile;
 function webGLStart() {
     setInterval(changeRands, 250);
     setInterval(addPellet, 1000);
     setInterval(writeFPS, 500);
     firstTime = true;
+    mobileSetup();
     qualityChange(); // Which jumps back to resizeWindow
+}
+
+var heatRange;
+var at1, at2, at3;
+function mobileSetup()
+{
+    // Detect mobile devices
+    onMobile = mobileDetect(navigator.userAgent||navigator.vendor||window.opera);
+    if(onMobile) {
+        heatRange = 500;
+    }
+    else {
+        heatRange = 10000;
+    }
+
+    maxfheat = heatRange / 2;
 }
 
 function resizeWindow() {
@@ -54,9 +72,6 @@ function resizeWindow() {
 
     if (firstTime) {
         changeRands();
-        // Detect mobile devices
-        var $mobile = navigator.userAgent||navigator.vendor||window.opera;
-        var onMobile = mobileDetect($mobile);
         if(killTheCanvas) {
             $('#canvas').hide();
             $('#titlediv').html("Could not start the sketch!");
@@ -65,12 +80,12 @@ function resizeWindow() {
             //$('#fpscounter').hide();
             //$('#settings').hide();
         }
-        else if(onMobile)
-        {
-            $('#canvas').hide();
-            $('#titlediv').html("Mobile devices not currently supported :(");
-            $('.leftside').hide();
-        }
+        //else if(onMobile)
+        //{
+        //    $('#canvas').hide();
+        //    $('#titlediv').html("Mobile devices not currently supported :(");
+        //    $('.leftside').hide();
+        //} 
         else {
             tick();
             $('#canvas').click(handleClick);
