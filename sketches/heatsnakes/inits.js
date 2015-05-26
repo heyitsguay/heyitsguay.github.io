@@ -22,6 +22,9 @@ function webGLStart() {
     setInterval(writeFPS, 500);
     firstTime = true;
     mobileSetup();
+
+    var canvas = document.getElementById('canvas');
+    $(canvas).bind('touchstart', handleTouch);
     qualityChange(); // Which jumps back to resizeWindow
 }
 
@@ -365,5 +368,3 @@ function mobileDetect(a){
         return true;
     }
 }
-
-//(navigator.userAgent||navigator.vendor||window.opera,'http://detectmobilebrowser.com/mobile');

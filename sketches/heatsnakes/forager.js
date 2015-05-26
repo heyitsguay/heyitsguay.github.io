@@ -43,7 +43,7 @@ Forager.prototype.build = function(thbias, thbiasStrength, x, y, heading, heat, 
     this.dx = 0;
     this.dy = 0;
     this.dr = !(vr == null)? vr : 100 * Math.random() + 10;
-    this.th = !(heading == null) ? heading : Math.random() * 2 * Math.PI; // Note: a heading of 0 is due east
+    this.th = !(heading == null) ? heading : Math.random() * TPI; // Note: a heading of 0 is due east
     this.dth = !(vth == null) ? vth : 0;
     this.heat = !(heat == null) ? heat : Math.random() * 2;
     this.dh = 0;
@@ -88,7 +88,7 @@ Forager.prototype.build = function(thbias, thbiasStrength, x, y, heading, heat, 
     this.dthcollide = 0;
 
     // Foragers will tend to head in this direction
-    this.thbias = !(thbias == null) ? thbias : 2 * Math.PI * Math.random();
+    this.thbias = !(thbias == null) ? thbias : TPI * Math.random();
     this.thbiasStrength = !(thbiasStrength == null)? thbiasStrength : 0.1 * Math.random();
 
 }
@@ -152,13 +152,13 @@ Forager.prototype.update = function(dt, fh, fr, fth)
 
 
     // Heading update.
-    this.th = mod((this.th) + dt * (this.dth + this.dthcollide), 2 * Math.PI);
+    this.th = mod((this.th) + dt * (this.dth + this.dthcollide), TPI);
 
     if(!this.player)
     {
         // Heading bias update
         var dist1 = this.thbias - this.th;
-        //var dist2 = 2 * Math.PI - dist1;
+        //var dist2 = TPI - dist1;
 
         var biasupdate;
         if(Math.abs(dist1) <= Math.PI)
@@ -167,10 +167,10 @@ Forager.prototype.update = function(dt, fh, fr, fth)
         }
         else
         {
-            biasupdate = this.thbiasStrength * (sign(dist1) * 2 * Math.PI - dist1);
+            biasupdate = this.thbiasStrength * (sign(dist1) * TPI - dist1);
         }
 
-        this.th = mod(this.th + biasupdate, 2 * Math.PI);
+        this.th = mod(this.th + biasupdate, TPI);
     }
 
     this.dx = dt * (this.dr + this.drcollide) * Math.cos(this.th);

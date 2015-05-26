@@ -1,6 +1,7 @@
 // TODO:
 // - 20150520 Give pellets and foragers a proper object structure with methods to handle e.g. triggering redraws.
 
+const TPI = 2 * Math.PI;
 const maxfdr = 300; // Maximum radial velocity  magnitude for foragers.
 const maxfdth = 0.5; // Maximal angular velocity magnitude for foragers.
 var maxfheat;

@@ -104,8 +104,7 @@ function handlePelletHeat()
     pelletHeat.val(drawPelletHeat.toString());
 
 }
-function handleClick(evt)
-{
+function handleClick(evt) {
     var canvas = $('#canvas');
     var pos = getMousePos(canvas, evt);
     if(keys[16] && pellets.length < maxPellets) {// When shift is pressed
@@ -113,10 +112,39 @@ function handleClick(evt)
     }
 }
 
-function getMousePos(canvas, evt)
-{
+function getMousePos(canvas, evt) {
     return{
         x: evt.offsetX,
         y: evt.offsetY
     };
+}
+
+function handleTouch(evt) {
+    var x = evt.offsetX;
+    var y = evt.offsetY;
+    var mdx = player.x - x;
+    var mdy = player.y - y;
+    var mr2 = mdx * mdx + mdy * mdy;
+    var mth = mod(Math.atan2(mdy, mdx) + Math.PI * (mdx < 0), TPI);
+
+    // Choose to move clockwise or counterclockwise by comparing the distances between mth and
+    // player.th in both directions.
+    var dclock, dcounter;
+    if(player.th <= mth) {
+        dclock = player.th - mth + TPI;
+        dcounter = mth - player.th;
+    } else {
+        dclock = player.th - mth;
+        dcounter = mth - player.th + TPI;
+    }
+    // Go in the shortest direction.
+    if(dclock < dcounter) {
+        player.th -= dt;
+    } else {
+        player.th += dt;
+    }
+    // Speed depends on how close and how aligned you are.
+    var dth = Math.min(dclock, dcounter);
+    var v = (1 - dth / Math.PI) * 50 * dt * Math.min(1, 0.3 * mr2);
+    player.dr = Math.min(maxplayerdr, player.dr + v);
 }
