@@ -144,6 +144,7 @@ function handleTouchMove(evt) {
 var lastTap = new Date().getTime();
 var timeSinceTap;
 var doubleTapInterval = 200; // ms
+var doubleTapTimeout = true;
 function handleTouchEnd(evt) {
     var touches = evt.originalEvent.targetTouches;
     if(touches.length < 2) {
@@ -153,9 +154,11 @@ function handleTouchEnd(evt) {
         seekTarget = false;
         var newTap = new Date().getTime();
         timeSinceTap = newTap - lastTap;
-        if(timeSinceTap < doubleTapInterval) {
+        if(timeSinceTap < doubleTapInterval && doubleTapTimeout) {
             player.heat *= -1;
             playerState *= -1;
+            doubleTapTimeout = false;
+            window.setTimeout(function(){doubleTapTimeout = true;}, 1000);
         }
         lastTap = newTap;
     }

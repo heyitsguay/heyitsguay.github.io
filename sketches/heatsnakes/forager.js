@@ -36,7 +36,7 @@ function playerSeek() {
         var mdy = -player.yc + targetY;
         var mr2 = mdx * mdx + mdy * mdy;
         var mth = mod(Math.atan2(mdy, mdx), TPI);
-        
+
         // Choose to move clockwise or counterclockwise by comparing the distances between mth and
         // player.th in both directions.
         var dclock, dcounter;

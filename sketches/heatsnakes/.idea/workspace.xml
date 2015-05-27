@@ -61,8 +61,8 @@
           <file leaf-file-name="handles.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/handles.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.91611844">
-                  <caret line="159" column="25" selection-start-line="159" selection-start-column="25" selection-end-line="159" selection-end-column="25" />
+                <state vertical-scroll-proportion="0.8042763">
+                  <caret line="160" column="74" selection-start-line="160" selection-start-column="74" selection-end-line="160" selection-end-column="74" />
                   <folding />
                 </state>
               </provider>
@@ -88,7 +88,7 @@
             <entry file="file://$PROJECT_DIR$/forager.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.31743422">
-                  <caret line="38" column="8" selection-start-line="38" selection-start-column="8" selection-end-line="38" selection-end-column="8" />
+                  <caret line="38" column="0" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -149,8 +149,8 @@
         <option value="$PROJECT_DIR$/glhelpers.js" />
         <option value="$PROJECT_DIR$/inits.js" />
         <option value="$PROJECT_DIR$/main.js" />
-        <option value="$PROJECT_DIR$/handles.js" />
         <option value="$PROJECT_DIR$/forager.js" />
+        <option value="$PROJECT_DIR$/handles.js" />
       </list>
     </option>
   </component>
@@ -1102,18 +1102,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/handles.js">
+    <entry file="file://$PROJECT_DIR$/forager.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.91611844">
-          <caret line="159" column="25" selection-start-line="159" selection-start-column="25" selection-end-line="159" selection-end-column="25" />
+        <state vertical-scroll-proportion="0.31743422">
+          <caret line="38" column="0" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/forager.js">
+    <entry file="file://$PROJECT_DIR$/handles.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.31743422">
-          <caret line="38" column="8" selection-start-line="38" selection-start-column="8" selection-end-line="38" selection-end-column="8" />
+        <state vertical-scroll-proportion="0.8042763">
+          <caret line="160" column="74" selection-start-line="160" selection-start-column="74" selection-end-line="160" selection-end-column="74" />
           <folding />
         </state>
       </provider>
