@@ -26,6 +26,38 @@ function removeForager()
     }
 }
 
+function playerSeek() {
+    if(seekTarget) {
+        var mdx = -player.xc + targetX;
+        var mdy = -player.yc + targetY;
+        var mr2 = mdx * mdx + mdy * mdy;
+        var mth = mod(Math.atan2(mdy, mdx), TPI);
+        console.log(mth);
+
+        // Choose to move clockwise or counterclockwise by comparing the distances between mth and
+        // player.th in both directions.
+        var dclock, dcounter;
+        if (player.th <= mth) {
+            dclock = player.th - mth + TPI;
+            dcounter = mth - player.th;
+        } else {
+            dclock = player.th - mth;
+            dcounter = mth - player.th + TPI;
+        }
+        var dth = Math.min(dclock, dcounter);
+
+        // Go in the shortest direction.
+        if (dclock < dcounter) {
+            player.th -= Math.min(dt, dth);
+        } else {
+            player.th += Math.min(dt, dth);
+        }
+        // Speed depends on how close and how aligned you are.
+        var v = (1 - dth / Math.PI) * 50 * dt * Math.min(1, 0.01 * mr2);
+        player.dr = Math.min(maxplayerdr, (player.dr + v) * (mr2 > 100));
+    }
+}
+
 
 // Forager object stuff ----------------------------------------------------------------------------------------------//
 //var foragerID = 0;

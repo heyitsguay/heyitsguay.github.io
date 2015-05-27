@@ -119,33 +119,22 @@ function getMousePos(canvas, evt) {
     };
 }
 
-function handleTouch(evt) {
+var targetX, targetY;
+var cw, ch; // Canvas width and height
+var seekTarget = false;
+function handleTouchStart(evt) {
     evt.preventDefault();
-    var x = evt.targetTouches[0].clientX;
-    var y = evt.targetTouches[0].clientY;
-    var mdx = player.x - x;
-    var mdy = player.y - y;
-    var mr2 = mdx * mdx + mdy * mdy;
-    var mth = mod(Math.atan2(mdy, mdx) + Math.PI * (mdx < 0), TPI);
+    targetX = canvasScale * evt.originalEvent.targetTouches[0].pageX;
+    targetY = worldY - canvasScale * evt.originalEvent.targetTouches[0].pageY;
+    seekTarget = true;
+}
 
-    // Choose to move clockwise or counterclockwise by comparing the distances between mth and
-    // player.th in both directions.
-    var dclock, dcounter;
-    if(player.th <= mth) {
-        dclock = player.th - mth + TPI;
-        dcounter = mth - player.th;
-    } else {
-        dclock = player.th - mth;
-        dcounter = mth - player.th + TPI;
-    }
-    // Go in the shortest direction.
-    if(dclock < dcounter) {
-        player.th -= dt;
-    } else {
-        player.th += dt;
-    }
-    // Speed depends on how close and how aligned you are.
-    var dth = Math.min(dclock, dcounter);
-    var v = (1 - dth / Math.PI) * 50 * dt * Math.min(1, 0.3 * mr2);
-    player.dr = Math.min(maxplayerdr, player.dr + v);
+function handleTouchMove(evt) {
+    evt.preventDefault();
+    targetX = canvasScale * evt.originalEvent.targetTouches[0].pageX;
+    targetY = worldY - canvasScale * evt.originalEvent.targetTouches[0].pageY;
+}
+
+function handleTouchEnd() {
+    seekTarget = false;
 }

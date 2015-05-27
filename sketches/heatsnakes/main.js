@@ -169,7 +169,6 @@ function entityDrawToggle()
 }
 
 var canvasScale, xstretch, ystretch;
-
 function qualityChange()
 {
     var q1 = $('input[name="q1"]:checked').val();
@@ -505,7 +504,7 @@ function tick()
     totalElapsed = (lastTime - time0) * 0.001;
     //var elapsedTotal = lastTime - time0;
     uniformValues['u_time'].data = totalElapsed;
-
+    playerSeek();
     requestAnimationFrame(tick);
     handleKeys();
     update();

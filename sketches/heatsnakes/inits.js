@@ -24,7 +24,9 @@ function webGLStart() {
     mobileSetup();
 
     var canvas = document.getElementById('canvas');
-    $(canvas).bind('touchstart', handleTouch);
+    $(canvas).bind('touchstart', handleTouchStart);
+    $(canvas).bind('touchmove', handleTouchMove);
+    $(canvas).bind('touchend', handleTouchEnd);
     qualityChange(); // Which jumps back to resizeWindow
 }
 
