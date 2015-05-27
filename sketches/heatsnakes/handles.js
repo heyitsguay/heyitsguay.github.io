@@ -122,11 +122,17 @@ function getMousePos(canvas, evt) {
 var targetX, targetY;
 var cw, ch; // Canvas width and height
 var seekTarget = false;
+var growHeat = false;
 function handleTouchStart(evt) {
     evt.preventDefault();
-    targetX = canvasScale * evt.originalEvent.targetTouches[0].pageX;
-    targetY = worldY - canvasScale * evt.originalEvent.targetTouches[0].pageY;
+    var touches = evt.originalEvent.targetTouches;
+    targetX = canvasScale * touches[0].pageX;
+    targetY = worldY - canvasScale * touches[0].pageY;
     seekTarget = true;
+    if(touches.length > 1)
+    {
+        growHeat = true;
+    }
 }
 
 function handleTouchMove(evt) {
@@ -135,6 +141,22 @@ function handleTouchMove(evt) {
     targetY = worldY - canvasScale * evt.originalEvent.targetTouches[0].pageY;
 }
 
-function handleTouchEnd() {
-    seekTarget = false;
+var lastTap = new Date().getTime();
+var timeSinceTap;
+var doubleTapInterval = 200; // ms
+function handleTouchEnd(evt) {
+    var touches = evt.originalEvent.targetTouches;
+    if(touches.length < 2) {
+        growHeat = false;
+    }
+    if(touches.length < 1) {
+        seekTarget = false;
+        var newTap = new Date().getTime();
+        timeSinceTap = newTap - lastTap;
+        if(timeSinceTap < doubleTapInterval) {
+            player.heat *= -1;
+            playerState *= -1;
+        }
+        lastTap = newTap;
+    }
 }

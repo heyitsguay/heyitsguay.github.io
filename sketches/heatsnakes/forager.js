@@ -26,14 +26,17 @@ function removeForager()
     }
 }
 
+var playerState = 1;
 function playerSeek() {
     if(seekTarget) {
+        if(growHeat) {
+            player.heat += playerState;
+        }
         var mdx = -player.xc + targetX;
         var mdy = -player.yc + targetY;
         var mr2 = mdx * mdx + mdy * mdy;
         var mth = mod(Math.atan2(mdy, mdx), TPI);
-        console.log(mth);
-
+        
         // Choose to move clockwise or counterclockwise by comparing the distances between mth and
         // player.th in both directions.
         var dclock, dcounter;
@@ -53,8 +56,9 @@ function playerSeek() {
             player.th += Math.min(dt, dth);
         }
         // Speed depends on how close and how aligned you are.
-        var v = (1 - dth / Math.PI) * 50 * dt * Math.min(1, 0.01 * mr2);
-        player.dr = Math.min(maxplayerdr, (player.dr + v) * (mr2 > 100));
+        var v = (1 - dth / Math.PI) * 50 * dt;
+        var slowDown = Math.min(1, 0.01 * mr2) * (mr2 > 10);
+        player.dr = Math.min(maxplayerdr, (player.dr + v) * slowDown);
     }
 }
 
