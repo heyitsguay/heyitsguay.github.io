@@ -1,0 +1,119 @@
+* {margin: 0; padding: 0;}
+html,
+body {
+    font-family: Monospace;
+    text-align: center;
+    background-color: #000000;
+    color: #CECECE;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+}
+
+canvas {
+    display: block;
+    position: absolute;
+    margin: auto;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    outline: none;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+}
+
+h1 {
+    color: #CECECE;
+    padding-bottom: 3px;
+}
+h2,h3,h4 {
+    color: #CECECE;
+}
+
+.leftdiv1 {
+    display: block;
+    background-color: transparent;
+    z-index: 1;
+    color: #CECECE;
+    font-size: 12pt;
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+table.center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table.ss{
+    font-size: 10pt;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+    table-layout: fixed;
+    width: 220px;
+    border-spacing: 1px;
+    position: absolute;
+    color: #CECECE;
+}
+
+table.checktable td {
+    table-layout: fixed;
+    width: 180px;
+    text-align: left;
+    /*float: left;*/
+    color: #CECECE;
+    font-size: 10pt;
+}
+
+div.instrdiv {
+    text-align: right;
+    /*float: right;*/
+    top: 10px;
+    color: #CECECE;
+    position: absolute;
+    font-size: 12pt;
+}
+
+div.leftside {
+    text-align: left;
+    top: 50px;
+    left: 10px;
+    color: #CECECE;
+    position: relative;
+    font-size: 12pt;
+    z-index: 2;
+    /*background: rgba(1, 1, 1, 0.5);*/
+}
+div.lefttitle {
+    text-align: left;
+    top: 10px;
+    left: 10px;
+    color: #CECECE;
+    position: relative;
+    z-index: 2;
+    /*background: rgba(1, 1, 1, 0.5);*/
+    /*font-size: 12pt;*/
+}
+div.tbackground {
+    position: relative;
+    z-index: 2;
+    background: rgba(1, 1, 1, 0.7);
+    overflow: hidden;
+    width: 312px;
+    height: 570px;
+    /*border: 2px #CECECE;*/
+}
+
+.toggle {}

@@ -8,42 +8,61 @@ var successFloatBuffers = false;
 var successBuffers = false;
 var initialized = false;
 
-var killTheCanvas = false;
-
-
-$(window).resize(resizeWindow);
-$('#pelletheat-text').on('input', handlePelletHeat);
-
-var firstTime;
-var onMobile;
-function webGLStart() {
-    setInterval(changeRands, 250);
-    setInterval(addPellet, 1000);
-    setInterval(writeFPS, 500);
-    firstTime = true;
-    mobileSetup();
-
-    var canvas = document.getElementById('canvas');
-    $(canvas).bind('touchstart', handleTouchStart);
-    $(canvas).bind('touchmove', handleTouchMove);
-    $(canvas).bind('touchend', handleTouchEnd);
-    qualityChange(); // Which jumps back to resizeWindow
-}
-
 var heatRange;
-var at1, at2, at3;
+//var at1, at2, at3;
 function mobileSetup()
 {
     // Detect mobile devices
     onMobile = mobileDetect(navigator.userAgent||navigator.vendor||window.opera);
     if(onMobile) {
-        heatRange = 256;
+        heatRange = 255;
     }
     else {
         heatRange = 10000;
     }
 
     maxfheat = heatRange / 2;
+}
+
+var canvasScale, xstretch, ystretch;
+function qualityChange()
+{
+    var q1 = $('input[name="q1"]:checked').val();
+    var q2 = $('input[name="q2"]:checked').val();
+
+    if(q1 === 'low')
+    {
+        canvasScale = 0.3;
+    }
+    else if(q1 === 'medium')
+    {
+        canvasScale = 0.6;
+    }
+    else if(q1 === 'high')
+    {
+        canvasScale = 0.8;
+    }
+    else if(q1 === 'best')
+    {
+        canvasScale = 1;
+    }
+
+    xstretch = false;
+    ystretch = false;
+    if(q2 === 'half'){
+        if(window.innerWidth >= window.innerHeight) {
+            ystretch = true;
+        }
+        else {
+            xstretch = true;
+        }
+    }
+    else if(q2 === 'full') {
+        xstretch = true;
+        ystretch = true;
+    }
+
+    resizeWindow();
 }
 
 function resizeWindow() {
@@ -128,7 +147,7 @@ function updateSize(canvas) {
         var ct = Math.floor((ch - cw) / 2);
         var $ct = ct.toString() + 'px';
 
-        $(canvas).css({'left':'0', 'width':'100%', 'top':$ct, height:$cw })
+        $(canvas).css({'left':'0', 'width':'100%', 'top':$ct, 'height':$cw })
     }
     else {
         worldX = worldY = Math.ceil(canvasScale * Math.min(cw, ch));

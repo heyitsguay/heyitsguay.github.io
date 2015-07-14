@@ -1,0 +1,8 @@
+each frame:
+1. update tiles
+2. tiles draw to fb tileheat
+3. tiles draw to fb tilemagic
+4. update entities
+5. entities draw to fb entity
+6. add tile, entity contributions to heat/magic maps and diffuse
+7. draw entities and tiles

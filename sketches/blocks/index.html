@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta property="og:title" content="Blocks"/>
+    <meta property="og:type" content="website"/>
+    <!--<meta property="og:image" content="http://heyitsguay.github.io/sketches/blocks/preview.jpg"/>-->
+    <meta property="og:url" content="http://heyitsguay.github.io/sketches/blocks/"/>
+
+    <link rel="stylesheet" href="src/style.css">
+
+    <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="libs/lodash.min.js"></script>
+    <script type="text/javascript" src="libs/quadtree.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+    <!--Shaders should go here-->
+
+    <!--Javascript files-->
+    <!--Collision detection and response functions.-->
+    <script type="text/javascript" src="src/collision.js"></script>
+    <!--Contains the Entity code and global variables.-->
+    <script type="text/javascript" src="src/entity.js"></script>
+    <!--FloatBuffer object and global variables.-->
+    <script type="text/javascript" src="src/floatbuffer.js"></script>
+    <!--WebGL setup functions-->
+    <script type="text/javascript" src="src/glsetup.js"></script>
+    <!--Initialization routines-->
+    <script type="text/javascript" src="src/init.js"></script>
+    <!--Main startup function, global variable declarations, draw and update routines.-->
+    <script type="text/javascript" src="src/main.js"></script>
+    <!--Contains the TileArray and Tile objects and global variables.-->
+    <script type="text/javascript" src="src/tile.js"></script>
+</head>
+<body onload = "startup();">
+    <canvas id="canvas" width="512" height="512"></canvas>
+
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavaScriptLibraryMappings">
+    <file url="file://$PROJECT_DIR$/src/attributearray.js" libraries="{WebGL}" />
+    <file url="file://$PROJECT_DIR$/src/entity.js" libraries="{WebGL}" />
+    <file url="file://$PROJECT_DIR$/src/floatbuffer.js" libraries="{WebGL}" />
+    <file url="file://$PROJECT_DIR$/src/glsetup.js" libraries="{WebGL}" />
+    <file url="file://$PROJECT_DIR$/src/init.js" libraries="{WebGL, gl-matrix, jquery-2.1.4}" />
+    <file url="file://$PROJECT_DIR$/src/main.js" libraries="{WebGL, jquery-2.1.4}" />
+    <file url="file://$PROJECT_DIR$/src/pongbuffer.js" libraries="{WebGL}" />
+    <file url="file://$PROJECT_DIR$/src/shaderprogram.js" libraries="{WebGL, gl-matrix, jquery-2.1.4}" />
+    <file url="file://$PROJECT_DIR$/src/tile.js" libraries="{WebGL, gl-matrix}" />
+  </component>
+</project>

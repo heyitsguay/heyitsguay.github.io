@@ -160,7 +160,11 @@ function getShader(id)
             var $k = k.textContent;
             $k = $k.replace('@1', (1 / heatRange).toFixed(6));
             $k = $k.replace('@2', (0.5 * heatRange).toFixed(6));
-            $k = $k.replace('@3', (0.1 * heatRange).toFixed(6));
+            if(onMobile) {
+                $k = $k.replace('@3', (0.3 * heatRange).toFixed(6));
+            } else {
+                $k = $k.replace('@3', (0.1 * heatRange).toFixed(6));
+            }
             str += $k;
         }
         k = k.nextSibling;

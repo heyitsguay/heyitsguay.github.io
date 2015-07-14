@@ -5,7 +5,6 @@
     <meta property="og:type" content="website"/>
     <meta property="og:image" content="http://heyitsguay.github.io/sketches/heatsnakes/preview.jpg"/>
     <meta property="og:url" content="http://heyitsguay.github.io/sketches/heatsnakes/"/>
-    <!--<meta property="og:description" content="A WebGL diffusion simulation with added visual touches."/>-->
 
     <script>
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -18,172 +17,11 @@
 
     </script>
 
-    <!--<link href='http://fonts.googleapis.com/css?family=Arvo' rel='stylesheet' type='text/css'>-->
     <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
     <script type="text/javascript" src="libs/lodash.min.js"></script>
     <script type="text/javascript" src="libs/quadtree.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
-    <!--<script type="text/javascript" src="libs/webgl-debug.js"></script>-->
-    <style>
-        * {margin: 0; padding: 0;}
-        html,
-        body {
-            font-family: Monospace;
-            text-align: center;
-            background-color: #000000;
-            color: #CECECE;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            overflow-y: hidden;
-            overflow-x: hidden;
-            text-shadow:
-            -1px -1px 0 #000,
-            1px -1px 0 #000,
-            -1px 1px 0 #000,
-            1px 1px 0 #000;
-        }
-        canvas {
-            display: block;
-            position: absolute;
-            /*top: 0;*/
-            /*left: 0;*/
-            /*right: 0;*/
-            /*bottom: 0;*/
-            /*width: 20%;*/
-            /*height: 100%;*/
-            margin: auto;
-            /*border: 1px solid #222222;*/
-        }
-    </style>
-    <style id="h1-4">
-        h1 {
-            color: #CECECE;
-            /*margin-top: 10px;*/
-            /*margin-bottom: 10px;*/
-            /*border-bottom: 1px solid;*/
-            padding-bottom: 3px;
-        }
-        h2,h3,h4 {
-            /*font-family: 'Helvetica', sans-serif;*/
-            color: #CECECE;
-        }
-    </style>
-
-    <style type="text/css" id="canvas-noselect">
-        canvas {
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            outline: none;
-            -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
-        }
-    </style>
-
-    <style type="text/css" id="mydiv">
-
-        .leftdiv1 {
-            display: block;
-            background-color: transparent;
-            /*position: absolute;*/
-            z-index: 1;
-            /*top: 0;*/
-            /*left: 0;*/
-            color: #CECECE
-            /*font-framily: 'Helvetica', sans-serif;*/
-            font-size: 12pt;
-            text-align: left;
-            margin-bottom: 15px;
-            /*float: left;*/
-        }
-    </style>
-
-    <style type="text/css" id="table-center">
-        table.center {
-            margin-left: auto;
-            margin-right: auto;
-        }
-    </style>
-
-    <style type="text/css" id="table-ss">
-        table.ss{
-            /*font-family: 'Helvetica', sans-serif;*/
-            font-size: 10pt;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: left;
-            /*float: left;*/
-            table-layout: fixed;
-            width: 220px;
-            /*border: 1px solid;*/
-            border-spacing: 1px;
-            position: absolute;
-            color: #CECECE;
-        }
-    </style>
-
-    <style type="text/css" id="table-checktable">
-        table.checktable td {
-            table-layout: fixed;
-            width: 180px;
-            text-align: left;
-            /*float: left;*/
-            color: #CECECE;
-            font-size: 10pt;
-        }
-    </style>
-
-    <style type="text/css">
-        div.instrdiv {
-            text-align: right;
-            /*float: right;*/
-            top: 10px;
-            color: #CECECE;
-            position: absolute;
-            font-size: 12pt;
-        }
-    </style>
-
-    <style type="text/css" id="lefttext">
-        div.leftside {
-            text-align: left;
-            top: 50px;
-            left: 10px;
-            color: #CECECE;
-            position: relative;
-            font-size: 12pt;
-            z-index: 2;
-            /*background: rgba(1, 1, 1, 0.5);*/
-        }
-        div.lefttitle {
-            text-align: left;
-            top: 10px;
-            left: 10px;
-            color: #CECECE;
-            position: relative;
-            z-index: 2;
-            /*background: rgba(1, 1, 1, 0.5);*/
-            /*font-size: 12pt;*/
-        }
-        div.tbackground {
-            position: relative;
-            z-index: 2;
-            background: rgba(1, 1, 1, 0.7);
-            overflow: hidden;
-            width: 312px;
-            height: 570px;
-            /*border: 2px #CECECE;*/
-        }
-    </style>
-
-    <style type="text/css">
-        .toggle {}
-    </style>
+    <link rel="stylesheet" href="src/style.css">
 
     <!--Shaders begin ------------------------------------------------------------------------------------------------->
     <!--Fragment shaders-->
@@ -240,15 +78,15 @@
             vec2 w  = p + vec2(-ds,  0.);
             vec2 nw = p + vec2(-ds,  dt);
 
-            float valp  = texture2D(s_heat, p ).r + texture2D(s_entity, p ).r - 1.0;
-            float valn  = texture2D(s_heat, n ).r + texture2D(s_entity, n ).r - 1.0;
-            float valne = texture2D(s_heat, ne).r + texture2D(s_entity, ne).r - 1.0;
-            float vale  = texture2D(s_heat, e ).r + texture2D(s_entity, e ).r - 1.0;
-            float valse = texture2D(s_heat, se).r + texture2D(s_entity, se).r - 1.0;
-            float vals  = texture2D(s_heat, s ).r + texture2D(s_entity, s ).r - 1.0;
-            float valsw = texture2D(s_heat, sw).r + texture2D(s_entity, sw).r - 1.0;
-            float valw  = texture2D(s_heat, w ).r + texture2D(s_entity, w ).r - 1.0;
-            float valnw = texture2D(s_heat, nw).r + texture2D(s_entity, nw).r - 1.0;
+            float valp  = texture2D(s_heat, p )[0] + texture2D(s_entity, p )[0] - 1.0;
+            float valn  = texture2D(s_heat, n )[0] + texture2D(s_entity, n )[0] - 1.0;
+            float valne = texture2D(s_heat, ne)[0] + texture2D(s_entity, ne)[0] - 1.0;
+            float vale  = texture2D(s_heat, e )[0] + texture2D(s_entity, e )[0] - 1.0;
+            float valse = texture2D(s_heat, se)[0] + texture2D(s_entity, se)[0] - 1.0;
+            float vals  = texture2D(s_heat, s )[0] + texture2D(s_entity, s )[0] - 1.0;
+            float valsw = texture2D(s_heat, sw)[0] + texture2D(s_entity, sw)[0] - 1.0;
+            float valw  = texture2D(s_heat, w )[0] + texture2D(s_entity, w )[0] - 1.0;
+            float valnw = texture2D(s_heat, nw)[0] + texture2D(s_entity, nw)[0] - 1.0;
 
 
 
@@ -366,18 +204,28 @@
         }
     </script>
 
-    <!--Objects to simplify working with WebGL.-->
-    <script type="text/javascript" src="glhelpers.js"></script>
-    <!--Event handlers.-->
-    <script type="text/javascript" src="handles.js"></script>
-    <!--Contains all the initialization scripts.-->
-    <script type="text/javascript" src="inits.js"></script>
-    <!--Contains properties and methods of the Pellet object.-->
-    <script type="text/javascript" src="pellet.js"></script>
+    <!--Small helper functions that get used in several js files.-->
+    <script type="text/javascript" src="src/auxiliary.js"></script>
+    <!--Collision detection and response.-->
+    <script type="text/javascript" src="src/collision.js"></script>
     <!--Contains properties and methods of the Forager object.-->
-    <script type="text/javascript" src="forager.js"></script>
+    <script type="text/javascript" src="src/forager.js"></script>
+    <!--Updates and displays the fps counter, as well as time elapsed per frame.-->
+    <script type="text/javascript" src="src/fps.js"></script>
+    <!--Objects to simplify working with WebGL.-->
+    <script type="text/javascript" src="src/glhelpers.js"></script>
+    <!--Event handlers.-->
+    <script type="text/javascript" src="src/handles.js"></script>
+    <!--Contains all the initialization scripts.-->
+    <script type="text/javascript" src="src/inits.js"></script>
     <!--Common global variable definitions, update and drawing functions, some auxiliary functions.-->
-    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="src/main.js"></script>
+    <!--Contains properties and methods of the Pellet object.-->
+    <script type="text/javascript" src="src/pellet.js"></script>
+    <!--Functions to handle changes to the sliders.-->
+    <script type="text/javascript" src="src/sliders.js"></script>
+    <!--Functions called during the update process in each frame.-->
+    <script type="text/javascript" src="src/update.js"></script>
 
 </head>
 
