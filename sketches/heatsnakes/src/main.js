@@ -151,7 +151,7 @@ function draw()
     {
         gl.enable(gl.BLEND);
         gl.disable(gl.DEPTH_TEST);
-        gl.blendEquation(gl.FUNC_REVERSE_SUBTRACT);
+        //gl.blendEquation(gl.FUNC_REVERSE_SUBTRACT);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         sps['foragerdraw'].prep(true);
         gl.drawArrays(gl.TRIANGLES, 0, foragers.length * 3);

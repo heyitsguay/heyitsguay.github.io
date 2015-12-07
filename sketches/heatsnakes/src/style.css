@@ -116,4 +116,15 @@ div.tbackground {
     /*border: 2px #CECECE;*/
 }
 
+div.badge {
+    text-align: left;
+    position: fixed;
+    z-index: 2;
+    top: 550px;
+    left: 10px;
+    width: 96px;
+    height: 50px;
+    visibility: hidden;
+}
+
 .toggle {}

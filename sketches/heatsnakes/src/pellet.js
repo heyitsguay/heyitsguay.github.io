@@ -1,11 +1,9 @@
-var addPellets = true;
-function addPellet()
-{
-    if(pellets.length < maxPellets && addPellets)
-    {
+var addPellets = false;
+function addPellet() {
+    if(pellets.length < maxPellets && addPellets) {
         var newPellet = pelletsLimbo.pop();
 
-        var t = 0.002 * (lastTime - time0);
+        var t = 0.0004 * (lastTime - time0);
         var lambda = Math.min(1, 1 / (0.35 * t));
         var h = randexp(lambda);
         if(Math.random() < 0.5) {
@@ -16,6 +14,18 @@ function addPellet()
         pellets.push(newPellet);
         pellets.redraw = true;
     }
+}
+
+var pelletHeat = 0;
+function clickPellet(x, y) {
+    // Creates a pellet at the cursor.
+    var newPellet = pelletsLimbo.pop();
+
+    newPellet.build(x, y, pelletHeat);
+
+    pellets.push(newPellet);
+    pellets.redraw = true;
+
 }
 
 function Pellet(x, y, heat, lifetime)

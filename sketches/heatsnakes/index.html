@@ -6,21 +6,22 @@
     <meta property="og:image" content="http://heyitsguay.github.io/sketches/heatsnakes/preview.jpg"/>
     <meta property="og:url" content="http://heyitsguay.github.io/sketches/heatsnakes/"/>
 
-    <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    <!--<script>-->
+        <!--(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){-->
+                    <!--(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),-->
+                <!--m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)-->
+        <!--})(window,document,'script','//www.google-analytics.com/analytics.js','ga');-->
 
-        ga('create', 'UA-63298562-1', 'auto');
-        ga('send', 'pageview');
+        <!--ga('create', 'UA-63298562-1', 'auto');-->
+        <!--ga('send', 'pageview');-->
 
-    </script>
+    <!--</script>-->
 
     <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
     <script type="text/javascript" src="libs/lodash.min.js"></script>
     <script type="text/javascript" src="libs/quadtree.js"></script>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="libs/jquery.min.js"></script>
+    <!--<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>-->
     <link rel="stylesheet" href="src/style.css">
 
     <!--Shaders begin ------------------------------------------------------------------------------------------------->
@@ -139,7 +140,7 @@
             float dy = abs(y - 0.5 * u_size[1]);
             float hcheck2 = float(heat < 3000.0);
 
-            float tH = n2 * ((0.000182322 * heat + 0.00364643 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 0.291714 * (1.0 - n1) * max(0.0, heat - 51.0));
+            float tH = n2 * ((0.000182322 * heat + 0.00364643 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 0.0891714 * (1.0 - n1) * (hcheck * 11. * u_time + max(0.0, heat - 51.0)));
 
             float hSat = hcheck2 * 1.9 * heat + (1.0 - hcheck2) * (5100.0 + 0.2 * heat);
             float tHneg = n1 * (-0.5 + hcheck *(0.4 * u_time + 0.00328179 * (dx - mod(60.0 * u_time + hSat, 1.0 + dx) + dy - mod(30.0 * u_time + hSat, 1.0 + dy))));
@@ -238,7 +239,7 @@
         <!--Title-->
         <h1>heat snakes</h1>
         <!--FPS counter-->
-        <div class="leftdiv1 toggle" id="fpscounter"> </div>
+        <div class="leftdiv1 toggle" id="fpscounter"> 0.0 fps</div>
         <h3>snakes eat orbs <br/> to grow hotter or colder.</h3>
     </div>
     <div class="leftside toggle" id="leftdiv">
@@ -269,12 +270,25 @@
                 <td><input type="radio" name="q1" value="best" /></td><td>Best</td>
             </tr></table>
 
+
             <h4>Size (restart):</h4>
             <table id="size" style="border-spacing: 5px;"><tr>
-                <td><input type="radio" name="q2" value="100"/></td><td>Window</td>
+                <td><input type="radio" name="q2" value="window"/></td><td>Window</td>
                 <td><input type="radio" name="q2" value="half"/></td><td>Half</td>
                 <td><input type="radio" name="q2" value="full" checked/></td><td>Full</td>
             </tr></table>
+
+            <table id = "size-scale" style="border-spacing: 5px;">
+                <!--Window size slider bar-->
+                <tr>
+                    <td><label for="range-window"></label><input type="range" id="range-window" style="width: 80px;"
+                                                                 min="0.1" max="1" value="1" step="0.01"
+                                                                 onchange="windowSlider(this.value)"
+                                                                 oninput="windowSlider2(this.value)"/>
+                    </td>
+                    <td id="range-window-disp">1</td>
+                </tr>
+            </table>
 
             <h4>Entity scale (restart):</h4>
             <table class="toggle" id="escale-table" style="border-spacing: 5px;">
@@ -327,11 +341,14 @@
             </table>
         </div>
         <div class="toggle">
-        <hr style="width:80%; margin-bottom:2px; margin-top:80px;"/>
-        <h4 style="padding-top: 0px; font-size:11pt;">matt.d.guay@gmail.com</h4>
+            <hr style="width:80%; margin-bottom:2px; margin-top:80px;"/>
+            <h4 style="padding-top: 0px; font-size:11pt;">matt.d.guay@gmail.com</h4>
         </div>
         </div>
-        &nbsp;
-        </div>
+    <div class="badge toggle">
+        <a href="http://www.chromeexperiments.com/experiment/heat-snakes/"><img src="b1small.png" width="96" height="50" alt="" /></a>
+    </div>
+</div>
+
 </body>
 </html>

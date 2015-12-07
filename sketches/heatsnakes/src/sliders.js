@@ -1,5 +1,18 @@
 // Functions to handle changes to the sliders.
 
+// Changes the size of the window when in windowed mode, and updates the slider's display.
+function windowSlider(val) {
+    canvasScale = parseFloat(val);
+    $('#range-window-disp').html(val);
+    qualityChange(true);
+}
+
+// Only updates the slider's display.
+function windowSlider2(val) {
+    canvasScale = parseFloat(val);
+    $('#range-window-disp').html(val);
+}
+
 // Controls the scale of entities (updates when slider is no longer being clicked).
 function escaleSlider(val)
 {

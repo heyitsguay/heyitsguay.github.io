@@ -2,13 +2,9 @@ precision highp float;
 
 uniform vec2 u_dst;
 
-// Hacky workaround variable to reuse this code with two different heat/magic maps but only one tilemap.
-// 0 or 2
-uniform int u_idxcdct;
-
-uniform sampler2D s_map;
-uniform sampler2D s_entitymap;
-uniform sampler2D s_tilemap;
+uniform sampler2D s_heat;
+uniform sampler2D s_entityheat;
+uniform sampler2D s_tileheat;
 
 const float w1 = 1.0; // NESW neighbor weighting
 const float w2 = 0.5; // diagonal neighbor weighting
@@ -19,13 +15,11 @@ void main() {
     // Self texel coordinates.
     vec2 p = gl_FragCoord.xy * u_dst;
 
-    int idxdecay = u_idxcdct + 1;
-
     // Conductance.
-    float cdct = iw3 * texture2D(s_map, p)[u_idxcdct];
+    float conductance = iw3 * texture2D(s_tileheat, p)[0];
 
     // Decay
-    float decay = texture2D(s_map, p)[idxdecay];
+    float decay = texture2D(s_tileheat, p)[1];
 
     float ds = u_dst[0];
     float dt = u_dst[1];
@@ -44,29 +38,23 @@ void main() {
     vec2 nw = p + vec2(-ds,  dt);
 
     // Heat values.
-    float valp  = texture2D(s_map, p ).r + texture2D(s_entitymap, p ).r - 1.0;
-    float valn  = texture2D(s_map, n ).r + texture2D(s_entitymap, n ).r - 1.0;
-    float valne = texture2D(s_map, ne).r + texture2D(s_entitymap, ne).r - 1.0;
-    float vale  = texture2D(s_map, e ).r + texture2D(s_entitymap, e ).r - 1.0;
-    float valse = texture2D(s_map, se).r + texture2D(s_entitymap, se).r - 1.0;
-    float vals  = texture2D(s_map, s ).r + texture2D(s_entitymap, s ).r - 1.0;
-    float valsw = texture2D(s_map, sw).r + texture2D(s_entitymap, sw).r - 1.0;
-    float valw  = texture2D(s_map, w ).r + texture2D(s_entitymap, w ).r - 1.0;
-    float valnw = texture2D(s_map, nw).r + texture2D(s_entitymap, nw).r - 1.0;
+    float valp  = texture2D(s_heat, p ).r + texture2D(s_entityheat, p ).r - 1.0;
+    float valn  = texture2D(s_heat, n ).r + texture2D(s_entityheat, n ).r - 1.0;
+    float valne = texture2D(s_heat, ne).r + texture2D(s_entityheat, ne).r - 1.0;
+    float vale  = texture2D(s_heat, e ).r + texture2D(s_entityheat, e ).r - 1.0;
+    float valse = texture2D(s_heat, se).r + texture2D(s_entityheat, se).r - 1.0;
+    float vals  = texture2D(s_heat, s ).r + texture2D(s_entityheat, s ).r - 1.0;
+    float valsw = texture2D(s_heat, sw).r + texture2D(s_entityheat, sw).r - 1.0;
+    float valw  = texture2D(s_heat, w ).r + texture2D(s_entityheat, w ).r - 1.0;
+    float valnw = texture2D(s_heat, nw).r + texture2D(s_entityheat, nw).r - 1.0;
 
     float laplacian = w1 * (valn  + vale  + vals  + valw )
                     + w2 * (valne + valse + valsw + valnw)
                     - w3 * valp;
 
-    // Map intensity, packed into the R channel.
-    float R = (1.0 - borderCheck) * decay * (valp + cdct * laplacian) + 0.5;
+    // Heat intensity, packed into the R channel.
+    float R = (1.0 - borderCheck) * decay * (valp + conductance * laplacian) + 0.5;
 
-    // New map conductance from Tiles, packed into the G channel.
-    float G = texture2D(s_tilemap, p)[u_idxcdct];
-
-    // New map decay rate
-    float B = texture2D(s_tilemap, p)[idxdecay];
-
-    // No A channel usage so far.
-    gl_FragColor = vec4(R, G, B, 0.);
+    // No G,B,A channel usage so far.
+    gl_FragColor = vec4(R, 0., 0., 0.);
 }

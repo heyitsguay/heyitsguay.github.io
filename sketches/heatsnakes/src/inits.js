@@ -25,26 +25,26 @@ function mobileSetup()
 }
 
 var canvasScale, xstretch, ystretch;
-function qualityChange()
+function qualityChange(windowSliderInput)
 {
+    windowSliderInput = !(windowSliderInput == null)? windowSliderInput : false;
+
     var q1 = $('input[name="q1"]:checked').val();
     var q2 = $('input[name="q2"]:checked').val();
 
-    if(q1 === 'low')
-    {
-        canvasScale = 0.3;
-    }
-    else if(q1 === 'medium')
-    {
-        canvasScale = 0.6;
-    }
-    else if(q1 === 'high')
-    {
-        canvasScale = 0.8;
-    }
-    else if(q1 === 'best')
-    {
-        canvasScale = 1;
+    if(!(q2 === 'window')) {
+        if (q1 === 'low') {
+            canvasScale = 0.3;
+        }
+        else if (q1 === 'medium') {
+            canvasScale = 0.6;
+        }
+        else if (q1 === 'high') {
+            canvasScale = 0.8;
+        }
+        else if (q1 === 'best') {
+            canvasScale = 1;
+        }
     }
 
     xstretch = false;
@@ -112,7 +112,6 @@ function resizeWindow() {
         //}
         else {
             tick();
-            $('#canvas').click(handleClick);
         }
         firstTime = false;
     }
@@ -170,15 +169,18 @@ function updateSize(canvas) {
     //var left = window.innerWidth * 0.5;
     //var strleft = (left.toFixed(0)).toString() + 'px';
 
+    // Set the instructions CSS top and left properties.
     var right = window.innerWidth - 270;
     var rightStr = right.toString() + 'px';
-    //$('#title').css({'left': '10px', 'top': '10px'});
-    //$('#fpscounter').css({'left': '10px', 'top': '55px'});
-    //$('#settings').css({'left':'10px', 'top':'90px'});
-    //$('#checkboxes').css({'left': '10px', 'top': '180px'});
-    //$('#table-sliders').css({'left': '10px', 'top': '250px'});
     $('#instructions').css({'left': rightStr, 'top': '85px'});
+
+    // Give the canvas a border.
     $(canvas).css({'border': '1px solid #222222'});
+
+    // Set the Chrome Experiment badge CSS top and visibility properties.
+    var badgetop = window.innerHeight - 60;
+    var $badgetop = badgetop.toString() + 'px';
+    $('div.badge').css({'top': $badgetop, 'visibility': 'visible'});
 
     initGL(canvas);
 
@@ -238,7 +240,7 @@ function initGLVars()
     };
 }
 
-currentForagers = 100;
+currentForagers = 0;
 function initForagers()
 {
     // Preallocate all potential Foragers to avoid a lot of 'new' commands.
@@ -252,7 +254,8 @@ function initForagers()
     }
 
     player = new Forager(0, 0, worldX / 2, worldY / 2, Math.PI/2, 5, null, 1, 0, 0);
-    player.heat = 5;
+    player.heat = 0;
+    player.color[1] = 1.0;
     player.color[3] = 1.0;
     player.player = true;
     player.immortal = true;
@@ -262,11 +265,6 @@ function initForagers()
 
 function initPellets()
 {
-    //var npellets = 1;
-    //for(var i=0; i<npellets; i++)
-    //{
-    //    pellets.push(new Pellet());
-    //}
     for(var i=0; i<maxPellets; i++)
     {
         pelletsLimbo.push(new Pellet());
@@ -358,8 +356,7 @@ function initShaderPrograms()
     return true;
 }
 
-function initFloatBuffers()
-{
+function initFloatBuffers() {
     for(var i=0; i<floatBufferIds.length; i++)
     {
         floatBuffers[floatBufferIds[i]] = new FloatBuffer(floatBufferIds[i]);

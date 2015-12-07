@@ -1,0 +1,36 @@
+TODO:
+- Next: Keep working on adding constructor parameters to World.
+
+- 110515: World should have a start function.
+- 110515: World render should render Tiles, Entities.
+- 110515: ShaderPrograms' .prep() should take a boolean input. If true, draw immediately.
+- 110515: (Maybe?) Give texels a phase instead of a sign.
+- 110515: World update should update Tiles, Entities.
+- 110515: updateTime should update the uniform variable u_time.
+- 110515: Write Framework.initApp(). Should handle attributes, uniforms, float/pongbuffers.
+- 110515: Make sure the World sets up xWorld, yWorld, xTile, yTile
+- 081215: Set XMLHttpRequest stuff for the shaders to only take place the first time everything loads.
+
+x 081115: Circular dependency between initShaderPrograms and initTiles. Fix this! DONE 081115
+x 061315: Do the first test!!!!! DONE 081115
+x 061315: Write rendertiles.frag. DONE 080915
+x 061315: Write renderentities.frag and renderentities.vert. DONE 080915
+x 061315: Write renderheat.frag. DONE 080915
+x 080615: Remove all the stuff about the second diffusion texture (magic). DONE 080815
+x 061315: Write drawtiles.frag and drawtiles.vert. DONE 061515
+x 061215: Add main.js draw() function. DONE 061315
+x 061315: Write the tilesmall update function. DONE 061315
+x 061315: Write the Entity and Tile draw functions. DONE 061315
+x 061315: Updated Tiles should draw to a separate texture like tilemaps, but with final color values. DONE 061315
+x 061315: Finish the heat and magic map update functions. DONE 061315
+x 061315: Figure out how to properly deal with attaching multiple textures to each of the ShaderPrograms. DONE 061315
+x 061215: Add main.js update() function. DONE 061315
+x 061215: Add an initShaderPrograms() function. DONE 061215
+x 060315: Keep building Entity code so that a Player can be created. DONE 061215
+x 061015: Add an Entity death list. DONE 061215
+x 061015: Add Entity motion, collision detection, and draw functions. DONE 061215
+x 061115: Add Entity attributes (verts, color, map) and add them to the EntityList AttributeArrays. DONE 061215
+x 061215: Fix the diffuse shader to leave a 1-pixel border of 0's. DONE 061215
+x 060815: Convert the tilesmall FloatBuffer to a PongBuffer. DONE 061015
+x 060315: Shader programs to update Tiles and the heat maps. DONE 060815
+x 060615: Keep writing the TileArray update function. DONE 060715

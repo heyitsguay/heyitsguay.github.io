@@ -7,34 +7,91 @@
     <!--<meta property="og:image" content="http://heyitsguay.github.io/sketches/blocks/preview.jpg"/>-->
     <meta property="og:url" content="http://heyitsguay.github.io/sketches/blocks/"/>
 
-    <link rel="stylesheet" href="src/style.css">
+    <link rel="stylesheet" href="style.css">
 
     <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
     <script type="text/javascript" src="libs/lodash.min.js"></script>
     <script type="text/javascript" src="libs/quadtree.js"></script>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
-
-    <!--Shaders should go here-->
-
+    <script type="text/javascript" src="libs/webgl-debug.js"></script>
+    <script type="text/javascript" src="libs/jquery.min.js"></script>
+    <!--<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>-->
     <!--Javascript files-->
+    <!--AttributeArray object-->
+    <script type="text/javascript" src="src/gl-framework/attributearray.js"></script>
+    <!--Commonly-used small auxiliary functions.-->
+    <script type="text/javascript" src="src/app/auxiliary.js"></script>
     <!--Collision detection and response functions.-->
-    <script type="text/javascript" src="src/collision.js"></script>
-    <!--Contains the Entity code and global variables.-->
-    <script type="text/javascript" src="src/entity.js"></script>
-    <!--FloatBuffer object and global variables.-->
-    <script type="text/javascript" src="src/floatbuffer.js"></script>
-    <!--WebGL setup functions-->
-    <script type="text/javascript" src="src/glsetup.js"></script>
-    <!--Initialization routines-->
-    <script type="text/javascript" src="src/init.js"></script>
+    <script type="text/javascript" src="src/app/collision.js"></script>
+    <!--Entity object code.-->
+    <script type="text/javascript" src="src/app/entity.js"></script>
+    <!--EntityList object code.-->
+    <script type="text/javascript" src="src/app/entitylist.js"></script>
+    <!--FloatBuffer object code.-->
+    <script type="text/javascript" src="src/gl-framework/floatbuffer.js"></script>
+    <!--Global variable definitions.-->
+    <script type="text/javascript" src="src/global.js"></script>
+    <!--WebGL setup functions.-->
+    <script type="text/javascript" src="src/gl-framework/glsetup.js"></script>
+    <!--User input handles and associated functions.-->
+    <script type="text/javascript" src="src/gl-framework/handle.js"></script>
+    <!--Initialization functions.-->
+    <script type="text/javascript" src="src/gl-framework/init.js"></script>
+    <!--Function to set up the game level.-->
+    <script type="text/javascript" src="src/app/level.js"></script>
     <!--Main startup function, global variable declarations, draw and update routines.-->
-    <script type="text/javascript" src="src/main.js"></script>
-    <!--Contains the TileArray and Tile objects and global variables.-->
-    <script type="text/javascript" src="src/tile.js"></script>
+    <script type="text/javascript" src="src/app/main.js"></script>
+    <!--Player object code.-->
+    <script type="text/javascript" src="src/app/player.js"></script>
+    <!--PongBuffer object code.-->
+    <script type="text/javascript" src="src/gl-framework/pongbuffer.js"></script>
+    <!--ShaderProgram object code.-->
+    <script type="text/javascript" src="src/gl-framework/shaderprogram.js"></script>
+    <!--Tile object code.-->
+    <script type="text/javascript" src="src/app/tile.js"></script>
+    <!--TileArray object code.-->
+    <script type="text/javascript" src="src/app/tilearray.js"></script>
 </head>
 <body onload = "startup();">
-    <canvas id="canvas" width="512" height="512"></canvas>
+    <canvas id="canvas" width="10" height="10"></canvas>
 
+    <!--Left-side menu-->
+    <div class="leftmenubackground toggle" id="leftside">
+        <!--Title stuff-->
+        <div class="title toggle" id="divtitle">
+            <!--Title-->
+            <h1>cool title</h1>
+            <!--FPS counter-->
+            <div class="basic toggle" id="fpscounter">0.0 fps</div>
+            <!--Sketch description-->
+            <h3>Check yourself <br/> before you wreck yourself.</h3>
+        </div>
+        <!--Instructions-->
+        <div class="basicsmall toggle" id="keys">
+            WASD: move.
+            <table class="keytable" id="keytable">
+                <tr><td><b>Q</b>: toggle menu</td><td><b>R</b>: restart</td></tr>
+            </table>
+        </div>
+        <hr style="margin-bottom:5px; width:80%;"/>
+        <!--Quality settings-->
+        <div class="basicsmall toggle" id="qualitysettings" onchange="tf.handleQualityChange()">
+            <!--Simulation quality-->
+            <h4>Quality (restart):</h4>
+            <table class="quality" id="quality"><tr>
+                <td><input type="radio" name="q1" value="low"/></td><td>Low</td>
+                <td><input type="radio" name="q1" value="medium" checked/></td><td>Medium</td>
+                <td><input type="radio" name="q1" value="high" /></td><td>High</td>
+                <td><input type="radio" name="q1" value="best" /></td><td>Best</td>
+            </tr></table>
+            <!--Simulation size-->
+            <h4>Size (restart):</h4>
+            <table class="quality" id="size"><tr>
+                <td><input type="radio" name="q2" value="100%"/></td><td>Window</td>
+                <td><input type="radio" name="q2" value="half"/></td><td>Half</td>
+                <td><input type="radio" name="q2" value="full" checked/></td><td>Full</td>
+            </tr></table>
+        </div>
+    </div>
 
 </body>
 </html>

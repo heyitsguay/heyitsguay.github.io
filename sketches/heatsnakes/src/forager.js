@@ -127,7 +127,7 @@ Forager.prototype.build = function(thbias, thbiasStrength, x, y, heading, heat, 
     this.thbias = !(thbias == null) ? thbias : TPI * Math.random();
     this.thbiasStrength = !(thbiasStrength == null)? thbiasStrength : 0.1 * Math.random();
 
-}
+};
 
 
 var headingMatrix = mat2.create();

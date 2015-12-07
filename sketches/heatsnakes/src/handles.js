@@ -47,6 +47,12 @@ function handleKeys()
         togglables[70] = false;
         player.heat *= -1;
     }
+
+    // J - decrease placed Pellet heat.
+    if(keys[74]) {
+        pelletHeat -= 1.;
+    }
+
     if(keys[75]) // K
     {
         // Remove a Forager
@@ -57,6 +63,12 @@ function handleKeys()
         // Add a Forager
         addForager();
     }
+
+    // M - set placed Pellet heat to 0.
+    if(keys[77])  {
+        pelletHeat = 0;
+    }
+
     if(keys[81] && togglables[81]) { // Q
         // Toggle menu display.
         togglables[81] = false;
@@ -79,6 +91,14 @@ function handleKeys()
         // Slow down
         player.dr = Math.max(-maxplayerdr, player.dr - 50 * dt);
     }
+
+    // U - increase placed Pellet heat.
+    if(keys[85]) {
+        pelletHeat += 1.;
+    }
+
+
+
     if(keys[87]) // W
     {
         // Speed up
@@ -93,6 +113,12 @@ function handleKeys()
         // Set player heat to 0
         player.heat = 0;
     }
+
+    // , - Negate the placed Pellet heat.
+    if(keys[188] && togglables[188]) {
+        togglables[188] = false;
+        pelletHeat *= -1;
+    }
 }
 
 var drawPelletHeat;
@@ -104,20 +130,18 @@ function handlePelletHeat()
     pelletHeat.val(drawPelletHeat.toString());
 
 }
-function handleClick(evt) {
-    var canvas = $('#canvas');
-    var pos = getMousePos(canvas, evt);
-    if(keys[16] && pellets.length < maxPellets) {// When shift is pressed
 
-    }
-}
+$(document).ready(function(e) {
+    $('#canvas').click(function(e) {
+        var posX = e.pageX - $(this).offset().left - escale;
+        var posY = worldY - (e.pageY - $(this).offset().top) - escale;
 
-function getMousePos(canvas, evt) {
-    return{
-        x: evt.offsetX,
-        y: evt.offsetY
-    };
-}
+        // Add a new Pellet at the cursor if shift is also held down.
+        if(keys[16] && pellets.length < maxPellets) {
+            clickPellet(posX, posY);
+        }
+    });
+});
 
 var targetX, targetY;
 var cw, ch; // Canvas width and height
