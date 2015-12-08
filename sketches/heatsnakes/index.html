@@ -6,7 +6,7 @@
     <meta property="og:image" content="http://heyitsguay.github.io/sketches/heatsnakes/preview.jpg"/>
     <meta property="og:url" content="http://heyitsguay.github.io/sketches/heatsnakes/"/>
 
-    <!--<script>-->
+    <script>
         <!--(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){-->
                     <!--(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),-->
                 <!--m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)-->
@@ -15,7 +15,7 @@
         <!--ga('create', 'UA-63298562-1', 'auto');-->
         <!--ga('send', 'pageview');-->
 
-    <!--</script>-->
+    </script>
 
     <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
     <script type="text/javascript" src="libs/lodash.min.js"></script>
@@ -114,6 +114,9 @@
         uniform sampler2D s_heat;
 
         const float hoffset = @3;
+
+        const float hthresh = 150.;
+
         const vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
 
         // Thanks to sam at http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl (May 19, 2015).
@@ -133,15 +136,16 @@
             float heat = abs(hoffset * heat0);
             float n1 = float(heat0 < 0.0);
             float n2 = 1.0 - 2.0 * n1;
-            float hcheck = float(heat > 50.0);
+            float hcheck = float(heat > hthresh);
 
             // Hue effects
             float dx = abs(x - 0.5 * u_size[0]);
             float dy = abs(y - 0.5 * u_size[1]);
-            float hcheck2 = float(heat < 3000.0);
+            float hcheck2 = float(heat > 3000.0);
 
-            float tH = n2 * ((0.000182322 * heat + 0.00364643 * max(0.0, heat - 15.0)) * float(heat < 50.0) + 0.0891714 * (1.0 - n1) * (hcheck * 11. * u_time + max(0.0, heat - 51.0)));
+            float tH = n2 * ((0.000182322 * heat + 0.00364643 * max(0.0, heat - 15.0)) * (1. - hcheck) + 0.0891714 * (1.0 - n1) * (hcheck * 11. * u_time + max(0.0, heat - (hthresh + 1.))));
 
+            float c = 1.9 * 3000. -
             float hSat = hcheck2 * 1.9 * heat + (1.0 - hcheck2) * (5100.0 + 0.2 * heat);
             float tHneg = n1 * (-0.5 + hcheck *(0.4 * u_time + 0.00328179 * (dx - mod(60.0 * u_time + hSat, 1.0 + dx) + dy - mod(30.0 * u_time + hSat, 1.0 + dy))));
 
@@ -151,7 +155,7 @@
             const float m1 = 0.2;
             const float m2 = -0.04;//42857;
 
-            float gB = 1.0 - (1.0 - hcheck) * max(0.0, m1 * (heat - 45.0)) - hcheck * max(0.0, 0.5 * m2 * (heat - 50.0) + 1.0);
+            float gB = 1.0 - (1.0 - hcheck) * max(0.0, m1 * (heat - (hthresh - 5.))) - hcheck * max(0.0, 0.5 * m2 * (heat - hthresh) + 1.0);
             float B = gB * min(1.0, 0.1 * heat);
 
             gl_FragColor = vec4(hsv2rgb(vec3(H, 1.0, B)), 1.0);
@@ -327,7 +331,7 @@
                                                                 min="0" max="1" value="1" step="0.01"
                                                                 onchange="cdiffSlider(this.value)"
                                                                 oninput="cdiffSlider(this.value)"/></td>
-                    <td id="range-cdiff-disp">10.</td>
+                    <td id="range-cdiff-disp">1.</td>
                 </tr>
                 <!--Base heat color slider bar-->
                 <tr>
@@ -341,7 +345,7 @@
             </table>
         </div>
         <div class="toggle">
-            <hr style="width:80%; margin-bottom:2px; margin-top:80px;"/>
+            <hr style="width:80%; margin-bottom:2px; margin-top:98px;"/>
             <h4 style="padding-top: 0px; font-size:11pt;">matt.d.guay@gmail.com</h4>
         </div>
         </div>
