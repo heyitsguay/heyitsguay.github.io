@@ -145,7 +145,6 @@
 
             float tH = n2 * ((0.000182322 * heat + 0.00364643 * max(0.0, heat - 15.0)) * (1. - hcheck) + 0.0891714 * (1.0 - n1) * (hcheck * 11. * u_time + max(0.0, heat - (hthresh + 1.))));
 
-            float c = 1.9 * 3000. -
             float hSat = hcheck2 * 1.9 * heat + (1.0 - hcheck2) * (5100.0 + 0.2 * heat);
             float tHneg = n1 * (-0.5 + hcheck *(0.4 * u_time + 0.00328179 * (dx - mod(60.0 * u_time + hSat, 1.0 + dx) + dy - mod(30.0 * u_time + hSat, 1.0 + dy))));
 

@@ -8,5 +8,7 @@
     <orderEntry type="library" name="jquery" level="application" />
     <orderEntry type="library" name="gl-matrix" level="application" />
     <orderEntry type="library" name="lodash" level="application" />
+    <orderEntry type="library" name="gl-matrix" level="application" />
+    <orderEntry type="library" name="lodash" level="application" />
   </component>
 </module>
