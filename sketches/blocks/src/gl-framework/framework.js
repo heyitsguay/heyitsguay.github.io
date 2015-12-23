@@ -62,7 +62,7 @@ function Framework() {
     // state in the togglable array.
     this.togglable = [];
     var togglableSize = 256;
-    while(togglableSize--) {togglable.push(true);}
+    while(togglableSize--) {this.togglable.push(true);}
 
     // List of the ShaderPrograms used.
     this.shaderPrograms = {};
@@ -111,8 +111,8 @@ Framework.prototype.restart = function() {
     // Initialization time of the Framework.
     this.time0 = new Date().getTime();
     // Times at current and previous frames.
-    this.timeLast = time0;
-    this.timeNow = time0;
+    this.timeLast = this.time0;
+    this.timeNow = this.time0;
 
     // First-time setup.
     if(!this.initialized) {
@@ -140,7 +140,6 @@ Framework.prototype.resizeCanvas = function() {
     var $cleft, $ctop, $cwidth, $cheight;
 
     // Size of the usable window.
-
     cwidth = window.innerWidth;
     cheight = window.innerHeight;
 
@@ -306,4 +305,4 @@ Framework.prototype.initApp = function() {
  */
 Framework.prototype.stopApp = function() {
     this.app.stop();
-}
+};

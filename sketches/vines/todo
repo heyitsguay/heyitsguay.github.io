@@ -1,2 +1,0 @@
-- 062415: Finish Point collision reaction: Add (nx, ny) to the orientation update vector with some weighting.
-- 062415: Segments should automatically compute lines adjoining successive points.
