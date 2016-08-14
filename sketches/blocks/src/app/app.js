@@ -34,6 +34,9 @@ App.prototype.restart = function() {
 
         // Player needs to inherit from the Entity class. Probably not the best way to establish that but it'll do?
         Player.prototype = new Entity();
+
+        // The App is now initialized.
+        this.initialized = true;
     }
 
     // Reinitialize every time.
@@ -42,11 +45,6 @@ App.prototype.restart = function() {
     // App should run now.
     this.keepRunning = true;
     this.tick();
-
-    // Mark the App as initialized.
-    if(!this.initialized) {
-        this.initialized = true;
-    }
 };
 
 /**

@@ -42,17 +42,17 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.23491028">
-              <caret line="8" column="12" selection-start-line="8" selection-start-column="12" selection-end-line="8" selection-end-column="12" />
+            <state vertical-scroll-proportion="0.38918918">
+              <caret line="20" column="66" selection-start-line="20" selection-start-column="66" selection-end-line="20" selection-end-column="66" />
               <folding>
-                <marker date="1450906426889" expanded="true" signature="1762:1858" placeholder="{...}" />
-                <marker date="1450906426889" expanded="true" signature="2426:4178" placeholder="{...}" />
-                <marker date="1450906426889" expanded="true" signature="4771:4942" placeholder="{...}" />
-                <marker date="1450906426889" expanded="true" signature="4972:6403" placeholder="{...}" />
-                <marker date="1450906426889" expanded="true" signature="6568:6615" placeholder="{...}" />
-                <marker date="1450906426889" expanded="true" signature="6913:7044" placeholder="{...}" />
-                <marker date="1450906426889" expanded="true" signature="7178:7243" placeholder="{...}" />
-                <marker date="1450906426889" expanded="true" signature="7442:7538" placeholder="{...}" />
+                <marker date="1450906426000" expanded="true" signature="1762:1858" placeholder="{...}" />
+                <marker date="1450906426000" expanded="true" signature="2426:4178" placeholder="{...}" />
+                <marker date="1450906426000" expanded="true" signature="4771:4942" placeholder="{...}" />
+                <marker date="1450906426000" expanded="true" signature="4972:6403" placeholder="{...}" />
+                <marker date="1450906426000" expanded="true" signature="6568:6615" placeholder="{...}" />
+                <marker date="1450906426000" expanded="true" signature="6913:7044" placeholder="{...}" />
+                <marker date="1450906426000" expanded="true" signature="7178:7243" placeholder="{...}" />
+                <marker date="1450906426000" expanded="true" signature="7442:7538" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -63,10 +63,7 @@
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="103" column="13" selection-start-line="103" selection-start-column="13" selection-end-line="103" selection-end-column="13" />
-              <folding>
-                <marker date="1449528794000" expanded="true" signature="1299:1370" placeholder="{...}" />
-                <marker date="1449528794000" expanded="true" signature="1965:1967" placeholder="{...}" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -201,9 +198,10 @@
     <detection-done>true</detection-done>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="y" value="24" />
-    <option name="width" value="1366" />
-    <option name="height" value="744" />
+    <option name="x" value="65" />
+    <option name="y" value="-4" />
+    <option name="width" value="1855" />
+    <option name="height" value="1084" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -256,7 +254,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="DefaultHtmlFileTemplate" value="Html5" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../heatsnakes" />
     <property name="recentsLimit" value="5" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="js.buildTools.grunt.node_interpreter" value="C:\Program Files\nodejs\node.exe" />
@@ -273,9 +271,6 @@
       <method />
     </configuration>
     <configuration default="true" type="DartCommandLineRunConfigurationType" factoryName="Dart Command Line Application">
-      <method />
-    </configuration>
-    <configuration default="true" type="DartUnitRunConfigurationType" factoryName="DartUnit">
       <method />
     </configuration>
     <configuration default="true" type="JavaScriptTestRunnerKarma" factoryName="Karma" config-file="">
@@ -384,7 +379,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="24" width="1366" height="744" extended-state="6" />
+    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1638814" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -772,10 +767,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="103" column="13" selection-start-line="103" selection-start-column="13" selection-end-line="103" selection-end-column="13" />
-          <folding>
-            <marker date="1449528794000" expanded="true" signature="1299:1370" placeholder="{...}" />
-            <marker date="1449528794000" expanded="true" signature="1965:1967" placeholder="{...}" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -813,17 +805,17 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.23491028">
-          <caret line="8" column="12" selection-start-line="8" selection-start-column="12" selection-end-line="8" selection-end-column="12" />
+        <state vertical-scroll-proportion="0.38918918">
+          <caret line="20" column="66" selection-start-line="20" selection-start-column="66" selection-end-line="20" selection-end-column="66" />
           <folding>
-            <marker date="1450906426889" expanded="true" signature="1762:1858" placeholder="{...}" />
-            <marker date="1450906426889" expanded="true" signature="2426:4178" placeholder="{...}" />
-            <marker date="1450906426889" expanded="true" signature="4771:4942" placeholder="{...}" />
-            <marker date="1450906426889" expanded="true" signature="4972:6403" placeholder="{...}" />
-            <marker date="1450906426889" expanded="true" signature="6568:6615" placeholder="{...}" />
-            <marker date="1450906426889" expanded="true" signature="6913:7044" placeholder="{...}" />
-            <marker date="1450906426889" expanded="true" signature="7178:7243" placeholder="{...}" />
-            <marker date="1450906426889" expanded="true" signature="7442:7538" placeholder="{...}" />
+            <marker date="1450906426000" expanded="true" signature="1762:1858" placeholder="{...}" />
+            <marker date="1450906426000" expanded="true" signature="2426:4178" placeholder="{...}" />
+            <marker date="1450906426000" expanded="true" signature="4771:4942" placeholder="{...}" />
+            <marker date="1450906426000" expanded="true" signature="4972:6403" placeholder="{...}" />
+            <marker date="1450906426000" expanded="true" signature="6568:6615" placeholder="{...}" />
+            <marker date="1450906426000" expanded="true" signature="6913:7044" placeholder="{...}" />
+            <marker date="1450906426000" expanded="true" signature="7178:7243" placeholder="{...}" />
+            <marker date="1450906426000" expanded="true" signature="7442:7538" placeholder="{...}" />
           </folding>
         </state>
       </provider>

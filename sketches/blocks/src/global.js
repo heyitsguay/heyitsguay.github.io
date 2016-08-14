@@ -14,7 +14,7 @@ var tileSize = 16; // give to World.
 var iTileSize = 1/tileSize; // give to World.
 
 // The Framework used for this sketch.
-var tf = Framework();
+var tf = new Framework();
 
 // The WebGL context used for this sketch.
 var gl;

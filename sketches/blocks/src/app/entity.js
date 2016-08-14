@@ -80,7 +80,6 @@ Entity.prototype.setup = function(xc, yc, hwidth, hheight) {
     // i.e. with no external influence, this.velocity decays like (friction)^t.
     this.cFriction = 1 - Math.pow(10, -2);
 
-
     // Tracks which side of the bounding box experienced the most recent collision.
     this.lastCollisionSide = DirEnum.DOWN;
 
