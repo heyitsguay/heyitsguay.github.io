@@ -40,3 +40,23 @@ h1 {
 h2,h3,h4 {
     color: #CECECE;
 }
+
+div.lefttitle {
+    text-align: left;
+    top: 10px;
+    left: 10px;
+    color: #CECECE;
+    position: relative;
+    z-index: 2;
+}
+
+div.tbackground {
+    position: relative;
+    z-index: 2;
+    background: rgba(1, 1, 1, 0.7);
+    overflow: hidden;
+    width: 312px;
+    height: 670px;
+}
+
+div.toggle {}
