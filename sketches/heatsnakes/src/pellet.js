@@ -1,4 +1,4 @@
-var addPellets = false;
+var addPellets = true;
 function addPellet() {
     if(pellets.length < maxPellets && addPellets) {
         var newPellet = pelletsLimbo.pop();

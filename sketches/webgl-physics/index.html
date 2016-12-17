@@ -17,7 +17,10 @@
 
     <!-- Local files -->
     <link rel="stylesheet" href="style.css">
-    <script src="js/demo.js"></script>
+    <script src="js/controller.js"></script>
+    <script src="js/fps.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/particles.js"></script>
 </head>
 
 <body>
@@ -26,11 +29,55 @@
         <img src="igloo.png" id="image" style="display: none;"/>
     </div>
     <!--Left-hand menu-->
-    <!--<div class = "tbackground toggle" id="fullleft"></div>-->
-    <!--Title div-->
-    <div class="lefttitle toggle" id="titlediv">
-        <h1>Anna is a beautiful lady</h1>
-        <h3>PolitiFact says it's true!</h3>
+    <div class = "tbackground toggle" id="fullleft">
+        <!--Title div-->
+        <div class="lefttitle toggle" id="titlediv">
+            <h1>WebGL Physics</h1>
+            <h3>Hi Anna! ><((((°></h3>
+            <p>Press Q to toggle menu overlay</p>
+        </div>
+
+        <div class="controls padded toggle">
+            <div class="particles padded toggle">
+                <label>Particles:</label>
+                <button class="increase">More</button>
+                <button class="decrease">Fewer</button>
+                <input class="color" type="color" value="#249EFF"/>
+                <button class="reset">Reset</button>
+                <div class="slider padded toggle">
+                    <label>Gravity:</label>
+                    <input class="gravity" type="range" step="0.01"
+                           min="0" max="0.5" value="0.05"/>
+                </div>
+
+                <div class="slider padded toggle">
+                    <label>Restitution:</label>
+                    <input class="restitution" type="range"
+                           step="0.05" min="0" max="1.5" value="0.25"/>
+                </div>
+            </div>
+            <div class="obstacles padded toggle">
+                <label>Obstacles:</label>
+                <input class="color" type="color" value="#735940" />
+                <button class="clear">Clear</button>
+                <div class="slider padded toggle">
+                    <label>Radius:</label>
+                    <input class="size" type="range" step="2"
+                           min="2" max="128" value="20"/>
+                </div>
+            </div>
+            <div class="snapshot padded toggle">
+                <label>Snapshot:</label>
+                <button class="save">Save</button>
+                <button class="restore">Restore</button>
+            </div>
+        </div>
+        <div class="description toggle">
+            <p>
+                Currently simulating <span class="count">___</span>
+                particles at <span class="fps">___</span> FPS.
+            </p>
+        </div>
     </div>
 </body>
 </html>

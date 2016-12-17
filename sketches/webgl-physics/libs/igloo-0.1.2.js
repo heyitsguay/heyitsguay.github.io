@@ -376,13 +376,13 @@ Igloo.Texture = function(gl, format, wrap, filter, type) {
     var texture = this.texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     wrap = wrap == null ? gl.CLAMP_TO_EDGE : wrap;
-    filter = filter == null ? gl.LINEAR : filter;
+    filter = filter == null ? gl.NEAREST : filter;
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
     this.format = format == null ? gl.RGBA : format;
-    this.type = type == null ? gl.UNSIGNED_BYTE : type;
+    this.type = type == null ? gl.FLOAT : type;
 };
 
 /**

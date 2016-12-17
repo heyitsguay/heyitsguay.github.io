@@ -240,7 +240,7 @@ function initGLVars()
     };
 }
 
-currentForagers = 0;
+currentForagers = 50;
 function initForagers()
 {
     // Preallocate all potential Foragers to avoid a lot of 'new' commands.
