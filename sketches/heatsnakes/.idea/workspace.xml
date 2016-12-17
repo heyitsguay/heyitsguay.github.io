@@ -2,23 +2,23 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="743779d4-f329-4677-b09b-2dfb99f12ba4" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/auxiliary.js" afterPath="$PROJECT_DIR$/src/auxiliary.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/sliders.js" afterPath="$PROJECT_DIR$/src/sliders.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/fps.js" afterPath="$PROJECT_DIR$/src/fps.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/update.js" afterPath="$PROJECT_DIR$/src/update.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libs/jquery.min.js" afterPath="$PROJECT_DIR$/libs/jquery.min.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.js" afterPath="$PROJECT_DIR$/src/main.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/style.css" afterPath="$PROJECT_DIR$/src/style.css" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libs/quadtree.js" afterPath="$PROJECT_DIR$/libs/quadtree.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/glhelpers.js" afterPath="$PROJECT_DIR$/src/glhelpers.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/collision.js" afterPath="$PROJECT_DIR$/src/collision.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/handles.js" afterPath="$PROJECT_DIR$/src/handles.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/inits.js" afterPath="$PROJECT_DIR$/src/inits.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/pellet.js" afterPath="$PROJECT_DIR$/src/pellet.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/update.js" afterPath="$PROJECT_DIR$/src/update.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/forager.js" afterPath="$PROJECT_DIR$/src/forager.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.js" afterPath="$PROJECT_DIR$/src/main.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/glhelpers.js" afterPath="$PROJECT_DIR$/src/glhelpers.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/style.css" afterPath="$PROJECT_DIR$/src/style.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/fps.js" afterPath="$PROJECT_DIR$/src/fps.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/sliders.js" afterPath="$PROJECT_DIR$/src/sliders.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libs/jquery.min.js" afterPath="$PROJECT_DIR$/libs/jquery.min.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/inits.js" afterPath="$PROJECT_DIR$/src/inits.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/auxiliary.js" afterPath="$PROJECT_DIR$/src/auxiliary.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libs/quadtree.js" afterPath="$PROJECT_DIR$/libs/quadtree.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/handles.js" afterPath="$PROJECT_DIR$/src/handles.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/pellet.js" afterPath="$PROJECT_DIR$/src/pellet.js" />
     </list>
     <ignored path="foragers.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -38,12 +38,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
+      <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="432">
-              <caret line="24" column="48" lean-forward="false" selection-start-line="24" selection-start-column="48" selection-end-line="24" selection-end-column="48" />
-              <folding />
+            <state relative-caret-position="144">
+              <caret line="119" column="8" lean-forward="true" selection-start-line="119" selection-start-column="8" selection-end-line="127" selection-end-column="9" />
+              <folding>
+                <marker date="1481929975000" expanded="true" signature="1762:1858" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="2426:4178" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="4771:4942" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="4972:6403" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="6568:6615" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="6913:7044" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="7178:7243" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="7442:7538" ph="{...}" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -78,11 +87,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="inits.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="inits.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/inits.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="401">
-              <caret line="256" column="19" lean-forward="false" selection-start-line="256" selection-start-column="19" selection-end-line="256" selection-end-column="19" />
+            <state relative-caret-position="4464">
+              <caret line="248" column="18" lean-forward="false" selection-start-line="248" selection-start-column="18" selection-end-line="248" selection-end-column="18" />
               <folding />
             </state>
           </provider>
@@ -101,7 +110,7 @@
       <file leaf-file-name="handles.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/handles.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="91">
+            <state relative-caret-position="1134">
               <caret line="63" column="13" lean-forward="false" selection-start-line="63" selection-start-column="13" selection-end-line="63" selection-end-column="13" />
               <folding />
             </state>
@@ -111,7 +120,7 @@
       <file leaf-file-name="main.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="131">
+            <state relative-caret-position="1566">
               <caret line="88" column="23" lean-forward="false" selection-start-line="88" selection-start-column="23" selection-end-line="88" selection-end-column="23" />
               <folding />
             </state>
@@ -191,7 +200,7 @@
   <component name="ProjectFrameBounds">
     <option name="x" value="683" />
     <option name="y" value="52" />
-    <option name="width" value="683" />
+    <option name="width" value="673" />
     <option name="height" value="716" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
@@ -376,15 +385,17 @@
       <workItem from="1481930006767" duration="1692000" />
       <workItem from="1481945365747" duration="641000" />
       <workItem from="1481946042063" duration="601000" />
-      <workItem from="1481952647005" duration="2466000" />
+      <workItem from="1481952647005" duration="2861000" />
+      <workItem from="1481959279081" duration="602000" />
+      <workItem from="1482006820339" duration="1829000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="5400000" />
+    <option name="totallyTimeSpent" value="8226000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="683" y="52" width="683" height="716" extended-state="4" />
+    <frame x="683" y="52" width="673" height="716" extended-state="4" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1638814" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -746,14 +757,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="24" column="48" lean-forward="false" selection-start-line="24" selection-start-column="48" selection-end-line="24" selection-end-column="48" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/style.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1854">
@@ -796,7 +799,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/handles.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="91">
+        <state relative-caret-position="1134">
           <caret line="63" column="13" lean-forward="false" selection-start-line="63" selection-start-column="13" selection-end-line="63" selection-end-column="13" />
           <folding />
         </state>
@@ -804,7 +807,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="131">
+        <state relative-caret-position="1566">
           <caret line="88" column="23" lean-forward="false" selection-start-line="88" selection-start-column="23" selection-end-line="88" selection-end-column="23" />
           <folding />
         </state>
@@ -812,9 +815,26 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/inits.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="401">
-          <caret line="256" column="19" lean-forward="false" selection-start-line="256" selection-start-column="19" selection-end-line="256" selection-end-column="19" />
+        <state relative-caret-position="4464">
+          <caret line="248" column="18" lean-forward="false" selection-start-line="248" selection-start-column="18" selection-end-line="248" selection-end-column="18" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="119" column="8" lean-forward="true" selection-start-line="119" selection-start-column="8" selection-end-line="127" selection-end-column="9" />
+          <folding>
+            <marker date="1481929975000" expanded="true" signature="1762:1858" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="2426:4178" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="4771:4942" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="4972:6403" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="6568:6615" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="6913:7044" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="7178:7243" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="7442:7538" ph="{...}" />
+          </folding>
         </state>
       </provider>
     </entry>

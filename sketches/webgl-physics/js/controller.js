@@ -77,17 +77,17 @@ function Controller(particles) {
     // Register UI callbacks
     this.controls = {
         increase: $('.controls .increase').on('click', function() {
-            _this.adjust(2);
+            _this.adjustCount(2);
         }),
         decrease: $('.controls .decrease').on('click', function() {
-            _this.adjust(0.5);
+            _this.adjustCount(0.5);
         }),
         pcolor: $('.controls .particles .color').on('change', function(event) {
             var value = $(event.target).val();
             _this.particles.color = Controller.parseColor(value);
         }),
         reset: $('.controls .reset').on('click', function() {
-            _this.adjust(1);
+            _this.particles.setParticleCount(_this.particles.originalParticleCount);
         }),
         psize: $('.controls .particles .size').on('input', function() {
             _this.particles.size = Number($(this).val());
@@ -96,7 +96,7 @@ function Controller(particles) {
             _this.particles.gravity[1] = -Number($(this).val());
         }),
         wind: $('.controls .particles .wind').on('input', function() {
-            _this.particles.wind[0] = Number($(this.val()));
+            _this.particles.wind[0] = Number($(this).val());
         }),
         restitution: $('.controls .restitution').on('input', function() {
             _this.particles.restitution = Number($(this).val());
@@ -105,7 +105,7 @@ function Controller(particles) {
             var value = $(event.target).val();
             _this.particles.obstacleColor = Controller.parseColor(value);
         }),
-        clear: $('.controls.clear').on('click', function() {
+        clear: $('.controls .clear').on('click', function() {
             _this.clear()
         }),
         osize: $('.controls .obstacles .size').on('change', function() {

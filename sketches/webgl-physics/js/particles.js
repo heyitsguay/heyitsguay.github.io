@@ -20,6 +20,8 @@ function Particles(canvas, nparticles, size) {
     // Also store canvas dimensions as a length-2 vector
     this.worldSize = new Float32Array([w, h]);
 
+    this.originalParticleCount = nparticles;
+
     gl.disable(gl.DEPTH_TEST);
 
     // Event listeners
