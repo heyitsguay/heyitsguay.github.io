@@ -254,7 +254,7 @@ function initForagers()
     }
 
     player = new Forager(0, 0, worldX / 2, worldY / 2, Math.PI/2, 5, null, 1, 0, 0);
-    player.heat = 0;
+    player.heat = 10;
     player.color[1] = 1.0;
     player.color[3] = 1.0;
     player.player = true;

@@ -127,7 +127,7 @@ function Controller(particles) {
  * @param {number} factor: multiplies the particle count
  * @returns {Controller} this
  */
-Controller.prototype.adjust = function(factor) {
+Controller.prototype.adjustCount = function(factor) {
     var current = this.particles.getCount();
     this.particles.setParticleCount(Math.max(1, current * factor));
     updateCount();
