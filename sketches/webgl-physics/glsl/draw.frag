@@ -2,6 +2,9 @@
 precision mediump float;
 #endif
 
+uniform float groove;
+uniform float tick;
+uniform float hbase;
 uniform vec4 color;
 varying vec2 velocity;
 
@@ -24,16 +27,24 @@ float atan2(in float y, in float x) {
 void main() {
     // Generate hue from velocity direction
     float angle = atan2(velocity[1], velocity[0]);
-    float h = (angle + PI) / (2. * PI);
+    float h = mod(hbase + (angle + PI) / (2. * PI)
+                + mod(groove * tick, 1.), 1.);
 
     // Generate saturation from velocity magnitude
     float s = 1. / (1. + 0.2 * length(velocity));
 
     vec4 col = vec4(hsv2rgb(vec3(h, s, 1.)), 1.);
 
-    vec2 p = 2.0 * (gl_PointCoord - 0.5);
-    float a = smoothstep(1. - delta, 1., length(p));
+//    vec2 p = 2.0 * (gl_PointCoord - 0.5);
+//    float a = smoothstep(1. - delta, 1., length(p));
 //    float e = 0. + length(velocity) / 3.;
 //    gl_FragColor = pow(mix(color, vec4(0, 0, 0, 0), a), vec4(e));
-    gl_FragColor = mix(col, vec4(0, 0, 0, 0), a);
+//    gl_FragColor = mix(col, vec4(0, 0, 0, 0), a);
+
+    vec2 d = 2.0 * (gl_PointCoord - 0.5);
+    float l = length(d);
+
+    col.a = 1. - 1. / (1. + exp(-6. * (l - 1.)));
+    col *= float(l < 1.);
+    gl_FragColor = col;
 }

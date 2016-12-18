@@ -1,7 +1,7 @@
 * {margin: 0; padding: 0;}
 html,
 body {
-    font-family: Monospaced;
+    font-family: Monospace;
     text-align: center;
     background-color: #000000;
     color: #CECECE;
@@ -43,6 +43,11 @@ h2,h3,h4 {
 
 div.description {
     padding-top: 30px;
+    padding-bottom: 15px;
+}
+
+div.keymap {
+    text-align: left;
 }
 
 div.lefttitle {
@@ -60,11 +65,25 @@ div.tbackground {
     background: rgba(1, 1, 1, 0.7);
     overflow: hidden;
     width: 322px;
-    height: 470px;
+    /*height: 470px;*/
 }
 
 div.padded {
-    padding-top: 15px;
+    padding-top: 12px;
 }
 
+/*div.particles {*/
+    /*text-align: left;*/
+    /*padding-left: 15px;*/
+/*}*/
+
+/*div.slider {*/
+    /*!*text-align: left;*!*/
+    /*!*padding-left: 15px;*!*/
+/*}*/
+
 div.toggle {}
+
+table.checktable {
+    border-spacing: 10px;
+}

@@ -22,6 +22,12 @@ function Particles(canvas, nparticles, size) {
 
     this.originalParticleCount = nparticles;
 
+    // Number of simulation steps
+    this.tick = 0;
+
+    // Controls color-changing effect speed
+    this.groove = 0;
+
     gl.disable(gl.DEPTH_TEST);
 
     // Event listeners
@@ -45,6 +51,7 @@ function Particles(canvas, nparticles, size) {
 
     // Drawing parameters
     this.size = size;
+    this.hbase = 0;
     this.color = [0.14, 0.62, 1., 0.6];
     this.obstacleColor = [0.45, 0.35, 0.25, 1.];
 
@@ -124,7 +131,7 @@ Particles.prototype.addObstacle = function(center, radius) {
     this.obstacles.push(obstacle);
 
     // Update obstacle GPU data
-    this.updateObstacles();
+    this.updateObstacles(obstacle);
 
     return obstacle;
 };
@@ -158,6 +165,9 @@ Particles.prototype.draw = function() {
         .uniform('ptexsize', this.ptexSize)
         .uniform('worldsize', this.worldSize)
         .uniform('size', this.size)
+        .uniform('groove', this.groove)
+        .uniform('tick', this.tick)
+        .uniform('hbase', this.hbase)
         .uniform('color', this.color)
         .draw(gl.POINTS, this.getCount());
 
@@ -168,7 +178,7 @@ Particles.prototype.draw = function() {
         .attrib('quad', this.buffers.quad, 2)
         .uniformi('background', 2)
         .uniform('color', this.obstacleColor)
-        .uniform('worldSize', this.worldSize)
+        .uniform('worldsize', this.worldSize)
         .draw(gl.TRIANGLE_STRIP, Igloo.QUAD2.length / 2);
 
     return this;
@@ -185,6 +195,7 @@ Particles.prototype.frame = function() {
             for (var i = 0; i < this.listeners.length; i++) {
                 this.listeners[i]();
             }
+            this.tick += 1;
         }
     }.bind(this));
 
@@ -250,6 +261,26 @@ Particles.prototype.initBuffers = function() {
 };
 
 /**
+ * Performs initial framebuffer manipulation.
+ * @returns {Particles} this
+ */
+Particles.prototype.initFramebuffers = function() {
+    var gl = this.igloo.gl;
+
+    // Set up for obstacles framebuffer
+
+    this.framebuffers.obstacles.bind();
+    gl.disable(gl.BLEND);
+    gl.viewport(0, 0, this.worldSize[0], this.worldSize[1]);
+
+    // Clear the obstacle texture
+    gl.clearColor(0.5, 0.5, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    return this;
+};
+
+/**
  * Allocates textures and fills them with initial random state.
  * @returns {Particles} this
  */
@@ -309,6 +340,8 @@ Particles.prototype.setParticleCount = function(count) {
     // Initialize all vertex buffers
     this.initBuffers();
 
+
+
     return this;
 };
 
@@ -318,6 +351,7 @@ Particles.prototype.setParticleCount = function(count) {
  */
 Particles.prototype.start = function() {
     if (!this.running) {
+        this.initFramebuffers();
         this.running = true;
         this.frame();
     }
@@ -405,9 +439,10 @@ Particles.prototype.swap = function() {
 
 /**
  * Updates obstacle GPU data.
+ * @param {Object} obstacle: Obstacle to draw
  * @returns {Particles} this
  */
-Particles.prototype.updateObstacles = function() {
+Particles.prototype.updateObstacles = function(obstacle) {
     var gl = this.igloo.gl;
     this.framebuffers.obstacles.bind();
     gl.disable(gl.BLEND);
@@ -415,19 +450,28 @@ Particles.prototype.updateObstacles = function() {
 
     // Clear the obstacle texture
     gl.clearColor(0.5, 0.5, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    // gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // Draw enabled obstacles
-    for (var i = 0; i < this.obstacles.length; i++) {
-        var obstacle = this.obstacles[i];
-        if(obstacle.enabled) {
-            obstacle.program.use()
-                .attrib('vert', obstacle.verts, 2)
-                .uniform('position', new Float32Array(obstacle.position))
-                .uniform('worldsize', this.worldSize)
-                .uniform('size', obstacle.size)
-                .draw(obstacle.mode, obstacle.length);
-        }
+    if(obstacle.enabled) {
+        obstacle.program.use()
+            .attrib('vert', obstacle.verts, 2)
+            .uniform('position', new Float32Array(obstacle.position))
+            .uniform('worldsize', this.worldSize)
+            .uniform('size', obstacle.size)
+            .draw(obstacle.mode, obstacle.length);
     }
+
+    // // Draw enabled obstacles
+    // for (var i = 0; i < this.obstacles.length; i++) {
+    //     var obstacle = this.obstacles[i];
+    //     if(obstacle.enabled) {
+    //         obstacle.program.use()
+    //             .attrib('vert', obstacle.verts, 2)
+    //             .uniform('position', new Float32Array(obstacle.position))
+    //             .uniform('worldsize', this.worldSize)
+    //             .uniform('size', obstacle.size)
+    //             .draw(obstacle.mode, obstacle.length);
+    //     }
+    // }
 };
 

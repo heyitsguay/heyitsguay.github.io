@@ -11,6 +11,7 @@ function Controller(particles) {
     this.obstacle = null;
     this.init();
     this.mouseDown = false;
+    this.mouseCoords = [0, 0];
 
     var _this = this;
     var canvas = particles.igloo.gl.canvas;
@@ -22,32 +23,65 @@ function Controller(particles) {
     // Callback to move obstacles across the screen as the
     // mouse moves
     $(canvas).on('mousemove', function(event) {
-        var coords = Controller.coords(event);
-        _this.obstacle.position[0] = coords[0];
-        _this.obstacle.position[1] = coords[1];
-        _this.obstacle.enabled = true;
-        particles.updateObstacles();
-        // Place an obstacle on mouse down
-        if (_this.mouseDown) _this.place();
+        _this.mouseCoords = Controller.coords(event);
+        _this.obstacle.position[0] = _this.mouseCoords[0];
+        _this.obstacle.position[1] = _this.mouseCoords[1];
+
+        // if (event.shiftKey) {
+        //     _this.obstacle.enabled = true;
+        //     // particles.updateObstacles();
+        // }
+        // // Place an obstacle on mouse down
+        if (_this.mouseDown) {
+            _this.particles.addObstacle(_this.mouseCoords, _this.obstacle.size);
+        }
     });
     // Callback for when the mouse leaves the canvas
     $(canvas).on('mouseout', function() {
         _this.obstacle.enabled = false;
-        particles.updateObstacles();
+        // particles.updateObstacles();
         _this.mouseDown = false;
     });
     // Callback for mouse press
     $(canvas).on('mousedown', function() {
-        _this.mousedown = true;
+        _this.mouseDown = true;
+        _this.mouseCoords = Controller.coords(event);
+        _this.particles.addObstacle(_this.mouseCoords, _this.obstacle.size);
     });
     // Callback for mouse release
     $(canvas).on('mouseup', function(event) {
-        if (event.which === 1) _this.place();
-        _this.mousedown = false;
+        _this.mouseDown = false;
+    });
+    // Callback for mouse wheel motion
+    $(canvas).on('mousewheel', function(event) {
+        if (event.originalEvent.wheelDelta > 0) {
+            _this.obstacle.size += 3;
+        } else {
+            _this.obstacle.size = Math.max(_this.obstacle.size - 3, 3);
+        }
+    });
+    // Callback for key presses
+    $(window).on('keydown', function (event) {
+        switch (event.which) {
+            // Activate cursor obstacle
+            case 16: // shift
+                _this.obstacle.position[0] = _this.mouseCoords[0];
+                _this.obstacle.position[1] = _this.mouseCoords[1];
+                _this.obstacle.enabled = true;
+                // particles.updateObstacles();
+            break;
+        }
     });
     // Callback for key releases
     $(window).on('keyup', function(event) {
         switch (event.which) {
+
+            // Deactivate cursor obstacle
+            case 16: // shift
+                _this.obstacle.enabled = false;
+                // particles.updateObstacles();
+            break;
+
             // Clear the screen
             case 67: // c
                 _this.clear();
@@ -82,12 +116,14 @@ function Controller(particles) {
         decrease: $('.controls .decrease').on('click', function() {
             _this.adjustCount(0.5);
         }),
-        pcolor: $('.controls .particles .color').on('change', function(event) {
-            var value = $(event.target).val();
-            _this.particles.color = Controller.parseColor(value);
-        }),
         reset: $('.controls .reset').on('click', function() {
             _this.particles.setParticleCount(_this.particles.originalParticleCount);
+        }),
+        phue: $('.controls .particles .phue').on('input', function() {
+            _this.particles.hbase = Number($(this).val());
+        }),
+        groove: $('.controls .particles .groove').on('input', function() {
+            _this.particles.groove = Number($(this).val());
         }),
         psize: $('.controls .particles .size').on('input', function() {
             _this.particles.size = Number($(this).val());
@@ -140,6 +176,17 @@ Controller.prototype.adjustCount = function(factor) {
 Controller.prototype.clear = function() {
     var size = this.obstacle.size;
     this.particles.obstacles.length = 0;
+    var gl = this.particles.igloo.gl;
+
+    // Set up for obstacles framebuffer
+
+    this.particles.framebuffers.obstacles.bind();
+    gl.disable(gl.BLEND);
+    gl.viewport(0, 0, this.particles.worldSize[0], this.particles.worldSize[1]);
+
+    // Clear the obstacle texture
+    gl.clearColor(0.5, 0.5, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
     this.init();
     this.obstacle.size = size;
     return this;
@@ -164,9 +211,10 @@ Controller.coords = function(event) {
  * @returns {Controller} this
  */
 Controller.prototype.init = function() {
+
     this.obstacle = this.particles.addObstacle([0, 0], 20);
     this.obstacle.enabled = false;
-    this.particles.updateObstacles();
+    // this.particles.updateObstacles();
     return this;
 };
 
@@ -181,18 +229,6 @@ Controller.parseColor = function(color) {
     });
     colors.push(1);
     return colors;
-};
-
-/**
- * Place a new obstacle at the mouse location.
- * @returns {Controller} this
- */
-Controller.prototype.place = function() {
-    var center = this.obstacle.position;
-    var radius = this.obstacle.size;
-    this.particles.addObstacle(center.slice(0), radius);
-    this.particles.updateObstacles();
-    return this;
 };
 
 /**
