@@ -9,5 +9,5 @@ uniform float size;
 
 void main() {
     gl_Position = vec4(vert + (position / worldsize) * 2. - 1., 0, 1);
-    gl_PointSize = size * 2.;
+    gl_PointSize = size * 1.;
 }

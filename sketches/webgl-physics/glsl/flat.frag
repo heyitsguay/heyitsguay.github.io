@@ -17,15 +17,18 @@ float get(vec2 offset) {
 }
 
 void main() {
-    float norm =
-        get(vec2( 1, -1)) * diag +
-        get(vec2( 1,  0)) * adjacent +
-        get(vec2( 1,  1)) * diag +
-        get(vec2( 0, -1)) * adjacent +
-        get(vec2( 0,  0)) * center +
-        get(vec2( 0,  1)) * adjacent +
-        get(vec2(-1, -1)) * diag +
-        get(vec2(-1,  0)) * adjacent +
-        get(vec2(-1,  1)) * diag;
-	gl_FragColor = mix(vec4(0, 0, 0, 0), color, norm);
+    gl_FragColor = color * get(vec2(0, 0));
 }
+//void main() {
+//    float norm =
+//        get(vec2( 1, -1)) * diag +
+//        get(vec2( 1,  0)) * adjacent +
+//        get(vec2( 1,  1)) * diag +
+//        get(vec2( 0, -1)) * adjacent +
+//        get(vec2( 0,  0)) * center +
+//        get(vec2( 0,  1)) * adjacent +
+//        get(vec2(-1, -1)) * diag +
+//        get(vec2(-1,  0)) * adjacent +
+//        get(vec2(-1,  1)) * diag;
+//	gl_FragColor = mix(vec4(0, 0, 0, 0), color, norm);
+//}

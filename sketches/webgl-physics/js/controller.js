@@ -97,6 +97,11 @@ function Controller(particles) {
                 _this.adjustCount(0.5);
             break;
 
+            // Toggle square and circular particles
+            case 74: // j
+                _this.particles.isRound = !_this.particles.isRound;
+            break;
+
             // Toggle the menu overlay
             case 81: // q
                 showText = !showText;
@@ -134,8 +139,11 @@ function Controller(particles) {
         wind: $('.controls .particles .wind').on('input', function() {
             _this.particles.wind[0] = Number($(this).val());
         }),
-        restitution: $('.controls .restitution').on('input', function() {
+        restitution: $('.controls .particles .restitution').on('input', function() {
             _this.particles.restitution = Number($(this).val());
+        }),
+        exclusion: $('.controls .particles .exclusion').on('input', function() {
+            _this.particles.pauli = Number($(this).val());
         }),
         ocolor: $('.controls .obstacles .color').on('change', function(event) {
             var value = $(event.target).val();
@@ -175,11 +183,12 @@ Controller.prototype.adjustCount = function(factor) {
  */
 Controller.prototype.clear = function() {
     var size = this.obstacle.size;
-    this.particles.obstacles.length = 0;
+    // this.particles.obstacles.length = 0;
     var gl = this.particles.igloo.gl;
 
     // Set up for obstacles framebuffer
 
+    this.particles.framebuffers.obstacles.attach(this.particles.textures.obstacles);
     this.particles.framebuffers.obstacles.bind();
     gl.disable(gl.BLEND);
     gl.viewport(0, 0, this.particles.worldSize[0], this.particles.worldSize[1]);
@@ -212,8 +221,18 @@ Controller.coords = function(event) {
  */
 Controller.prototype.init = function() {
 
-    this.obstacle = this.particles.addObstacle([0, 0], 20);
-    this.obstacle.enabled = false;
+    this.obstacle = {
+        enabled: false,
+        program: this.particles.programs.ocircle,
+        verts: this.particles.buffers.point,
+        position: [0, 0],
+        size: 20,
+        mode: gl.POINTS,
+        length: 1
+    };
+
+    // this.obstacle = this.particles.addObstacle([0, 0], 20);
+    // this.obstacle.enabled = false;
     // this.particles.updateObstacles();
     return this;
 };

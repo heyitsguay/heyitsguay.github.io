@@ -6,6 +6,8 @@ uniform float groove;
 uniform float tick;
 uniform float hbase;
 uniform vec4 color;
+uniform bool isround;
+
 varying vec2 velocity;
 
 const float delta = 0.4;
@@ -21,7 +23,7 @@ vec3 hsv2rgb(vec3 c) {
 
 float atan2(in float y, in float x) {
     bool s = (abs(x) > abs(y));
-    return mix(PI/2.0 - atan(x,y), atan(y,x), float(s));
+    return mix(PI*0.5 - atan(x,y), atan(y,x), float(s));
 }
 
 void main() {
@@ -44,7 +46,12 @@ void main() {
     vec2 d = 2.0 * (gl_PointCoord - 0.5);
     float l = length(d);
 
-    col.a = 1. - 1. / (1. + exp(-6. * (l - 1.)));
-    col *= float(l < 1.);
+    if (isround) {
+
+        col.a = 1. - 1. / (1. + exp(-6. * (l - 1.)));
+        col *= float(l < 1.);
+
+    }
+
     gl_FragColor = col;
 }

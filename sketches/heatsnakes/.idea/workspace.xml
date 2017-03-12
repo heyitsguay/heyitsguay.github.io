@@ -2,23 +2,23 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="743779d4-f329-4677-b09b-2dfb99f12ba4" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/fps.js" afterPath="$PROJECT_DIR$/src/fps.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/collision.js" afterPath="$PROJECT_DIR$/src/collision.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/glhelpers.js" afterPath="$PROJECT_DIR$/src/glhelpers.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/sliders.js" afterPath="$PROJECT_DIR$/src/sliders.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libs/quadtree.js" afterPath="$PROJECT_DIR$/libs/quadtree.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/forager.js" afterPath="$PROJECT_DIR$/src/forager.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/collision.js" afterPath="$PROJECT_DIR$/src/collision.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/auxiliary.js" afterPath="$PROJECT_DIR$/src/auxiliary.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libs/jquery.min.js" afterPath="$PROJECT_DIR$/libs/jquery.min.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/glhelpers.js" afterPath="$PROJECT_DIR$/src/glhelpers.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/fps.js" afterPath="$PROJECT_DIR$/src/fps.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.js" afterPath="$PROJECT_DIR$/src/main.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/handles.js" afterPath="$PROJECT_DIR$/src/handles.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/update.js" afterPath="$PROJECT_DIR$/src/update.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.js" afterPath="$PROJECT_DIR$/src/main.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/sliders.js" afterPath="$PROJECT_DIR$/src/sliders.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/pellet.js" afterPath="$PROJECT_DIR$/src/pellet.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libs/jquery.min.js" afterPath="$PROJECT_DIR$/libs/jquery.min.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/forager.js" afterPath="$PROJECT_DIR$/src/forager.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/inits.js" afterPath="$PROJECT_DIR$/src/inits.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/style.css" afterPath="$PROJECT_DIR$/src/style.css" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/auxiliary.js" afterPath="$PROJECT_DIR$/src/auxiliary.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/pellet.js" afterPath="$PROJECT_DIR$/src/pellet.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/inits.js" afterPath="$PROJECT_DIR$/src/inits.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
     </list>
     <ignored path="foragers.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -41,11 +41,17 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="126">
-              <caret line="239" column="23" lean-forward="true" selection-start-line="239" selection-start-column="23" selection-end-line="239" selection-end-column="23" />
+            <state relative-caret-position="162">
+              <caret line="52" column="6" lean-forward="true" selection-start-line="52" selection-start-column="6" selection-end-line="52" selection-end-column="6" />
               <folding>
-                <marker date="1481929975560" expanded="true" signature="4771:4942" ph="{...}" />
-                <marker date="1481929975560" expanded="true" signature="4972:6403" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="1762:1858" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="2426:4178" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="4771:4942" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="4972:6403" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="6568:6615" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="6913:7044" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="7178:7243" ph="{...}" />
+                <marker date="1481929975000" expanded="true" signature="7442:7538" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -95,7 +101,7 @@
         <entry file="file://$PROJECT_DIR$/src/fps.js">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="324">
-              <caret line="18" column="13" lean-forward="true" selection-start-line="18" selection-start-column="13" selection-end-line="18" selection-end-column="13" />
+              <caret line="18" column="13" lean-forward="false" selection-start-line="18" selection-start-column="13" selection-end-line="18" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -192,10 +198,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1920" />
-    <option name="y" value="24" />
-    <option name="width" value="1920" />
-    <option name="height" value="1056" />
+    <option name="x" value="683" />
+    <option name="y" value="52" />
+    <option name="width" value="673" />
+    <option name="height" value="716" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -384,14 +390,16 @@
       <workItem from="1482006820339" duration="1829000" />
       <workItem from="1482013181211" duration="600000" />
       <workItem from="1482030609407" duration="1209000" />
+      <workItem from="1482120754886" duration="1244000" />
+      <workItem from="1482639369221" duration="1541000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="10035000" />
+    <option name="totallyTimeSpent" value="12820000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1920" y="24" width="1920" height="1056" extended-state="6" />
+    <frame x="683" y="52" width="673" height="716" extended-state="4" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1638814" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -747,11 +755,17 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="239" column="23" lean-forward="true" selection-start-line="239" selection-start-column="23" selection-end-line="239" selection-end-column="23" />
+        <state relative-caret-position="162">
+          <caret line="52" column="6" lean-forward="true" selection-start-line="52" selection-start-column="6" selection-end-line="52" selection-end-column="6" />
           <folding>
-            <marker date="1481929975560" expanded="true" signature="4771:4942" ph="{...}" />
-            <marker date="1481929975560" expanded="true" signature="4972:6403" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="1762:1858" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="2426:4178" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="4771:4942" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="4972:6403" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="6568:6615" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="6913:7044" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="7178:7243" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="7442:7538" ph="{...}" />
           </folding>
         </state>
       </provider>
@@ -791,7 +805,7 @@
     <entry file="file://$PROJECT_DIR$/src/fps.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="324">
-          <caret line="18" column="13" lean-forward="true" selection-start-line="18" selection-start-column="13" selection-end-line="18" selection-end-column="13" />
+          <caret line="18" column="13" lean-forward="false" selection-start-line="18" selection-start-column="13" selection-end-line="18" selection-end-column="13" />
           <folding />
         </state>
       </provider>
