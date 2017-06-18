@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d0707a99-0bbc-486d-8912-83509fd71053" name="Default" comment="" />
+    <list default="true" id="d0707a99-0bbc-486d-8912-83509fd71053" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../genenet/index.html" afterPath="$PROJECT_DIR$/../../genenet/index.html" />
+    </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -72,7 +74,7 @@
         <entry file="file://$PROJECT_DIR$/glsl/draw.vert">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="72">
-              <caret line="4" column="21" lean-forward="true" selection-start-line="4" selection-start-column="21" selection-end-line="4" selection-end-column="21" />
+              <caret line="4" column="21" lean-forward="false" selection-start-line="4" selection-start-column="21" selection-end-line="4" selection-end-column="21" />
               <folding />
             </state>
           </provider>
@@ -190,9 +192,9 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="y" value="52" />
-    <option name="width" value="673" />
-    <option name="height" value="716" />
+    <option name="y" value="24" />
+    <option name="width" value="1920" />
+    <option name="height" value="1056" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -218,7 +220,7 @@
     <property name="js.eslint.eslintPackage" value="" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../newsagg/test" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../genenet" />
     <property name="settings.editor.selected.configurable" value="preferences.sourceCode" />
     <property name="list.type.of.created.stylesheet" value="CSS" />
   </component>
@@ -329,14 +331,15 @@
       <workItem from="1488434318424" duration="604000" />
       <workItem from="1488434925500" duration="1621000" />
       <workItem from="1489286593059" duration="27000" />
+      <workItem from="1497768294321" duration="95000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="118679000" />
+    <option name="totallyTimeSpent" value="118774000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="52" width="673" height="716" extended-state="4" />
+    <frame x="0" y="24" width="1920" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.12445095" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -690,7 +693,7 @@
     <entry file="file://$PROJECT_DIR$/glsl/draw.vert">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="72">
-          <caret line="4" column="21" lean-forward="true" selection-start-line="4" selection-start-column="21" selection-end-line="4" selection-end-column="21" />
+          <caret line="4" column="21" lean-forward="false" selection-start-line="4" selection-start-column="21" selection-end-line="4" selection-end-column="21" />
           <folding />
         </state>
       </provider>
