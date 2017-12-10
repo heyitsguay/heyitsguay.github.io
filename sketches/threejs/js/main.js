@@ -9,7 +9,7 @@ var camera = new THREE.PerspectiveCamera(
     10000  // Far clipping plane
 );
 // Position the camera
-camera.position.set(0, 150, 0);
+camera.position.set(0, 400, 0);
 // Point the camera at the origin
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -89,9 +89,10 @@ function update() {
     for(var j = 0; j < plane.geometry.faces.length; j++) {
         var face = plane.geometry.faces[j];
         var color = new THREE.Color(0x0000ff);
-        var h = Math.random();
-        var v = (Math.sin(j / 4 + t) + 1) / 2;
-        color.setHSL(v, 1., 0.45);
+        var q = (Math.cos(0.05 * t) + 1) / 2;
+        var h = q * (Math.sin(j / 4 + 0.8585 * t) + 1) / 2 +
+            (1 - q) * (Math.cos(j / 13.825 + 2.1 * t) + 1) / 2;
+        color.setHSL(h, 1., 0.45);
         for (var k = 0; k < 3; k++) {
             face.vertexColors[k] = color;
         }
