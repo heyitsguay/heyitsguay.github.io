@@ -86,15 +86,17 @@ var startTime = new Date();
 function update() {
     var t = (new Date() - startTime) / 1000;
 
-    for(var j = 0; j < plane.geometry.faces.length; j++) {
-        var face = plane.geometry.faces[j];
+    for(var j = 0; j < plane.geometry.faces.length - 1; j+= 2) {
+        var face1 = plane.geometry.faces[j];
+        var face2 = plane.geometry.faces[j+1];
         var color = new THREE.Color(0x0000ff);
         var q = (Math.cos(0.05 * t) + 1) / 2;
         var h = q * (Math.sin(j / 4 + 0.8585 * t) + 1) / 2 +
             (1 - q) * (Math.cos(j / 13.825 + 2.1 * t) + 1) / 2;
         color.setHSL(h, 1., 0.45);
         for (var k = 0; k < 3; k++) {
-            face.vertexColors[k] = color;
+            face1.vertexColors[k] = color;
+            face2.vertexColors[k] = color;
         }
     }
     plane.geometry.elementsNeedUpdate = true;
