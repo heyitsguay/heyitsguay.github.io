@@ -6,10 +6,10 @@ var camera = new THREE.PerspectiveCamera(
     60,  // Field of view
     window.innerWidth/window.innerHeight,  // Aspect ratio
     0.1,  // Near clipping plane
-    1000  // Far clipping plane
+    10000  // Far clipping plane
 );
 // Position the camera
-camera.position.set(0, 30, 50);
+camera.position.set(0, 150, 0);
 // Point the camera at the origin
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -18,70 +18,87 @@ var renderer = new THREE.WebGLRenderer({antialias: true});
 // Renderer setup
 renderer.setSize(window.innerWidth, window.innerHeight, false);
 renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-renderer.setClearColor(0xe6f6ff);
-// Enable shadow mapping
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setClearColor(0xcecece);
 // Add renderer to the document
 document.body.appendChild(renderer.domElement);
 
 // Add an ambient light
-var ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
 
-// Point light
-var pointLight = new THREE.PointLight(0xffffff, 1);
-pointLight.position.set(25, 50, 25);
-pointLight.castShadow = true;
-pointLight.shadow.mapSize.width = 1024;
-pointLight.shadow.mapSize.height = 1024;
-scene.add(pointLight);
+var n_x = 50;
+var n_y = 25;
+var ts = 20;
+var dx = n_x * ts;
+var dy = n_y * ts;
 
-// Material
-var shadowMaterial = new THREE.ShadowMaterial({color: 0xeeeeee});
-shadowMaterial.opacity = 0.5;
+var geo = new THREE.PlaneGeometry(dx, dy, n_x, n_y);
+for(var j = 0; j < geo.faces.length; j++) {
+    var face = geo.faces[j];
+    var color = new THREE.Color(0x0000ff);
+    var h = j / (geo.faces.length - 1);
+    var v = (Math.sin(j / 4 ) + 1) / 2;
+    color.setHSL(v, 1., 0.45);
+    // face.color = color;
+    for (var k = 0; k < 3; k++) {
+        face.vertexColors[k] = color;
+    }
+}
 
-// Ground object
-var groundMesh = new THREE.Mesh(new THREE.BoxGeometry(100, .1, 100),
-                                shadowMaterial);
-scene.add(groundMesh);
 
-// A thang
-var shapeOne = new THREE.Mesh(
-    new THREE.OctahedronGeometry(10, 1),
-    new THREE.MeshStandardMaterial({
-        color: 0xff0051,
-        shading: THREE.FlatShading,
-        metalness: 0,
-        roughness: 0.8
-    })
+// Create a plane
+var plane = new THREE.Mesh(
+    geo,
+    new THREE.MeshBasicMaterial(
+        {color: 0xffffff, vertexColors: THREE.FaceColors}
+    )
 );
-shapeOne.position.y += 10;
-shapeOne.rotateZ(Math.PI/3);
-shapeOne.castShadow = true;
-scene.add(shapeOne);
+// Rotate that ish
+plane.lookAt(camera.position);
 
-// Thang 2
-var shapeTwo = new THREE.Mesh(
-    new THREE.OctahedronGeometry(5, 1),
-    new THREE.MeshStandardMaterial({
-        color: 0x47689b,
-        shading: THREE.FlatShading,
-        metalness: 0,
-        roughness: 0.8
-    })
-);
-shapeTwo.position.y += 5;
-shapeTwo.position.x += 15;
-shapeTwo.rotateZ(Math.PI/5);
-shapeTwo.castShadow = true;
-scene.add(shapeTwo);
+// plane.dynamic = true;
+// geo.dynamic = true;
+// geo.verticesNeedUpdate = true;
+// plane.material.needsUpdate = true;
 
-// Render the scene + camera
-renderer.render(scene, camera);
+// Add to the scene
+scene.add(plane);
 
 // Add a controller
 var controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.target = new THREE.Vector3(0, 15, 0);
+// controls.target = new THREE.Vector3(0, 15, 0);
 controls.maxPolarAngle = Math.PI / 2;
 controls.addEventListener('change', function(){renderer.render(scene, camera);});
+
+function animate() {
+    requestAnimationFrame(animate);
+    update();
+    render();
+
+}
+
+function render() {
+    renderer.render(scene, camera);
+}
+
+var startTime = new Date();
+
+function update() {
+    var t = (new Date() - startTime) / 1000;
+
+    for(var j = 0; j < plane.geometry.faces.length; j++) {
+        var face = plane.geometry.faces[j];
+        var color = new THREE.Color(0x0000ff);
+        var h = Math.random();
+        var v = (Math.sin(j / 4 + t) + 1) / 2;
+        color.setHSL(v, 1., 0.45);
+        for (var k = 0; k < 3; k++) {
+            face.vertexColors[k] = color;
+        }
+    }
+    plane.geometry.elementsNeedUpdate = true;
+    plane.geometry.colorsNeedUpdate = true;
+
+}
+
+animate();
