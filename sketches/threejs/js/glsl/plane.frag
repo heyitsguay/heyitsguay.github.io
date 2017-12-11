@@ -1,6 +1,8 @@
 uniform float time;
 uniform vec2 planeSize;
-uniform int mode;
+uniform int drawMode;
+uniform int shadowMode;
+uniform float frequency;
 
 varying vec2 vUV;
 
@@ -25,21 +27,45 @@ float mod1(float x) {
     return mod(mod(x, 1.) + 1., 1.);
 }
 
+float sig(float x, float c, float m) {
+    return 1. / (1. + exp(-m * (x - c)));
+}
+
 
 void main() {
+
     vec2 vXY = -1. + 2. * vUV;
     vec2 position = floor(vXY * planeSize);
-    float j = position.x
-            + position.y * planeSize.x * float(mode == 0)
-            + position.y * position.x * float(mode == 1);
+    float dLinear1 = position.x + position.y * planeSize.x;
+    float dLinear2 = position.y + position.x * planeSize.y;
+    float dHyperbola = position.x * position.y;
+    float dL2 = position.x * position.x + position.y * position.y;
 
-    float q = cos1(0.05 * time);
-    float h = q * sin1(0.25 * j + 0.8585 * time) * cos(0.01468 * (j + time))
-            + (1. - q) * cos1(0.063 * j + 2.1 * time)
-                * sin(0.00286 * (j + 1.2 * time));
+    float j = float(drawMode == 0) * dLinear1
+            + float(drawMode == 1) * dLinear2
+            + float(drawMode == 2) * dHyperbola
+            + float(drawMode == 3) * dL2;
+    float k = frequency * j / (planeSize.x * planeSize.y);
+
+    float q1 = cos1(0.05 * time);
+    float q2 = 0.5 * (cos1(0.0128 * time) + sin1(0.025 * time));
+    float q3 = 0.333333 * (q1 + sin1(0.025 * time) + cos1(0.00625 * time));
+    float h = q1 * sin1(0.25 * k + 0.8585 * time) * cos(0.01468 * (k + time))
+            + (1. - q1) * cos1(0.063 * k + 1.1 * time)
+                * sin(0.00286 * (k + 1.2 * time));
     float ht = mod1(h + 0.01 * time);
 
-    float v = 1. * float(mode == 0) + (0.25 + 0.75 * h) * float(mode == 1);
+    float vFlat = 1.;
+    float vSig = sig(q2 * cos1(0.42 * k + 0.4 * time)
+                     + (1. - q2) * cos1((0.08 + 0.01 * cos1(0.06 * time)) * k)
+                                 * cos1((0.0021 * (k + time))),
+                     0.1 + 0.05 * cos1(0.5 * time),
+                     30.);
+    float vH = sig(ht, 0.2, 40.);
+
+    float v = float(shadowMode == 0) * vFlat
+            + float(shadowMode == 1) * vSig
+            + float(shadowMode == 2) * vH;
 
     vec3 rgb = hsv2rgb(vec3(ht, 1., v));
 

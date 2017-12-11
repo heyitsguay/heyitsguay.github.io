@@ -14,10 +14,14 @@ var plane;
 var controls;
 // Plane shader uniforms
 var uniforms;
-// Shader mode
-var mode = 0;
-// Number of shader draw modes
-var numModes = 2;
+// Shader draw mode
+var drawMode = 0;
+// Number of draw modes
+var numDrawModes = 4;
+// Shader shadow mode
+var shadowMode = 0;
+// Number of shadow modes
+var numShadowModes = 3;
 
 // Is the menu overlay visible?
 var menuVisible = true;
@@ -25,7 +29,7 @@ var menuVisible = true;
 // Tile size
 var tileSize = 20;
 // Controls how granular the controls to change tile size are
-var tileSizeStep = 1.2;
+var tileSizeStep = 1.02;
 function xTile() {
     return Math.ceil(xSize / tileSize);
 }
@@ -35,6 +39,12 @@ function yTile() {
 // Size of the tile plane in whatever units THREE.js geometries use
 var xSize;
 var ySize;
+
+// Linear frequency parameter
+var frequency = 100;
+var frequencyMin = 0.1;
+var frequencyMax = 1e6;
+var frequencyStep = 1.1;
 
 // Start time for the sketch
 var startTime = new Date().getTime();
@@ -49,7 +59,7 @@ var timeSpeed = 1;
 // Maximum time speed factor
 var timeSpeedMax = 100;
 // Minimum time speed factor
-var timeSpeedMin = 0.08;
+var timeSpeedMin = 1e-3;
 // Controls how granular the controls to change time speed are
 var timeSpeedStep = 1.2;
 
@@ -169,7 +179,9 @@ function buildShader() {
     uniforms = {
         time: {value: 0.},
         planeSize: {value: new THREE.Vector2(xTile(), yTile())},
-        mode: {value: mode}
+        drawMode: {value: drawMode},
+        shadowMode: {value: shadowMode},
+        frequency: {value: frequency}
     };
     shaderMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
@@ -214,9 +226,14 @@ function animate() {
 function onKeyPress(event) {
     var keyName = event.key;
 
-    // E - toggle through modes
+    // C - decrease linear spatial frequency
+    if (keyName === 'c') {
+        frequency = Math.max(frequency / frequencyStep, frequencyMin);
+    }
+
+    // E - toggle draw mode
     if (keyName === 'e') {
-        mode = (mode + 1) % numModes;
+        drawMode = (drawMode + 1) % numDrawModes;
     }
 
     // F - decrease time speed
@@ -254,6 +271,16 @@ function onKeyPress(event) {
         tileSize = Math.min(upSize, Math.min(xSize, ySize));
     }
 
+    // V - increase linear spatial frequency
+    if (keyName === 'v') {
+        frequency = Math.min(frequency * frequencyStep, frequencyMax);
+    }
+
+    // Z - toggle shadow mode
+    if (keyName === 'z') {
+        shadowMode = (shadowMode + 1) % numShadowModes;
+    }
+
     if (keyName === ' ') {
         paused = !paused;
     }
@@ -274,7 +301,9 @@ function update() {
 
     uniforms.time.value += timeSpeed * elapsedTime / 1000;
     uniforms.planeSize.value = new THREE.Vector2(xTile(), yTile());
-    uniforms.mode.value = mode;
+    uniforms.drawMode.value = drawMode;
+    uniforms.shadowMode.value = shadowMode;
+    uniforms.frequency.value = frequency;
 
     controls.update();
 }
