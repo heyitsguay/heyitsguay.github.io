@@ -6,22 +6,35 @@ var camera;
 var renderer;
 // Plane geometry
 var geo;
+// Plane shader
+var shaderMaterial;
 // Plane mesh
 var plane;
 // The controls
 var controls;
+// Plane shader uniforms
+var uniforms;
+// Shader mode
+var mode = 0;
+// Number of shader draw modes
+var numModes = 2;
 
 // Is the menu overlay visible?
 var menuVisible = true;
 
-// Number of tiles in the x and y dimensions
-var xTiles = 128;
-var yTiles = 72;
 // Tile size
 var tileSize = 20;
+// Controls how granular the controls to change tile size are
+var tileSizeStep = 1.2;
+function xTile() {
+    return Math.ceil(xSize / tileSize);
+}
+function yTile() {
+    return Math.ceil(ySize / tileSize);
+}
 // Size of the tile plane in whatever units THREE.js geometries use
-var xSize = xTiles * tileSize;
-var ySize = yTiles * tileSize;
+var xSize;
+var ySize;
 
 // Start time for the sketch
 var startTime = new Date().getTime();
@@ -29,6 +42,8 @@ var startTime = new Date().getTime();
 var lastTime = startTime;
 // Time of the current frame
 var thisTime;
+// Time elapsed since the last frame
+var elapsedTime;
 // Time speed effect factor
 var timeSpeed = 1;
 // Maximum time speed factor
@@ -36,15 +51,14 @@ var timeSpeedMax = 100;
 // Minimum time speed factor
 var timeSpeedMin = 0.08;
 // Controls how granular the controls to change time speed are
-var timeSpeedStepSize = 1.2;
-
-// FPS estimate
-var fps = 60;
+var timeSpeedStep = 1.2;
 
 var t = 0;
-var color = new THREE.Color(0x0000ff);
 
 var firstTime = true;
+
+// When true, don't animate
+var paused = false;
 
 document.addEventListener('keypress', onKeyPress);
 $(window).resize(onResize);
@@ -70,15 +84,17 @@ function onResize() {
  * Initialize the scene and its objects.
  */
 function init() {
+    xSize = window.innerWidth;
+    ySize = window.innerHeight;
     // Create the scene
     scene = new THREE.Scene();
 
     // Create the camera
     camera = new THREE.PerspectiveCamera(
         60,  // Field of view
-        window.innerWidth/window.innerHeight,  // Aspect ratio
+        xSize/ySize,  // Aspect ratio
         0.1,  // Near clipping plane
-        10000  // Far clipping plane
+        100000  // Far clipping plane
     );
     // Position the camera
     camera.position.set(0, 0, 800);
@@ -87,7 +103,7 @@ function init() {
 
     if (firstTime) {
         // Create the renderer
-        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer = new THREE.WebGLRenderer({antialias: false});
         renderer.setClearColor(0xcecece);
         // Add the renderer to the DOM
 
@@ -102,12 +118,11 @@ function init() {
     scene.add(ambientLight);
 
     // Create the plane geometry
-    geo = new THREE.PlaneGeometry(xSize, ySize, xTiles, yTiles);
+    geo = new THREE.PlaneGeometry(xSize, ySize, 1, 1);
     // Create the plane material
-    var material = new THREE.MeshBasicMaterial(
-        {vertexColors: THREE.FaceColors});
+    buildShader();
     // Create the plane mesh
-    plane = new THREE.Mesh(geo, material);
+    plane = new THREE.Mesh(geo, shaderMaterial);
     // Orient the plane towards the camera
     plane.lookAt(camera.position);
     // Add the plane to the scene
@@ -116,7 +131,7 @@ function init() {
     // Create the controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     // Keep it from going crazy
-    controls.maxPolarAngle = Math.PI / 2;
+    controls.maxPolarAngle = Math.PI;
     // Use WASD
     controls.keys = {
         LEFT: 65,
@@ -124,9 +139,43 @@ function init() {
         RIGHT: 68,
         BOTTOM: 83
     };
-    controls.enableRotate = false;
+    // controls.enableRotate = false;
     controls.enableDamping = true;
     controls.keyPanSpeed = tileSize;
+}
+
+/*
+ * Load a shader from GLSL code written in text files.
+ */
+function fileToString(shaderName) {
+    var xhr = new XMLHttpRequest();
+
+    // String containing the shader source
+    var shaderText = null;
+    // Load the file
+    xhr.open("GET", shaderName, false);
+    xhr.onload = function() {
+        shaderText = this.responseText;
+    };
+    xhr.send(null);
+
+    return shaderText;
+}
+
+/*
+ *
+ */
+function buildShader() {
+    uniforms = {
+        time: {value: 0.},
+        planeSize: {value: new THREE.Vector2(xTile(), yTile())},
+        mode: {value: mode}
+    };
+    shaderMaterial = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: fileToString('js/glsl/quad.vert'),
+        fragmentShader: fileToString('js/glsl/plane.frag')
+    });
 }
 
 /*
@@ -147,10 +196,16 @@ function resize() {
 function animate() {
     // Keep calling this function while the sketch runs
     requestAnimationFrame(animate);
-    // Update scene logic
-    update();
-    // Render the scene
-    render();
+    thisTime = new Date().getTime();
+    // Elapsed time (in ms)
+    elapsedTime = thisTime - lastTime;
+    lastTime = thisTime;
+    if (!paused) {
+        // Update scene logic
+        update();
+        // Render the scene
+        render();
+    }
 }
 
 /*
@@ -159,10 +214,21 @@ function animate() {
 function onKeyPress(event) {
     var keyName = event.key;
 
+    // E - toggle through modes
+    if (keyName === 'e') {
+        mode = (mode + 1) % numModes;
+    }
+
     // F - decrease time speed
     if (keyName === 'f') {
         // Min speed
-        timeSpeed = Math.max(timeSpeed / timeSpeedStepSize, timeSpeedMin);
+        timeSpeed = Math.max(timeSpeed / timeSpeedStep, timeSpeedMin);
+    }
+
+    // G - decrease tile size
+    if (keyName === 'g') {
+        var downSize = Math.floor(tileSize / tileSizeStep);
+        tileSize = Math.max(downSize, 1);
     }
 
     // Q - toggle menu visibility
@@ -179,7 +245,17 @@ function onKeyPress(event) {
     // R - increase time speed
     if (keyName === 'r') {
         // Max speed
-        timeSpeed = Math.min(timeSpeed * timeSpeedStepSize, timeSpeedMax);
+        timeSpeed = Math.min(timeSpeed * timeSpeedStep, timeSpeedMax);
+    }
+
+    // T - increase tile size
+    if (keyName === 't') {
+        var upSize = Math.ceil(tileSize * tileSizeStep);
+        tileSize = Math.min(upSize, Math.min(xSize, ySize));
+    }
+
+    if (keyName === ' ') {
+        paused = !paused;
     }
 
 }
@@ -195,62 +271,10 @@ function render() {
  * Update scene logic.
  */
 function update() {
-    var face1, face2, q, h;
-    thisTime = new Date().getTime();
-    // Elapsed time (in ms)
-    var elapsedTime = thisTime - lastTime;
-    lastTime = thisTime;
 
-    // updateFPS(elapsedTime);
-
-    t += timeSpeed * elapsedTime / 1000;
-
-    // Geometry update implicitly clones the old geometry, which can cause
-    // memory leaks if the old one is not disposed of
-    plane.geometry.dispose();
-
-    // Each tile is composed of two triangular faces. Iterate through the
-    // plane geometry's faces in pairs, setting the same color for the
-    // tile's faces
-    for(var j = 0; j < plane.geometry.faces.length - 1; j+= 2) {
-        // The two faces
-        // face1 = plane.geometry.faces[j];
-        // face2 = plane.geometry.faces[j+1];
-        // Generate a color
-        // Changes the relative importance of h's sine and cosine terms over
-        // time
-        q = (Math.cos(0.05 * t) + 1) / 2;
-        // Hue is a weighted sum of two sine and cosine terms with
-        // different frequencies
-        h = q * (Math.sin(j / 4 + 0.8585 * t) + 1) / 2 +
-            (1 - q) * (Math.cos(j / 15.825 + 2.1 * t) + 1) / 2;
-        h = mod1(h + 0.01 * t);
-        // Create color in HSL space
-        plane.geometry.faces[j].color.setHSL(h, 1, 0.5 + 0.15 * Math.sin(0.01 * t));
-        // Assign the color to each vertex of each face
-        for (var k = 0; k < 3; k++) {
-            plane.geometry.faces[j].vertexColors[k] = plane.geometry.faces[j].color;
-            plane.geometry.faces[j+1].vertexColors[k] = plane.geometry.faces[j].color;
-        }
-    }
-    // Plane geometry needs to be updated
-    plane.geometry.elementsNeedUpdate = true;
+    uniforms.time.value += timeSpeed * elapsedTime / 1000;
+    uniforms.planeSize.value = new THREE.Vector2(xTile(), yTile());
+    uniforms.mode.value = mode;
 
     controls.update();
-
-}
-
-// function updateFPS(elapsed) {
-//     var fpsFilter = 30;
-//     if (elapsed > 0) {
-//         fps += (1000. / elapsed - fps) / fpsFilter;
-//     }
-//     var counter = document.getElementById("fpscounter");
-//     if (counter != null) {
-//         counter.innerHTML = fps.toFixed(0) + " fps";
-//     }
-// }
-
-function mod1(x) {
-    return (x % 1 + 1) % 1;
 }
