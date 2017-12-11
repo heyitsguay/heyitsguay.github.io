@@ -71,7 +71,7 @@ div.fullpanel {
     overflow: hidden;
     padding-bottom: 20px;
     padding-right: 20px;
-    width: fit-content;
+    width: 180px;
     height: fit-content;
 }
 

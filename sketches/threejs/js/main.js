@@ -81,7 +81,7 @@ function init() {
         10000  // Far clipping plane
     );
     // Position the camera
-    camera.position.set(0, 0, 400);
+    camera.position.set(0, 0, 800);
     // Point the camera at the origin
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -223,9 +223,10 @@ function update() {
         // Hue is a weighted sum of two sine and cosine terms with
         // different frequencies
         h = q * (Math.sin(j / 4 + 0.8585 * t) + 1) / 2 +
-            (1 - q) * (Math.cos(j / 13.825 + 2.1 * t) + 1) / 2;
+            (1 - q) * (Math.cos(j / 15.825 + 2.1 * t) + 1) / 2;
+        h = mod1(h + 0.01 * t);
         // Create color in HSL space
-        plane.geometry.faces[j].color.setHSL(mod1(h + 0.01 * t), 1, 0.5);
+        plane.geometry.faces[j].color.setHSL(h, 1, 0.5 + 0.15 * Math.sin(0.01 * t));
         // Assign the color to each vertex of each face
         for (var k = 0; k < 3; k++) {
             plane.geometry.faces[j].vertexColors[k] = plane.geometry.faces[j].color;
