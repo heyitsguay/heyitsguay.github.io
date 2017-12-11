@@ -22,8 +22,8 @@
           <file leaf-file-name="plane.frag" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/glsl/plane.frag">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="138">
-                  <caret line="31" column="1" lean-forward="false" selection-start-line="31" selection-start-column="1" selection-end-line="31" selection-end-column="1" />
+                <state relative-caret-position="534">
+                  <caret line="53" column="65" lean-forward="false" selection-start-line="53" selection-start-column="65" selection-end-line="53" selection-end-column="65" />
                   <folding />
                 </state>
               </provider>
@@ -96,9 +96,9 @@
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.js" />
         <option value="$PROJECT_DIR$/js/glsl/quad.vert" />
         <option value="$PROJECT_DIR$/index.html" />
-        <option value="$PROJECT_DIR$/js/glsl/plane.frag" />
         <option value="$PROJECT_DIR$/js/main.js" />
         <option value="$PROJECT_DIR$/css/style.css" />
+        <option value="$PROJECT_DIR$/js/glsl/plane.frag" />
       </list>
     </option>
   </component>
@@ -220,12 +220,12 @@
       <workItem from="1512882263240" duration="11246000" />
       <workItem from="1512933557380" duration="24390000" />
       <workItem from="1512971222438" duration="23888000" />
-      <workItem from="1513025042923" duration="12000" />
+      <workItem from="1513025042923" duration="691000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="72052000" />
+    <option name="totallyTimeSpent" value="72731000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="1069" width="1922" height="1092" extended-state="6" />
@@ -427,14 +427,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/glsl/plane.frag">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="138">
-          <caret line="31" column="1" lean-forward="false" selection-start-line="31" selection-start-column="1" selection-end-line="31" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/main.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="450">
@@ -447,6 +439,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="433">
           <caret line="69" column="33" lean-forward="false" selection-start-line="69" selection-start-column="33" selection-end-line="69" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/glsl/plane.frag">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="534">
+          <caret line="53" column="65" lean-forward="false" selection-start-line="53" selection-start-column="65" selection-end-line="53" selection-end-column="65" />
           <folding />
         </state>
       </provider>

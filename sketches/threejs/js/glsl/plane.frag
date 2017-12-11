@@ -50,7 +50,8 @@ void main() {
     float q1 = cos1(0.05 * time);
     float q2 = 0.5 * (cos1(0.0128 * time) + sin1(0.025 * time));
     float q3 = 0.333333 * (q1 + sin1(0.025 * time) + cos1(0.00625 * time));
-    float h = q1 * sin1(0.25 * k + 0.8585 * time) * cos(0.01468 * (k + time))
+    float h = q1 * sin1(0.25 * k + 0.8585 * time)
+                 * cos(0.01468 * (k + time) / pow(frequency, 1.5))
             + (1. - q1) * cos1(0.063 * k + 1.1 * time)
                 * sin(0.00286 * (k + 1.2 * time));
     float ht = mod1(h + 0.01 * time);
