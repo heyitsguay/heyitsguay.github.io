@@ -3,14 +3,37 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Stahp</title>
+    <title>tile waves</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
+    <script
+        src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/88/three.js'></script>
     <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
     <script src="js/main.js"></script>
+
+    <div class="fullpanel toggle" id="panel">
+        <!--Title-->
+        <div class="title" id="title">
+            <h1>tile waves</h1>
+            <hr class="titlebar"/>
+            <div class="paneldiv" id="fpscounter"> 0.0 fps</div>
+        </div>
+
+        <!--Instructions-->
+        <div class="instructions" id="instructions">
+            <b>WASD</b>: pan camera<br/>
+            <b>Wheel</b>: zoom<br/>
+            <b>R</b>: speed up<br/>
+            <b>F</b>: slow down<br/>
+            <b>Q</b>: toggle menu
+        </div>
+    </div>
+
 </body>
 
 </html>
