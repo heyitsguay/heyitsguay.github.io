@@ -200,6 +200,10 @@ function update() {
 
     t += timeSpeed * elapsedTime / 1000;
 
+    // Geometry update implicitly clones the old geometry, which can cause
+    // memory leaks if the old one is not disposed of
+    plane.geometry.dispose();
+
     // Each tile is composed of two triangular faces. Iterate through the
     // plane geometry's faces in pairs, setting the same color for the
     // tile's faces
