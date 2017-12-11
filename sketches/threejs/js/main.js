@@ -139,7 +139,7 @@ function init() {
         RIGHT: 68,
         BOTTOM: 83
     };
-    // controls.enableRotate = false;
+    controls.enableRotate = false;
     controls.enableDamping = true;
     controls.keyPanSpeed = tileSize;
 }
