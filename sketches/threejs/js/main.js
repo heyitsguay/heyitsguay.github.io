@@ -44,6 +44,8 @@ var fps = 60;
 var t = 0;
 var color = new THREE.Color(0x0000ff);
 
+var firstTime = true;
+
 document.addEventListener('keypress', onKeyPress);
 $(window).resize(onResize);
 
@@ -60,9 +62,8 @@ function run() {
 }
 
 function onResize() {
-    // cancelAnimationFrame(animate);
-    // resize();
-    // animate();
+    cancelAnimationFrame(animate);
+    run();
 }
 
 /*
@@ -84,11 +85,15 @@ function init() {
     // Point the camera at the origin
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-    // Create the renderer
-    renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.setClearColor(0xcecece);
-    // Add the renderer to the DOM
-    document.body.appendChild(renderer.domElement);
+    if (firstTime) {
+        // Create the renderer
+        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setClearColor(0xcecece);
+        // Add the renderer to the DOM
+
+        document.body.appendChild(renderer.domElement);
+        firstTime = false;
+    }
     // Renderer size and aspect setup
     resize();
 
@@ -196,7 +201,7 @@ function update() {
     var elapsedTime = thisTime - lastTime;
     lastTime = thisTime;
 
-    updateFPS(elapsedTime);
+    // updateFPS(elapsedTime);
 
     t += timeSpeed * elapsedTime / 1000;
 
@@ -234,16 +239,16 @@ function update() {
 
 }
 
-function updateFPS(elapsed) {
-    var fpsFilter = 30;
-    if (elapsed > 0) {
-        fps += (1000. / elapsed - fps) / fpsFilter;
-    }
-    var counter = document.getElementById("fpscounter");
-    if (counter != null) {
-        counter.innerHTML = fps.toFixed(0) + " fps";
-    }
-}
+// function updateFPS(elapsed) {
+//     var fpsFilter = 30;
+//     if (elapsed > 0) {
+//         fps += (1000. / elapsed - fps) / fpsFilter;
+//     }
+//     var counter = document.getElementById("fpscounter");
+//     if (counter != null) {
+//         counter.innerHTML = fps.toFixed(0) + " fps";
+//     }
+// }
 
 function mod1(x) {
     return (x % 1 + 1) % 1;
