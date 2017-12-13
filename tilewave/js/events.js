@@ -77,7 +77,6 @@ function onKeyPress(event) {
  * Handle resize events.
  */
 function onResize() {
-    console.log("resizing");
     cancelAnimationFrame(animate);
     run();
 }
