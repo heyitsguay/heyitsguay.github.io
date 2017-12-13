@@ -3,6 +3,7 @@ uniform vec2 planeSize;
 uniform int drawMode;
 uniform int shadowMode;
 uniform float frequency;
+uniform float hueShift;
 
 varying vec2 vUV;
 
@@ -57,12 +58,13 @@ void main() {
     float ht = mod1(h + 0.01 * time);
 
     float vFlat = 1.;
-    float vSig = sig(q2 * cos1(0.42 * k + 0.4 * time)
-                     + (1. - q2) * cos1((0.08 + 0.01 * cos1(0.06 * time)) * k)
-                                 * cos1((0.0021 * (k + time))),
+    float vSigX = q2 * cos1(0.42 * k + 0.4 * time)
+                   + (1. - q2) * cos1((0.08 + 0.01 * cos1(0.06 * time)) * k)
+                               * cos1((0.0021 * (k + time)));
+    float vSig = sig(mod1(vSigX + hueShift),
                      0.1 + 0.05 * cos1(0.5 * time),
                      30.);
-    float vH = sig(ht, 0.2, 40.);
+    float vH = sig(mod1(ht + hueShift), 0.2, 40.);
 
     float v = float(shadowMode == 0) * vFlat
             + float(shadowMode == 1) * vSig

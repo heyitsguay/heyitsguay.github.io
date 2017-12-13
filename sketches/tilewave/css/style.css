@@ -23,6 +23,23 @@ canvas {
     width: 100%;
     height: 100%; }
 
+.button {
+    display: inline-block;
+    margin: 5px;
+    padding: 0.375rem 0.5rem;
+    border: 0;
+    border-radius: 0.317rem;
+    background-color: #CECED1;
+    color: #31312E;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.5;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -webkit-font-smoothing: antialiased;
+}
+
 h1 {
     color: #CECED1;
     padding-bottom: 3px;
@@ -69,14 +86,15 @@ div.fullpanel {
     z-index: 2;
     background: rgba(1, 1, 1, 0.7);
     overflow: hidden;
-    padding-bottom: 20px;
-    padding-right: 20px;
+    padding-bottom: 0;
+    padding-left: 10px;
+    padding-right: 10px;
     width: 180px;
     height: fit-content;
 }
 
 hr.titlebar {
-    width: available;
+    width: 75%;
     margin-bottom: 24px;
     padding-left: 10px;
     padding-right: 10px;
@@ -84,10 +102,30 @@ hr.titlebar {
 
 .toggle {}
 
+input.slider {
+    width: 150px;
+}
+
 table.keytable td {
     table-layout: fixed;
     width: 180px;
     text-align: left;
     color: #CECED1;
     font-size: 10pt;
+}
+
+table.buttons {
+    align: center;
+}
+
+table.sliders {
+    font-size: 10pt;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+    table-layout: fixed;
+    width: 180px;
+    border-spacing: 1px;
+    position: absolute;
+    color: #CECED1;
 }
