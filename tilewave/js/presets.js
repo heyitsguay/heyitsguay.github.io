@@ -17,7 +17,7 @@ var presets = {
     0: {
         'drawMode': 0,
         'shadowMode': 0,
-        'timeSpeed': 1.15,
+        'timeSpeed': 1.00,
         'tileSize': 1.6021,
         'frequency': 3.70,
         'shadowHue': 0.25
@@ -26,7 +26,7 @@ var presets = {
     1: {
         'drawMode': 0,
         'shadowMode': 0,
-        'timeSpeed': 1.15,
+        'timeSpeed': 1.00,
         'tileSize': 1.6021,
         'frequency': 3.57,
         'shadowHue': 0.25
@@ -35,7 +35,7 @@ var presets = {
     2: {
         'drawMode': 0,
         'shadowMode': 0,
-        'timeSpeed': 1.15,
+        'timeSpeed': 1.00,
         'tileSize': 1.7404,
         'frequency': 3.57,
         'shadowHue': 0.25
@@ -44,7 +44,7 @@ var presets = {
     3: {
         'drawMode': 2,
         'shadowMode': 2,
-        'timeSpeed': 1.05,
+        'timeSpeed': 0.75,
         'tileSize': 0.9031,
         'frequency': 4.44,
         'shadowHue': 0.275
@@ -53,7 +53,7 @@ var presets = {
     4: {
         'drawMode': 2,
         'shadowMode': 2,
-        'timeSpeed': 1.05,
+        'timeSpeed': 0.75,
         'tileSize': 0.,
         'frequency': 4.90,
         'shadowHue': 0.275
@@ -62,7 +62,7 @@ var presets = {
     5: {
         'drawMode': 3,
         'shadowMode': 2,
-        'timeSpeed': 1.05,
+        'timeSpeed': 0.75,
         'tileSize': 0.8451,
         'frequency': 4.44,
         'shadowHue': 0.275
@@ -71,7 +71,7 @@ var presets = {
     6: {
         'drawMode': 3,
         'shadowMode': 2,
-        'timeSpeed': 1.05,
+        'timeSpeed': 0.75,
         'tileSize': 0.,
         'frequency': 4.90,
         'shadowHue': 0.275

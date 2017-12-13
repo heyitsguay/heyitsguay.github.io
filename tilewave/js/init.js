@@ -81,7 +81,7 @@ function initOverlay() {
     $("#select-presets").change(function(){loadPreset(this.value);});
 
 
-    loadPreset(0);
+    loadPreset(3);
 }
 
 /*
