@@ -18,6 +18,8 @@ function sliderDrawMode(val) {
     drawMode = val;
     document.getElementById('range-drawmode').setAttribute('value', val.toString());
     document.getElementById('range-drawmode').value = val.toString();
+    document.getElementById('td-drawmode').innerHTML =
+        "draw mode (<b>E</b>): " + val.toString();
 }
 
 /*
@@ -28,6 +30,8 @@ function sliderShadowMode(val) {
     shadowMode = val;
     document.getElementById('range-shadowmode').setAttribute('value', val.toString());
     document.getElementById('range-shadowmode').value = val.toString();
+    document.getElementById('td-shadowmode').innerHTML =
+        "shadow mode (<b>Q</b>): " + val.toString();
 }
 
 /*
@@ -38,6 +42,8 @@ function sliderTimeSpeed(val) {
     timeSpeed = val;
     document.getElementById('range-timespeed').setAttribute('value', val.toString());
     document.getElementById('range-timespeed').value = val.toString();
+    document.getElementById('td-timespeed').innerHTML =
+        "time speed <<b>S</b>/<b>W</b>>: " + val.toFixed(2);
 }
 
 /*
@@ -48,6 +54,8 @@ function sliderTileSize(val) {
     tileSize = Math.pow(10, val);
     document.getElementById('range-tilesize').setAttribute('value', val.toString());
     document.getElementById('range-tilesize').value = val.toString();
+    document.getElementById('td-tilesize').innerHTML =
+        "tile size <<b>A</b>/<b>D</b>>: " + val.toFixed(4);
 }
 
 /*
@@ -58,6 +66,8 @@ function sliderFrequency(val) {
     frequency = Math.pow(10, val);
     document.getElementById('range-frequency').setAttribute('value', val.toString());
     document.getElementById('range-frequency').value = val.toString();
+    document.getElementById('td-frequency').innerHTML =
+        "frequency <<b>C</b>/<b>V</b>>: " + val.toFixed(2);
 
 }
 
@@ -69,5 +79,6 @@ function sliderShadowHue(val) {
     hueShift = val;
     document.getElementById('range-shadowhue').setAttribute('value', val.toString());
     document.getElementById('range-shadowhue').value = val.toString();
-
+    document.getElementById('td-shadowhue').innerHTML =
+        "shadow hue <<b>F</b>/<b>R</b>>: " + val.toFixed(3);
 }

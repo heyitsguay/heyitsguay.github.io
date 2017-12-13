@@ -22,6 +22,7 @@ function init() {
         firstTime = false;
 
         $("canvas").get()[0].addEventListener('click', onClick);
+
     }
     // Renderer size and aspect setup
     resize();
@@ -62,6 +63,25 @@ function initOverlay() {
         step: log10(frequencyStep)
     });
     $('#range-shadowhue').prop({value: hueShift, step: hueShiftStep});
+
+    document.getElementById('td-drawmode').innerHTML =
+        "draw mode (<b>E</b>): " + drawMode.toString();
+    document.getElementById('td-shadowmode').innerHTML =
+        "shadow mode (<b>Q</b>): " + shadowMode.toString();
+    document.getElementById('td-timespeed').innerHTML =
+        "time speed <<b>S</b>/<b>W</b>>: " + timeSpeed.toFixed(2);
+    document.getElementById('td-tilesize').innerHTML =
+        "tile size <<b>A</b>/<b>D</b>>: " + log10(tileSize).toFixed(4);
+    document.getElementById('td-frequency').innerHTML =
+        "frequency <<b>C</b>/<b>V</b>>: " + log10(frequency).toFixed(2);
+    document.getElementById('td-shadowhue').innerHTML =
+        "shadow hue <<b>F</b>/<b>R</b>>: " + hueShift.toFixed(3);
+
+    // document.getElementById('select-presets').addEventListener('change', function() {console.log('b0rk');});
+    $("#select-presets").change(function(){loadPreset(this.value);});
+
+
+    loadPreset(0);
 }
 
 /*

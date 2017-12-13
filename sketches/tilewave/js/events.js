@@ -1,6 +1,6 @@
 $(document).keypress(onKeyPress);
 $(document).resize(onResize);
-$(document).onclick(onClick);
+
 
 /*
  * Handle keypress events.
@@ -8,16 +8,11 @@ $(document).onclick(onClick);
 function onKeyPress(event) {
     var keyName = event.key;
 
-    // 1 - toggle draw mode
-    if (keyName === '1') {
-        drawMode = (drawMode + 1) % numDrawModes;
-        sliderDrawMode(drawMode);
-    }
-
-    // 2 - toggle shadow mode
-    if (keyName === '2') {
-        shadowMode = (shadowMode + 1) % numShadowModes;
-        sliderShadowMode(shadowMode);
+    // A - decrease tile size
+    if (keyName === 'a') {
+        var downSize = Math.floor(tileSize / tileSizeStep);
+        tileSize = Math.max(downSize, 1);
+        sliderTileSize(log10(tileSize));
     }
 
     // C - decrease linear spatial frequency
@@ -26,43 +21,42 @@ function onKeyPress(event) {
         sliderFrequency(log10(frequency));
     }
 
-    // F - decrease time speed
-    if (keyName === 'f') {
-        // Min speed
-        timeSpeed = Math.max(timeSpeed - timeSpeedStep, timeSpeedMin);
-        sliderTimeSpeed(timeSpeed);
-    }
-
-    // G - decrease tile size
-    if (keyName === 'g') {
-        var downSize = Math.floor(tileSize / tileSizeStep);
-        tileSize = Math.max(downSize, 1);
+    // D - increase tile size
+    if (keyName === 'd') {
+        var upSize = Math.ceil(tileSize * tileSizeStep);
+        tileSize = Math.min(upSize, Math.min(xSize, ySize));
         sliderTileSize(log10(tileSize));
     }
 
-    // H - decrease hue shift
-    if (keyName === 'h') {
+    // E - toggle draw mode
+    if (keyName === 'e') {
+        drawMode = (drawMode + 1) % numDrawModes;
+        sliderDrawMode(drawMode);
+    }
+
+    // F - decrease hue shift
+    if (keyName === 'f') {
         hueShift = mod1(hueShift - hueShiftStep);
         sliderShadowHue(hueShift);
     }
 
-    // Q - toggle menu visibility
+    // Q - toggle shadow mode
     if (keyName === 'q') {
-        buttonMenu();
+        shadowMode = (shadowMode + 1) % numShadowModes;
+        sliderShadowMode(shadowMode);
     }
 
-    // R - increase time speed
+    // R - increase hue shift
     if (keyName === 'r') {
-        // Max speed
-        timeSpeed = Math.min(timeSpeed + timeSpeedStep, timeSpeedMax);
-        sliderTimeSpeed(timeSpeed);
+        hueShift = mod1(hueShift + hueShiftStep);
+        sliderShadowHue(hueShift);
     }
 
-    // T - increase tile size
-    if (keyName === 't') {
-        var upSize = Math.ceil(tileSize * tileSizeStep);
-        tileSize = Math.min(upSize, Math.min(xSize, ySize));
-        sliderTileSize(log10(tileSize));
+    // S - decrease time speed
+    if (keyName === 's') {
+        // Min speed
+        timeSpeed = Math.max(timeSpeed - timeSpeedStep, timeSpeedMin);
+        sliderTimeSpeed(timeSpeed);
     }
 
     // V - increase linear spatial frequency
@@ -71,10 +65,11 @@ function onKeyPress(event) {
         sliderFrequency(log10(frequency));
     }
 
-    // Y - increase hue shift
-    if (keyName === 'y') {
-        hueShift = mod1(hueShift + hueShiftStep);
-        sliderShadowHue(hueShift);
+    // W - increase time speed
+    if (keyName === 'w') {
+        // Max speed
+        timeSpeed = Math.min(timeSpeed + timeSpeedStep, timeSpeedMax);
+        sliderTimeSpeed(timeSpeed);
     }
 
 }

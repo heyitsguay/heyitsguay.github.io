@@ -15,10 +15,11 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/88/three.js'></script>
     <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 
+    <script src="js/presets.js"></script>
     <script src="js/math.js"></script>
     <script src="js/init.js"></script>
     <script src="js/events.js"></script>
-    <script src="js/sliders.js"></script>
+    <script src="js/overlay.js"></script>
     <script src="js/main.js"></script>
 
     <div class="fullpanel toggle" id="panel">
@@ -33,11 +34,26 @@
             click to hide menu
         </div>
 
+        <!--Presets-->
+        <div class="instructions" id="presets">
+            <h4>presets</h4>
+            <label for="select-presets"></label>
+            <select class="scene" id="select-presets">
+                <option value="0">rippling blobs 1</option>
+                <option value="1">rippling blobs 2</option>
+                <option value="2">rippling blobs 3</option>
+                <option value="3">squares (low-res)</option>
+                <option value="4">squares (high-res)</option>
+                <option value="5">circles (low-res)</option>
+                <option value="6">circles (high-res)</option>
+            </select>
+        </div>
+
         <!--Controls-->
         <div class="instructions" id="controls">
             <table id="sliders">
                 <tr>
-                    <td>draw mode (<b>1</b>)</td>
+                    <td id="td-drawmode">draw mode (<b>E</b>): 0</td>
                 </tr>
                 <tr>
                     <td><label for="range-drawmode"></label>
@@ -48,7 +64,7 @@
                 </tr>
 
                 <tr>
-                    <td>shadow mode (<b>2</b>)</td>
+                    <td id="td-shadowmode">shadow mode (<b>Q</b>): 0</td>
                 </tr>
                 <tr>
                     <td><label for="range-shadowmode"></label>
@@ -59,7 +75,7 @@
                 </tr>
 
                 <tr>
-                    <td>time speed <<b>F</b>/<b>R</b>></td>
+                    <td id="td-timespeed">time speed <<b>S</b>/<b>W</b>>: 0.00</td>
                 </tr>
                 <tr>
                     <td><label for="range-timespeed"></label>
@@ -70,7 +86,7 @@
                 </tr>
 
                 <tr>
-                    <td>tile size <<b>G</b>/<b>T</b>></td>
+                    <td id="td-tilesize">tile size <<b>A</b>/<b>D</b>>: 0.0000</td>
                 </tr>
                 <tr>
                     <td><label for="range-tilesize"></label>
@@ -81,7 +97,7 @@
                 </tr>
 
                 <tr>
-                    <td>frequency <<b>C</b>/<b>V</b>></td>
+                    <td id="td-frequency">frequency <<b>C</b>/<b>V</b>>: 0.00</td>
                 </tr>
                 <tr>
                     <td><label for="range-frequency"></label>
@@ -92,7 +108,7 @@
                 </tr>
 
                 <tr>
-                    <td>shadow hue <<b>H</b>/<b>Y</b>></td>
+                    <td id="td-shadowhue">shadow hue <<b>F</b>/<b>R</b>>: 0.000</td>
                 </tr>
                 <tr>
                     <td><label for="range-shadowhue"></label>
