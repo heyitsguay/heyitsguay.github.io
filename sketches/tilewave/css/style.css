@@ -117,15 +117,3 @@ table.keytable td {
 table.buttons {
     align: center;
 }
-
-table.sliders {
-    font-size: 10pt;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: left;
-    table-layout: fixed;
-    width: 180px;
-    border-spacing: 1px;
-    position: absolute;
-    color: #CECED1;
-}
