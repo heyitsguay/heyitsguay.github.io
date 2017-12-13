@@ -86,19 +86,6 @@ function run() {
 }
 
 /*
- * Update renderer and camera when the window is resized.
- */
-function resize() {
-    // Set renderer size and pixel ratio
-    renderer.setSize(xSize, ySize, false);
-    // renderer.setPixelRatio(1);
-    renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-    // Set camera aspect ratio
-    // camera.aspect = window.innerWidth / window.innerHeight;
-    $('#range-tilesize').prop({max: log10(Math.min(xSize, ySize))});
-}
-
-/*
  * Animate the scene.
  */
 function animate() {

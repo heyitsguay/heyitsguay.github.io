@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavaScriptLibraryMappings">
-    <file url="file://$PROJECT_DIR$/../../tilewave/js/events.js" libraries="{jquery-3.1.1}" />
-    <file url="file://$PROJECT_DIR$/../../tilewave/js/init.js" libraries="{jquery-3.1.1}" />
-    <file url="file://$PROJECT_DIR$/../../tilewave/js/main.js" libraries="{jquery-3.1.1}" />
-    <file url="file://$PROJECT_DIR$/../../tilewave/js/overlay.js" libraries="{jquery-3.1.1}" />
+    <file url="file://$PROJECT_DIR$/js/events.js" libraries="{jquery-3.1.1}" />
+    <file url="file://$PROJECT_DIR$/js/init.js" libraries="{jquery-3.1.1}" />
     <file url="PROJECT" libraries="{OrbitControls, three}" />
   </component>
 </project>
