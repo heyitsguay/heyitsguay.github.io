@@ -77,8 +77,10 @@ function onKeyPress(event) {
  * Handle resize events.
  */
 function onResize() {
-    cancelAnimationFrame(animate);
-    run();
+    if (document.readyState === 'complete') {
+        cancelAnimationFrame(animate);
+        onReady();
+    }
 }
 
 /*
@@ -98,5 +100,7 @@ function resize() {
  * Handle click events.
  */
 function onClick() {
-    toggleMenu();
+    if (hasWebGL) {
+        toggleMenu();
+    }
 }

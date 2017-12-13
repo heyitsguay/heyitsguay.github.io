@@ -1,9 +1,8 @@
-$(document).ready(initOverlay);
-
 /*
  * Initialize the scene and its objects.
  */
 function init() {
+
     xSize = window.innerWidth;
     ySize = window.innerHeight;
 
@@ -11,43 +10,40 @@ function init() {
     scene = new THREE.Scene();
 
     if (firstTime) {
-        // Create the renderer
-        renderer = new THREE.WebGLRenderer({
-            antialias: true
-        });
-        renderer.setClearColor(0xcecece);
-        // Add the renderer to the DOM
-
-        document.body.appendChild(renderer.domElement);
+        $('#nowebglpanel').hide();
         firstTime = false;
+        // Create the renderer
 
-        $("canvas").get()[0].addEventListener('click', onClick);
+        hasWebGL = initWebGL();
 
     }
-    // Renderer size and aspect setup
-    resize();
 
-    // Add an ambient light to the scene
-    var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
+    if (hasWebGL) {
+        // Renderer size and aspect setup
+        resize();
 
-    // Create the plane geometry
-    geo = new THREE.PlaneGeometry(2, 2, 1, 1);
-    // Create the plane material
-    buildShader();
-    // Create the plane mesh
-    plane = new THREE.Mesh(geo, shaderMaterial);
-    // Orient the plane towards the camera
-    // plane.lookAt(camera.position);
-    // Add the plane to the scene
-    scene.add(plane);
+        // Add an ambient light to the scene
+        var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
 
+        // Create the plane geometry
+        geo = new THREE.PlaneGeometry(2, 2, 1, 1);
+        // Create the plane material
+        buildShader();
+        // Create the plane mesh
+        plane = new THREE.Mesh(geo, shaderMaterial);
+        // Orient the plane towards the camera
+        // plane.lookAt(camera.position);
+        // Add the plane to the scene
+        scene.add(plane);
+    }
 }
 
 /*
  * Initialize overlay HTML.
  */
 function initOverlay() {
+
     $('#range-drawmode').prop({max: numDrawModes - 1});
     $('#range-shadowmode').prop({max: numShadowModes - 1});
     $('#range-timespeed').prop({
@@ -119,4 +115,23 @@ function buildShader() {
         vertexShader: fileToString('js/glsl/quad.vert'),
         fragmentShader: fileToString('js/glsl/plane.frag')
     });
+}
+
+function initWebGL() {
+    try {
+        var canvas = $("canvas").get()[0];
+
+        renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            antialias: true
+        });
+        renderer.setClearColor(0xcecece);
+
+        canvas.addEventListener('click', onClick);
+        return !! ( window.WebGLRenderingContext &&
+            ( canvas.getContext( 'webgl' ) || canvas.getContext( 'experimental-webgl' ) ) );
+    } catch (e) {
+        return false;
+    }
+
 }

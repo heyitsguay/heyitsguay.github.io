@@ -73,16 +73,31 @@ var t = 0;
 
 var firstTime = true;
 
-run();
+var hasWebGL = true;
 
-/*
- * Run the sketch
- */
-function run() {
-    // Initialize the sketch
-    init();
-    // Run the sketch
-    animate();
+$(document).ready(onReady);
+
+function onReady() {
+    if (hasWebGL) {
+        // Initialize the sketch
+        initOverlay();
+        init();
+
+        if (hasWebGL) {
+
+            // Run the sketch
+            animate();
+        } else {
+            $('#nowebglpanel').show();
+            $('.toggle').hide();
+            console.log('oughta be done');
+        }
+    }
+    else {
+        $('#nowebglpanel').show();
+        toggleMenu();
+        $('.toggle').hide();
+    }
 }
 
 /*
