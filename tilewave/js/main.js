@@ -1,7 +1,7 @@
 // THREE.js scene
 var scene;
 // Scene camera
-dummy_camera = new THREE.PerspectiveCamera(
+var dummy_camera = new THREE.PerspectiveCamera(
     60,  // Field of view
     1,  // Aspect ratio
     0.1,  // Near clipping plane
@@ -68,8 +68,6 @@ var timeSpeedMax = 2;
 var timeSpeedMin = -3;
 // Controls how granular the controls to change time speed are
 var timeSpeedStep = 0.05;
-
-var t = 0;
 
 var firstTime = true;
 

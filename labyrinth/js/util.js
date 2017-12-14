@@ -12,7 +12,7 @@ function random(a, b) {
 }
 
 
-function random_element(list) {
+function randomElement(list) {
     // Return a random element from the input list.
 
     var i = Math.floor(Math.random() * list.length);
@@ -20,13 +20,13 @@ function random_element(list) {
 }
 
 
-function random_int(a, b) {
+function randomInt(a, b) {
     // Choose an integer uniformly at random from the interval [a, b].
 
     return Math.floor(a + (b + 1 - a) * Math.random());
 }
 
-function random_normal() {
+function randomNormal() {
     // Return a number from a normal distribution with mean 0 and variance 1
     var u = 0;
     var v = 0;

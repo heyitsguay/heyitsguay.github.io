@@ -2,7 +2,7 @@
  * Created by matt on 8/4/17.
  */
 
-// Frequently-used numerical constants
+// FrequentlyUsed numerical constants
 const ISQRT2 = 1. / Math.sqrt(2);
 const SQRT2 = Math.sqrt(2);
 
@@ -16,7 +16,7 @@ const DOWN = 2;
 const LEFT = 3;
 
 // The app renders to a canvas
-var canvas = $('#my-canvas');
+var canvas = $('#canvas');
 // Canvas size
 var width = null;
 var height = null;
@@ -34,16 +34,14 @@ var plan = null;
 
 
 // Tile size in pixels
-var tile_scale = 64;
+var tileSize = 32;
 // Tiles per Chunk
-var chunk_size =  32;
+var chunkSize =  32;
 // Number of Chunks in a labyrinth
-var n_chunks_x = 20;
-var n_chunks_y = 12;
-
+var nChunksX = 20;
+var nChunksY = 12;
 
 window.addEventListener('load', restart);
-
 
 function restart() {
     width = window.innerWidth;
@@ -54,9 +52,6 @@ function restart() {
     app.start();
 }
 
-
-
-
 function App() {
     // Time since start
     this.t = 0.;
@@ -64,25 +59,20 @@ function App() {
     this.dt = 0.;
 
     // List of key states
-    this.n_keys = 256;
-    this.key_list = new Array(this.n_keys).fill(false);
+    this.nKeys = 256;
+    this.keyList = new Array(this.nKeys).fill(false);
 }
 
-
 App.prototype.start = function() {
-    camera = new Camera(tile_scale, chunk_size);
+    camera = new Camera(tileSize, chunkSize);
 
-    plan = new Plan1(chunk_size,
-                     n_chunks_x,
-                     n_chunks_y);
+    plan = new Plan1(chunkSize,
+                     nChunksX,
+                     nChunksY);
 
     labyrinth = new Labyrinth(plan);
 
-    console.log('bork br0k');
 };
-
-
-
 
 function Labyrinth(plan) {
     // A labyrinth!!!
@@ -90,18 +80,18 @@ function Labyrinth(plan) {
     // Labyrinth Plan object
     this.plan = plan;
     // For convenience
-    this.chunk_size = plan.chunk_size;
-    this.n_chunks_x = plan.n_chunks_x;
-    this.n_chunks_y = plan.n_chunks_y;
-    this.n_chunks = plan.n_chunks;
-    this.n_tiles_x = plan.n_tiles_x;
-    this.n_tiles_y = plan.n_tiles_y;
-    this.n_tiles = plan.n_tiles;
+    this.chunkSize = plan.chunkSize;
+    this.nChunksX = plan.nChunksX;
+    this.nChunksY = plan.nChunksY;
+    this.nChunks = plan.nChunks;
+    this.nTilesX = plan.nTilesX;
+    this.nTilesY = plan.nTilesY;
+    this.nTiles = plan.nTiles;
 
-    this.start_x = plan.start_x;
-    this.start_y = plan.start_y;
-    this.win_x = plan.win_x;
-    this.win_y = plan.win_y;
+    this.xStart = plan.xStart;
+    this.yStart = plan.yStart;
+    this.xWin = plan.xWin;
+    this.yWin = plan.yWin;
 
     // Current Labyrinth state
     this.state= LabyrinthEnum.SETUP;
@@ -116,10 +106,10 @@ function Labyrinth(plan) {
     this.player = null;
 
     // List of all Tiles whose light values are currently being updated
-    this.light_list = null;
+    this.lightList = null;
 
     // Tile initialization list
-    this.init_list = null;
+    this.initList = null;
 
     // Perform initial setup
     this.setup();
@@ -130,22 +120,22 @@ function Labyrinth(plan) {
 Labyrinth.prototype.build = function() {
     // Build a maze for the Labyrinth using its Plan.
 
-    // Maze generation is probabilistic. Try max_attempts number of times to
+    // Maze generation is probabilistic. Try maxAttempts number of times to
     // create a solvable maze
-    var creation_attempts = 0;
-    var max_attempts = 100;
+    var creationAttempts = 0;
+    var maxAttempts = 100;
 
     var success = false;
 
-    while (!this.init_list.solvable && creation_attempts < max_attempts) {
-        creation_attempts += 1;
+    while (!this.initList.solvable && creationAttempts < maxAttempts) {
+        creationAttempts += 1;
         // Run the Plan
         this.plan.run();
-        // Set up the InitializationList on the newly-generated maze
-        this.init_list.setup();
+        // Set up the InitializationList on the newlyGenerated maze
+        this.initList.setup();
     }
 
-    if (this.init_list.solvable) {
+    if (this.initList.solvable) {
         success = true;
     }
 
@@ -165,12 +155,12 @@ Labyrinth.prototype.setup = function() {
 
     // Initialize the Chunks
     // Initialize rows of Chunks
-    this.chunks = new Array(this.n_chunks_x);
-    for (var xc=0; xc<this.n_chunks_x; xc++) {
+    this.chunks = new Array(this.nChunksX);
+    for (var xc=0; xc<this.nChunksX; xc++) {
         // Initialize a row of Chunks
-        this.chunks[xc] = new Array(this.n_chunks_y);
+        this.chunks[xc] = new Array(this.nChunksY);
         // Initialize the individual Chunks
-        for (var yc=0; yc<this.n_chunks_y; yc++) {
+        for (var yc=0; yc<this.nChunksY; yc++) {
             this.chunks[xc][yc] = new Chunk(xc, yc);
         }
 
@@ -178,19 +168,19 @@ Labyrinth.prototype.setup = function() {
 
     // Initialize the Tiles
     // Initialize rows of Tiles
-    this.tiles = new Array(this.n_tiles_x);
-    for (var xt=0; xt<this.n_tiles_x; xt++) {
+    this.tiles = new Array(this.nTilesX);
+    for (var xt=0; xt<this.nTilesX; xt++) {
         // Initialize a row of Tiles
-        this.tiles[xt] = new Array(this.n_tiles_y);
+        this.tiles[xt] = new Array(this.nTilesY);
         // Initialize the individual Tiles
-        for (var yt=0; yt<this.n_tiles_y; yt++) {
+        for (var yt=0; yt<this.nTilesY; yt++) {
             this.tiles[xt][yt] = new Tile(xt, yt);
         }
     }
 
     // Create TileLists
-    this.light_list = new LightList();
-    this.init_list = new InitializationList();
+    this.lightList = new LightList();
+    this.initList = new InitializationList();
 
     // Build the Labyrinth, exit if generation fails
     if (!this.build()) {

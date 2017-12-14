@@ -75,6 +75,15 @@ var presets = {
         'tileSize': 0.,
         'frequency': 4.90,
         'shadowHue': 0.275
+    },
+
+    7: {
+        'drawMode': 3,
+        'shadowMode': 2,
+        'timeSpeed': -0.85,
+        'tileSize': 0.,
+        'frequency': 4.43,
+        'shadowHue': 0.275
     }
 
 };

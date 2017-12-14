@@ -10,10 +10,10 @@ function Chunk(xc, yc) {
 
     // Tiles with Tile coordinates (xt0, yt0) through (xt1, yt1) reside in
     // this Chunk
-    this.xt0 = xc * chunk_size;
-    this.xt1 = this.xt0 + chunk_size - 1;
-    this.yt0 = yc * chunk_size;
-    this.yt1 = this.yt0 + chunk_size - 1;
+    this.xt0 = xc * chunkSize;
+    this.xt1 = this.xt0 + chunkSize - 1;
+    this.yt0 = yc * chunkSize;
+    this.yt1 = this.yt0 + chunkSize - 1;
 
     // List of all Entities whose intersection with this Chunk is nonempty
     this.entities = [];

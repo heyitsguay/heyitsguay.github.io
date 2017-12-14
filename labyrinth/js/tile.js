@@ -10,10 +10,10 @@ function Tile(xt, yt) {
     this.yt = yt;
 
     // Linear tile index
-    this.idx = this.xt + labyrinth.n_tiles_x * this.yt;
+    this.idx = this.xt + labyrinth.nTilesX * this.yt;
 
     // Tile type defaults to impassible wall
-    this.type = this.set_type(TileEnum.WALL);
+    this.type = this.setType(TileEnum.WALL);
 
     // If true, the Tile cannot be traversed
     this.blocked = true;
@@ -26,7 +26,7 @@ function Tile(xt, yt) {
     // Base weight value used for calculating diffusion operations on the
     // PATH Tiles.
     // Equal to 1 / (sqrt2 * [# URDL neighbors] + [# diagonal neighbors])
-    this.neighbor_weight = null;
+    this.neighborWeight = null;
 
     // List of all Items whose positions overlap with this Tile
     this.items = [];
@@ -39,45 +39,45 @@ function Tile(xt, yt) {
 
     // Tile coloring properties
     // Tile hue
-    this.c_h = null;
+    this.cH = null;
     // Tile saturation
-    this.c_s = null;
+    this.cS = null;
     // Maximum Tile brightness
-    this.c_b_max = null;
+    this.cBMax = null;
     // Brightness baseline and active illumination components
-    this.c_b_base = null;
-    this.c_b_active = 0;
+    this.cBBase = null;
+    this.cBActive = 0;
     // Used for active lighting updates.
-    this.c_b_active_new = 0;
+    this.cBActiveNew = 0;
 }
 
 
-Tile.prototype.set_type = function(new_type) {
-    // Set the type of the Tile, perform type-related updates.
+Tile.prototype.setType = function(newType) {
+    // Set the type of the Tile, perform typeRelated updates.
 
-    switch (new_type) {
+    switch (newType) {
         case TileEnum.WALL:
             this.blocked = true;
-            this.c_h = 0;
-            this.c_s = 1;
-            this.c_b_max = 1;
-            this.c_b_base = 0;
+            this.cH = 0;
+            this.cS = 1;
+            this.cBMax = 1;
+            this.cBBase = 0;
             break;
 
         case TileEnum.PATH:
             this.blocked = false;
-            this.c_h = 0.635;
-            this.c_s = 0.5;
-            this.c_b_max = 1;
-            this.c_b_base = 0;
+            this.cH = 0.635;
+            this.cS = 0.5;
+            this.cBMax = 1;
+            this.cBBase = 0;
             break;
 
         case TileEnum.WIN:
             this.blocked = false;
-            this.c_h = 0.4;
-            this.c_s = 1;
-            this.c_b_max = 1;
-            this.c_b_base = 0;
+            this.cH = 0.4;
+            this.cS = 1;
+            this.cBMax = 1;
+            this.cBBase = 0;
             break;
 
         default:
