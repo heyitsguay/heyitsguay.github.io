@@ -29,8 +29,8 @@ var tileSize = 32;
 // Tiles per Chunk
 var chunkSize =  32;
 // Number of Chunks in a labyrinth
-var nChunksX = 20;
-var nChunksY = 12;
+var nChunksX = 10;
+var nChunksY = 8;
 
 // THREE.js attributes for rendering
 var scene = null;
@@ -42,6 +42,14 @@ var tileGeometry = null;
 var tileMaterial = null;
 
 var cameraMoveSpeed = 10;
+
+// Dict of key states
+keyStates = {};
+// Only pay attention to standard ASCII keys
+for (var i = 32; i < 128; i++) {
+    var c = String.fromCharCode(i);
+    keyStates[c] = false;
+}
 
 
 $(document).ready(restart);
@@ -56,6 +64,38 @@ function restart() {
     canvas.height = height;
     app = new App();
     app.start();
+}
+
+
+function onKeyDown(evt) {
+    var key = evt.key.toLowerCase();
+    if (key in keyStates) {
+        keyStates[key] = true;
+    }
+}
+
+
+function onKeyUp(evt) {
+    var key = evt.key.toLowerCase();
+    if (key in keyStates) {
+        keyStates[key] = false;
+    }
+}
+
+function onResize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    app.updateRenderer();
+}
+
+
+function onWheel(evt) {
+    if (evt.deltaY < 0) {
+        camera.translateZ(-10);
+
+    } else if (evt.deltaY > 0) {
+        camera.translateZ(10);
+    }
 }
 
 
@@ -80,38 +120,23 @@ function App() {
 
 App.prototype.handleKeys = function() {
     // A - move left
-    if (this.keyStates['a']) {
+    if (keyStates['a']) {
         camera.translateX(-cameraMoveSpeed);
     }
 
     // D - move right
-    if (this.keyStates['d']) {
+    if (keyStates['d']) {
         camera.translateX(cameraMoveSpeed);
     }
 
     // S - move down
-    if (this.keyStates['s']) {
+    if (keyStates['s']) {
         camera.translateY(-cameraMoveSpeed);
     }
 
     // W - move up
-    if (this.keyStates['w']) {
+    if (keyStates['w']) {
         camera.translateY(cameraMoveSpeed);
-    }
-};
-
-
-App.prototype.onKeyDown = function(evt) {
-    var key = evt.key.toLowerCase();
-    if (key in this.keyStates) {
-        this.keyStates[key] = true;
-    }
-};
-
-App.prototype.onKeyUp = function(evt) {
-    var key = evt.key.toLowerCase();
-    if (key in this.keyStates) {
-        this.keyStates[key] = false;
     }
 };
 
@@ -122,7 +147,7 @@ App.prototype.render = function() {
 
 
 App.prototype.run = function(){
-    requestAnimationFrame(this.run);
+    requestAnimationFrame(this.run.bind(this));
     this.handleKeys();
     this.render();
 };
@@ -135,13 +160,14 @@ App.prototype.start = function() {
         this.setupCallbacks();
     }
 
-    camera = new Camera(tileSize, chunkSize);
-
     plan = new Plan1(chunkSize,
                      nChunksX,
                      nChunksY);
 
     labyrinth = new Labyrinth(plan);
+    labyrinth.setup();
+
+    this.setupCamera();
 
     this.run();
 
@@ -150,14 +176,16 @@ App.prototype.start = function() {
 
 App.prototype.setupCallbacks = function() {
     // canvas.addEventListener('click', onClick);
-    document.addEventListener('keydown', this.onKeyDown);
-    document.addEventListener('keyup', this.onKeyUp);
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
+    document.addEventListener('wheel', onWheel);
+    $(window).resize(onResize);
 };
 
 
 App.prototype.setupCamera = function() {
     var startTile = labyrinth.tiles[labyrinth.xStart][labyrinth.yStart];
-    camera.position.set(startTile.xw, startTile.yw, 100);
+    camera.position.set(startTile.xw, startTile.yw, 500);
     camera.lookAt(startTile.mesh.position);
 };
 
@@ -177,7 +205,7 @@ App.prototype.setupGL = function() {
             60,  // Field of view
             1,  // Aspect ratio
             1,  // Near clipping plane
-            1000  // Far clipping plane
+            10000  // Far clipping plane
         );
 
         // Create a THREE.js renderer and set it up
@@ -194,8 +222,9 @@ App.prototype.setupGL = function() {
 
         // Create the tile geometry
         tileGeometry = new THREE.PlaneGeometry(tileSize, tileSize, 1, 1);
+        // tileGeometry.elementsNeedUpdate = true;
         // Create the tile material
-        tileMaterial = new THREE.MeshBasicMaterial({color: 0x0000ff});
+        tileMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
 
         return true;
     } catch (e) {
@@ -208,4 +237,5 @@ App.prototype.updateRenderer = function() {
     renderer.setSize(width, height, false);
     renderer.setPixelRatio(window.devicePixelRatio? window.devicePixelRatio : 1);
     camera.aspect = width / height;
+    camera.updateProjectionMatrix();
 };

@@ -3,9 +3,9 @@ var scene;
 // Scene camera
 var dummy_camera = new THREE.PerspectiveCamera(
     60,  // Field of view
-    1,  // Aspect ratio
+    window.innerWidth/window.innerHeight,  // Aspect ratio
     0.1,  // Near clipping plane
-    100000  // Far clipping plane
+    10000  // Far clipping plane
 );
 // THREE.js renderer
 var renderer;
@@ -34,10 +34,10 @@ var tileSize = 20;
 // Controls how granular the controls to change tile size are
 var tileSizeStep = 1.02;
 function xTile() {
-    return Math.ceil(xSize / tileSize);
+    return (xSize / tileSize);
 }
 function yTile() {
-    return Math.ceil(ySize / tileSize);
+    return (ySize / tileSize);
 }
 // Size of the tile plane in whatever units THREE.js geometries use
 var xSize;
@@ -73,6 +73,12 @@ var firstTime = true;
 
 var hasWebGL = true;
 
+var keyStates = {};
+for (var i = 32; i < 128; i++) {
+    var c = String.fromCharCode(i);
+    keyStates[c] = false;
+}
+
 $(document).ready(onReady);
 
 function onReady() {
@@ -88,7 +94,6 @@ function onReady() {
         } else {
             $('#nowebglpanel').show();
             $('.toggle').hide();
-            console.log('oughta be done');
         }
     }
     else {

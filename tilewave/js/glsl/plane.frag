@@ -35,7 +35,7 @@ float sig(float x, float c, float m) {
 
 void main() {
 
-    vec2 vXY = -1. + 2. * vUV;
+    vec2 vXY = -1. + 2. * vUV + 0.5 / planeSize;
     vec2 position = floor(vXY * planeSize);
     float dLinear1 = position.x + position.y * planeSize.x;
     float dLinear2 = position.y + position.x * planeSize.y;

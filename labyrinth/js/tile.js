@@ -16,7 +16,8 @@ function Tile(xt, yt) {
     this.idx = this.xt + labyrinth.nTilesX * this.yt;
 
     // Tile type defaults to impassible wall
-    this.type = this.setType(TileEnum.WALL);
+    this.type = null;
+
 
     // If true, the Tile cannot be traversed
     this.blocked = true;
@@ -53,9 +54,13 @@ function Tile(xt, yt) {
     // Used for active lighting updates.
     this.cBActiveNew = 0;
 
-    this.mesh = new THREE.Mesh(tileGeometry, tileMaterial);
-    this.mesh.position = new THREE.Vector3(this.xw, this.yw, 0);
+    this.mesh = new THREE.Mesh(tileGeometry, tileMaterial.clone());
+    scene.add(this.mesh);
+    this.mesh.position.copy(new THREE.Vector3(this.xw, this.yw, 0));
     this.mesh.lookAt(new THREE.Vector3(this.xw, this.yw, 1));
+
+    this.setType(TileEnum.WALL);
+
 
 
 
@@ -72,7 +77,9 @@ Tile.prototype.setType = function(newType) {
             this.cS = 1;
             this.cBMax = 1;
             this.cBBase = 0;
-            this.mesh.material.color = new THREE.Color(0x220000);
+            if (this.mesh) {
+                this.mesh.material.color = new THREE.Color(0x220000);
+            }
             break;
 
         case TileEnum.PATH:
@@ -81,7 +88,9 @@ Tile.prototype.setType = function(newType) {
             this.cS = 0.5;
             this.cBMax = 1;
             this.cBBase = 0;
-            this.mesh.material.color = new THREE.Color(0x0000ff);
+            if (this.mesh) {
+                this.mesh.material.color = new THREE.Color(0x0000ff);
+            }
             break;
 
         case TileEnum.WIN:
@@ -90,10 +99,14 @@ Tile.prototype.setType = function(newType) {
             this.cS = 1;
             this.cBMax = 1;
             this.cBBase = 0;
-            this.mesh.material.color = new THREE.Color(0xff00ff);
+            if (this.mesh) {
+                this.mesh.material.color = new THREE.Color(0xff00ff);
+            }
             break;
 
         default:
             throw 'Unknown Tile type.'
     }
+
+    this.type = newType;
 };

@@ -45,9 +45,6 @@ function Labyrinth(plan) {
     // Tile initialization list
     this.initList = null;
 
-    // Perform initial setup
-    this.setup();
-
 }
 
 
@@ -118,6 +115,7 @@ Labyrinth.prototype.setup = function() {
 
     // Build the Labyrinth, exit if generation fails
     if (!this.build()) {
+        alert('Labyrinth generation failed!');
         throw new Error('Labyrinth generation failed');
     }
 

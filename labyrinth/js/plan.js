@@ -46,13 +46,13 @@ function Plan1(chunkSize, nChunksX, nChunksY) {
     Plan.call(this, chunkSize, nChunksX, nChunksY);
 
     // For this many rounds, add Creators at the starting and winning Tiles
-    this.nSwRounds = 4;
+    this.nSwRounds = 10;
     // Spawn this many Creators per startWin round
-    this.nSwCreators = 2;
+    this.nSwCreators = 14;
     // For this many rounds, add Creators to the map randomly
     this.nRandomRounds = 46;
     // Number of Creators per random placement round
-    this.nRandomCreators = 5;
+    this.nRandomCreators = 18;
 }
 Plan1.prototype = Object.create(Plan.prototype);
 
@@ -72,7 +72,7 @@ Plan1.prototype.roundRandom = function(nRounds, nCreators) {
         var avoidProb = 0.3 + 0.65 * p;
 
         // Creator lifetime
-        var lifetime = Math.floor(2.3 * Math.sqrt(this.nTiles) / 2);
+        var lifetime = Math.floor(2.3 * Math.sqrt(this.nTiles));
 
         // Corridor length standard deviation
         var lengthSd = 3;

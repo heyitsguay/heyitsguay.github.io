@@ -9,7 +9,7 @@ function onKeyPress(event) {
 
     // A - decrease tile size
     if (keyName === 'a') {
-        var downSize = Math.floor(tileSize / tileSizeStep);
+        var downSize = (tileSize / tileSizeStep);
         tileSize = Math.max(downSize, 1);
         sliderTileSize(log10(tileSize));
     }
@@ -22,7 +22,7 @@ function onKeyPress(event) {
 
     // D - increase tile size
     if (keyName === 'd') {
-        var upSize = Math.ceil(tileSize * tileSizeStep);
+        var upSize = (tileSize * tileSizeStep);
         tileSize = Math.min(upSize, Math.min(xSize, ySize));
         sliderTileSize(log10(tileSize));
     }
@@ -92,7 +92,8 @@ function resize() {
     renderer.setPixelRatio(1);
     // renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
     // Set camera aspect ratio
-    // camera.aspect = window.innerWidth / window.innerHeight;
+    dummy_camera.aspect = window.innerWidth / window.innerHeight;
+    dummy_camera.updateProjectionMatrix();
     $('#range-tilesize').prop({max: log10(Math.min(xSize, ySize))});
 }
 
