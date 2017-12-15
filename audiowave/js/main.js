@@ -4,7 +4,7 @@ navigator.getUserMedia = (navigator.getUserMedia ||
                           navigator.msGetUserMedia);
 
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-var source, stream;
+var source;
 var analyser = audioCtx.createAnalyser();
 analyser.minDecibels = -50;
 analyser.maxDecibels = -15;
@@ -18,13 +18,8 @@ $(document).ready(function() {
     run();
 });
 
-var maxFreqBins = 2048;
 var nFreqBins = 512;
 var minDecibels = -50;
-
-function npot(x) {
-    return Math.round(Math.pow(2, Math.round(Math.log(x) / Math.log(2))));
-}
 
 $(document).mousemove(function(evt) {
     var px = evt.pageX / window.innerWidth;
@@ -73,7 +68,7 @@ function visualize() {
         analyser.fftSize = nFreqBins;
         bufferLength = analyser.frequencyBinCount;
         dataArray = new Uint8Array(bufferLength);
-        var drawVisual = requestAnimationFrame(draw);
+        requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
         canvasCtx.fillStyle = 'rgb(0, 0, 0)';
         canvasCtx.fillRect(0, 0, w, h);
