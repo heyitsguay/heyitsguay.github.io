@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="6bb9ba30-5732-4674-8c6b-a98e0322151e" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/js/main.js" afterPath="$PROJECT_DIR$/js/main.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -176,7 +175,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1513306068073</updated>
-      <workItem from="1513306069385" duration="5091000" />
+      <workItem from="1513306069385" duration="5099000" />
     </task>
     <task id="LOCAL-00001" summary="First audiowave commit">
       <created>1513309038301</created>
@@ -199,11 +198,18 @@
       <option name="project" value="LOCAL" />
       <updated>1513311131219</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Fixed warnings">
+      <created>1513311173189</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1513311173189</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="5091000" />
+    <option name="totallyTimeSpent" value="5099000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1920" y="1076" width="1920" height="1084" extended-state="6" />
@@ -238,7 +244,8 @@
     <MESSAGE value="First audiowave commit" />
     <MESSAGE value="Added an info panel" />
     <MESSAGE value="Fixed background" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed background" />
+    <MESSAGE value="Fixed warnings" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed warnings" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
