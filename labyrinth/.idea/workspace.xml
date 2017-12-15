@@ -2,20 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="18ab85ac-6f48-449a-b32c-95a9b0374c15" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/audiowave.iml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/jsLibraryMappings.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/modules.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/workspace.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/index.html" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/js/main.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/style.css" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/js/labyrinth.js" />
-      <change beforePath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" />
-      <change beforePath="$PROJECT_DIR$/.idea/labyrinth.iml" afterPath="$PROJECT_DIR$/.idea/labyrinth.iml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/vcs.xml" />
+      <change beforePath="$PROJECT_DIR$/../audiowave/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../audiowave/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/../audiowave/index.html" afterPath="$PROJECT_DIR$/../audiowave/index.html" />
+      <change beforePath="$PROJECT_DIR$/../audiowave/js/main.js" afterPath="$PROJECT_DIR$/../audiowave/js/main.js" />
+      <change beforePath="$PROJECT_DIR$/../audiowave/style.css" afterPath="$PROJECT_DIR$/../audiowave/style.css" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change beforePath="$PROJECT_DIR$/js/main.js" afterPath="$PROJECT_DIR$/js/main.js" />
-      <change beforePath="$PROJECT_DIR$/js/tile.js" afterPath="$PROJECT_DIR$/js/tile.js" />
       <change beforePath="$PROJECT_DIR$/../tilewave/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../tilewave/.idea/workspace.xml" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -234,10 +226,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1919" />
-    <option name="y" value="1069" />
-    <option name="width" value="1922" />
-    <option name="height" value="1092" />
+    <option name="x" value="1920" />
+    <option name="y" value="1076" />
+    <option name="width" value="1920" />
+    <option name="height" value="1084" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -398,7 +390,7 @@
     <option name="totallyTimeSpent" value="114471000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1919" y="1069" width="1922" height="1092" extended-state="6" />
+    <frame x="1920" y="1076" width="1920" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.077083334" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />

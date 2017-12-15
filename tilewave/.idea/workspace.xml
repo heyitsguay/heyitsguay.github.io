@@ -2,20 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bb69136b-a05c-4a31-a9fe-4cc787d6007b" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/audiowave.iml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/jsLibraryMappings.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/modules.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/workspace.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/index.html" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/js/main.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/style.css" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../labyrinth/js/labyrinth.js" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/.idea/jsLibraryMappings.xml" afterPath="$PROJECT_DIR$/../labyrinth/.idea/jsLibraryMappings.xml" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/.idea/labyrinth.iml" afterPath="$PROJECT_DIR$/../labyrinth/.idea/labyrinth.iml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../audiowave/.idea/vcs.xml" />
+      <change beforePath="$PROJECT_DIR$/../audiowave/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../audiowave/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/../audiowave/index.html" afterPath="$PROJECT_DIR$/../audiowave/index.html" />
+      <change beforePath="$PROJECT_DIR$/../audiowave/js/main.js" afterPath="$PROJECT_DIR$/../audiowave/js/main.js" />
+      <change beforePath="$PROJECT_DIR$/../audiowave/style.css" afterPath="$PROJECT_DIR$/../audiowave/style.css" />
       <change beforePath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/index.html" afterPath="$PROJECT_DIR$/../labyrinth/index.html" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/js/main.js" afterPath="$PROJECT_DIR$/../labyrinth/js/main.js" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/js/tile.js" afterPath="$PROJECT_DIR$/../labyrinth/js/tile.js" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -38,8 +30,8 @@
           <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="522">
-                  <caret line="29" column="4" lean-forward="false" selection-start-line="29" selection-start-column="4" selection-end-line="29" selection-end-column="48" />
+                <state relative-caret-position="288">
+                  <caret line="16" column="10" lean-forward="false" selection-start-line="16" selection-start-column="10" selection-end-line="16" selection-end-column="10" />
                   <folding />
                 </state>
               </provider>
@@ -106,8 +98,8 @@
           <file leaf-file-name="style.css" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/css/style.css">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="576">
-                  <caret line="32" column="1" lean-forward="true" selection-start-line="32" selection-start-column="1" selection-end-line="32" selection-end-column="1" />
+                <state relative-caret-position="305">
+                  <caret line="67" column="4" lean-forward="true" selection-start-line="67" selection-start-column="4" selection-end-line="76" selection-end-column="24" />
                   <folding />
                 </state>
               </provider>
@@ -203,8 +195,8 @@
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="y" value="1076" />
-    <option name="width" value="1922" />
-    <option name="height" value="1092" />
+    <option name="width" value="1920" />
+    <option name="height" value="1084" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -300,7 +292,7 @@
       <workItem from="1513200386147" duration="1254000" />
       <workItem from="1513213805113" duration="3506000" />
       <workItem from="1513277449339" duration="3008000" />
-      <workItem from="1513280610387" duration="9366000" />
+      <workItem from="1513280610387" duration="10303000" />
     </task>
     <task id="LOCAL-00001" summary="Got back to work on labyrinth">
       <created>1513280218434</created>
@@ -313,10 +305,10 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="137291000" />
+    <option name="totallyTimeSpent" value="138228000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="1076" width="1922" height="1092" extended-state="6" />
+    <frame x="0" y="1076" width="1920" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.18697916" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -502,18 +494,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
+    <entry file="file://$PROJECT_DIR$/css/style.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="522">
-          <caret line="29" column="4" lean-forward="false" selection-start-line="29" selection-start-column="4" selection-end-line="29" selection-end-column="48" />
+        <state relative-caret-position="305">
+          <caret line="67" column="4" lean-forward="true" selection-start-line="67" selection-start-column="4" selection-end-line="76" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/css/style.css">
+    <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="576">
-          <caret line="32" column="1" lean-forward="true" selection-start-line="32" selection-start-column="1" selection-end-line="32" selection-end-column="1" />
+        <state relative-caret-position="288">
+          <caret line="16" column="10" lean-forward="false" selection-start-line="16" selection-start-column="10" selection-end-line="16" selection-end-column="10" />
           <folding />
         </state>
       </provider>

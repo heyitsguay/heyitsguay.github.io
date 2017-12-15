@@ -8,7 +8,7 @@ var source, stream;
 var analyser = audioCtx.createAnalyser();
 analyser.minDecibels = -50;
 analyser.maxDecibels = -5;
-analyser.smoothingTimeConstant = 0.5;
+analyser.smoothingTimeConstant = 0.8;
 
 var canvas, canvasCtx;
 
@@ -31,7 +31,10 @@ $(document).mousemove(function(evt) {
     var py = evt.pageY / window.innerHeight;
     var logNFreqBins = Math.floor(5 + 6 * px);
     nFreqBins = Math.round(Math.pow(2, logNFreqBins));
-    // minDecibels = -100 * py + -20 * (1 - py);
+    minDecibels = -100 * py + -20 * (1 - py);
+    document.getElementById('thediv').innerHTML =
+        nFreqBins + ' fftsize, ' + minDecibels.toFixed(1) + ' min dB';
+
 });
 
 function run() {
