@@ -57,27 +57,22 @@ function visualize() {
     var bufferLength, dataArray;
     canvasCtx.clearRect(0, 0, w, h);
 
-    // analyser.minDecibels = minDecibels;
-    //
-    // analyser.fftSize = nFreqBins;
-    // bufferLength = analyser.frequencyBinCount;
-    // dataArray = new Uint8Array(bufferLength);
-
     var draw = function() {
         analyser.minDecibels = minDecibels;
         analyser.fftSize = nFreqBins;
         bufferLength = analyser.frequencyBinCount;
+        var usefulLength = Math.floor(bufferLength * 0.3);
         dataArray = new Uint8Array(bufferLength);
         requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
         canvasCtx.fillStyle = 'rgb(0, 0, 0)';
         canvasCtx.fillRect(0, 0, w, h);
 
-        var barWidth = (w / bufferLength) * 2.5;
+        var barWidth = (w / usefulLength) * 2.5;
         var barHeight;
         var x = 0;
 
-        for(var i = 0; i < bufferLength; i++) {
+        for(var i = 0; i < usefulLength; i++) {
             barHeight = dataArray[i];
             canvasCtx.fillStyle = 'rgb(100, 100, ' + (barHeight + 100) + ')';
             canvasCtx.fillRect(x, h-barHeight/2, barWidth, barHeight/2);
