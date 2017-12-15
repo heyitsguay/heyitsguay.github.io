@@ -7,7 +7,7 @@ var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 var source, stream;
 var analyser = audioCtx.createAnalyser();
 analyser.minDecibels = -50;
-analyser.maxDecibels = -5;
+analyser.maxDecibels = -15;
 analyser.smoothingTimeConstant = 0.8;
 
 var canvas, canvasCtx;
@@ -29,7 +29,7 @@ function npot(x) {
 $(document).mousemove(function(evt) {
     var px = evt.pageX / window.innerWidth;
     var py = evt.pageY / window.innerHeight;
-    var logNFreqBins = Math.floor(5 + 6 * px);
+    var logNFreqBins = Math.round(5 + 6 * px);
     nFreqBins = Math.round(Math.pow(2, logNFreqBins));
     minDecibels = -100 * py + -20 * (1 - py);
     document.getElementById('thediv').innerHTML =
@@ -75,7 +75,7 @@ function visualize() {
         dataArray = new Uint8Array(bufferLength);
         var drawVisual = requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
-        canvasCtx.fillSTyle = 'rgb(0, 0, 0)';
+        canvasCtx.fillStyle = 'rgb(0, 0, 0)';
         canvasCtx.fillRect(0, 0, w, h);
 
         var barWidth = (w / bufferLength) * 2.5;
