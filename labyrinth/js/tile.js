@@ -8,6 +8,9 @@ function Tile(xt, yt) {
     // Tile coordinates
     this.xt = xt;
     this.yt = yt;
+    // World coordinates for the tile center
+    this.xw = (xt + 0.5) * tileSize;
+    this.yw = (yt + 0.5) * tileSize;
 
     // Linear tile index
     this.idx = this.xt + labyrinth.nTilesX * this.yt;
@@ -49,6 +52,13 @@ function Tile(xt, yt) {
     this.cBActive = 0;
     // Used for active lighting updates.
     this.cBActiveNew = 0;
+
+    this.mesh = new THREE.Mesh(tileGeometry, tileMaterial);
+    this.mesh.position = new THREE.Vector3(this.xw, this.yw, 0);
+    this.mesh.lookAt(new THREE.Vector3(this.xw, this.yw, 1));
+
+
+
 }
 
 
@@ -62,6 +72,7 @@ Tile.prototype.setType = function(newType) {
             this.cS = 1;
             this.cBMax = 1;
             this.cBBase = 0;
+            this.mesh.material.color = new THREE.Color(0x220000);
             break;
 
         case TileEnum.PATH:
@@ -70,6 +81,7 @@ Tile.prototype.setType = function(newType) {
             this.cS = 0.5;
             this.cBMax = 1;
             this.cBBase = 0;
+            this.mesh.material.color = new THREE.Color(0x0000ff);
             break;
 
         case TileEnum.WIN:
@@ -78,6 +90,7 @@ Tile.prototype.setType = function(newType) {
             this.cS = 1;
             this.cBMax = 1;
             this.cBBase = 0;
+            this.mesh.material.color = new THREE.Color(0xff00ff);
             break;
 
         default:
