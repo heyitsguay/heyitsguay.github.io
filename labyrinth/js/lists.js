@@ -193,6 +193,10 @@ InitializationList.prototype.initialize = function(tile) {
         this.solvable = true;
     }
 
+    if (tile.type === TileEnum.PATH) {
+        tile.mesh.material.color = new THREE.Color()
+    }
+
     // Add neighboring nonWall Tiles to the input tile's neighbor list, and
     // add any nonInitialized neighbor Tiles to the InitializationList
     this.addNeighbors(tile);

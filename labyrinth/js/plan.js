@@ -20,12 +20,12 @@ function Plan(chunkSize, nChunksX, nChunksY) {
     }
 
     // Start in the first quarter of the labyrinth, but not on the border
-    this.xStart = 1 + Math.round(0.25 * Math.random() * this.nTilesX);
-    this.yStart = 1 + Math.round(0.25 * Math.random() * this.nTilesY);
+    this.xStart = 1 + Math.round(0.15 * Math.random() * this.nTilesX);
+    this.yStart = 1 + Math.round(0.15 * Math.random() * this.nTilesY);
 
     // End in the last quarter of the labyrinth, but not on the border
-    this.xWin = Math.round(0.75 + 0.25 * Math.random()) * this.nTilesX - 2;
-    this.yWin = Math.round(0.75 + 0.25 * Math.random()) * this.nTilesY - 2;
+    this.xWin = Math.round((0.85 + 0.15 * Math.random()) * this.nTilesX - 2);
+    this.yWin = Math.round((0.85 + 0.15 * Math.random()) * this.nTilesY - 2);
 }
 
 
@@ -48,11 +48,11 @@ function Plan1(chunkSize, nChunksX, nChunksY) {
     // For this many rounds, add Creators at the starting and winning Tiles
     this.nSwRounds = 10;
     // Spawn this many Creators per startWin round
-    this.nSwCreators = 14;
+    this.nSwCreators = 2;
     // For this many rounds, add Creators to the map randomly
-    this.nRandomRounds = 46;
+    this.nRandomRounds = 40;
     // Number of Creators per random placement round
-    this.nRandomCreators = 18;
+    this.nRandomCreators = 8;
 }
 Plan1.prototype = Object.create(Plan.prototype);
 
@@ -69,10 +69,10 @@ Plan1.prototype.roundRandom = function(nRounds, nCreators) {
         var p = i / (nRounds - 1);
 
         // PathAvoidance probability
-        var avoidProb = 0.3 + 0.65 * p;
+        var avoidProb = 0.5 + 0.45 * p;
 
         // Creator lifetime
-        var lifetime = Math.floor(2.3 * Math.sqrt(this.nTiles));
+        var lifetime = Math.floor(4. * Math.sqrt(this.nTiles));
 
         // Corridor length standard deviation
         var lengthSd = 3;
@@ -145,7 +145,7 @@ Plan1.prototype.roundStartWin = function(nRounds, nCreators) {
         var dAvoidProb = 0.4;
 
         // Creator lifetime
-        var lifetime = Math.floor(3 * Math.sqrt(this.nTiles) / 2);
+        var lifetime = Math.floor(3 * Math.sqrt(this.nTiles));
 
         // Average corridor length
         var lengthMean = 4;

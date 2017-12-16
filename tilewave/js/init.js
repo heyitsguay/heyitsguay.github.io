@@ -76,8 +76,9 @@ function initOverlay() {
     // document.getElementById('select-presets').addEventListener('change', function() {console.log('b0rk');});
     $("#select-presets").change(function(){loadPreset(this.value);});
 
-
-    loadPreset(3);
+    if (firstTime) {
+        loadPreset(3);
+    }
 }
 
 /*

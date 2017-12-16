@@ -23,7 +23,6 @@ var labyrinth = null;
 // A Plan is a function which produces Labyrinths
 var plan = null;
 
-
 // Tile size in pixels
 var tileSize = 32;
 // Tiles per Chunk
@@ -41,7 +40,9 @@ var tileGeometry = null;
 // Test quad material
 var tileMaterial = null;
 
-var cameraMoveSpeed = 10;
+function cameraMoveSpeed() {
+    return camera.position.z / 31.25;
+}
 
 // Dict of key states
 keyStates = {};
@@ -50,6 +51,8 @@ for (var i = 32; i < 128; i++) {
     var c = String.fromCharCode(i);
     keyStates[c] = false;
 }
+
+var seed = 'bork_daniels';
 
 
 $(document).ready(restart);
@@ -60,8 +63,8 @@ function restart() {
     canvas = $('#canvas').get()[0];
     width = window.innerWidth;
     height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
+    // canvas.width = width;
+    // canvas.height = height;
     app = new App();
     app.start();
 }
@@ -83,21 +86,28 @@ function onKeyUp(evt) {
 }
 
 function onResize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
     app.updateRenderer();
 }
 
 
 function onWheel(evt) {
     if (evt.deltaY < 0) {
-        camera.translateZ(-10);
+        camera.translateZ(-100);
 
     } else if (evt.deltaY > 0) {
-        camera.translateZ(10);
+        camera.translateZ(100);
     }
 }
 
+
+var zoomDelta = 100;
+
+function cameraZoomOut() {
+    camera.translateZ(zoomDelta);
+}
+function cameraZoomIn() {
+    camera.translateZ(-zoomDelta);
+}
 
 function App() {
     // Time since start
@@ -121,22 +131,32 @@ function App() {
 App.prototype.handleKeys = function() {
     // A - move left
     if (keyStates['a']) {
-        camera.translateX(-cameraMoveSpeed);
+        camera.translateX(-cameraMoveSpeed());
     }
 
     // D - move right
     if (keyStates['d']) {
-        camera.translateX(cameraMoveSpeed);
+        camera.translateX(cameraMoveSpeed());
+    }
+
+    // F - zoom out
+    if (keyStates['f']) {
+        cameraZoomOut();
+    }
+
+    // R - zoom in
+    if (keyStates['r']) {
+        cameraZoomIn();
     }
 
     // S - move down
     if (keyStates['s']) {
-        camera.translateY(-cameraMoveSpeed);
+        camera.translateY(-cameraMoveSpeed());
     }
 
     // W - move up
     if (keyStates['w']) {
-        camera.translateY(cameraMoveSpeed);
+        camera.translateY(cameraMoveSpeed());
     }
 };
 
@@ -159,6 +179,8 @@ App.prototype.start = function() {
         this.setupGL();
         this.setupCallbacks();
     }
+
+    Math.seedrandom(seed);
 
     plan = new Plan1(chunkSize,
                      nChunksX,
@@ -234,6 +256,10 @@ App.prototype.setupGL = function() {
 
 
 App.prototype.updateRenderer = function() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
     renderer.setSize(width, height, false);
     renderer.setPixelRatio(window.devicePixelRatio? window.devicePixelRatio : 1);
     camera.aspect = width / height;

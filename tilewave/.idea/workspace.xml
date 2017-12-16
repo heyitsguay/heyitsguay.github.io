@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="bb69136b-a05c-4a31-a9fe-4cc787d6007b" name="Default" comment="Got back to work on labyrinth">
-      <change beforePath="$PROJECT_DIR$/../audiowave/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../audiowave/.idea/workspace.xml" />
+    <list default="true" id="bb69136b-a05c-4a31-a9fe-4cc787d6007b" name="Default" comment="">
+      <change beforePath="" afterPath="$PROJECT_DIR$/../labyrinth/js/seeds.js" />
+      <change beforePath="$PROJECT_DIR$/../labyrinth/.idea/jsLibraryMappings.xml" afterPath="$PROJECT_DIR$/../labyrinth/.idea/jsLibraryMappings.xml" />
+      <change beforePath="$PROJECT_DIR$/../labyrinth/.idea/labyrinth.iml" afterPath="$PROJECT_DIR$/../labyrinth/.idea/labyrinth.iml" />
       <change beforePath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../labyrinth/index.html" afterPath="$PROJECT_DIR$/../labyrinth/index.html" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/js/camera.js" afterPath="" />
       <change beforePath="$PROJECT_DIR$/../labyrinth/js/labyrinth.js" afterPath="$PROJECT_DIR$/../labyrinth/js/labyrinth.js" />
+      <change beforePath="$PROJECT_DIR$/../labyrinth/js/lists.js" afterPath="$PROJECT_DIR$/../labyrinth/js/lists.js" />
       <change beforePath="$PROJECT_DIR$/../labyrinth/js/main.js" afterPath="$PROJECT_DIR$/../labyrinth/js/main.js" />
       <change beforePath="$PROJECT_DIR$/../labyrinth/js/plan.js" afterPath="$PROJECT_DIR$/../labyrinth/js/plan.js" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/js/tile.js" afterPath="$PROJECT_DIR$/../labyrinth/js/tile.js" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/style.css" afterPath="$PROJECT_DIR$/../labyrinth/style.css" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/js/events.js" afterPath="$PROJECT_DIR$/js/events.js" />
-      <change beforePath="$PROJECT_DIR$/js/glsl/plane.frag" afterPath="$PROJECT_DIR$/js/glsl/plane.frag" />
-      <change beforePath="$PROJECT_DIR$/js/main.js" afterPath="$PROJECT_DIR$/js/main.js" />
+      <change beforePath="$PROJECT_DIR$/js/init.js" afterPath="$PROJECT_DIR$/js/init.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -46,8 +44,8 @@
           <file leaf-file-name="init.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/js/init.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1782">
-                  <caret line="101" column="2" lean-forward="false" selection-start-line="101" selection-start-column="2" selection-end-line="101" selection-end-column="2" />
+                <state relative-caret-position="-234">
+                  <caret line="80" column="5" lean-forward="false" selection-start-line="80" selection-start-column="5" selection-end-line="80" selection-end-column="5" />
                   <folding>
                     <element signature="n#!!doc" expanded="true" />
                   </folding>
@@ -65,21 +63,21 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="plane.frag" pinned="false" current-in-tab="true">
+          <file leaf-file-name="plane.frag" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/js/glsl/plane.frag">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="255">
-                  <caret line="38" column="43" lean-forward="true" selection-start-line="38" selection-start-column="43" selection-end-line="38" selection-end-column="43" />
+                <state relative-caret-position="1152">
+                  <caret line="64" column="50" lean-forward="false" selection-start-line="64" selection-start-column="50" selection-end-line="64" selection-end-column="50" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="presets.js" pinned="false" current-in-tab="false">
+          <file leaf-file-name="presets.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/presets.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1080">
-                  <caret line="62" column="22" lean-forward="true" selection-start-line="62" selection-start-column="22" selection-end-line="62" selection-end-column="22" />
+                <state relative-caret-position="306">
+                  <caret line="17" column="22" lean-forward="true" selection-start-line="17" selection-start-column="22" selection-end-line="17" selection-end-column="22" />
                   <folding>
                     <element signature="n#!!doc" expanded="true" />
                   </folding>
@@ -114,7 +112,7 @@
           <file leaf-file-name="overlay.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/js/overlay.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="18">
+                <state relative-caret-position="-810">
                   <caret line="3" column="9" lean-forward="false" selection-start-line="3" selection-start-column="9" selection-end-line="3" selection-end-column="9" />
                   <folding>
                     <element signature="n#!!doc" expanded="true" />
@@ -126,8 +124,8 @@
           <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/main.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="126">
-                  <caret line="7" column="9" lean-forward="true" selection-start-line="7" selection-start-column="9" selection-end-line="7" selection-end-column="9" />
+                <state relative-caret-position="316">
+                  <caret line="80" column="0" lean-forward="true" selection-start-line="80" selection-start-column="0" selection-end-line="80" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -184,13 +182,13 @@
         <option value="$PROJECT_DIR$/js/overlay.js" />
         <option value="$PROJECT_DIR$/js/glsl/quad.vert" />
         <option value="$PROJECT_DIR$/css/style.css" />
-        <option value="$PROJECT_DIR$/js/init.js" />
         <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/js/presets.js" />
         <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/js/events.js" />
         <option value="$PROJECT_DIR$/js/main.js" />
         <option value="$PROJECT_DIR$/js/glsl/plane.frag" />
+        <option value="$PROJECT_DIR$/js/init.js" />
       </list>
     </option>
   </component>
@@ -303,7 +301,7 @@
       <workItem from="1513280610387" duration="10307000" />
       <workItem from="1513315934217" duration="9376000" />
       <workItem from="1513380270481" duration="203000" />
-      <workItem from="1513380534080" duration="1169000" />
+      <workItem from="1513380534080" duration="3852000" />
     </task>
     <task id="LOCAL-00001" summary="Got back to work on labyrinth">
       <created>1513280218434</created>
@@ -312,11 +310,18 @@
       <option name="project" value="LOCAL" />
       <updated>1513280218434</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Better effect centering.">
+      <created>1513381754049</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1513381754049</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="148980000" />
+    <option name="totallyTimeSpent" value="151663000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1919" y="1069" width="1922" height="1092" extended-state="6" />
@@ -368,7 +373,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Got back to work on labyrinth" />
-    <option name="LAST_COMMIT_MESSAGE" value="Got back to work on labyrinth" />
+    <MESSAGE value="Better effect centering." />
+    <option name="LAST_COMMIT_MESSAGE" value="Better effect centering." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -443,20 +449,18 @@
     <entry file="file://$PROJECT_DIR$/../../tilewave/js/presets.js" />
     <entry file="file://$PROJECT_DIR$/../../tilewave/css/style.css" />
     <entry file="file://$PROJECT_DIR$/../../tilewave/index.html" />
-    <entry file="file://$PROJECT_DIR$/js/presets.js">
+    <entry file="file://$PROJECT_DIR$/js/glsl/quad.vert">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1080">
-          <caret line="62" column="22" lean-forward="true" selection-start-line="62" selection-start-column="22" selection-end-line="62" selection-end-column="22" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+        <state relative-caret-position="108">
+          <caret line="6" column="1" lean-forward="false" selection-start-line="6" selection-start-column="1" selection-end-line="6" selection-end-column="1" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
+    <entry file="file://$PROJECT_DIR$/js/glsl/plane.frag">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="6" column="21" lean-forward="false" selection-start-line="6" selection-start-column="21" selection-end-line="6" selection-end-column="21" />
+        <state relative-caret-position="1152">
+          <caret line="64" column="50" lean-forward="false" selection-start-line="64" selection-start-column="50" selection-end-line="64" selection-end-column="50" />
           <folding />
         </state>
       </provider>
@@ -469,10 +473,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/init.js">
+    <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1782">
-          <caret line="101" column="2" lean-forward="false" selection-start-line="101" selection-start-column="2" selection-end-line="101" selection-end-column="2" />
+        <state relative-caret-position="108">
+          <caret line="6" column="21" lean-forward="false" selection-start-line="6" selection-start-column="21" selection-end-line="6" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/overlay.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-810">
+          <caret line="3" column="9" lean-forward="false" selection-start-line="3" selection-start-column="9" selection-end-line="3" selection-end-column="9" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
@@ -487,37 +499,31 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/glsl/quad.vert">
+    <entry file="file://$PROJECT_DIR$/js/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="6" column="1" lean-forward="false" selection-start-line="6" selection-start-column="1" selection-end-line="6" selection-end-column="1" />
+        <state relative-caret-position="316">
+          <caret line="80" column="0" lean-forward="true" selection-start-line="80" selection-start-column="0" selection-end-line="80" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/overlay.js">
+    <entry file="file://$PROJECT_DIR$/js/init.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="3" column="9" lean-forward="false" selection-start-line="3" selection-start-column="9" selection-end-line="3" selection-end-column="9" />
+        <state relative-caret-position="-234">
+          <caret line="80" column="5" lean-forward="false" selection-start-line="80" selection-start-column="5" selection-end-line="80" selection-end-column="5" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/main.js">
+    <entry file="file://$PROJECT_DIR$/js/presets.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="7" column="9" lean-forward="true" selection-start-line="7" selection-start-column="9" selection-end-line="7" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/glsl/plane.frag">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="38" column="43" lean-forward="true" selection-start-line="38" selection-start-column="43" selection-end-line="38" selection-end-column="43" />
-          <folding />
+        <state relative-caret-position="306">
+          <caret line="17" column="22" lean-forward="true" selection-start-line="17" selection-start-column="22" selection-end-line="17" selection-end-column="22" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
