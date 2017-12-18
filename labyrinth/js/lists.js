@@ -194,7 +194,8 @@ InitializationList.prototype.initialize = function(tile) {
     }
 
     if (tile.type === TileEnum.PATH) {
-        tile.mesh.material.color = new THREE.Color()
+        var hsl = hsv2hsl(tile.ch, 1., 1.);
+        tile.mesh.material.color.setHSL(hsl[0], hsl[1], hsl[2]);
     }
 
     // Add neighboring nonWall Tiles to the input tile's neighbor list, and

@@ -43,10 +43,12 @@ function yTile() {
 var xSize;
 var ySize;
 
+var mouseX, mouseY;
+
 // Linear frequency parameter
 var frequency = 100;
 var frequencyMin = 0.1;
-var frequencyMax = 1e6;
+var frequencyMax = 1e7;
 var frequencyStep = 1.1;
 
 var hueShift = 0.25;

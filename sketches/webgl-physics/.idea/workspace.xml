@@ -2,14 +2,31 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d0707a99-0bbc-486d-8912-83509fd71053" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/../heatsnakes/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../heatsnakes/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../threejs/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../threejs/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../threejs/css/style.css" afterPath="$PROJECT_DIR$/../threejs/css/style.css" />
-      <change beforePath="$PROJECT_DIR$/../threejs/index.html" afterPath="$PROJECT_DIR$/../threejs/index.html" />
-      <change beforePath="$PROJECT_DIR$/../threejs/js/glsl/plane.frag" afterPath="$PROJECT_DIR$/../threejs/js/glsl/plane.frag" />
-      <change beforePath="$PROJECT_DIR$/../threejs/js/glsl/quad.vert" afterPath="$PROJECT_DIR$/../threejs/js/glsl/quad.vert" />
-      <change beforePath="$PROJECT_DIR$/../threejs/js/main.js" afterPath="$PROJECT_DIR$/../threejs/js/main.js" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/gpumaze.iml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/jsLibraryMappings.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/modules.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/vcs.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/workspace.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/index.html" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/ComputeRenderer.js" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/Detector.js" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/Stats.js" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/glsl/creators.frag" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/main.js" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/style.css" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../../labyrinth/js/entity.js" />
+      <change beforePath="$PROJECT_DIR$/../../javascripts/main.js" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../../labyrinth/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../../labyrinth/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/../../labyrinth/js/lists.js" afterPath="$PROJECT_DIR$/../../labyrinth/js/lists.js" />
+      <change beforePath="$PROJECT_DIR$/../../labyrinth/js/util.js" afterPath="$PROJECT_DIR$/../../labyrinth/js/util.js" />
+      <change beforePath="$PROJECT_DIR$/../../maze/.idea/jsLibraryMappings.xml" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../../maze/.idea/modules.xml" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../../maze/.idea/workspace.xml" afterPath="" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/../../tilewave/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../../tilewave/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/../../tilewave/js/events.js" afterPath="$PROJECT_DIR$/../../tilewave/js/events.js" />
+      <change beforePath="$PROJECT_DIR$/../../tilewave/js/init.js" afterPath="$PROJECT_DIR$/../../tilewave/js/init.js" />
+      <change beforePath="$PROJECT_DIR$/../../tilewave/js/main.js" afterPath="$PROJECT_DIR$/../../tilewave/js/main.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -39,7 +56,7 @@
       <file leaf-file-name="controller.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/js/controller.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="917">
+            <state relative-caret-position="1818">
               <caret line="103" column="0" lean-forward="false" selection-start-line="103" selection-start-column="0" selection-end-line="103" selection-end-column="0" />
               <folding />
             </state>
@@ -56,11 +73,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="quad.vert" pinned="false" current-in-tab="true">
+      <file leaf-file-name="quad.vert" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/glsl/quad.vert">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="180">
-              <caret line="10" column="1" lean-forward="true" selection-start-line="10" selection-start-column="1" selection-end-line="10" selection-end-column="1" />
+              <caret line="10" column="1" lean-forward="false" selection-start-line="10" selection-start-column="1" selection-end-line="10" selection-end-column="1" />
               <folding />
             </state>
           </provider>
@@ -106,11 +123,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="particles.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="particles.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/particles.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6948">
-              <caret line="388" column="11" lean-forward="false" selection-start-line="388" selection-start-column="11" selection-end-line="388" selection-end-column="11" />
+            <state relative-caret-position="215">
+              <caret line="370" column="3" lean-forward="false" selection-start-line="370" selection-start-column="3" selection-end-line="370" selection-end-column="3" />
               <folding />
             </state>
           </provider>
@@ -226,7 +243,7 @@
     <property name="js.eslint.eslintPackage" value="" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../gpumaze" />
     <property name="settings.editor.selected.configurable" value="preferences.sourceCode" />
     <property name="list.type.of.created.stylesheet" value="CSS" />
   </component>
@@ -355,11 +372,13 @@
       <workItem from="1502411165962" duration="2669000" />
       <workItem from="1503888455230" duration="604000" />
       <workItem from="1513106616460" duration="394000" />
+      <workItem from="1513417259806" duration="2915000" />
+      <workItem from="1513581584474" duration="623000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="127677000" />
+    <option name="totallyTimeSpent" value="131215000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="1076" width="1920" height="1084" extended-state="6" />
@@ -367,7 +386,7 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.12445095" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3822153" sideWeight="0.22693998" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -658,42 +677,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="324">
-          <caret line="18" column="23" lean-forward="false" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/particles.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6948">
-          <caret line="388" column="11" lean-forward="false" selection-start-line="388" selection-start-column="11" selection-end-line="388" selection-end-column="11" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/glsl/oparticle.frag">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="270">
           <caret line="15" column="18" lean-forward="false" selection-start-line="15" selection-start-column="18" selection-end-line="15" selection-end-column="18" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/main.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="468">
-          <caret line="26" column="0" lean-forward="false" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/controller.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="917">
-          <caret line="103" column="0" lean-forward="false" selection-start-line="103" selection-start-column="0" selection-end-line="103" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -733,7 +720,39 @@
     <entry file="file://$PROJECT_DIR$/glsl/quad.vert">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
-          <caret line="10" column="1" lean-forward="true" selection-start-line="10" selection-start-column="1" selection-end-line="10" selection-end-column="1" />
+          <caret line="10" column="1" lean-forward="false" selection-start-line="10" selection-start-column="1" selection-end-line="10" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="468">
+          <caret line="26" column="0" lean-forward="false" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="18" column="23" lean-forward="false" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/controller.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1818">
+          <caret line="103" column="0" lean-forward="false" selection-start-line="103" selection-start-column="0" selection-end-line="103" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/particles.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="215">
+          <caret line="370" column="3" lean-forward="false" selection-start-line="370" selection-start-column="3" selection-end-line="370" selection-end-column="3" />
           <folding />
         </state>
       </provider>

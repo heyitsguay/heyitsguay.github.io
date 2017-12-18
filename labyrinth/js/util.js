@@ -5,6 +5,16 @@
  */
 
 
+function hsv2hsl(a,b,c){
+    return[a,b*c/((a=(2-b)*c)<1?a:2-a),a/2]
+}
+
+
+function mod1(x) {
+    return (x % 1. + 1) % 1.;
+}
+
+
 function random(a, b) {
     // Choose a number uniformly at random from the interval (a, b).
 
