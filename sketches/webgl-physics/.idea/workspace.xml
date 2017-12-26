@@ -2,31 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d0707a99-0bbc-486d-8912-83509fd71053" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/gpumaze.iml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/jsLibraryMappings.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/modules.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/vcs.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/workspace.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/index.html" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/ComputeRenderer.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/Detector.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/Stats.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/glsl/creators.frag" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/js/main.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../gpumaze/style.css" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../../labyrinth/js/entity.js" />
-      <change beforePath="$PROJECT_DIR$/../../javascripts/main.js" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../../gpumaze/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../../gpumaze/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/../../gpumaze/js/glsl/creators.frag" afterPath="$PROJECT_DIR$/../../gpumaze/js/glsl/creators.frag" />
+      <change beforePath="$PROJECT_DIR$/../../gpumaze/js/main.js" afterPath="$PROJECT_DIR$/../../gpumaze/js/main.js" />
       <change beforePath="$PROJECT_DIR$/../../labyrinth/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../../labyrinth/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../../labyrinth/js/lists.js" afterPath="$PROJECT_DIR$/../../labyrinth/js/lists.js" />
-      <change beforePath="$PROJECT_DIR$/../../labyrinth/js/util.js" afterPath="$PROJECT_DIR$/../../labyrinth/js/util.js" />
-      <change beforePath="$PROJECT_DIR$/../../maze/.idea/jsLibraryMappings.xml" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/../../maze/.idea/modules.xml" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/../../maze/.idea/workspace.xml" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../../tilewave/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../../tilewave/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../../tilewave/js/events.js" afterPath="$PROJECT_DIR$/../../tilewave/js/events.js" />
-      <change beforePath="$PROJECT_DIR$/../../tilewave/js/init.js" afterPath="$PROJECT_DIR$/../../tilewave/js/init.js" />
-      <change beforePath="$PROJECT_DIR$/../../tilewave/js/main.js" afterPath="$PROJECT_DIR$/../../tilewave/js/main.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -126,8 +106,8 @@
       <file leaf-file-name="particles.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/particles.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="215">
-              <caret line="370" column="3" lean-forward="false" selection-start-line="370" selection-start-column="3" selection-end-line="370" selection-end-column="3" />
+            <state relative-caret-position="287">
+              <caret line="374" column="0" lean-forward="true" selection-start-line="374" selection-start-column="0" selection-end-line="374" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -751,8 +731,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/js/particles.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="215">
-          <caret line="370" column="3" lean-forward="false" selection-start-line="370" selection-start-column="3" selection-end-line="370" selection-end-column="3" />
+        <state relative-caret-position="287">
+          <caret line="374" column="0" lean-forward="true" selection-start-line="374" selection-start-column="0" selection-end-line="374" selection-end-column="0" />
           <folding />
         </state>
       </provider>

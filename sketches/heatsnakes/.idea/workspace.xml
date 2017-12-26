@@ -2,23 +2,23 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="743779d4-f329-4677-b09b-2dfb99f12ba4" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
-      <change beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change beforePath="$PROJECT_DIR$/libs/jquery.min.js" afterPath="$PROJECT_DIR$/libs/jquery.min.js" />
-      <change beforePath="$PROJECT_DIR$/libs/quadtree.js" afterPath="$PROJECT_DIR$/libs/quadtree.js" />
-      <change beforePath="$PROJECT_DIR$/src/auxiliary.js" afterPath="$PROJECT_DIR$/src/auxiliary.js" />
-      <change beforePath="$PROJECT_DIR$/src/collision.js" afterPath="$PROJECT_DIR$/src/collision.js" />
-      <change beforePath="$PROJECT_DIR$/src/forager.js" afterPath="$PROJECT_DIR$/src/forager.js" />
-      <change beforePath="$PROJECT_DIR$/src/fps.js" afterPath="$PROJECT_DIR$/src/fps.js" />
-      <change beforePath="$PROJECT_DIR$/src/glhelpers.js" afterPath="$PROJECT_DIR$/src/glhelpers.js" />
-      <change beforePath="$PROJECT_DIR$/src/handles.js" afterPath="$PROJECT_DIR$/src/handles.js" />
-      <change beforePath="$PROJECT_DIR$/src/inits.js" afterPath="$PROJECT_DIR$/src/inits.js" />
-      <change beforePath="$PROJECT_DIR$/src/main.js" afterPath="$PROJECT_DIR$/src/main.js" />
-      <change beforePath="$PROJECT_DIR$/src/pellet.js" afterPath="$PROJECT_DIR$/src/pellet.js" />
-      <change beforePath="$PROJECT_DIR$/src/sliders.js" afterPath="$PROJECT_DIR$/src/sliders.js" />
-      <change beforePath="$PROJECT_DIR$/src/style.css" afterPath="$PROJECT_DIR$/src/style.css" />
-      <change beforePath="$PROJECT_DIR$/src/update.js" afterPath="$PROJECT_DIR$/src/update.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/forager.js" afterPath="$PROJECT_DIR$/src/forager.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/handles.js" afterPath="$PROJECT_DIR$/src/handles.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/auxiliary.js" afterPath="$PROJECT_DIR$/src/auxiliary.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/sliders.js" afterPath="$PROJECT_DIR$/src/sliders.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libs/jquery.min.js" afterPath="$PROJECT_DIR$/libs/jquery.min.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/fps.js" afterPath="$PROJECT_DIR$/src/fps.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/update.js" afterPath="$PROJECT_DIR$/src/update.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/style.css" afterPath="$PROJECT_DIR$/src/style.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/pellet.js" afterPath="$PROJECT_DIR$/src/pellet.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libs/quadtree.js" afterPath="$PROJECT_DIR$/libs/quadtree.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/glhelpers.js" afterPath="$PROJECT_DIR$/src/glhelpers.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/inits.js" afterPath="$PROJECT_DIR$/src/inits.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/collision.js" afterPath="$PROJECT_DIR$/src/collision.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.js" afterPath="$PROJECT_DIR$/src/main.js" />
     </list>
     <ignored path="foragers.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -32,6 +32,7 @@
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
   </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
     <favorites_list name="foragers" />
   </component>
@@ -42,17 +43,17 @@
           <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="234">
+                <state relative-caret-position="-3492">
                   <caret line="28" column="38" lean-forward="false" selection-start-line="28" selection-start-column="38" selection-end-line="28" selection-end-column="38" />
                   <folding>
-                    <marker date="1481929975560" expanded="true" signature="1762:1858" ph="{...}" />
-                    <marker date="1481929975560" expanded="true" signature="2426:4178" ph="{...}" />
-                    <marker date="1481929975560" expanded="true" signature="4771:4942" ph="{...}" />
-                    <marker date="1481929975560" expanded="true" signature="4972:6403" ph="{...}" />
-                    <marker date="1481929975560" expanded="true" signature="6568:6615" ph="{...}" />
-                    <marker date="1481929975560" expanded="true" signature="6913:7044" ph="{...}" />
-                    <marker date="1481929975560" expanded="true" signature="7178:7243" ph="{...}" />
-                    <marker date="1481929975560" expanded="true" signature="7442:7538" ph="{...}" />
+                    <marker date="1481929975000" expanded="true" signature="1762:1858" ph="{...}" />
+                    <marker date="1481929975000" expanded="true" signature="2426:4178" ph="{...}" />
+                    <marker date="1481929975000" expanded="true" signature="4771:4942" ph="{...}" />
+                    <marker date="1481929975000" expanded="true" signature="4972:6403" ph="{...}" />
+                    <marker date="1481929975000" expanded="true" signature="6568:6615" ph="{...}" />
+                    <marker date="1481929975000" expanded="true" signature="6913:7044" ph="{...}" />
+                    <marker date="1481929975000" expanded="true" signature="7178:7243" ph="{...}" />
+                    <marker date="1481929975000" expanded="true" signature="7442:7538" ph="{...}" />
                   </folding>
                 </state>
               </provider>
@@ -147,8 +148,8 @@
           <file leaf-file-name="style.css" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/style.css">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="252">
-                  <caret line="14" column="14" lean-forward="false" selection-start-line="14" selection-start-column="14" selection-end-line="14" selection-end-column="14" />
+                <state relative-caret-position="54">
+                  <caret line="3" column="4" lean-forward="false" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="27" />
                   <folding />
                 </state>
               </provider>
@@ -211,11 +212,10 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1919" />
-    <option name="y" value="1069" />
-    <option name="width" value="1922" />
-    <option name="height" value="1092" />
+  <component name="ProjectFrameBounds">
+    <option name="y" value="24" />
+    <option name="width" value="1366" />
+    <option name="height" value="744" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -258,7 +258,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="DefaultHtmlFileTemplate" value="Html5" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../threejs" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../tilewave" />
     <property name="recentsLimit" value="5" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="js.buildTools.grunt.node_interpreter" value="C:\Program Files\nodejs\node.exe" />
@@ -281,8 +281,9 @@
     </option>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="JavaScriptTraceType" factoryName="Spy-js" node="C:/Program Files/nodejs/node.exe" config="http://localhost:63343/foragers/index.html" has-config="false" system-proxy="true" proxy-port="3546" open-browser="true" browser="" limits="1,3,3,50" />
-    <configuration name="index.html" type="JavascriptDebugType" factoryName="JavaScript Debug" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/foragers/index.html" />
+    <configuration default="false" name="index.html" type="JavascriptDebugType" factoryName="JavaScript Debug" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/foragers/index.html">
+      <method />
+    </configuration>
     <configuration default="true" type="ChromiumRemoteDebugType" factoryName="Chromium Remote">
       <method />
     </configuration>
@@ -302,6 +303,9 @@
       <config-file value="" />
       <node-interpreter value="project" />
       <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavaScriptTraceType" factoryName="Spy-js" node="C:/Program Files/nodejs/node.exe" config="http://localhost:63343/foragers/index.html" has-config="false" system-proxy="true" proxy-port="3546" open-browser="true" browser="" limits="1,3,3,50">
       <method />
     </configuration>
     <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
@@ -346,17 +350,11 @@
       <option name="filePath" />
       <method />
     </configuration>
-    <configuration default="true" type="js.build_tools.npm" factoryName="npm">
-      <command value="run" />
-      <scripts />
-      <node-interpreter value="project" />
-      <envs />
-      <method />
-    </configuration>
     <configuration default="true" type="js.build_tools.grunt" factoryName="Grunt.js">
       <node-interpreter value="project" />
       <pass-parent-env-vars value="true" />
       <envs />
+      <method />
     </configuration>
     <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
       <node-interpreter>project</node-interpreter>
@@ -366,6 +364,14 @@
       <arguments />
       <pass-parent-envs>true</pass-parent-envs>
       <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.npm" factoryName="npm">
+      <command value="run" />
+      <scripts />
+      <node-interpreter value="project" />
+      <envs />
+      <method />
     </configuration>
     <configuration default="true" type="mocha-javascript-test-runner" factoryName="Mocha">
       <node-interpreter />
@@ -378,7 +384,11 @@
       <test-kind>DIRECTORY</test-kind>
       <test-directory />
       <recursive>false</recursive>
+      <method />
     </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="JavaScript Debug.index.html" />
+    </list>
     <recent_temporary>
       <list size="1">
         <item index="0" class="java.lang.String" itemvalue="JavaScript Debug.index.html" />
@@ -428,38 +438,41 @@
       <workItem from="1513139493350" duration="1027000" />
       <workItem from="1513147965664" duration="626000" />
       <workItem from="1513200348356" duration="656000" />
+      <workItem from="1514266164045" duration="58000" />
+      <workItem from="1514271829688" duration="897000" />
+      <workItem from="1514282117416" duration="1191000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="55296000" />
+    <option name="totallyTimeSpent" value="57442000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1919" y="1069" width="1922" height="1092" extended-state="6" />
+    <frame x="0" y="24" width="1366" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1638814" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5330189" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329429" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40386572" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39873418" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5330189" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.31104198" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40386572" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="processedProjectFiles" value="true" />
   </component>
   <component name="Vcs.Log.UiProperties">
     <option name="RECENTLY_FILTERED_USER_GROUPS">
@@ -848,8 +861,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/style.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="14" lean-forward="false" selection-start-line="14" selection-start-column="14" selection-end-line="14" selection-end-column="14" />
+        <state relative-caret-position="54">
+          <caret line="3" column="4" lean-forward="false" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="27" />
           <folding />
         </state>
       </provider>
@@ -869,17 +882,17 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="234">
+        <state relative-caret-position="-3492">
           <caret line="28" column="38" lean-forward="false" selection-start-line="28" selection-start-column="38" selection-end-line="28" selection-end-column="38" />
           <folding>
-            <marker date="1481929975560" expanded="true" signature="1762:1858" ph="{...}" />
-            <marker date="1481929975560" expanded="true" signature="2426:4178" ph="{...}" />
-            <marker date="1481929975560" expanded="true" signature="4771:4942" ph="{...}" />
-            <marker date="1481929975560" expanded="true" signature="4972:6403" ph="{...}" />
-            <marker date="1481929975560" expanded="true" signature="6568:6615" ph="{...}" />
-            <marker date="1481929975560" expanded="true" signature="6913:7044" ph="{...}" />
-            <marker date="1481929975560" expanded="true" signature="7178:7243" ph="{...}" />
-            <marker date="1481929975560" expanded="true" signature="7442:7538" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="1762:1858" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="2426:4178" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="4771:4942" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="4972:6403" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="6568:6615" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="6913:7044" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="7178:7243" ph="{...}" />
+            <marker date="1481929975000" expanded="true" signature="7442:7538" ph="{...}" />
           </folding>
         </state>
       </provider>

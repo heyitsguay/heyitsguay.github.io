@@ -109,7 +109,7 @@ function buildShader() {
         drawMode: {value: drawMode},
         shadowMode: {value: shadowMode},
         frequency: {value: frequency},
-        hueShift: {value: hueShift},
+        hueShift: {value: hueShift}
     };
     shaderMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,

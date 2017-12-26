@@ -57,18 +57,20 @@ ComputeRenderer.prototype.addResolutionDefine = function(material) {
  * @param {String} variableName - The variable's name.
  * @param {String} fragmentShader - Source code for the fragment shader
  *  doing this variable's computation.
+ * @param {Object} uniforms - Dictionary of uniform variables used by this
+ *  variable's fragment shader.
  * @param {function} initialValueFiller - Handle to a function that
  *  creates the variable's initial values.
  * @param {int|None} sizeX -
  * @param {int|None} sizeY -
  * @return variable - The new variable.
  */
-ComputeRenderer.prototype.addVariable = function(variableName, fragmentShader, initialValueFiller, sizeX, sizeY) {
+ComputeRenderer.prototype.addVariable = function(variableName, fragmentShader, uniforms, initialValueFiller, sizeX, sizeY) {
     sizeX = sizeX || this.sizeX;
     sizeY = sizeY || this.sizeY;
 
     // Create the computation shader material
-    var material = this.createShaderMaterial(fragmentShader);
+    var material = this.createShaderMaterial(fragmentShader, uniforms);
 
     var texture = this.createTexture(sizeX, sizeY);
     initialValueFiller(texture);
@@ -88,6 +90,7 @@ ComputeRenderer.prototype.addVariable = function(variableName, fragmentShader, i
     // Add it to the variable list
     this.variables.push(variable);
 
+    // noinspection JSValidateTypes
     return variable;
 };
 
@@ -272,7 +275,7 @@ ComputeRenderer.prototype.init = function() {
                 v.wrapT,
                 v.minFilter,
                 v.magFilter);
-            this.initalizeTexture(v.initialValueTexture, v.renderTargets[j]);
+            this.initializeTexture(v.initialValueTexture, v.renderTargets[j]);
         }
 
         // Add dependency uniforms to v's ShaderMaterial
@@ -319,10 +322,11 @@ ComputeRenderer.prototype.init = function() {
 
 /**
  * Render a texture from CPU to GPU using a render target.
- * @param {Float32Array} texture - The texture to render.
+ * @param {DataTexture} texture - The texture to render.
  * @param {WebGLRenderTarget} target - Render target for the texture rendering.
  */
-ComputeRenderer.prototype.initalizeTexture = function(texture, target) {
+ComputeRenderer.prototype.initializeTexture = function(texture, target) {
+    // noinspection JSValidateTypes
     this.passThruUniforms.texture.value = texture;
     this.doRenderTarget(this.passThruShader, target);
     this.passThruUniforms.texture.value = null;

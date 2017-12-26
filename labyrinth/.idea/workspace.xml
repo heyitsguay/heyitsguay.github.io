@@ -2,31 +2,21 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="18ab85ac-6f48-449a-b32c-95a9b0374c15" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/.idea/gpumaze.iml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/.idea/jsLibraryMappings.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/.idea/modules.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/.idea/vcs.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/.idea/workspace.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/index.html" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/ComputeRenderer.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/Detector.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/Stats.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/glsl/creators.frag" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/main.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/style.css" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/js/entity.js" />
-      <change beforePath="$PROJECT_DIR$/../javascripts/main.js" afterPath="" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/.idea/dictionaries/matt.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/.idea/inspectionProfiles/Project_Default.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/glsl/creatorDraw.frag" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/glsl/creatorDraw.vert" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/glsl/creatorUpdate.frag" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/glsl/screenDraw.vert" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../gpumaze/js/random.js" />
+      <change beforePath="$PROJECT_DIR$/../gpumaze/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../gpumaze/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/../gpumaze/index.html" afterPath="$PROJECT_DIR$/../gpumaze/index.html" />
+      <change beforePath="$PROJECT_DIR$/../gpumaze/js/ComputeRenderer.js" afterPath="$PROJECT_DIR$/../gpumaze/js/ComputeRenderer.js" />
+      <change beforePath="$PROJECT_DIR$/../gpumaze/js/glsl/creators.frag" afterPath="$PROJECT_DIR$/../gpumaze/js/glsl/screenDraw.frag" />
+      <change beforePath="$PROJECT_DIR$/../gpumaze/js/main.js" afterPath="$PROJECT_DIR$/../gpumaze/js/main.js" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/js/lists.js" afterPath="$PROJECT_DIR$/js/lists.js" />
-      <change beforePath="$PROJECT_DIR$/js/util.js" afterPath="$PROJECT_DIR$/js/util.js" />
-      <change beforePath="$PROJECT_DIR$/../maze/.idea/jsLibraryMappings.xml" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/../maze/.idea/modules.xml" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/../maze/.idea/workspace.xml" afterPath="" />
       <change beforePath="$PROJECT_DIR$/../sketches/webgl-physics/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../sketches/webgl-physics/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../tilewave/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../tilewave/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../tilewave/js/events.js" afterPath="$PROJECT_DIR$/../tilewave/js/events.js" />
-      <change beforePath="$PROJECT_DIR$/../tilewave/js/init.js" afterPath="$PROJECT_DIR$/../tilewave/js/init.js" />
-      <change beforePath="$PROJECT_DIR$/../tilewave/js/main.js" afterPath="$PROJECT_DIR$/../tilewave/js/main.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -48,8 +38,8 @@
           <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="54">
-                  <caret line="3" column="30" lean-forward="false" selection-start-line="3" selection-start-column="30" selection-end-line="3" selection-end-column="30" />
+                <state relative-caret-position="342">
+                  <caret line="19" column="39" lean-forward="false" selection-start-line="19" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -110,8 +100,8 @@
           <file leaf-file-name="util.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/js/util.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="198">
-                  <caret line="11" column="0" lean-forward="false" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
+                <state relative-caret-position="810">
+                  <caret line="45" column="1" lean-forward="true" selection-start-line="17" selection-start-column="0" selection-end-line="45" selection-end-column="1" />
                   <folding />
                 </state>
               </provider>
@@ -144,8 +134,8 @@
           <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/main.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="165">
-                  <caret line="230" column="10" lean-forward="true" selection-start-line="230" selection-start-column="10" selection-end-line="230" selection-end-column="10" />
+                <state relative-caret-position="867">
+                  <caret line="191" column="23" lean-forward="true" selection-start-line="191" selection-start-column="23" selection-end-line="191" selection-end-column="23" />
                   <folding>
                     <element signature="e#0#37#0" expanded="false" />
                   </folding>
@@ -434,16 +424,15 @@
       <workItem from="1513364140491" duration="6560000" />
       <workItem from="1513380265034" duration="210000" />
       <workItem from="1513380516423" duration="16970000" />
-      <workItem from="1513581582631" duration="1216000" />
+      <workItem from="1513581582631" duration="3277000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="142509000" />
+    <option name="totallyTimeSpent" value="144570000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1920" y="1076" width="1920" height="1084" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.077083334" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -661,14 +650,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/util.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="11" column="0" lean-forward="false" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/lists.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3798">
@@ -703,13 +684,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/main.js">
+    <entry file="file://$PROJECT_DIR$/js/util.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="230" column="10" lean-forward="true" selection-start-line="230" selection-start-column="10" selection-end-line="230" selection-end-column="10" />
-          <folding>
-            <element signature="e#0#37#0" expanded="false" />
-          </folding>
+        <state relative-caret-position="810">
+          <caret line="45" column="1" lean-forward="true" selection-start-line="17" selection-start-column="0" selection-end-line="45" selection-end-column="1" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -723,9 +702,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="3" column="30" lean-forward="false" selection-start-line="3" selection-start-column="30" selection-end-line="3" selection-end-column="30" />
+        <state relative-caret-position="342">
+          <caret line="19" column="39" lean-forward="false" selection-start-line="19" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="867">
+          <caret line="191" column="23" lean-forward="true" selection-start-line="191" selection-start-column="23" selection-end-line="191" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#37#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
