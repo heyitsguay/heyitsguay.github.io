@@ -1,0 +1,178 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="manifest" href="site.webmanifest">
+        <link rel="apple-touch-icon" href="icon.png">
+        <!-- Place favicon.ico in the root directory -->
+
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+    </head>
+    <body>
+        <!--[if lte IE 9]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+        <![endif]-->
+
+        <script type="text/javascript" async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+        <!-- Add your site or application content here -->
+        <div class="maindiv" id="main">
+            <h1>Coin Circles</h1>
+            <hr/>
+
+            <section class="intro" id="intro-section">
+
+                <p>
+                    Place a quarter on a table, and surround
+                    it with six other quarters
+                </p>
+
+                <img class="image" src="img/quarters.jpg" id="quarters"/>
+
+                <p>
+                    The quarters are almost, but not entirely, all in
+                    contact - the inner quarter touching all the outer
+                    ones, and each outer quarter touching both of its
+                    neighbors.
+                </p>
+
+                <img class="image" src="img/quarters-gaps.jpg"
+                     id="quarters-gaps"/>
+
+                <p>
+                    Why are there gaps? Is it
+                    due to imperfections in the coins, or would seven
+                    perfect circles arranged in this way have gaps as
+                    well? What happens if the size of the outer
+                    coins is different from the size of the inner
+                    coins?
+                </p>
+
+            </section>
+
+            <section class="section" id="derivation-section">
+
+                <h2>Deriving an answer</h2>
+
+                <p>
+                    We can answer these questions with geometry!
+                    We'll assume the inner coin has a radius \(a\),
+                    and the outer coins all have radius \(b\).
+                </p>
+
+                <canvas class="canvas" width="338px" height="338px"
+                        id="derivation-canvas"></canvas>
+
+                <p>
+                    The centers of an inner coin and two touching
+                    outer coins form a triangle with inner angle
+                    \(\theta\). We can write an equation relating
+                    \(\theta\), \(a\), and \(b\) using the <a
+                    href="https://en.wikipedia.org/wiki/Law_of_cosines"
+                    target="_blank">law of cosines</a>.
+
+                    $$(2b)^2 = (a+b)^2 + (a+b)^2 -
+                    2(a+b)(a+b)\cos(\theta),$$
+
+                    which can be simplified to
+
+                    $$2b^2 = (a+b)^2(1-\cos(\theta)).\quad[1]$$
+                </p>
+
+                <p>
+                    Given values for any two of the unknown
+                    quantities, we can easily solve for the third.
+                    We can use that knowledge to answer this question:
+                    <i>If we know the size of our inner coin, and we
+                        want to make a perfect ring around it with
+                        \(n\) outer coins, how large must each outer
+                        coin be?</i>
+                </p>
+
+                <p>
+                    If all of
+                    the outer coins surround the inner coin and form a
+                    perfect ring, each successive two outer coins
+                    must form the same triangle with the inner coin
+                    that was demonstrated in the last picture.
+                    If we have \(n\) outer coins, we also have \(n\) of
+                    these triangles, each with an angle \(\theta\) at
+                    the center of the inner coin. All of these angles
+                    must add up to 360°, so
+
+                    $$\theta = 360^{\circ} / n.$$
+
+                    If we specify the fixed value \(a_0\) for the
+                    inner coin's radius, we can modify equation [1]
+                    to create a certain function of the outer coin
+                    radius \(b\):
+
+                    $$f(b;a_0,n)=2b^2-(a_0+b)^2(1-\cos(360^{\circ}/n)).$$
+
+                    Why make up this function? If we can find a
+                    \(b_0\) such that \(f(b_0)=0\), then the values
+                    \(a=a_0\), \(b=b_0\), \(\theta=360^{\circ}/n\)
+                    solve equation [1]! In other words, we can use
+                    \(n\) outer coins of radius \(b_0\) to form a
+                    perfect ring around an inner coin of radius
+                    \(a_0\). And it's easy to numerically find the
+                    zeroes of functions like \(f\).
+                </p>
+
+                <h3>Example: Seven quarters</h3>
+
+                <p>
+                    Let's use this to answer our first question:
+                    Should six quarters make a perfect ring around
+                    another quarter?
+
+                    Units don't matter, so let's assume our inner
+                    quarter has radius \(1\). Using \(a_0=1\) and
+                    \(n=6\), we can verify that \(f(1;1,6)=0\), which
+                    means that \(b_0=1.\) In other words, to make a
+                    perfect ring around a quarter with six coins,
+                    each outer coin must be the same size as the inner
+                    quarter, i.e. another quarter! <b>With perfect
+                    quarters, there would be no gaps.</b>
+                </p>
+
+            </section>
+
+            <section class="section" id="app-section">
+                <h2>Interactive demonstration</h2>
+
+                <p>This same formula can be used to make an interactive
+                    coin ring app. Try it out below!</p>
+
+                <canvas class="canvas" width="338px" height="338px"
+                        id="app-canvas"></canvas>
+                <table class="table" id="app-table" align="center">
+                    <tr>
+                        <td>\(a\): <label for="ain"></label><input
+                            id="ain" size="10" value="53"/></td>
+                        <td>\(n\): <label for="nin"></label><input
+                            id="nin" size="10" value="6"/></td>
+                        <td><button id="thebutton">Update</button></td>
+                    </tr>
+                </table>
+
+                <p>Solution: \(b\) = <span id="solution">0.</span></p>
+            </section>
+
+        </div>
+        <script src="js/vendor/modernizr-3.5.0.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-3.2.1.min.js"><\/script>')</script>
+        <script src="js/plugins.js"></script>
+        <script src="js/brent.js"></script>
+        <script src="js/main.js"></script>
+    </body>
+</html>
