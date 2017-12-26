@@ -11,6 +11,10 @@ var cWidth, cHeight;
 
 var rDemo = 53;
 
+function isMobileDevice() {
+    return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+}
+
 function onClick() {
     var a = parseFloat($('#ain').val());
     var n = parseInt($('#nin').val());
@@ -21,6 +25,9 @@ function onClick() {
 }
 
 function onReady() {
+    if (isMobileDevice()) {
+        $('#main').css('width', '100%');
+    }
     canvas_der = document.getElementById('derivation-canvas');
     ctx_der = canvas_der.getContext('2d');
     canvas_app = document.getElementById('app-canvas');
