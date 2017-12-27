@@ -5,7 +5,8 @@
         <meta http-equiv="x-ua-compatible" content="ie=edge">
         <title></title>
         <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.">
 
         <link rel="manifest" href="site.webmanifest">
         <link rel="apple-touch-icon" href="icon.png">
@@ -77,14 +78,32 @@
                     \(\theta\). We can write an equation relating
                     \(\theta\), \(a\), and \(b\) using the <a
                     href="https://en.wikipedia.org/wiki/Law_of_cosines"
-                    target="_blank">law of cosines</a>.
+                    target="_blank">law of cosines</a>, which states
+                    that for any triangle:
+                </p>
 
-                    $$(2b)^2 = (a+b)^2 + (a+b)^2 -
-                    2(a+b)(a+b)\cos(\theta),$$
+                <canvas class="canvas" width="338px" height="338px"
+                        id="loc1-canvas"></canvas>
+
+                <p>
+                    the sides \(x\), \(y\), and \(z\) are related by
+                    the equation $$z^2 = x^2 + y^2
+                    -2xy\cos(\theta).\quad[1]$$
+                    We can set up our coin triangle like this, so that
+                    \(x=a+b,\) \(y=a+b,\) and \(z=2b\).
+                </p>
+
+                <canvas class="canvas" width="338px" height="338px"
+                        id="loc2-canvas"></canvas>
+
+                <p>
+                    Substituting those values for \(x,\) \(y,\)
+                    and \(z\) into equation [1] gives us
+                    $$(2b)^2 = 2(a+b)^2 - 2(a+b)^2\cos(\theta),$$
 
                     which can be simplified to
 
-                    $$2b^2 = (a+b)^2(1-\cos(\theta)).\quad[1]$$
+                    $$2b^2 = (a+b)^2(1-\cos(\theta)).\quad[2]$$
                 </p>
 
                 <p>
@@ -111,16 +130,16 @@
                     $$\theta = 360^{\circ} / n.$$
 
                     If we specify the fixed value \(a_0\) for the
-                    inner coin's radius, we can modify equation [1]
+                    inner coin's radius, we can modify equation [2]
                     to create a certain function of the outer coin
                     radius \(b\):
 
-                    $$f(b;a_0,n)=2b^2-(a_0+b)^2(1-\cos(360^{\circ}/n)).$$
+                    $$f(b)=2b^2-(a_0+b)^2\left(1-\cos\left(\frac{360^{\circ}}{n}\right)\right)$$
 
                     Why make up this function? If we can find a
                     \(b_0\) such that \(f(b_0)=0\), then the values
                     \(a=a_0\), \(b=b_0\), \(\theta=360^{\circ}/n\)
-                    solve equation [1]! In other words, we can use
+                    solve equation [2]! In other words, we can use
                     \(n\) outer coins of radius \(b_0\) to form a
                     perfect ring around an inner coin of radius
                     \(a_0\). And it's easy to numerically find the
@@ -135,8 +154,8 @@
                     another quarter?
 
                     Units don't matter, so let's assume our inner
-                    quarter has radius \(1\). Using \(a_0=1\) and
-                    \(n=6\), we can verify that \(f(1;1,6)=0\), which
+                    quarter has radius \(1.\) Using \(a_0=1\) and
+                    \(n=6,\) we can verify that \(f(1)=0,\) which
                     means that \(b_0=1.\) In other words, to make a
                     perfect ring around a quarter with six coins,
                     each outer coin must be the same size as the inner
