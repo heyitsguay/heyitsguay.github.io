@@ -38,10 +38,10 @@ td {
 
 .image {
     box-shadow:
-        -2px -2px 2px 0 #333,
-        2px -2px 2px 0 #333,
-        -2px 2px 2px 0 #333,
-        2px 2px 2px 0 #333;
+        -2px -2px 2px 0 #666,
+        2px -2px 2px 0 #666,
+        -2px 2px 2px 0 #666,
+        2px 2px 2px 0 #666;
 }
 
 div.maindiv {
