@@ -1,5 +1,4 @@
 $(document).ready(onReady);
-$('#thebutton').click(onClick);
 $('#ain').keyup(onClick);
 $('#nin').keyup(onClick);
 
