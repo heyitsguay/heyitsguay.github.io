@@ -32,7 +32,7 @@ function ComputeRenderer(sizeX, sizeY, renderer) {
         texture: {value: null}
     };
     // The pass-through shader. Renders a texture to a render target
-    this.passThruShader = this.createShaderMaterial(passThroughFragmentShader(), this.passThruUniforms);
+    this.passThruShader = this.createShaderMaterial(passThruFragmentShader(), this.passThruUniforms);
 
     // The Mesh containing the pass-through ShaderMaterial
     this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), this.passThruShader);
@@ -42,7 +42,8 @@ function ComputeRenderer(sizeX, sizeY, renderer) {
 
 
 /**
- * Add texture resolution information to a material's shader as a GLSL macro.
+ * Add texture resolution information to a material's shader as a GLSL
+ * macro. Defines the vec2 'resolution'.
  *
  * @param {ShaderMaterial} material - The material.
  */
@@ -61,8 +62,8 @@ ComputeRenderer.prototype.addResolutionDefine = function(material) {
  *  variable's fragment shader.
  * @param {function} initialValueFiller - Handle to a function that
  *  creates the variable's initial values.
- * @param {int|None} sizeX -
- * @param {int|None} sizeY -
+ * @param {int|None} sizeX - Variable texture x size.
+ * @param {int|None} sizeY - Variable texture y size.
  * @return variable - The new variable.
  */
 ComputeRenderer.prototype.addVariable = function(variableName, fragmentShader, uniforms, initialValueFiller, sizeX, sizeY) {
@@ -187,7 +188,7 @@ ComputeRenderer.prototype.createShaderMaterial = function(fragmentShader, unifor
     // Create the ShaderMaterial
     var material = new THREE.ShaderMaterial( {
         uniforms: uniforms,
-        vertexShader: passThroughVertexShader(),
+        vertexShader: passThruVertexShader(),
         fragmentShader: fragmentShader
     });
     // Add texture resolution information as a GLSL macro
@@ -239,6 +240,8 @@ ComputeRenderer.prototype.currentRenderTarget = function(variable) {
 ComputeRenderer.prototype.doRenderTarget = function(material, target) {
     // Assign the input shader material to this ComputeRenderer's mesh
     this.mesh.material = material;
+    this.renderer.setSize(target.texture.image.sizeX,
+        target.texture.image.sizeY);
     // Perform the actual rendering
     this.renderer.render(this.scene, this.camera, target);
     // Reset this ComputeRenderer's shader material
@@ -269,8 +272,8 @@ ComputeRenderer.prototype.init = function() {
         // Use two targets to form a ping-pong buffer
         for (var j = 0; j < 2; j++) {
             v.renderTargets[j] = this.createRenderTarget(
-                this.sizeX,
-                this.sizeY,
+                v.texture.image.sizeX,
+                v.texture.image.sizeY,
                 v.wrapS,
                 v.wrapT,
                 v.minFilter,
@@ -351,7 +354,7 @@ ComputeRenderer.prototype.setVariableDependencies = function(variable, dependenc
  *
  * @return {String} - Fragment shader code.
  */
-function passThroughFragmentShader() {
+function passThruFragmentShader() {
     return 'uniform sampler2D texture;\n' +
         '\n' +
         'void main() {\n' +
@@ -369,7 +372,7 @@ function passThroughFragmentShader() {
  *
  * @return {String} - Vertex shader code.
  */
-function passThroughVertexShader() {
+function passThruVertexShader() {
 
     return 'void main() {\n' +
         '\n' +
