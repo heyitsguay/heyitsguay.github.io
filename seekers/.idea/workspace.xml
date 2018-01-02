@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="983751f5-2224-46ff-9d22-840ef76da1ab" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/glsl/seekerPosition.frag" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/glsl/diffuse.frag" afterPath="$PROJECT_DIR$/glsl/diffuse.frag" />
-      <change beforePath="$PROJECT_DIR$/glsl/renderHeat.frag" afterPath="$PROJECT_DIR$/glsl/renderHeat.frag" />
-      <change beforePath="$PROJECT_DIR$/../sketches/heatsnakes/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../sketches/heatsnakes/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../tilewave/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../tilewave/.idea/workspace.xml" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -111,8 +105,8 @@
           <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/main.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-1962">
-                  <caret line="62" column="0" lean-forward="true" selection-start-line="62" selection-start-column="0" selection-end-line="62" selection-end-column="0" />
+                <state relative-caret-position="180">
+                  <caret line="181" column="45" lean-forward="true" selection-start-line="181" selection-start-column="45" selection-end-line="181" selection-end-column="45" />
                   <folding>
                     <element signature="e#0#37#0" expanded="true" />
                   </folding>
@@ -276,7 +270,7 @@
       <workItem from="1514659533277" duration="5000" />
       <workItem from="1514659570539" duration="19521000" />
       <workItem from="1514756529391" duration="8903000" />
-      <workItem from="1514851079432" duration="1396000" />
+      <workItem from="1514851079432" duration="1426000" />
     </task>
     <task id="LOCAL-00001" summary="Made it to the first seeker milestone.">
       <created>1514686908346</created>
@@ -285,11 +279,18 @@
       <option name="project" value="LOCAL" />
       <updated>1514686908346</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Fixed seeker heat coloration.">
+      <created>1514852790748</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1514852790748</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="55457000" />
+    <option name="totallyTimeSpent" value="55487000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="-11" width="1368" height="780" extended-state="6" />
@@ -349,7 +350,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Made it to the first seeker milestone." />
-    <option name="LAST_COMMIT_MESSAGE" value="Made it to the first seeker milestone." />
+    <MESSAGE value="Fixed seeker heat coloration." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed seeker heat coloration." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -777,8 +779,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/js/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1962">
-          <caret line="62" column="0" lean-forward="true" selection-start-line="62" selection-start-column="0" selection-end-line="62" selection-end-column="0" />
+        <state relative-caret-position="180">
+          <caret line="181" column="45" lean-forward="true" selection-start-line="181" selection-start-column="45" selection-end-line="181" selection-end-column="45" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>

@@ -1,0 +1,11 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    Matthew Guay <matt.d.guay@gmail.com>
+
+# TECHNOLOGY COLOPHON
+
+    CSS3, HTML5, WebGL
+    Apache Server Configs, jQuery, Modernizr, Normalize.css, THREE.js
