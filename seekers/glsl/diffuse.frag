@@ -7,8 +7,8 @@ uniform vec2 screenSize;
 
 uniform sampler2D heat;
 
-const float cDiff = 0.16666666666;
-const float cDecay = 0.9999;
+const float cDiff = 0.225;
+const float cDecay = 0.999;
 
 const float w1 = 1.;
 const float w2 = 0.5;
@@ -40,15 +40,15 @@ void main() {
     vec2 w = p + vec2(-ds, 0.);
     vec2 nw = p + vec2(-ds, dt);
 
-    float vP  = texture2D(heat, p)[0] - 0.5;
-    float vN = texture2D(heat, n)[0] - 0.5;
-    float vNE = texture2D(heat, ne)[0] - 0.5;
-    float vE = texture2D(heat, e)[0] - 0.5;
-    float vSE = texture2D(heat, se)[0] - 0.5;
-    float vS = texture2D(heat, s)[0] - 0.5;
-    float vSW = texture2D(heat, sw)[0] - 0.5;
-    float vW = texture2D(heat, w)[0] - 0.5;
-    float vNW = texture2D(heat, nw)[0] - 0.5;
+    float vP  = texture2D(heat, p)[0];
+    float vN = texture2D(heat, n)[0];
+    float vNE = texture2D(heat, ne)[0];
+    float vE = texture2D(heat, e)[0];
+    float vSE = texture2D(heat, se)[0];
+    float vS = texture2D(heat, s)[0];
+    float vSW = texture2D(heat, sw)[0];
+    float vW = texture2D(heat, w)[0];
+    float vNW = texture2D(heat, nw)[0];
 
     float laplacian = w1 * (vN + vE + vS + vW)
                       + w2 * (vNE + vSE + vSW + vNW)
@@ -66,7 +66,7 @@ void main() {
 
     float newHeat = cDecay * (vP + cDiff * laplacian)
                   + dCheck * mouseHeat;
-    newHeat = clamp(newHeat, -0.5, 0.5) * isNotBorder;
+    newHeat = clamp(newHeat, 0., 1.) * isNotBorder;
 
-	gl_FragColor = vec4(newHeat + 0.5, 0.0, 0.0, 1.0);
+	gl_FragColor = vec4(newHeat, 0.0, 0.0, 1.0);
 }
