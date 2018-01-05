@@ -97,12 +97,13 @@ textarea {
    Author's custom styles
    ========================================================================== */
 
-canvas {
+canvas.mainCanvas {
     display: block;
     position: absolute;
     margin: 0;
     width: 100% !important;
     height: 100% !important;
+    cursor: none;
 }
 
 

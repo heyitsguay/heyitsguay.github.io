@@ -2,7 +2,7 @@ uniform sampler2D texture;
 
 varying vec2 vUV;
 
-const float hBase = 0.03;
+const float hBase = 0.;
 
 // Thanks to sam at http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl (May 19, 2015).
 const vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -20,7 +20,7 @@ void main() {
     float H = mix(hBase, 0.178, heat);
 
     // Saturation calculation
-    float S = 1. - max(0., 3. * (heat - 0.8));
+    float S = 1. - max(0., 4.8 * (heat - 0.8));
 
     // Constants for brightness effect
     // Brightness calculation

@@ -2,13 +2,14 @@ uniform vec2 mousePositionNow;
 uniform vec2 mousePositionLast;
 uniform float mouseHeat;
 uniform float mouseSize;
-uniform vec2 dst;
+uniform vec2 stScale;
 uniform vec2 screenSize;
+uniform float cDiff;
+uniform float cDecay;
+uniform float windX;
+uniform float windY;
 
 uniform sampler2D heat;
-
-const float cDiff = 0.225;
-const float cDecay = 0.999;
 
 const float w1 = 1.;
 const float w2 = 0.5;
@@ -26,10 +27,10 @@ float min_distance(vec2 x1, vec2 x2, vec2 p) {
 }
 
 void main() {
-    float ds = dst[0];
-    float dt = dst[1];
+    float ds = stScale[0];
+    float dt = stScale[1];
 
-    vec2 p = gl_FragCoord.xy * dst;
+    vec2 p = (gl_FragCoord.xy - vec2(windX, windY)) * stScale;
 
     vec2 n = p + vec2(0., dt);
     vec2 ne = p + vec2(ds, dt);
@@ -58,11 +59,14 @@ void main() {
         gl_FragCoord.x == 0.5 || gl_FragCoord.x == screenSize.x - 1.5
      || gl_FragCoord.y == 0.5 || gl_FragCoord.y == screenSize.y - 1.5);
 
+    // Do a bunch of crap to smoothly draw heat along the line between the
+    // last and current mouse positions
     float d = min_distance(mousePositionLast,
                            mousePositionNow,
                            gl_FragCoord.xy);
-
-    float dCheck = float(d < mouseSize);
+    bool I1 = distance(gl_FragCoord.xy, mousePositionLast) >= mouseSize;
+    bool I2 = distance(mousePositionLast, mousePositionNow) <= mouseSize;
+    float dCheck = float(d < mouseSize) * float(I1 || I2);
 
     float newHeat = cDecay * (vP + cDiff * laplacian)
                   + dCheck * mouseHeat;

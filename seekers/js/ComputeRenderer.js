@@ -62,7 +62,11 @@ ComputeRenderer.prototype.addResolutionDefine = function(material, sizeX, sizeY)
  * @param {int} sizeY - Variable texture y size.
  * @return variable - The new variable.
  */
-ComputeRenderer.prototype.addVariable = function(variableName, fragmentShader, uniforms, initialValueFiller, sizeX, sizeY) {
+ComputeRenderer.prototype.addVariable = function(variableName, fragmentShader, uniforms, initialValueFiller, sizeX, sizeY, minFilter, magFilter) {
+
+    minFilter = minFilter || THREE.NearestFilter;
+    magFilter = magFilter || THREE.NearestFilter;
+
     // Create the computation shader material
     let material = this.createShaderMaterial(fragmentShader, sizeX, sizeY, uniforms);
 
@@ -76,10 +80,10 @@ ComputeRenderer.prototype.addVariable = function(variableName, fragmentShader, u
         material: material,
         dependencies: null,
         renderTargets: [],
-        wrapS: null,
-        wrapT: null,
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter
+        wrapS: THREE.ClampToEdgeWrapping,
+        wrapT: THREE.ClampToEdgeWrapping,
+        minFilter: minFilter,
+        magFilter: magFilter
     };
     // Add it to the variable list
     this.variables.push(variable);
@@ -296,7 +300,7 @@ ComputeRenderer.prototype.init = function() {
                 // Check if depVar exists
                 if (depVar.name !== v.name) {
                     let found = false;
-                    for (let k = 0; k < v.length; v++) {
+                    for (let k = 0; k < this.variables.length; k++) {
                         if (depVar.name === this.variables[k].name) {
                             found = true;
                             break;

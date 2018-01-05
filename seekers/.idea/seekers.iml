@@ -11,5 +11,7 @@
     <orderEntry type="library" name="jquery-3.2.1" level="application" />
     <orderEntry type="library" name="three" level="application" />
     <orderEntry type="library" name="OrbitControls" level="application" />
+    <orderEntry type="library" name="dat.gui" level="application" />
+    <orderEntry type="library" name="Stats" level="application" />
   </component>
 </module>

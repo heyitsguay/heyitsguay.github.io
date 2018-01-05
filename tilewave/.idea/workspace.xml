@@ -2,11 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bb69136b-a05c-4a31-a9fe-4cc787d6007b" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/../seekers/glsl/seekerPosition.frag" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../seekers/glsl/seekerVelocity.frag" />
       <change beforePath="$PROJECT_DIR$/../seekers/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../seekers/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../seekers/glsl/diffuse.frag" afterPath="$PROJECT_DIR$/../seekers/glsl/diffuse.frag" />
-      <change beforePath="$PROJECT_DIR$/../seekers/glsl/renderHeat.frag" afterPath="$PROJECT_DIR$/../seekers/glsl/renderHeat.frag" />
+      <change beforePath="$PROJECT_DIR$/../seekers/glsl/seekerPosition.frag" afterPath="$PROJECT_DIR$/../seekers/glsl/seekerPosition.frag" />
+      <change beforePath="$PROJECT_DIR$/../seekers/js/main.js" afterPath="$PROJECT_DIR$/../seekers/js/main.js" />
       <change beforePath="$PROJECT_DIR$/../sketches/heatsnakes/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../sketches/heatsnakes/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -313,6 +313,8 @@
       <workItem from="1514659571174" duration="4475000" />
       <workItem from="1514756529951" duration="599000" />
       <workItem from="1514850474063" duration="1194000" />
+      <workItem from="1514871296335" duration="1239000" />
+      <workItem from="1514946000604" duration="656000" />
     </task>
     <task id="LOCAL-00001" summary="Got back to work on labyrinth">
       <created>1513280218434</created>
@@ -339,7 +341,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="188181000" />
+    <option name="totallyTimeSpent" value="190076000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1368" height="780" extended-state="6" />
