@@ -21,9 +21,14 @@ td {
     padding: 0 5px 0 5px;
 }
 
+td.padded{
+    padding: 10px 5px 10px 5px;
+}
+
 span {
     display: inline-block;
 }
+
 
 .canvas {
     /*display: block;*/
