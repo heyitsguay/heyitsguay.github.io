@@ -1,5 +1,5 @@
 $(document).ready(onReady);
-$('#in').click(onInputClick);
+$('#clear').click(onClearClick);
 $('#onlybutton').click(onClick);
 
 var numberOfClicks = 0;
@@ -38,7 +38,7 @@ function onReady() {
     }
 }
 
-function onInputClick() {
+function onClearClick() {
     $('#in').val('');
 }
 
