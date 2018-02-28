@@ -1,4 +1,5 @@
 $(document).ready(onReady);
+$('#in').click(onInputClick);
 $('#onlybutton').click(onClick);
 
 var numberOfClicks = 0;
@@ -35,6 +36,10 @@ function onReady() {
     if (isMobileDevice()) {
         $('#maindiv').css('width', '90%');
     }
+}
+
+function onInputClick() {
+    $('#in').val('');
 }
 
 function onClick() {
