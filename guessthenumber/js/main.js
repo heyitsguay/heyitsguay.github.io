@@ -6,7 +6,7 @@ var lastGuess = null;
 
 var clicksSinceLastNewGuess = 0;
 
-var phrases = [
+var guessPhrases = [
     'Wrong!',
     'Terrible. Take a lap.',
     'No.',
@@ -15,6 +15,15 @@ var phrases = [
     'Not even close.',
     'Embarrassing.',
     'Close... but no.'
+];
+
+var wordPhrases = [
+    'That is not even a number.',
+    'Ok but this time guess a number.',
+    'No, a number! I can\'t work like this.',
+    'I\'m going to start charging you for these horrible guesses.',
+    'I\'m giving up on you.',
+    'That is an apocalyptically bad guess.'
 ];
 
 function onClick() {
@@ -61,10 +70,21 @@ function onClick() {
     }
     else {
         clicksSinceLastNewGuess = 0;
-        if (numberOfClicks === 0) {
-            phrase = 'Wrong!';
+
+        var regex = /^[0-9]*([.][0-9]*)?$/;
+        if (currentGuess === '') {
+            phrase = 'You didn\'t enter anything. Wrong *and* lazy.';
         } else {
-            phrase = phrases[Math.floor(Math.random() * phrases.length)];
+            if (!currentGuess.match(regex)) {
+                phrase = wordPhrases[Math.floor(Math.random() * wordPhrases.length)];
+            }
+            else {
+                if (numberOfClicks === 0) {
+                    phrase = 'Wrong!';
+                } else {
+                    phrase = guessPhrases[Math.floor(Math.random() * guessPhrases.length)];
+                }
+            }
         }
     }
     lastGuess = currentGuess;

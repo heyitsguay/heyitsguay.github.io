@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cc0903d4-40c3-4429-9037-a05123c08d38" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../guessthenumber/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../guessthenumber/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../guessthenumber/css/main.css" afterPath="$PROJECT_DIR$/../guessthenumber/css/main.css" />
+      <change beforePath="$PROJECT_DIR$/../guessthenumber/js/main.js" afterPath="$PROJECT_DIR$/../guessthenumber/js/main.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
