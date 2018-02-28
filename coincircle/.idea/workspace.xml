@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cc0903d4-40c3-4429-9037-a05123c08d38" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../guessthenumber/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../guessthenumber/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../guessthenumber/css/main.css" afterPath="$PROJECT_DIR$/../guessthenumber/css/main.css" />
       <change beforePath="$PROJECT_DIR$/../guessthenumber/js/main.js" afterPath="$PROJECT_DIR$/../guessthenumber/js/main.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -70,8 +70,8 @@
           <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/main.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="18">
-                  <caret line="1" column="25" lean-forward="false" selection-start-line="1" selection-start-column="25" selection-end-line="1" selection-end-column="25" />
+                <state relative-caret-position="306">
+                  <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="19" selection-end-column="1" />
                   <folding />
                 </state>
               </provider>
@@ -289,7 +289,7 @@
       <workItem from="1514659567316" duration="1203000" />
       <workItem from="1516589618972" duration="323000" />
       <workItem from="1516590169237" duration="2834000" />
-      <workItem from="1519776290335" duration="2473000" />
+      <workItem from="1519776290335" duration="2661000" />
     </task>
     <task id="LOCAL-00001" summary="Added the coincircle page.">
       <created>1514285172213</created>
@@ -337,7 +337,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="31517000" />
+    <option name="totallyTimeSpent" value="31705000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1920" y="1076" width="1920" height="1084" extended-state="6" />
@@ -707,14 +707,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/uniroot.js" />
-    <entry file="file://$PROJECT_DIR$/js/main.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="1" column="25" lean-forward="false" selection-start-line="1" selection-start-column="25" selection-end-line="1" selection-end-column="25" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/css/main.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="828">
@@ -743,6 +735,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-2571">
           <caret line="10" column="36" lean-forward="false" selection-start-line="10" selection-start-column="36" selection-end-line="10" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="306">
+          <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="19" selection-end-column="1" />
           <folding />
         </state>
       </provider>

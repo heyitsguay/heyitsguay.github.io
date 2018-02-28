@@ -1,3 +1,4 @@
+$(document).ready(onReady);
 $('#onlybutton').click(onClick);
 
 var numberOfClicks = 0;
@@ -25,6 +26,16 @@ var wordPhrases = [
     'I\'m giving up on you.',
     'That is an apocalyptically bad guess.'
 ];
+
+function isMobileDevice() {
+    return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+}
+
+function onReady() {
+    if (isMobileDevice()) {
+        $('div.maindiv').css('width', '90%');
+    }
+}
 
 function onClick() {
     var currentGuess = $('#in').val();
