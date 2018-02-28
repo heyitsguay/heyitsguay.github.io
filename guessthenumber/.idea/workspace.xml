@@ -87,8 +87,8 @@
           <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/main.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="306">
-                  <caret line="35" column="45" lean-forward="false" selection-start-line="35" selection-start-column="45" selection-end-line="35" selection-end-column="45" />
+                <state relative-caret-position="378">
+                  <caret line="36" column="5" lean-forward="true" selection-start-line="36" selection-start-column="5" selection-end-line="36" selection-end-column="5" />
                   <folding />
                 </state>
               </provider>
@@ -198,7 +198,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1519776418023</updated>
-      <workItem from="1519776419406" duration="7279000" />
+      <workItem from="1519776419406" duration="7574000" />
     </task>
     <task id="LOCAL-00001" summary="Added guessthenumber">
       <created>1519781120597</created>
@@ -228,11 +228,18 @@
       <option name="project" value="LOCAL" />
       <updated>1519783423517</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Better mobile formatting.">
+      <created>1519783707861</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1519783707861</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="7279000" />
+    <option name="totallyTimeSpent" value="7574000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="1069" width="1922" height="1092" extended-state="6" />
@@ -267,7 +274,8 @@
     <MESSAGE value="Added guessthenumber" />
     <MESSAGE value="Better centering" />
     <MESSAGE value="Added word sass." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added word sass." />
+    <MESSAGE value="Better mobile formatting." />
+    <option name="LAST_COMMIT_MESSAGE" value="Better mobile formatting." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -332,8 +340,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/js/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="35" column="45" lean-forward="false" selection-start-line="35" selection-start-column="45" selection-end-line="35" selection-end-column="45" />
+        <state relative-caret-position="378">
+          <caret line="36" column="5" lean-forward="true" selection-start-line="36" selection-start-column="5" selection-end-line="36" selection-end-column="5" />
           <folding />
         </state>
       </provider>

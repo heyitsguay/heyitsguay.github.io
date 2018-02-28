@@ -33,7 +33,7 @@ function isMobileDevice() {
 
 function onReady() {
     if (isMobileDevice()) {
-        $('div.maindiv').css('width', '90%');
+        $('#maindiv').css('width', '90%');
     }
 }
 
