@@ -7,7 +7,9 @@ const shaderFiles = [
     'quad.vert',
     'renderHeat.frag',
     'seekerPosition.frag',
-    'seekerVelocity.frag'
+    'seekerVelocity.frag',
+    'renderSeekers.vert',
+    'renderSeekers.frag'
 ];
 let shaderSources = {};
 
@@ -15,7 +17,7 @@ let canvas;
 let canvasScale = 1.;
 let cWidth;
 let cHeight;
-let stScale = new THREE.Vector2(0, 0);
+let screenInverse = new THREE.Vector2(0, 0);
 let screenSize = new THREE.Vector2(0, 0);
 
 let renderer;
@@ -33,7 +35,7 @@ let mainUniforms = {
 
 let cDiff = 0.22;
 let cDiffMin = 0;
-let cDiffMax = 0.225;
+let cDiffMax = 0.28;
 let cDiffStep = 0.005;
 function cDiffUpdate(value) {
     cDiff = value;
@@ -62,8 +64,8 @@ function mouseHeatUpdate(value) {
 
 let mouseSize = 10;
 let mouseSizeMin = 0;
-let mouseSizeMax = Math.min(cWidth, cHeight) / 2;
-let mouseSizeStep = Math.max(1, Math.floor(mouseSizeMax / 100));
+let mouseSizeMax = 100;
+let mouseSizeStep = 1;
 function mouseSizeUpdate(value) {
     mouseSize = value;
     guiParams.mouseSize = value;
@@ -95,7 +97,7 @@ let diffuseUniforms = {
     mousePositionLast: {value: mousePositionLast},
     mouseHeat: {value: mouseHeat},
     mouseSize: {value: mouseSize},
-    stScale: {value: stScale},
+    screenInverse: {value: screenInverse},
     screenSize: {value: screenSize},
     cDiff: {value: cDiff},
     cDecay: {value: cDecay},
@@ -105,27 +107,46 @@ let diffuseUniforms = {
 
 // Actually the square root of the number of seekers
 let numSeekers = 16;
+let numSeekersActual = numSeekers * numSeekers;
+let seekerInverse = new THREE.Vector2(1 / numSeekers, 1 / numSeekers);
 
 let dt = 1/30;
 let seekerPositionUniforms = {
-    stScale: {value: stScale},
+    seekerInverse: {value: seekerInverse},
     dt: {value: dt}
 };
 
 let seekStrength = 0.5;
-let minSpeed = 1.;
-let maxSpeed = 10.;
+let rawMinSpeed = 0.25;
+let rawMaxSpeed = 4.;
+let minSpeed, maxSpeed;
 let seekerVelocityUniforms = {
-    stScale: {value: stScale},
+    seekerInverse: {value: seekerInverse},
+    screenInverse: {value: screenInverse},
     seekStrength: {value: seekStrength},
-    minSpeed: {value: minSpeed},
-    maxSpeed: {value: maxSpeed}
+    minSpeed: {value: 0.},
+    maxSpeed: {value: 0.}
 };
 
 let gui;
 let guiParams;
 
 let stats;
+
+let seekerScene;
+let seekerCamera;
+let seekerMesh;
+let seekerGeometry;
+let seekerMaterial;
+let seekerIndices;
+let seekerOffsets;
+let renderSeekerUniforms = {
+    numSeekers: {value: numSeekersActual},
+    seekerInverse: {value: seekerInverse},
+    screenInverse: {value: screenInverse},
+    seekerPosition: {value: null}
+};
+
 
 $(document).ready(function() {
     loadFiles().then(main);
@@ -151,25 +172,113 @@ function main() {
 function restart() {
     cWidth = Math.floor(canvasScale * window.innerWidth);
     cHeight = Math.floor(canvasScale * window.innerHeight);
-    stScale.x = 1 / cWidth;
-    stScale.y = 1 / cHeight;
+    screenInverse.x = 1 / cWidth;
+    screenInverse.y = 1 / cHeight;
     screenSize.x = cWidth;
     screenSize.y = cHeight;
     canvas.width = cWidth;
     canvas.height = cHeight;
-    if(mainCamera) {
+    minSpeed = rawMinSpeed / Math.max(cWidth, cHeight);
+    maxSpeed = rawMaxSpeed / Math.max(cWidth, cHeight);
+    seekerVelocityUniforms.minSpeed.value = minSpeed;
+    seekerVelocityUniforms.maxSpeed.value = maxSpeed;
+    if (mainCamera) {
         mainCamera.aspect = cWidth / cHeight;
     }
+    if (seekerCamera) {
+        seekerCamera.aspect = cWidth / cHeight;
+    }
+    mouseSizeMax = Math.min(cWidth, cHeight) / 2;
+    mouseSizeStep = Math.max(1, Math.floor(mouseSizeMax / 100));
 
     setupGL();
+    setupSeekers();
 
     animate();
 }
 
 
+function setupSeekers() {
+
+    seekerScene = new THREE.Scene();
+    seekerCamera = new THREE.PerspectiveCamera(60, cWidth / cHeight, 1, 100);
+
+
+    seekerScene.add(seekerCamera);
+
+    // seekerOffsets = [];
+    // seekerIndices = [];
+    //
+    // seekerOffsets.push(-0.02, 0);
+    // seekerOffsets.push(0, 0.04);
+    // seekerOffsets.push(0.02, 0);
+    // // Set index attribute
+    // for (let i = 0; i < numSeekersActual; i++) {
+    //     seekerIndices.push(i);
+    // }
+
+    // seekerGeometry = new THREE.InstancedBufferGeometry();
+    // seekerGeometry.maxInstancedCount = numSeekersActual;
+    // seekerGeometry.addAttribute('offset', new THREE.Float32BufferAttribute(seekerOffsets, 2));
+    // seekerGeometry.addAttribute('id', new THREE.InstancedBufferAttribute(new Float32Array(seekerIndices), 1));
+    //
+    // seekerMaterial = new THREE.RawShaderMaterial( {
+    //     uniforms: renderSeekerUniforms,
+    //     vertexShader: shaderSources['renderSeekers.vert'],
+    //     fragmentShader: shaderSources['renderSeekers.frag'],
+    //     side: THREE.DoubleSide
+    // });
+
+    simpleSeeker();
+
+    seekerScene.add(seekerMesh);
+    seekerMesh.position.set(0, 0, 0);
+    seekerCamera.position.set(0, 10, 0);
+    seekerCamera.lookAt(seekerScene.position);
+    seekerMesh.frustumCulled = false;
+    seekerMesh.rotateX(0.3);
+    seekerMesh.rotateZ(-0.2);
+
+}
+
+let simpleUniforms = {seekerInverse: {value: new THREE.Vector2()},
+                      screenInverse: {value: new THREE.Vector2()},
+                      seekerPosition: {value: null}};
+
+
+function simpleSeeker() {
+    seekerGeometry = new THREE.Geometry();
+    let size = 12;
+    let vertices = seekerVertices(size);
+    for (let v of vertices) {
+        seekerGeometry.vertices.push(v);
+    }
+    seekerGeometry.faces.push(new THREE.Face3(0, 1, 2));
+
+    seekerMaterial = new THREE.ShaderMaterial({
+        uniforms: simpleUniforms,
+        vertexShader: shaderSources['renderSeekers.vert'],
+        fragmentShader: shaderSources['renderSeekers.frag'],
+        side: THREE.DoubleSide
+    });
+
+    seekerMesh = new THREE.Mesh(seekerGeometry, seekerMaterial);
+
+    function seekerVertices(size) {
+        const isqrt2 = 1 / Math.sqrt(2);
+        let vertices = [
+            new THREE.Vector3(-isqrt2 * size, isqrt2 * size, 0),
+            new THREE.Vector3(1.6 * size, 0),
+            new THREE.Vector3(-isqrt2 * size, -isqrt2 * size, 0)
+        ];
+        return vertices;
+    }
+}
+
+
 function setupGUI() {
     stats = new Stats();
-    stats.showPanel(1);
+    stats.showPanel(0);
     document.body.appendChild(stats.domElement);
 
 
@@ -187,41 +296,51 @@ function setupGUI() {
     gui = new dat.GUI();
 
     let cDiffController = gui.add(guiParams, 'cDiff', cDiffMin, cDiffMax, cDiffStep)
-                             .listen();
+        .name('[ | ]  diffuse')
+        .listen();
     cDiffController.onChange(function(value) {
         cDiff = value;
     });
 
     let cDecayController = gui.add(guiParams, 'cDecay', cDecayLogMin, cDecayLogMax, cDecayLogStep)
-                              .listen();
+        .name('; | \'  decay')
+        .listen();
     cDecayController.onChange(function(value) {
         cDecayLog = value;
         cDecay = 1 - 10**value;
     });
 
     let mouseHeatController = gui.add(guiParams, 'mouseHeat', mouseHeatMin, mouseHeatMax, mouseHeatStep)
-                                 .listen();
+        .name('S | W  mouse heat')
+        .listen();
     mouseHeatController.onChange(function(value) {
         mouseHeat = value;
     });
 
     let mouseSizeController = gui.add(guiParams, 'mouseSize', mouseSizeMin, mouseSizeMax, mouseSizeStep)
-                                 .listen();
+        .name('A | D  mouse size')
+        .listen();
     mouseSizeController.onChange(function(value) {
         mouseSize = value;
     });
 
     let windXController = gui.add(guiParams, 'windX', windXMin, windXMax, windXStep)
-                             .listen();
+        .name('← | →  wind x')
+        .listen();
     windXController.onChange(function(value) {
         windX = value;
     });
 
     let windYController = gui.add(guiParams, 'windY', windYMin, windYMax, windYStep)
-                             .listen();
+        .name('↓ | ↑  wind y')
+        .listen();
     windYController.onChange(function(value) {
         windY = value;
     });
+
+    let obj = {restart: restart};
+    gui.add(obj, 'restart');
+
 
 }
 
@@ -286,49 +405,54 @@ function onKeyPress(evt) {
     }
 
     // Increase mouse size
-    if (key === 'd') {
+    else if (key === 'd') {
         mouseSizeUpdate(Math.min(200, mouseSize + 1));
     }
 
     // Decrease mouse heat
-    if (key === 's') {
+    else if (key === 's') {
         mouseHeatUpdate(Math.max(-1, mouseHeat - mouseHeatStep));
     }
 
     // Increase mouse heat
-    if (key === 'w') {
+    else if (key === 'w') {
         mouseHeatUpdate(Math.min(1., mouseHeat + mouseHeatStep));
     }
 
     // Zero wind speed
-    if (key === 'x') {
+    else if (key === 'x') {
         windXUpdate(0);
         windYUpdate(0);
     }
 
     // Zero mouse heat
-    if (key === 'z') {
+    else if (key === 'z') {
         mouseHeatUpdate(0.);
     }
 
     // Decrease cDiff
-    if (key === '[') {
+    else if (key === '[') {
         cDiffUpdate(Math.max(cDiffMin, cDiff - cDiffStep));
     }
 
     // Increase cDiff
-    if (key === ']') {
+    else if (key === ']') {
         cDiffUpdate(Math.min(cDiffMax, cDiff + cDiffStep));
     }
 
     // Decrease cDecayLog
-    if (key === ';') {
+    else if (key === ';') {
         cDecayLogUpdate(Math.max(cDecayLogMin, cDecayLog - cDecayLogStep));
     }
 
     // Increase cDecayLog
-    if (key === '\'') {
+    else if (key === '\'') {
         cDecayLogUpdate(Math.min(cDecayLogMax, cDecayLog + cDecayLogStep));
+    }
+
+    // Restart
+    else if (key === ' ') {
+        restart();
     }
 }
 
@@ -349,8 +473,6 @@ function loadFile(fileName) {
 function animate() {
     requestAnimationFrame(animate);
 
-    stats.begin();
-
     animateKeys();
     update();
     render();
@@ -358,7 +480,7 @@ function animate() {
     mousePositionLast.x = mousePositionNow.x;
     mousePositionLast.y = mousePositionNow.y;
 
-    stats.end();
+    stats.update();
 }
 
 
@@ -366,7 +488,9 @@ function render() {
     computer.compute();
 
     renderer.setSize(cWidth, cHeight);
+    renderer.clear();
     renderer.render(mainScene, mainCamera);
+    renderer.render(seekerScene, seekerCamera);
 }
 
 
@@ -375,13 +499,21 @@ function update() {
     diffuseUniforms.mousePositionLast.value = mousePositionLast;
     diffuseUniforms.mouseHeat.value = mouseHeat;
     diffuseUniforms.mouseSize.value = mouseSize;
-    diffuseUniforms.stScale.value = stScale;
+    diffuseUniforms.screenInverse.value = screenInverse;
     diffuseUniforms.screenSize.value = screenSize;
     diffuseUniforms.cDiff.value = cDiff;
     diffuseUniforms.cDecay.value = cDecay;
     diffuseUniforms.windX.value = windX;
     diffuseUniforms.windY.value = windY;
     mainUniforms.texture.value = computer.currentRenderTarget('heat').texture;
+
+    seekerVelocityUniforms.seekerInverse.value = seekerInverse;
+    seekerVelocityUniforms.screenInverse.value = screenInverse;
+    seekerPositionUniforms.seekerInverse.value = seekerInverse;
+
+    simpleUniforms.seekerInverse.value = seekerInverse;
+    simpleUniforms.screenInverse.value = screenInverse;
+    simpleUniforms.seekerPosition.value = computer.currentRenderTarget('seekerPosition').texture;
 }
 
 
@@ -389,6 +521,7 @@ function setupGL() {
     renderer = new THREE.WebGLRenderer({
         canvas: canvas,
         antialias: false});
+    renderer.autoClearColor = false;
 
     setupComputer();
 
@@ -400,6 +533,7 @@ function setupGL() {
         cWidth / cHeight,
         1,
         1000);
+    mainScene.add(mainCamera);
     mainMaterial = new THREE.ShaderMaterial({
         vertexShader: shaderSources['quad.vert'],
         fragmentShader: shaderSources['renderHeat.frag'],
@@ -442,6 +576,15 @@ function setupComputer() {
         numSeekers,
         numSeekers
     );
+    computer.addVariable(
+        'snootB O Y E',
+        shaderSources['seekerVelocity.frag'],
+        {},//$.extend(true, {}, seekerVelocityUniforms),
+        initSeekerVelocity,
+        numSeekers,
+        numSeekers
+    );
+
 
     computer.setVariableDependencies('heat', ['heat']);
 
@@ -450,9 +593,12 @@ function setupComputer() {
                                      'seekerVelocity']);
 
     computer.setVariableDependencies('seekerVelocity',
-                                    ['seekerVelocity',
-                                     'seekerPosition',
+                                    ['seekerPosition',
+                                     'seekerVelocity',
                                      'heat']);
+
+
+
 
     let initStatus = computer.init();
     if (initStatus !== null) {
@@ -490,9 +636,9 @@ function initSeekerPosition(texture) {
     let data = texture.image.data;
     for (let i = 0; i < data.length; i += 4) {
         // Seeker initial x position
-        data[i] = random(0, cWidth);
+        data[i] = random(-0.5, 0.5);
         // Seeker initial y position
-        data[i+1] = random(0, cHeight);
+        data[i+1] = random(-0.5, 0.5);
         // Initial orientation gets overwritten so eh
         data[i+2] = 0.;
         // A value is always 1 for now
@@ -516,5 +662,7 @@ function initSeekerVelocity(texture) {
         data[i] = minSpeed * Math.cos(initOrientation);
         // Seeker initial y velocity
         data[i+1] = minSpeed * Math.sin(initOrientation);
+        data[i+2] = 0.;
+        data[i+3] = 1.;
     }
 }

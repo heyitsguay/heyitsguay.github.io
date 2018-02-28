@@ -2,7 +2,7 @@ uniform vec2 mousePositionNow;
 uniform vec2 mousePositionLast;
 uniform float mouseHeat;
 uniform float mouseSize;
-uniform vec2 stScale;
+uniform vec2 screenInverse;
 uniform vec2 screenSize;
 uniform float cDiff;
 uniform float cDecay;
@@ -27,10 +27,12 @@ float min_distance(vec2 x1, vec2 x2, vec2 p) {
 }
 
 void main() {
-    float ds = stScale[0];
-    float dt = stScale[1];
+    float ds = screenInverse[0];
+    float dt = screenInverse[1];
 
-    vec2 p = (gl_FragCoord.xy - vec2(windX, windY)) * stScale;
+    vec2 target = gl_FragCoord.xy - vec2(windX, windY);
+
+    vec2 p = target * screenInverse;
 
     vec2 n = p + vec2(0., dt);
     vec2 ne = p + vec2(ds, dt);
@@ -59,12 +61,12 @@ void main() {
         gl_FragCoord.x == 0.5 || gl_FragCoord.x == screenSize.x - 1.5
      || gl_FragCoord.y == 0.5 || gl_FragCoord.y == screenSize.y - 1.5);
 
-    // Do a bunch of crap to smoothly draw heat along the line between the
+    // Do a bunch of stuff to smoothly draw heat along the line between the
     // last and current mouse positions
     float d = min_distance(mousePositionLast,
                            mousePositionNow,
-                           gl_FragCoord.xy);
-    bool I1 = distance(gl_FragCoord.xy, mousePositionLast) >= mouseSize;
+                           target);
+    bool I1 = distance(target, mousePositionLast) >= mouseSize;
     bool I2 = distance(mousePositionLast, mousePositionNow) <= mouseSize;
     float dCheck = float(d < mouseSize) * float(I1 || I2);
 

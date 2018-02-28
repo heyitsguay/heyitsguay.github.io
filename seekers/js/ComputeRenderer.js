@@ -60,7 +60,6 @@ ComputeRenderer.prototype.addResolutionDefine = function(material, sizeX, sizeY)
  *  creates the variable's initial values.
  * @param {int} sizeX - Variable texture x size.
  * @param {int} sizeY - Variable texture y size.
- * @return variable - The new variable.
  */
 ComputeRenderer.prototype.addVariable = function(variableName, fragmentShader, uniforms, initialValueFiller, sizeX, sizeY, minFilter, magFilter) {
 
@@ -88,8 +87,6 @@ ComputeRenderer.prototype.addVariable = function(variableName, fragmentShader, u
     // Add it to the variable list
     this.variables.push(variable);
 
-    // noinspection JSValidateTypes
-    return variable;
 };
 
 
@@ -188,7 +185,7 @@ ComputeRenderer.prototype.createShaderMaterial = function(fragmentShader, sizeX,
         fragmentShader: fragmentShader
     });
     // Add texture resolution information as a GLSL macro
-    this.addResolutionDefine(material, sizeX, sizeY);
+    // this.addResolutionDefine(material, sizeX, sizeY);
 
     return material;
 };
@@ -338,19 +335,21 @@ ComputeRenderer.prototype.init = function() {
  * @param {WebGLRenderTarget} target - Render target for the texture rendering.
  */
 ComputeRenderer.prototype.initializeTexture = function(texture, target) {
-    // noinspection JSValidateTypes
+    let initShader = this.passThruShader(texture.image.width, texture.image.height);
     this.passThruUniforms.texture.value = texture;
-    this.doRenderTarget(this.passThruShader, target);
+    this.doRenderTarget(initShader, target);
     this.passThruUniforms.texture.value = null;
 };
 
 
 ComputeRenderer.prototype.passThruShader = function(sizeX, sizeY) {
-    this.createShaderMaterial(
+    let material = this.createShaderMaterial(
         passThruFragmentShader(),
         sizeX,
         sizeY,
         this.passThruUniforms);
+    this.addResolutionDefine(material, sizeX, sizeY);
+    return material;
 };
 
 /**

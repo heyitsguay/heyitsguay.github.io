@@ -10,10 +10,25 @@
    Base styles: opinionated defaults
    ========================================================================== */
 
-html {
-    color: #222;
+/*html {*/
+    /*color: #222;*/
+    /*font-size: 1em;*/
+    /*line-height: 1.4;*/
+/*}*/
+html, body {
+    font-family: Monospace, sans-serif;
     font-size: 1em;
-    line-height: 1.4;
+    background-color: #000000;
+    color: #CECED1;
+    user-select: none;
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
 }
 
 /*
