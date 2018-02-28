@@ -2,21 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cc0903d4-40c3-4429-9037-a05123c08d38" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/../guessthenumber/.idea/guessthenumber.iml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../guessthenumber/.idea/modules.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../seekers/glsl/renderSeekers.frag" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../seekers/glsl/renderSeekers.vert" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../guessthenumber/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../guessthenumber/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../labyrinth/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../seekers/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../seekers/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../seekers/css/main.css" afterPath="$PROJECT_DIR$/../seekers/css/main.css" />
-      <change beforePath="$PROJECT_DIR$/../seekers/glsl/diffuse.frag" afterPath="$PROJECT_DIR$/../seekers/glsl/diffuse.frag" />
-      <change beforePath="$PROJECT_DIR$/../seekers/glsl/seekerPosition.frag" afterPath="$PROJECT_DIR$/../seekers/glsl/seekerPosition.frag" />
-      <change beforePath="$PROJECT_DIR$/../seekers/glsl/seekerVelocity.frag" afterPath="$PROJECT_DIR$/../seekers/glsl/seekerVelocity.frag" />
-      <change beforePath="$PROJECT_DIR$/../seekers/js/ComputeRenderer.js" afterPath="$PROJECT_DIR$/../seekers/js/ComputeRenderer.js" />
-      <change beforePath="$PROJECT_DIR$/../seekers/js/main.js" afterPath="$PROJECT_DIR$/../seekers/js/main.js" />
-      <change beforePath="$PROJECT_DIR$/../sketches/heatsnakes/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../sketches/heatsnakes/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/../guessthenumber/css/main.css" afterPath="$PROJECT_DIR$/../guessthenumber/css/main.css" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />

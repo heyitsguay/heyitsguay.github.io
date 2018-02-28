@@ -57,10 +57,14 @@ div.maindiv {
     background-color: #eeeeee;
     color: #222222;
     font-family: Monospace;
-    margin: auto;
+    margin: 0 auto;
     padding: 20px;
     text-align: center;
-    width: 50%;
+    /*width: 80%;*/
+    display: inline-block;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 
     box-shadow:
         -2px -2px 2px 0 #666,
