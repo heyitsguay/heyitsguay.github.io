@@ -57,8 +57,9 @@ div.maindiv {
     background-color: #eeeeee;
     color: #222222;
     font-family: Monospace;
-    margin: 0 auto;
+    margin: 1% auto;
     padding: 20px;
+    border-top:
     text-align: center;
     width: 50%;
     display: inline-block;

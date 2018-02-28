@@ -4,7 +4,7 @@
     <list default="true" id="cc0903d4-40c3-4429-9037-a05123c08d38" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../guessthenumber/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../guessthenumber/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/../guessthenumber/js/main.js" afterPath="$PROJECT_DIR$/../guessthenumber/js/main.js" />
+      <change beforePath="$PROJECT_DIR$/../guessthenumber/css/main.css" afterPath="$PROJECT_DIR$/../guessthenumber/css/main.css" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -289,7 +289,7 @@
       <workItem from="1514659567316" duration="1203000" />
       <workItem from="1516589618972" duration="323000" />
       <workItem from="1516590169237" duration="2834000" />
-      <workItem from="1519776290335" duration="2957000" />
+      <workItem from="1519776290335" duration="3074000" />
     </task>
     <task id="LOCAL-00001" summary="Added the coincircle page.">
       <created>1514285172213</created>
@@ -337,7 +337,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="32001000" />
+    <option name="totallyTimeSpent" value="32118000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1920" y="1076" width="1920" height="1084" extended-state="6" />
