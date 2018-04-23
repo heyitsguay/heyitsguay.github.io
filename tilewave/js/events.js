@@ -6,7 +6,6 @@ $(window).mousemove(onMouseMove);
 function onMouseMove(event) {
     var x = event.clientX;
     var y = event.clientY;
-    console.log(x, y);
     mouseX = x / window.innerWidth - 0.5;
     mouseY = -(y / window.innerHeight - 0.5);
 }

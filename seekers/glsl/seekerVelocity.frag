@@ -29,7 +29,7 @@ void main() {
     vec2 grad = -dScale * vec2(heatx - heatc, heaty - heatc);
 
     vec2 oldVelocity = texture2D(seekerVelocity, vec2(0., 0.)).rg;
-    vec2 newVelocity = 0.999 * oldVelocity
+    vec2 newVelocity = 1 * oldVelocity
                      + seekStrength * grad;
     float newSpeed = min(length(newVelocity), maxSpeed);
     newVelocity = (1. - newSpeed * newSpeed / (maxSpeed * maxSpeed)) * newVelocity;

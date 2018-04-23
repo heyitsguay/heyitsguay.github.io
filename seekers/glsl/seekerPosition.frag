@@ -14,7 +14,7 @@ void main() {
     float oldOrientation = texture2D(seekerPosition, vec2(0., 0.)).b;
     float isMoving = float(v[0] != 0. || v[1] != 0.);
     float orientation = isMoving * atan(v[1], v[0])
-                      + (1. - isMoving) * oldOrientation;;
+                      + (1. - isMoving) * oldOrientation;
 
     vec2 oldPosition = texture2D(seekerPosition, vec2(0., 0.)).rg;
     gl_FragColor = vec4(oldPosition + v, orientation, 1.);
