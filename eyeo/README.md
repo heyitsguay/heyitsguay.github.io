@@ -14,5 +14,5 @@ View show and tell slides [here](showntell.pdf) (PDF)
 
 Using JS/WebGL/Three.js. May or may not work on your device. All feedback is appreciated, please see contact details below!
 
-<div><a href="heyitsguay.github.io/tilewave"><img src="img/tilewave.png" align="center"></a><p><i>tilewave</i></p></div>
+<div><a href="https://heyitsguay.github.io/tilewave"><img src="img/tilewave.png" align="center"></a><p><i>tilewave</i></p></div>
 
