@@ -10,6 +10,24 @@ My name is **Matt Guay**! I live in the DC area, and I work at the National Inst
 
 View show and tell slides [here](showntell.pdf) (PDF)
 
+## Microscopy images
+
+#### Platelets
+
+[3D Platelet, SBF-SEM](https://www.dropbox.com/s/b1xthresdccyspr/platelet.zip?dl=1) (ZIP, 60MB)
+
+![D:](img/platelets.png)
+
+Courtesy of [LCIMB](https://www.nibib.nih.gov/labs-at-nibib/laboratory-cellular-imaging-and-macromolecular-biophysics-lcimb)
+
+#### Cell wall
+
+[2D HeLA cell wall, platinum replica TEM](https://www.dropbox.com/s/k5p82l0k9y0wm24/helawt.zip?dl=1) (ZIP, 250MB)
+
+![O:](img/helawt.png)
+
+Courtesy of [Taraska Lab](https://taraskalab.nhlbi.nih.gov)
+
 ## Interactive visual sketches
 
 Using JS/WebGL/Three.js. May or may not work on your device. All feedback is appreciated, you can reach me at my email address above.
