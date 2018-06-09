@@ -14,17 +14,17 @@ View show and tell slides [here](showntell.pdf) (PDF)
 
 #### Platelets
 
-[3D Platelet, SBF-SEM](https://www.dropbox.com/s/b1xthresdccyspr/platelet.zip?dl=1) (ZIP, 60MB)
-
 ![D:](img/platelets.png)
+
+[3D Platelet, SBF-SEM](https://www.dropbox.com/s/b1xthresdccyspr/platelet.zip?dl=1) (ZIP, 60MB)
 
 Courtesy of [LCIMB](https://www.nibib.nih.gov/labs-at-nibib/laboratory-cellular-imaging-and-macromolecular-biophysics-lcimb)
 
 #### Cell wall
 
-[2D HeLA cell wall, platinum replica TEM](https://www.dropbox.com/s/k5p82l0k9y0wm24/helawt.zip?dl=1) (ZIP, 250MB)
-
 ![O:](img/helawt.png)
+
+[2D HeLA cell wall, platinum replica TEM](https://www.dropbox.com/s/k5p82l0k9y0wm24/helawt.zip?dl=1) (ZIP, 250MB)
 
 Courtesy of [Taraska Lab](https://taraskalab.nhlbi.nih.gov)
 
