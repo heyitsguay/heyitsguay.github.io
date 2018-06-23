@@ -1,7 +1,8 @@
-navigator.getUserMedia = (navigator.getUserMedia ||
-                          navigator.webkitGetUserMedia ||
-                          navigator.mozGetUserMeida ||
-                          navigator.msGetUserMedia);
+getUserMedia = (navigator.mediaDevices.getUserMedia ||
+                navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMeida ||
+                navigator.msGetUserMedia);
 
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 var source;
@@ -34,8 +35,8 @@ $(document).mousemove(function(evt) {
 
 function run() {
 
-    if (navigator.getUserMedia) {
-        navigator.getUserMedia(
+    if (getUserMedia) {
+        getUserMedia(
             {audio: true},
             function (stream) {
                 source = audioCtx.createMediaStreamSource(stream);
