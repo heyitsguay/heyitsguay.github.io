@@ -1,0 +1,26 @@
+html, body {
+    font-family: Monospace, sans-serif;
+    font-size: 1em;
+    background-color: #CECECE;
+    text-align: center;
+    color: #CECED1;
+    user-select: none;
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    text-shadow:
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000;
+}
+
+body {
+    display: inline-block;
+    margin: 100px auto;
+}
+
+canvas {
+    border: 1px solid black;
+
+}
