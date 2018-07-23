@@ -7,16 +7,23 @@ let code;
 
 let playerX;
 let playerY;
+let playerRt = 0.2;
 let pxt;
 let pyt;
 let offsetYt;
 let pxSeed = Math.random();
 let pySeed = Math.random();
 
+let obstacleColor = '#774b5d';
+let rObstacle = 119;
+let gObstacle = 75;
+let bObstacle = 93;
+
 let X;
 let Y;
 let w;
 let h;
+let dt;
 
 $(document).ready(main);
 
@@ -28,10 +35,14 @@ function f(x) {
         fx = math.eval(ftext, scope);
     }
     catch(error) {
-        drawing = false;
-        cancelAnimationFrame(requestId);
+        stopDrawing();
     }
     return math.eval(ftext, scope);
+}
+
+function stopDrawing() {
+    drawing = false;
+    cancelAnimationFrame(requestId);
 }
 
 function W(coord) {
@@ -62,10 +73,86 @@ function main() {
 
     clearButton.addEventListener('click', clearEvent);
 
+    X = canvas.width;
+    Y = canvas.height;
+
+    w = 20.5;
+    h = w * Y / X;
+    dt = X / w;
+
+    playerX = 10 + 80 * pxSeed;
+    playerY = 50 + (Y - 100) * pySeed;
+
+    [pxt, pyt] = W([playerX, playerY]);
+
+    genObstacles(20, 1., 0.);
+
     setupWorld();
 }
 
+function dist(x0, x1) {
+    return Math.sqrt(Math.pow(x0[0] - x1[0], 2) +
+                     Math.pow(x0[1] - x1[1], 2));
+}
+
+let obstacleData;
+function genObstacles(numObstacles, centerBiasX, centerBiasY) {
+    let rMin = 0.3;
+    let rMax = 1;
+    obstacleData = [];
+
+    for (let i = 0; i < numObstacles; ++i) {
+        let obstaclePlaced = false;
+        let xt, yt, rt;
+        while (!obstaclePlaced) {
+            xt = biasSample(centerBiasX) * w - w / 2;
+            yt = biasSample(centerBiasY) * h - h / 2;
+            rt = rMin + (rMax - rMin) * Math.random();
+            let dToPlayer = dist([xt, yt], [pxt, pyt]);
+            obstaclePlaced = (dToPlayer > rt + playerRt + 2);
+        }
+        obstacleData.push([xt, yt, rt]);
+    }
+}
+
+function drawObstacles() {
+    ctx.fillStyle = obstacleColor;
+    ctx.strokeStyle = obstacleColor;
+    for (let tri of obstacleData) {
+        let xt = tri[0];
+        let yt = tri[1];
+        let rt = tri[2];
+
+        let x, y;
+        [x, y] = S([xt, yt]);
+        let r = rt * dt;
+
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+}
+
+function biasSample(bias) {
+    let sample;
+    if (Math.random() < bias) {
+        // Use the center-biased distribution
+        sample = 0;
+        for (let n = 0; n < 5; ++n) {
+            sample += Math.random();
+        }
+        sample /= 5;
+    } else {
+        // Use a uniform distribution
+        sample = Math.random();
+    }
+    return sample;
+}
+
+
+
 let requestId;
+
 function animate() {
     requestId = requestAnimationFrame(animate);
 
@@ -87,11 +174,8 @@ function drawEvent() {
 }
 
 function clearEvent() {
-    if (drawing) {
-        cancelAnimationFrame(requestId);
-        drawing = false;
+        stopDrawing();
         setupWorld();
-    }
 }
 
 let xtNow, ytNow;
@@ -113,7 +197,9 @@ function draw() {
 
     let segLength = 0;
 
-    while (segLength < targetLength) {
+    let keepGoing = true;
+
+    while (keepGoing) {
         xtNow = xtLast + dxt;
         ytNow = f(xtNow);
 
@@ -124,6 +210,13 @@ function draw() {
 
         ctx.lineTo(xNow, yNow);
 
+        let collided = collisionCheck();
+        if (collided) {
+            stopDrawing();
+        }
+
+        keepGoing = !collided && segLength < targetLength;
+
         xtLast = xtNow;
         ytLast = ytNow;
     }
@@ -132,17 +225,17 @@ function draw() {
     totalLength += segLength;
 }
 
+function collisionCheck() {
+    let dataNow = ctx.getImageData(xNow, yNow, 1, 1);
+    let rNow = dataNow.data[0];
+    let gNow = dataNow.data[1];
+    let bNow = dataNow.data[2];
+    let dColor = Math.abs(rNow - rObstacle) + Math.abs(gNow - gObstacle)
+        + Math.abs(bNow - bObstacle);
+    return dColor < 5;
+}
+
 function setupWorld() {
-    X = canvas.width;
-    Y = canvas.height;
-
-    w = 20;
-    h = w * Y / X;
-
-    playerX = 10 + 80 * pxSeed;
-    playerY = 50 + (Y - 100) * pySeed;
-
-    [pxt, pyt] = W([playerX, playerY]);
 
     xtNow = pxt;
     ytNow = pyt;
@@ -151,12 +244,21 @@ function setupWorld() {
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    drawObstacles();
+    drawBackground();
+
+}
+
+function drawBackground() {
+
     ctx.fillStyle = '#222222';
     ctx.strokeStyle = '#222222';
 
+    let tickSize = 0.1;
+
     // Draw a circle at the player's position
     ctx.beginPath();
-    ctx.arc(playerX, playerY, 5, 0, 2*Math.PI);
+    ctx.arc(playerX, playerY, playerRt * dt, 0, 2*Math.PI);
     ctx.fill();
 
     // X axis
@@ -169,6 +271,18 @@ function setupWorld() {
     ctx.lineTo(xv1[0], xv1[1]);
     ctx.stroke();
     ctx.closePath();
+    // Tick marks
+    for (let xt = Math.ceil(-w / 2); xt <= Math.floor(w / 2); ++xt) {
+        let x0, y0, x1, y1;
+        [x0, y0] = S([xt, tickSize]);
+        [x1, y1] = S([xt, -tickSize]);
+
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.stroke();
+        ctx.closePath();
+    }
 
     // Y axis
     let y0 = -h / 2;
@@ -180,5 +294,16 @@ function setupWorld() {
     ctx.lineTo(yv1[0], yv1[1]);
     ctx.stroke();
     ctx.closePath();
+    // Tick marks
+    for (let yt = Math.ceil(-h / 2); yt <= Math.floor(h / 2); ++yt) {
+        let x0, y0, x1, y1;
+        [x0, y0] = S([tickSize, yt]);
+        [x1, y1] = S([-tickSize, yt]);
 
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.stroke();
+        ctx.closePath();
+    }
 }
