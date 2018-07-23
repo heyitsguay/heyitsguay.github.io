@@ -23,3 +23,7 @@ canvas {
 .textfield * {
     vertical-align: top;
 }
+
+.midalign * {
+    vertical-align: middle;
+}
