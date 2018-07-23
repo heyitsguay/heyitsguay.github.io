@@ -30,7 +30,7 @@ Courtesy of [Taraska Lab](https://taraskalab.nhlbi.nih.gov)
 
 ## Interactive visual sketches
 
-Using JS/WebGL/Three.js. May or may not work on your device. All feedback is appreciated!
+**Click images** to load sketches. Made using JS/WebGL/Three.js. May or may not work on your device. All feedback is appreciated!
 
 ### tilewave
 
