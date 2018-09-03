@@ -181,14 +181,20 @@ function collectCoin(player, coin) {
         });
 
         nRounds += 1;
-
-        let x = (player.x < w / 2)? Phaser.Math.Between(w/2, w) : Phaser.Math.Between(0, w/2);
-        let bomb = bombs.create(x, 0, 'bomb');
-        bomb.setBounce(1);
-        bomb.setCollideWorldBounds(true);
-        bomb.setVelocity(nRounds * Phaser.Math.Between(-30, 30), nRounds * Phaser.Math.Between(5, 15));
-        bomb.allowGravity = false;
+        
+        for (let n = 0; n < nRounds; ++n) {
+	    	addBomb();    
+    	}
     }
+}
+
+function addBomb() {
+	let x = Phaser.Math.Between(0, w);
+    let bomb = bombs.create(x, 0, 'bomb');
+    bomb.setBounce(1);
+    bomb.setCollideWorldBounds(true);
+    bomb.setVelocity(nRounds * Phaser.Math.Between(-30, 30), nRounds * Phaser.Math.Between(5, 15));
+    bomb.allowGravity = false;
 }
 
 let score = 0;
