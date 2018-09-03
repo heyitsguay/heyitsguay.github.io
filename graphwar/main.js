@@ -1,15 +1,16 @@
+// TODO: Rewrite draw() as in plan
+
 let canvas;
 let ctx;
 let textarea;
 let drawButton;
-let clearButton;
-let code;
+let resetButton;
 
 let playerX;
 let playerY;
+let playerXt;
+let playerYt;
 let playerRt = 0.2;
-let pxt;
-let pyt;
 let offsetYt;
 let pxSeed = Math.random();
 let pySeed = Math.random();
@@ -19,13 +20,17 @@ let rObstacle = 119;
 let gObstacle = 75;
 let bObstacle = 93;
 
+let holeRt = 0.5;
+
+let backgroundColor = '#ffffff';
+
 let X;
 let Y;
 let w;
 let h;
 let dt;
 
-$(document).ready(main);
+let doPathUpdate = false;
 
 let ftext;
 function f(x) {
@@ -35,43 +40,25 @@ function f(x) {
         fx = math.eval(ftext, scope);
     }
     catch(error) {
-        stopDrawing();
+        return null;
     }
-    return math.eval(ftext, scope);
+    return fx;
 }
 
-function stopDrawing() {
-    drawing = false;
-    cancelAnimationFrame(requestId);
-}
-
-function W(coord) {
-    let x = coord[0];
-    let y = coord[1];
-    let xt = w * (x / X - 0.5);
-    let yt = h * (0.5 - y / Y);
-    return [xt, yt];
-}
-
-function S(coord) {
-    let xt = coord[0];
-    let yt = coord[1];
-    let x = X * (0.5 + xt / w);
-    let y = Y * (0.5 - yt / h);
-    return [x, y];
-}
-
-function main() {
+$(document).ready(function() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext("2d");
     textarea = document.getElementById('code');
     drawButton = document.getElementById('draw');
-    clearButton = document.getElementById('clear');
-    code = textarea.value;
+    resetButton = document.getElementById('reset');
 
     drawButton.addEventListener('click', drawEvent);
 
-    clearButton.addEventListener('click', clearEvent);
+    resetButton.addEventListener('click', resetEvent);
+    init();
+});
+
+function init() {
 
     X = canvas.width;
     Y = canvas.height;
@@ -83,16 +70,15 @@ function main() {
     playerX = 10 + 80 * pxSeed;
     playerY = 50 + (Y - 100) * pySeed;
 
-    [pxt, pyt] = W([playerX, playerY]);
+    [playerXt, playerYt] = W([playerX, playerY]);
 
-    genObstacles(20, 1., 0.);
+    holeData = [];
 
-    setupWorld();
-}
+    genObstacles(15, 0.25, 0.25);
 
-function dist(x0, x1) {
-    return Math.sqrt(Math.pow(x0[0] - x1[0], 2) +
-                     Math.pow(x0[1] - x1[1], 2));
+    resetWorld();
+
+    animate();
 }
 
 let obstacleData;
@@ -108,17 +94,70 @@ function genObstacles(numObstacles, centerBiasX, centerBiasY) {
             xt = biasSample(centerBiasX) * w - w / 2;
             yt = biasSample(centerBiasY) * h - h / 2;
             rt = rMin + (rMax - rMin) * Math.random();
-            let dToPlayer = dist([xt, yt], [pxt, pyt]);
+            let dToPlayer = dist([xt, yt], [playerXt, playerYt]);
             obstaclePlaced = (dToPlayer > rt + playerRt + 2);
         }
         obstacleData.push([xt, yt, rt]);
     }
 }
 
+function resetWorld() {
+
+    doPathUpdate = false;
+
+    holeData = [];
+    pathCoordsT = [];
+
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    drawObstacles();
+    drawHoles();
+    drawBackground();
+
+}
+
+function animate() {
+    update();
+    draw();
+    requestAnimationFrame(animate);
+}
+
+function update() {
+    if (doPathUpdate) {
+        updatePath();
+    }
+}
+
+
+
 function drawObstacles() {
     ctx.fillStyle = obstacleColor;
     ctx.strokeStyle = obstacleColor;
     for (let tri of obstacleData) {
+        let xt = tri[0];
+        let yt = tri[1];
+        let rt = tri[2];
+
+        let x, y;
+        [x, y] = S([xt, yt]);
+        let r = rt * dt;
+
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+}
+
+let holeData;
+function addHole(xt, yt, rt) {
+    holeData.push([xt, yt, rt]);
+}
+
+function drawHoles() {
+    ctx.fillStyle = backgroundColor;
+    ctx.strokeStyle = backgroundColor;
+    for (let tri of holeData) {
         let xt = tri[0];
         let yt = tri[1];
         let rt = tri[2];
@@ -149,41 +188,58 @@ function biasSample(bias) {
     return sample;
 }
 
-
-
-let requestId;
-
-function animate() {
-    requestId = requestAnimationFrame(animate);
-
-    if (xtNow < w / 2 && totalLength < maxLength) {
-        draw();
-    }
-}
-
-let drawing = false;
 function drawEvent() {
-    if (!drawing) {
-        ftext = textarea.value;
-        offsetYt = pyt - f(pxt);
-        totalLength = 0;
-        setupWorld();
-        animate();
-        drawing = true;
+    if (!doPathUpdate) {
+        pathCoordsT = [[playerXt, playerYt]];
+        doPathUpdate = true;
     }
 }
 
-function clearEvent() {
-        stopDrawing();
-        setupWorld();
+function resetEvent() {
+        resetWorld();
 }
 
-let xtNow, ytNow;
-let xNow, yNow;
+let pathCoordsT;
 let dxt = 0.0003;
 let targetLength = 0.15;
 let maxLength = 180;
 let totalLength;
+function updatePath() {
+    let xtLast, ytLast;
+    [xtLast, ytLast] = pathCoordsT[pathCoordsT.length - 1];
+
+    let segLength = 0;
+
+    let keepGoing = true;
+
+    while (keepGoing) {
+        let xtNow = xtLast + dxt;
+        let ytNow = f(xtNow);
+        if (ytNow === null) {
+            keepGoing = false;
+            doPathUpdate = false;
+        }
+        else {
+            let newLength = dist([xtLast, ytLast], [xtNow, ytNow]);
+            segLength += newLength;
+            totalLength += newLength;
+
+
+            pathCoordsT.push([xtNow, ytNow]);
+
+            let collided = collisionCheck();
+            if (collided) {
+                addHole(xtNow, ytNow + offsetYt, holeRt);
+            }
+
+            doPathUpdate = !collided &&
+                           xtNow < w / 2 &&
+                           totalLength < maxLength;
+            keepGoing = doPathUpdate && segLength < targetLength;
+        }
+    }
+
+}
 function draw() {
 
     let xtLast = xtNow;
@@ -213,6 +269,10 @@ function draw() {
         let collided = collisionCheck();
         if (collided) {
             stopDrawing();
+            addHole(xtNow, ytNow, holeRt);
+            drawObstacles();
+            drawHoles();
+            drawBackground();
         }
 
         keepGoing = !collided && segLength < targetLength;
@@ -233,20 +293,6 @@ function collisionCheck() {
     let dColor = Math.abs(rNow - rObstacle) + Math.abs(gNow - gObstacle)
         + Math.abs(bNow - bObstacle);
     return dColor < 5;
-}
-
-function setupWorld() {
-
-    xtNow = pxt;
-    ytNow = pyt;
-    [xNow, yNow] = S([xtNow, ytNow]);
-
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    drawObstacles();
-    drawBackground();
-
 }
 
 function drawBackground() {
@@ -282,6 +328,9 @@ function drawBackground() {
         ctx.lineTo(x1, y1);
         ctx.stroke();
         ctx.closePath();
+
+        ctx.font = '12px serif';
+        ctx.fillText(xt.toString(), x1 - 6, y1 + 12);
     }
 
     // Y axis
@@ -305,5 +354,35 @@ function drawBackground() {
         ctx.lineTo(x1, y1);
         ctx.stroke();
         ctx.closePath();
+
+        if (yt !== 0) {
+            ctx.font = '12px serif';
+            ctx.fillText(yt.toString(), x1 + 10, y1 + 6);
+        }
     }
+}
+
+function W(coord) {
+    let x = coord[0];
+    let y = coord[1];
+    let xt = w * (x / X - 0.5);
+    let yt = h * (0.5 - y / Y);
+    return [xt, yt];
+}
+
+function S(coord) {
+    let xt = coord[0];
+    let yt = coord[1];
+    let x = X * (0.5 + xt / w);
+    let y = Y * (0.5 - yt / h);
+    return [x, y];
+}
+
+function Spath(coord) {
+    return S([coord[0], coord[1] + offsetYt]);
+}
+
+function dist(x0, x1) {
+    return Math.sqrt(Math.pow(x0[0] - x1[0], 2) +
+        Math.pow(x0[1] - x1[1], 2));
 }
