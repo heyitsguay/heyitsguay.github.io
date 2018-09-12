@@ -2,8 +2,8 @@ const debug = false;
 
 let config, game;
 $(document).ready(function() {
-    const width = Math.min(1024, window.innerWidth);
-    const height = Math.min(1024, window.innerHeight);
+    const width = Math.min(1280, window.innerWidth);
+    const height = Math.min(1280, window.innerHeight);
     config = {
         type: Phaser.AUTO,
         width: width,
@@ -42,6 +42,7 @@ function create() {
 
 function update(time, delta) {
     updatePlayer(this);
+    updateSecret(this, time);
 }
 
 /****************************************
@@ -131,11 +132,12 @@ function createLevel(scene) {
     scene.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 }
 
+let helpText;
 function createCamera(scene) {
     const camera = scene.cameras.main;
     camera.startFollow(player);
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    scene.add.text(
+    helpText = scene.add.text(
         16,
         16,
         'WASD to scroll',
@@ -153,13 +155,57 @@ function createWASDKeys(scene) {
         left: Phaser.Input.Keyboard.KeyCodes.A,
         right: Phaser.Input.Keyboard.KeyCodes.D,
         space: Phaser.Input.Keyboard.KeyCodes.SPACE,
-        shift: Phaser.Input.Keyboard.KeyCodes.SHIFT
+        shift: Phaser.Input.Keyboard.KeyCodes.SHIFT,
+        secret: Phaser.Input.Keyboard.KeyCodes.O
     });
 }
 
 /****************************************
  * Functions used in the update() scene *
  ****************************************/
+
+let secretTriggered = false;
+let triggerTime = 2500;
+let lastTriggerTime = 0;
+let triggerPause = 4000;
+function updateSecret(scene, time) {
+
+    if (secretTriggered && time - lastTriggerTime > triggerPause) {
+        secretTriggered = false;
+    }
+
+    if (cursors.secret.isDown) {
+        if (!secretTriggered && time - cursors.secret.timeDown > triggerTime) {
+            secretTriggered = true;
+            lastTriggerTime = time;
+            playSecret(scene);
+        }
+    }
+}
+
+let secretTween = null;
+function playSecret(scene) {
+    const textX = player.body.x - 22;
+    const playerY = player.body.y;
+    const textY = playerY < 60 ? playerY + 30 : playerY - 30;
+    let secretText = scene.add.text(
+        textX,
+        textY,
+        'Hey Eli ❤️',
+        {font: '14px monospace',
+         fill: '#f27171',
+         padding: {x: 6, y: 4},
+         backgroundColor: '#e8e8e8'}).setDepth(30);
+    if (secretTween) {
+        secretTween.stop();
+    }
+    secretTween = scene.tweens.add({
+        targets: secretText,
+        alpha: 0,
+        ease: 'Linear',
+        duration: 2500,
+        delay: 1000});
+}
 
 function updatePlayer(scene) {
     updatePlayerVelocity();

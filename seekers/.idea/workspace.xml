@@ -2,16 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="983751f5-2224-46ff-9d22-840ef76da1ab" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/../tileworld/.idea/jsLibraryMappings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../tileworld/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../tileworld/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../tileworld/.idea/tileworld.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../tileworld/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../tileworld/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../tileworld/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../tileworld/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../tileworld/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../phaserdemo/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../phaserdemo/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tileworld/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tileworld/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/main.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
