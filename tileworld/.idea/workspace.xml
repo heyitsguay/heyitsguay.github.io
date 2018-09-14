@@ -2,15 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/../platformer/.idea/jsLibraryMappings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../platformer/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../platformer/.idea/platformer.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../platformer/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../platformer/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../platformer/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../platformer/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../seekers/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../seekers/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../platformer/js/player.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../platformer/js/scene.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformer/.idea/jsLibraryMappings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/.idea/jsLibraryMappings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformer/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformer/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/js/main.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -29,7 +26,7 @@
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="270">
-              <caret line="15" column="7" lean-forward="true" selection-end-line="15" selection-end-column="7" />
+              <caret line="15" column="7" selection-end-line="15" selection-end-column="7" />
             </state>
           </provider>
         </entry>
@@ -37,7 +34,7 @@
       <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="555">
+            <state relative-caret-position="1044">
               <caret line="156" column="33" selection-start-line="156" selection-start-column="33" selection-end-line="156" selection-end-column="33" />
             </state>
           </provider>
@@ -47,7 +44,7 @@
         <entry file="file://$PROJECT_DIR$/style.css">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="648">
-              <caret line="36" lean-forward="true" selection-start-line="36" selection-end-line="36" />
+              <caret line="36" selection-start-line="36" selection-end-line="36" />
             </state>
           </provider>
         </entry>
@@ -98,11 +95,11 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="1886" />
-    <option name="y" value="127" />
-    <option name="width" value="1918" />
-    <option name="height" value="1048" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-1" />
+    <option name="y" value="-11" />
+    <option name="width" value="1922" />
+    <option name="height" value="1092" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -157,15 +154,16 @@
       <updated>1536031329874</updated>
       <workItem from="1536031331149" duration="3285000" />
       <workItem from="1536706153578" duration="13934000" />
-      <workItem from="1536809903614" duration="2901000" />
+      <workItem from="1536809903614" duration="2998000" />
+      <workItem from="1536890379703" duration="1274000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="20120000" />
+    <option name="totallyTimeSpent" value="21491000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1886" y="127" width="1918" height="1048" extended-state="0" />
+    <frame x="0" y="-4" width="1920" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.25" />
@@ -194,6 +192,27 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="15" column="7" lean-forward="true" selection-end-line="15" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/style.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="36" lean-forward="true" selection-start-line="36" selection-end-line="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2808">
+          <caret line="156" column="33" selection-start-line="156" selection-start-column="33" selection-end-line="156" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="126">
@@ -239,20 +258,20 @@
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="270">
-          <caret line="15" column="7" lean-forward="true" selection-end-line="15" selection-end-column="7" />
+          <caret line="15" column="7" selection-end-line="15" selection-end-column="7" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/style.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="648">
-          <caret line="36" lean-forward="true" selection-start-line="36" selection-end-line="36" />
+          <caret line="36" selection-start-line="36" selection-end-line="36" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="555">
+        <state relative-caret-position="1044">
           <caret line="156" column="33" selection-start-line="156" selection-start-column="33" selection-end-line="156" selection-end-column="33" />
         </state>
       </provider>
