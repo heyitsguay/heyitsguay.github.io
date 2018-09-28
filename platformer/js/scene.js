@@ -1,4 +1,5 @@
 import Player from './player.js';
+import MouseTileMarker from './mouse-tile-marker.js';
 
 /**
  * Extend Phaser.Scene, wrap the core platformer logic
@@ -16,14 +17,19 @@ export default class PlatformerScene extends Phaser.Scene {
             }
         );
         this.load.image(
+            'spike',
+            'assets/images/0x72-industrial-spike.png');
+        this.load.image(
             'tiles',
             'assets/tilesets/0x72-industrial-tileset-32px-extruded.png');
         this.load.tilemapTiledJSON(
             'map',
-            'assets/tilemaps/platformer-simple.json');
+            'assets/tilemaps/platformer.json');
     }
 
     create() {
+        this.isPlayerDead = false;
+
         const map = this.make.tilemap({key: 'map'});
         const tiles = map.addTilesetImage(
             '0x72-industrial-tileset-32px-extruded',
@@ -44,38 +50,68 @@ export default class PlatformerScene extends Phaser.Scene {
         this.physics.world.setBounds(
             0, 0, map.widthInPixels, map.heightInPixels);
 
+        // Set up spikes to have proper bounding boxes for collisions
+        this.spikeGroup = this.physics.add.staticGroup();
+        this.groundLayer.forEachTile(tile => {
+            if (tile.index === 77) {
+                const spike = this.spikeGroup.create(tile.getCenterX(),
+                                                     tile.getCenterY(),
+                                                     'spike');
+                // Detect spike tiles rotated in Tiles
+                spike.rotation = tile.rotation;
+                if (spike.angle === 0) spike.body.setSize(32, 6).setOffset(0, 26);
+                else if (spike.angle === -90) spike.body.setSize(6, 32).setOffset(26, 0);
+                else if (spike.angle === 90) spike.body.setSize(6, 32).setOffset(0, 0);
+                else if (spike.angle === 180) spike.body.setSize(32, 6).setOffset(0, 0);
+
+                this.groundLayer.removeTileAt(tile.x, tile.y);
+            }
+        });
+
+
         this.cameras.main.startFollow(this.player.sprite);
         this.cameras.main.setBounds(
             0, 0, map.widthInPixels, map.heightInPixels);
 
-        // Create a graphic highlighting the tile under the mouse
-        this.marker = this.add.graphics();
-        this.marker.lineStyle(5, 0xffffff, 1);
-        this.marker.strokeRect(0, 0, map.tileWidth, map.tileHeight);
-        this.marker.lineStyle(3, 0xff4f78, 1);
-        this.marker.strokeRect(0, 0, map.tileWidth, map.tileHeight);
+        this.marker = new MouseTileMarker(this, map);
 
         this.ctrlKey = this.input.keyboard.addKey(
             Phaser.Input.Keyboard.KeyCodes.CTRL);
 
         // Fixed-position help text
-        this.add.text(16, 16, 'WASD to scroll\nLeft-click to draw' +
-            ' tiles\nShift + left-click to erase', {
+        this.helpText = this.add.text(16, 16, 'WASD to scroll\nLeft-click to' +
+            ' draw tiles\nCtrl + left-click to erase\nH to toggle text', {
             font: '18px monospace',
             fill: '#222222',
             padding: {x: 20, y: 10},
-            backgroundColor: '#eeeef5'
+            backgroundColor: '#eeeef588'
         }).setScrollFactor(0);
     }
 
     update(time, delta) {
-        this.drawTile();
-
+        if (this.isPlayerDead) return;
+        this.marker.update();
         this.player.update();
 
-        if (this.player.sprite.y > this.groundLayer.height) {
-            this.player.destroy();
-            this.scene.restart();
+        this.drawTile();
+
+        if (this.player.sprite.y > this.groundLayer.height ||
+            this.physics.world.overlap(this.player.sprite, this.spikeGroup)) {
+
+            this.isPlayerDead = true;
+
+            const cam = this.cameras.main;
+            cam.shake(250, 0.05);
+            cam.fade(333, 25, 0, 0);
+
+            this.player.freeze();
+            this.marker.destroy();
+
+            cam.once('camerafadeoutcomplete', () => {
+                this.player.destroy();
+                this.scene.restart();
+            });
+
         }
     }
 
@@ -83,13 +119,6 @@ export default class PlatformerScene extends Phaser.Scene {
         // Convert mouse position to world position within the camera
         const worldPoint = this.input.activePointer.positionToCamera(
             this.cameras.main);
-        // Snap the marker position to the tile grid by converting world -> tile
-        // -> world
-        const pointerTileXY = this.groundLayer.worldToTileXY(
-            worldPoint.x, worldPoint.y);
-        const snappedWorldPoint = this.groundLayer.tileToWorldXY(
-            pointerTileXY.x, pointerTileXY.y);
-        this.marker.setPosition(snappedWorldPoint.x, snappedWorldPoint.y);
 
         // Draw tiles within the ground layer
         if (this.input.manager.activePointer.isDown) {
