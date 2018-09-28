@@ -2,11 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/../platformer/js/mouse-tile-marker.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../platformer/js/player.js" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/js/player.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer-simple.json" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer-simple.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer-simple.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer-simple.tmx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer.json" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer.tmx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../platformer/js/scene.js" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/js/scene.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -154,12 +155,12 @@
       <workItem from="1536706153578" duration="13934000" />
       <workItem from="1536809903614" duration="2998000" />
       <workItem from="1536890379703" duration="1274000" />
-      <workItem from="1538101207254" duration="1245000" />
+      <workItem from="1538101207254" duration="1844000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="22736000" />
+    <option name="totallyTimeSpent" value="23335000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="-11" width="1922" height="1092" extended-state="6" />

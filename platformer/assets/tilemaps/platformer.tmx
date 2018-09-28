@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="40" height="20" tilewidth="32" tileheight="32" infinite="0" backgroundcolor="#1d212d" nextobjectid="6">
+<map version="1.0" tiledversion="2017.07.26" orientation="orthogonal" renderorder="right-down" width="40" height="20" tilewidth="32" tileheight="32" backgroundcolor="#1d212d" nextobjectid="9">
  <tileset firstgid="1" name="0x72-industrial-tileset-32px-extruded" tilewidth="32" tileheight="32" spacing="2" margin="1" tilecount="1024" columns="32">
   <image source="../tilesets/0x72-industrial-tileset-32px-extruded.png" width="1088" height="1088"/>
   <tile id="0">
@@ -6223,8 +6223,7 @@
 </data>
  </layer>
  <objectgroup name="Objects">
-  <object id="1" name="Spawn Point" x="160" y="192">
-   <point/>
-  </object>
+  <object id="1" name="Spawn Point" x="160" y="192"/>
+  <object id="8" name="Win Point" x="1103" y="202" width="1" height="22"/>
  </objectgroup>
 </map>

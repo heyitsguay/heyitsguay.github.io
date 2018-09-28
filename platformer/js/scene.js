@@ -39,6 +39,7 @@ export default class PlatformerScene extends Phaser.Scene {
         this.groundLayer = map.createDynamicLayer('Ground', tiles);
         map.createDynamicLayer('Foreground', tiles);
 
+
         // Create a Player at the spawn point
         const spawnPoint = map.findObject(
             'Objects',
@@ -49,6 +50,22 @@ export default class PlatformerScene extends Phaser.Scene {
         this.physics.world.addCollider(this.player.sprite, this.groundLayer);
         this.physics.world.setBounds(
             0, 0, map.widthInPixels, map.heightInPixels);
+
+        // Set up win box physics stuff
+        let winPoint = map.findObject(
+            'Objects',
+            obj => obj.name === 'Win Point');
+        console.log(winPoint);
+        this.winGroup = this.physics.add.staticGroup();
+        let winObj = this.winGroup.create(
+            winPoint.x,
+            winPoint.y,
+            'spike',
+            0,
+            false);
+        // winObj.setOrigin(0);
+        winObj.body.width = 1;
+        winObj.body.height = 22;
 
         // Set up spikes to have proper bounding boxes for collisions
         this.spikeGroup = this.physics.add.staticGroup();
@@ -95,6 +112,19 @@ export default class PlatformerScene extends Phaser.Scene {
 
         this.drawTile();
 
+        if (this.physics.world.overlap(this.player.sprite, this.winGroup)) {
+            this.isPlayerDead = true;
+            const cam = this.cameras.main;
+            cam.fade(1000, 255, 255, 255);
+
+            this.player.freeze();
+            this.marker.destroy();
+
+            cam.once('camerafadeoutcomplete', () => {
+                this.player.destroy();
+                this.scene.restart();
+            });
+        }
         if (this.player.sprite.y > this.groundLayer.height ||
             this.physics.world.overlap(this.player.sprite, this.spikeGroup)) {
 
