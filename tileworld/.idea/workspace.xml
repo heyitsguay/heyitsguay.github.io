@@ -3,11 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer-simple.json" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer-simple.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer-simple.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer-simple.tmx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer.json" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/assets/tilemaps/platformer.tmx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../platformer/js/scene.js" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/js/scene.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
