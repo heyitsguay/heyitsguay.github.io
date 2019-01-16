@@ -32,15 +32,15 @@ let rotRightTime = 0;
 let bullets = [];
 let bulletGroup;
 let bulletLifespan = 8;
-let bulletDrag = 0.99;
+let bulletDrag = 0.995;
 
 class Bullet {
     constructor(x, y, scene) {
         this.sprite = bulletGroup.create(x, y, 'bullet');
         this.sprite.setCircle(3);
+        this.sprite.setMass(0.1);
         this.sprite.setDamping(false);
         this.sprite.setMaxVelocity(1000);
-        // this.sprite.setBlendMode(Phaser.BlendModes.MULTIPLY);
         this.age = 0;
         this.scene = scene;
         bullets.push(this);
@@ -55,7 +55,7 @@ class Bullet {
         if (this.age > bulletLifespan) {
             let idx = bullets.indexOf(this);
             bullets.splice(idx, 1);
-            bulletGroup.remove(this, true, true);
+            bulletGroup.remove(this.sprite, true, true);
         } else {
             let v = this.sprite.body.velocity;
             this.setVelocity(bulletDrag * v.x, bulletDrag * v.y);
@@ -86,7 +86,10 @@ function create() {
     ship = this.physics.add.image(400, 300, 'ship');
     ship.setDamping(true);
     ship.setDrag(0.993);
+    ship.setMass(100);
     ship.setMaxVelocity(300);
+    ship.setCircle(9, 7, 7);
+    ship.setBounce(0.4);
 
     keys = this.input.keyboard.addKeys(
         {up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -101,6 +104,7 @@ function create() {
         collideWorldBounds: false
     });
     this.physics.add.collider(bulletGroup, bulletGroup);
+    this.physics.add.collider(bulletGroup, ship);
 
     text = this.add.text(10, 10, '', {font: '16px Courier', fill: '#CECED1'});
 }
@@ -162,8 +166,8 @@ function update(time, delta) {
 function fireBullet(scene) {
     let ct = Math.cos(ship.rotation);
     let st = Math.sin(ship.rotation);
-    let emitX = ship.body.center.x + 16 * ct;
-    let emitY = ship.body.center.y + 16 * st;
+    let emitX = ship.body.center.x + 17 * ct;
+    let emitY = ship.body.center.y + 17 * st;
     let bullet = new Bullet(emitX, emitY, scene);
     bullet.setVelocity(666 * ct, 666 * st);
 }
