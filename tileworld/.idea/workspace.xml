@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/../asteroids/assets/ship.png" beforeDir="false" afterPath="$PROJECT_DIR$/../asteroids/assets/ship.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../asteroids/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../asteroids/main.js" afterDir="false" />
-    </list>
+    <list default="true" id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -161,7 +158,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="25" width="1920" height="1055" extended-state="7" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
