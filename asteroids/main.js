@@ -25,13 +25,14 @@ $(document).ready(function() {
 });
 
 let ship, keys, text;
-let accelTime = 0;
+let accelForwardTime = 0;
+let accelBackwardTime = 0;
 let rotLeftTime = 0;
 let rotRightTime = 0;
 
 let bullets = [];
 let bulletGroup;
-let bulletLifespan = 8;
+let bulletLifespan = 10;
 let bulletDrag = 0.995;
 
 class Bullet {
@@ -65,7 +66,7 @@ class Bullet {
     }
 
     updateColor() {
-        let p = this.age / bulletLifespan;
+        let p = Math.min(1, this.age / (bulletLifespan - 2));
         let h = 0.167 * (1 - p) ** 2;
         let s = Math.min(1, 0.1 + 1.2 * p ** .5);
         let v = 0.2 + 0.8 * (1 - p) ** 0.8;
@@ -89,7 +90,7 @@ function create() {
     ship.setMass(100);
     ship.setMaxVelocity(300);
     ship.setCircle(9, 7, 7);
-    ship.setBounce(0.4);
+    ship.setBounce(0.);
 
     keys = this.input.keyboard.addKeys(
         {up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -113,15 +114,25 @@ let canFire = true;
 function update(time, delta) {
     let delta_s = delta / 1000;
     if (keys.up.isDown) {
-        accelTime += delta_s;
-        let acceleration = 30 + Math.min(accelTime, 1) * 270;
+        accelForwardTime += delta_s;
+        accelBackwardTime = 0;
+        let acceleration = 30 + Math.min(accelForwardTime, 1) * 270;
         this.physics.velocityFromRotation(
             ship.rotation,
             acceleration,
             ship.body.acceleration);
+    } else if (keys.down.isDown) {
+        accelForwardTime = 0;
+        accelBackwardTime += delta_s;
+        let acceleration = 30 + Math.min(accelBackwardTime, 1) * 220;
+        this.physics.velocityFromRotation(
+            ship.rotation,
+            -acceleration,
+            ship.body.acceleration);
     } else {
         ship.setAcceleration(0);
-        accelTime = 0;
+        accelForwardTime = 0;
+        accelBackwardTime = 0;
     }
 
     if (keys.left.isDown) {
