@@ -1,7 +1,8 @@
 let config, game;
+let width, height;
 $(document).ready(function() {
-    const width = Math.min(1280, window.innerWidth);
-    const height = Math.min(1280, window.innerHeight);
+    width = window.innerWidth;
+    height = window.innerHeight;
     config = {
         type: Phaser.AUTO,
         width: width,
@@ -14,8 +15,8 @@ $(document).ready(function() {
             update: update
         },
         physics: {
-            default: 'arcade',
-            arcade: {
+            default: 'matter',
+            matter: {
                 fps: 60,
                 gravity: {y: 0}
             }
@@ -31,17 +32,36 @@ let rotLeftTime = 0;
 let rotRightTime = 0;
 
 let bullets = [];
-let bulletGroup;
 let bulletLifespan = 10;
 let bulletDrag = 0.995;
 
+let asteroids = [];
+let asteroidDrag = 0.993;
+
+class Asteroid {
+    constructor(x, y, s, scene) {
+        this.sprite = scene.matter.add.image(x, y, 'asteroid');
+        this.sprite.setCircle(50);
+        this.sprite.setMass(s * 1000);
+        this.sprite.setScale(s);
+        this.sprite.setBounce(0.4);
+        this.scene = scene;
+        asteroids.push(this);
+    }
+
+    update(delta) {
+        let v = this.sprite.body.velocity;
+        this.sprite.setVelocity(asteroidDrag * v.x, asteroidDrag * v.y);
+        wrap(this.sprite);
+    }
+}
+
 class Bullet {
     constructor(x, y, scene) {
-        this.sprite = bulletGroup.create(x, y, 'bullet');
+        this.sprite = scene.matter.add.image(x, y, 'bullet');
         this.sprite.setCircle(3);
         this.sprite.setMass(0.1);
-        this.sprite.setDamping(false);
-        this.sprite.setMaxVelocity(1000);
+        this.sprite.setBounce(0.8);
         this.age = 0;
         this.scene = scene;
         bullets.push(this);
@@ -56,11 +76,12 @@ class Bullet {
         if (this.age > bulletLifespan) {
             let idx = bullets.indexOf(this);
             bullets.splice(idx, 1);
-            bulletGroup.remove(this.sprite, true, true);
+            this.sprite.destroy();
+            // bulletGroup.remove(this.sprite, true, true);
         } else {
             let v = this.sprite.body.velocity;
             this.setVelocity(bulletDrag * v.x, bulletDrag * v.y);
-            this.scene.physics.world.wrap(this.sprite, 16);
+            wrap(this.sprite);
             this.updateColor();
         }
     }
@@ -73,24 +94,26 @@ class Bullet {
         let tint = Phaser.Display.Color.HSVToRGB(h, s, v);
         let tint_int = tint.r  * 256 * 256 + tint.g * 256 + tint.b;
         this.sprite.setTint(tint_int);
-        console.log(this.sprite.tint);
     }
 }
 
 function preload() {
     this.load.image('bullet', 'assets/bullet2.png');
     this.load.image('ship', 'assets/ship.png');
+    this.load.image('asteroid', 'assets/asteroid.png');
     this.cameras.main.setBackgroundColor('#000000');
 }
 
 function create() {
-    ship = this.physics.add.image(400, 300, 'ship');
-    ship.setDamping(true);
-    ship.setDrag(0.993);
-    ship.setMass(100);
-    ship.setMaxVelocity(300);
+    this.matter.world.engine.positionIterations=12;
+    this.matter.world.engine.velocityIterations=12;
+
+    ship = this.matter.add.image(400, 300, 'ship');
+    ship.setFrictionAir(0.993);
+    ship.setMass(1000);
+    // ship.setMaxVelocity(300);
     ship.setCircle(9, 7, 7);
-    ship.setBounce(0.);
+    ship.setBounce(0.4);
 
     keys = this.input.keyboard.addKeys(
         {up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -99,15 +122,37 @@ function create() {
          right: Phaser.Input.Keyboard.KeyCodes.D,
          space: Phaser.Input.Keyboard.KeyCodes.SPACE});
 
-    bulletGroup = this.physics.add.group({
-        bounceX: 1,
-        bounceY: 1,
-        collideWorldBounds: false
-    });
-    this.physics.add.collider(bulletGroup, bulletGroup);
-    this.physics.add.collider(bulletGroup, ship);
+    // bulletGroup = this.matter.add.group({
+    //     bounceX: 1,
+    //     bounceY: 1,
+    //     collideWorldBounds: false
+    // });
 
-    text = this.add.text(10, 10, '', {font: '16px Courier', fill: '#CECED1'});
+    // Asteroids!!
+
+    let nAsteroids = 10;
+    for (let i = 0; i < nAsteroids; i++) {
+        let x, y;
+        let d = 0;
+        while (d < 70) {
+            x = Phaser.Math.Between(0, width);
+            y = Phaser.Math.Between(0, height);
+            d = Phaser.Math.Distance.Between(x, y, ship.x, ship.y);
+        }
+        let s = Phaser.Math.FloatBetween(0.25, 1.3);
+        let a = new Asteroid(x, y, s, this);
+    }
+
+    // asteroidGroup = this.matter.add.group({
+    //
+    // })
+
+
+    // this.matter.add.collider(bulletGroup, bulletGroup);
+    // this.matter.add.collider(bulletGroup, ship);
+
+    text = this.add.text(10, 10, 'Move: WASD.\nShoot: Space', {font: '16px' +
+        ' Courier', fill: '#CECED1'});
 }
 
 let canFire = true;
@@ -116,21 +161,15 @@ function update(time, delta) {
     if (keys.up.isDown) {
         accelForwardTime += delta_s;
         accelBackwardTime = 0;
-        let acceleration = 30 + Math.min(accelForwardTime, 1) * 270;
-        this.physics.velocityFromRotation(
-            ship.rotation,
-            acceleration,
-            ship.body.acceleration);
+        let acceleration = 3e-7 * (30 + Math.min(accelForwardTime, 1) * 270);
+        ship.applyForce(vectorFromPolar(ship.rotation, acceleration));
     } else if (keys.down.isDown) {
         accelForwardTime = 0;
         accelBackwardTime += delta_s;
-        let acceleration = 30 + Math.min(accelBackwardTime, 1) * 220;
-        this.physics.velocityFromRotation(
-            ship.rotation,
-            -acceleration,
-            ship.body.acceleration);
+        let acceleration = 3e-7 * (30 + Math.min(accelBackwardTime, 1) * 220);
+        ship.applyForce(vectorFromPolar(ship.rotation, -acceleration));
     } else {
-        ship.setAcceleration(0);
+        // ship.setAcceleration(0);
         accelForwardTime = 0;
         accelBackwardTime = 0;
     }
@@ -138,13 +177,13 @@ function update(time, delta) {
     if (keys.left.isDown) {
         rotLeftTime += delta_s;
         rotRightTime = 0;
-        let avLeft = -20 - 430 * Math.min(rotLeftTime, 1);
+        let avLeft = 1e-3 * (-10 - 180 * Math.min(rotLeftTime, 0.5));
         ship.setAngularVelocity(avLeft);
     }
     else if (keys.right.isDown) {
         rotRightTime += delta_s;
         rotLeftTime = 0;
-        let avRight = 20 + 430 * Math.min(rotRightTime, 1);
+        let avRight = 1e-3 * (10 + 180 * Math.min(rotRightTime, 0.5));
         ship.setAngularVelocity(avRight);
     }
     else {
@@ -166,7 +205,7 @@ function update(time, delta) {
         canFire = true;
     }
 
-    this.physics.world.wrap(ship, 16);
+    wrap(ship);
     for (let bullet of bullets) {
         bullet.update(delta_s);
     }
@@ -177,8 +216,44 @@ function update(time, delta) {
 function fireBullet(scene) {
     let ct = Math.cos(ship.rotation);
     let st = Math.sin(ship.rotation);
-    let emitX = ship.body.center.x + 17 * ct;
-    let emitY = ship.body.center.y + 17 * st;
+    let emitX = ship.getCenter().x + 17 * ct;
+    let emitY = ship.getCenter().y + 17 * st;
     let bullet = new Bullet(emitX, emitY, scene);
-    bullet.setVelocity(666 * ct, 666 * st);
+    bullet.setVelocity(
+        ship.body.velocity.x + 20 * ct,
+        ship.body.velocity.y + 20 * st);
+}
+
+
+function wrap(obj) {
+    let x = obj.x;
+    let y = obj.y;
+    let dx = 0;
+    let dy = 0;
+    let b = obj.body.bounds;
+    if (b.max.y <= 0) {
+        dy = height + (b.max.y - b.min.y);
+    }
+    if (b.min.y >= height) {
+        dy = -height - (b.max.y - b.min.y);
+    }
+    if (b.max.x <= 0) {
+        dx = width + (b.max.x - b.min.x);
+    }
+    if (b.min.x >= width) {
+        dx = -width - (b.max.x - b.min.x);
+    }
+    obj.setPosition(x + dx, y + dy);
+}
+
+
+// this.matter.velocityFromRotation(
+//     ship.rotation,
+//     acceleration,
+//     ship.body.acceleration);
+function vectorFromPolar(rotation, magnitude) {
+    let v = new Phaser.Math.Vector2(
+        magnitude * Math.cos(rotation),
+        magnitude * Math.sin(rotation));
+    return v;
 }
