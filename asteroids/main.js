@@ -48,6 +48,7 @@ class MainScene extends Phaser.Scene {
         this.load.image('bullet', 'assets/bullet2.png');
         this.load.image('ship', 'assets/ship.png');
         this.load.image('asteroid', 'assets/asteroid.png');
+        this.load.image('particle', 'assets/particle.png');
         this.cameras.main.setBackgroundColor('#000000');
     }
 
@@ -91,7 +92,6 @@ class MainScene extends Phaser.Scene {
                 if (eventData.gameObjectB.parentObject instanceof Bullet) {
                     eventData.gameObjectB.parentObject.alive = false;
                     eventData.gameObjectA.parentObject.health -= 20;
-                    console.log('bork');
                 }
             }
         });
@@ -209,6 +209,21 @@ class Bullet {
         this.age = 0;
         this.scene = scene;
         this.alive = true;
+
+        this.emitter = this.scene.add.particles('particle').createEmitter({
+            x: x,
+            y: y,
+            speed: {min: 0, max: 2},
+            angle: {min: 0, max: 360},
+            scale: {min: 0.1, max: 0.2},
+            alpha: {start: 1, end: 0},
+            lifespan: 3000,
+            tint: 0xFF8800,
+            active: true
+        });
+        this.emitter.reserve(1000);
+        this.emitter.startFollow(this.sprite, 0, 0, true);
+
         bullets.push(this);
     }
 
@@ -230,6 +245,8 @@ class Bullet {
                 this.updateColor();
             }
         } else {
+            this.emitter.stopFollow();
+            this.emitter.stop();
             this.sprite.destroy();
             remove(this, bullets);
         }
