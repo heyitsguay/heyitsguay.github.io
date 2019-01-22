@@ -39,7 +39,7 @@ let bulletLifespan = 10;
 let bulletDrag = 0.995;
 
 let asteroids = [];
-let asteroidDrag = 0.993;
+let asteroidDrag = 1;
 
 let canFire = true;
 
@@ -48,7 +48,7 @@ class MainScene extends Phaser.Scene {
         this.load.image('bullet', 'assets/bullet2.png');
         this.load.image('ship', 'assets/ship.png');
         this.load.image('asteroid', 'assets/asteroid.png');
-        this.load.image('particle', 'assets/particle.png');
+        this.load.image('particle', 'assets/particle2.png');
         this.cameras.main.setBackgroundColor('#000000');
     }
 
@@ -69,7 +69,7 @@ class MainScene extends Phaser.Scene {
                 right: Phaser.Input.Keyboard.KeyCodes.D,
                 space: Phaser.Input.Keyboard.KeyCodes.SPACE});
 
-        let nAsteroids = 10;
+        let nAsteroids = 24;
         for (let i = 0; i < nAsteroids; i++) {
             let x, y;
             let d = 0;
@@ -78,7 +78,7 @@ class MainScene extends Phaser.Scene {
                 y = Phaser.Math.Between(0, height);
                 d = Phaser.Math.Distance.Between(x, y, ship.x, ship.y);
             }
-            let s = Phaser.Math.FloatBetween(0.25, 1.3);
+            let s = Phaser.Math.FloatBetween(0.2, 2);
             let a = new Asteroid(x, y, s, this);
         }
 
@@ -88,13 +88,14 @@ class MainScene extends Phaser.Scene {
         this.matterCollision.addOnCollideStart({
             objectA: asteroids.map(a => a.sprite),
             callback: eventData => {
-                const {bodyB, gameObjectB} = eventData;
                 if (eventData.gameObjectB.parentObject instanceof Bullet) {
                     eventData.gameObjectB.parentObject.alive = false;
                     eventData.gameObjectA.parentObject.health -= 20;
                 }
             }
         });
+
+        // this.matter.world.setBounds(0, 0, width, height, 50);
     }
 
     update(time, delta) {
@@ -170,6 +171,11 @@ class Asteroid {
         this.sprite.setMass(s * 1000);
         this.sprite.setScale(s);
         this.sprite.setBounce(0.4);
+        let t = between(0, 2 * Math.PI);
+        let v = between(0.2, 1);
+        this.sprite.setVelocity(v * Math.cos(t), v * Math.sin(t));
+        this.sprite.setFrictionAir(0);
+        this.sprite.setFrictionStatic(0);
         this.alive = true;
         this.health = 100;
 
@@ -201,28 +207,35 @@ class Asteroid {
 
 class Bullet {
     constructor(x, y, scene) {
+        this.scene = scene;
+
+        this.age = 0;
+        this.scale = 0.5;
+        this.alpha = 1;
+
+        this.particles = this.scene.add.particles('particle');
+        this.emitter = this.particles.createEmitter({
+            x: x,
+            y: y,
+            frequency: 8,
+            quantity: 2,
+            speed: {min: 1, max: 10},
+            angle: {min: 0, max: 360},
+            scale: {start: this.scale, end: this.scale},
+            alpha: {start: 1, end: 0},
+            lifespan: 1000,
+            tint: 0xFF8800,
+            active: true
+        });
+        this.emitter.reserve(5000);
+
         this.sprite = scene.matter.add.image(x, y, 'bullet');
         this.sprite.parentObject = this;
         this.sprite.setCircle(3);
         this.sprite.setMass(0.1);
         this.sprite.setBounce(0.8);
-        this.age = 0;
-        this.scene = scene;
-        this.alive = true;
 
-        this.emitter = this.scene.add.particles('particle').createEmitter({
-            x: x,
-            y: y,
-            speed: {min: 0, max: 2},
-            angle: {min: 0, max: 360},
-            scale: {min: 0.1, max: 0.2},
-            alpha: {start: 1, end: 0},
-            lifespan: 3000,
-            tint: 0xFF8800,
-            active: true
-        });
-        this.emitter.reserve(1000);
-        this.emitter.startFollow(this.sprite, 0, 0, true);
+        this.alive = true;
 
         bullets.push(this);
     }
@@ -235,18 +248,23 @@ class Bullet {
         if (this.alive) {
             this.age += delta;
             if (this.age > bulletLifespan) {
-                let idx = bullets.indexOf(this);
-                bullets.splice(idx, 1);
-                this.sprite.destroy();
+                this.alive = false;
             } else {
                 let v = this.sprite.body.velocity;
+                let p = this.age / bulletLifespan;
+                this.emitter.setPosition(
+                    this.sprite.x,
+                    this.sprite.y);
+                if (p > 0.4) {
+                    this.emitter.setScale(this.scale);
+                    this.scale *= 0.992;
+                }
                 this.setVelocity(bulletDrag * v.x, bulletDrag * v.y);
                 wrap(this.sprite);
                 this.updateColor();
             }
         } else {
-            this.emitter.stopFollow();
-            this.emitter.stop();
+            this.particles.destroy();
             this.sprite.destroy();
             remove(this, bullets);
         }
@@ -273,6 +291,20 @@ function fireBullet(scene) {
     bullet.setVelocity(
         ship.body.velocity.x + 20 * ct,
         ship.body.velocity.y + 20 * st);
+    let recoil = new Phaser.Math.Vector2(
+        -0.00005 * bullet.sprite.body.velocity.x,
+        -0.00005 * bullet.sprite.body.velocity.y);
+    ship.applyForce(recoil);
+}
+
+
+function between(a, b) {
+    return Phaser.Math.FloatBetween(a, b);
+}
+
+
+function betweeni(a, b) {
+    return Phaser.Math.Between(a, b);
 }
 
 
@@ -283,22 +315,27 @@ function remove(obj, array) {
 
 
 function wrap(obj) {
+    let extra = 50;
+    let x0 = -extra;
+    let y0 = -extra;
+    let x1 = width + extra;
+    let y1 = height + extra;
     let x = obj.x;
     let y = obj.y;
     let dx = 0;
     let dy = 0;
     let b = obj.body.bounds;
-    if (b.max.y <= 0) {
-        dy = height + (b.max.y - b.min.y);
+    if (b.max.y <= y0) {
+        dy = height + extra + (b.max.y - b.min.y);
     }
-    if (b.min.y >= height) {
-        dy = -height - (b.max.y - b.min.y);
+    if (b.min.y >= y1) {
+        dy = -height - extra - (b.max.y - b.min.y);
     }
-    if (b.max.x <= 0) {
-        dx = width + (b.max.x - b.min.x);
+    if (b.max.x <= x0) {
+        dx = width + extra + (b.max.x - b.min.x);
     }
-    if (b.min.x >= width) {
-        dx = -width - (b.max.x - b.min.x);
+    if (b.min.x >= x1) {
+        dx = -width - extra - (b.max.x - b.min.x);
     }
     obj.setPosition(x + dx, y + dy);
 }
