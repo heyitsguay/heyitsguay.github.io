@@ -34,11 +34,11 @@ let accelBackwardTime = 0;
 let rotLeftTime = 0;
 let rotRightTime = 0;
 
-let bullets = [];
+let bullets;
 let bulletLifespan = 10;
 let bulletDrag = 0.995;
 
-let asteroids = [];
+let asteroids;
 let asteroidDrag = 1;
 let nAsteroids = 18;
 
@@ -61,6 +61,8 @@ class MainScene extends Phaser.Scene {
     }
 
     create() {
+        bullets = [];
+        asteroids = [];
         this.matter.world.engine.positionIterations=10;
         this.matter.world.engine.velocityIterations=10;
 
@@ -69,6 +71,34 @@ class MainScene extends Phaser.Scene {
         ship.setMass(1000);
         ship.setCircle(9, 7, 7);
         ship.setBounce(0.4);
+        ship.scene = this;
+
+        this.matterCollision.addOnCollideStart({
+            objectA: ship,
+            callback: eventData => {
+                let ship = eventData.gameObjectA;
+                let explosion = ship.scene.add.particles('particle').createEmitter({
+                    x: ship.x,
+                    y: ship.y,
+                    frequency: -1,
+                    quantity: 1,
+                    speed: {min: 0.5, max: 2},
+                    angle: {min: 0, max: 360},
+                    scale: {start: 0.4 * ship.scaleX, end: 10 * ship.scaleX},
+                    alpha: {start: 1, end: 0, ease: 'Sine.easeOut'},
+                    lifespan: 500,
+                    tint: 0xFF8800,
+                    active: true
+                });
+                explosion.reserve(1);
+                explosion.explode();
+                ship.scene.time.delayedCall(
+                    1000,
+                    (s) => {s.restart()},
+                    [ship.scene.scene],
+                    this);
+                ship.setVisible(false);
+            }});
 
         keys = this.input.keyboard.addKeys(
             {up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -113,6 +143,7 @@ class MainScene extends Phaser.Scene {
 }
 
 function updateInput(scene, delta) {
+    if (!ship.visible) return;
     if (keys.up.isDown) {
         accelForwardTime += delta;
         accelBackwardTime = 0;
@@ -149,6 +180,7 @@ function updateInput(scene, delta) {
     if (keys.space.isDown) {
         if (canFire) {
             canFire = false;
+            scene.time.delayedCall(133, () => {canFire = true}, [], this);
             fireBullet(scene);
 
         }
@@ -182,8 +214,14 @@ class Asteroid {
             objectA: this.sprite,
             callback: eventData => {
                 if (eventData.gameObjectB.parentObject instanceof Bullet) {
+                    let bulletSpeed = eventData.gameObjectB.body.speed;
+                    let damageMultiplier = 1;
+                    if (bulletSpeed > 10) {
+                        damageMultiplier = 1 + 0.2 * (bulletSpeed - 10);
+                    }
                     eventData.gameObjectB.parentObject.alive = false;
-                    eventData.gameObjectA.parentObject.health -= 20;
+                    eventData.gameObjectA.parentObject.health -=
+                        bulletSpeed * damageMultiplier;
                 }
             }
         });
@@ -205,7 +243,7 @@ class Asteroid {
     }
 
     updateColor() {
-        let p = 255 * this.health / 100;
+        let p = Math.floor(255 * this.health / 100);
         let tint_int = 255 * 256 * 256 + p * 257;
         this.sprite.setTint(tint_int);
     }
@@ -216,7 +254,7 @@ class Asteroid {
     }
 
     explode() {
-        if (this.scale > 0.5) {
+        if (this.scale > 0.85) {
             let s1 = between(0.7, 1.3);
             let s2 = 2 - s1;
             let newScale1 = s1 * this.scale / 2;
@@ -230,8 +268,6 @@ class Asteroid {
                 let oldHeading = Math.atan2(v.y, v.x);
                 let {speed, heading} = addPolar(
                     oldSpeed, oldHeading, newSpeed, newHeading);
-                console.log(heading, speed);
-                console.log(newHeading, newSpeed, oldHeading, oldSpeed);
                 let _ = new Asteroid(
                     this.sprite.getCenter().x + 0.4 * 100 * this.scale * Math.cos(heading),
                     this.sprite.getCenter().y + 0.4 * 100 * this.scale * Math.sin(heading),
@@ -241,11 +277,33 @@ class Asteroid {
                     heading);
             }
         }
+        let explosion = this.scene.add.particles('particle').createEmitter({
+            x: this.sprite.x,
+            y: this.sprite.y,
+            frequency: -1,
+            quantity: 1,
+            speed: {min: 0.5, max: 2},
+            angle: {min: 0, max: 360},
+            scale: {start: 0.4 * this.scale, end: 10 * this.scale},
+            alpha: {start: 1, end: 0, ease: 'Sine.easeOut'},
+            lifespan: 500,
+            tint: 0xFF8800,
+            active: true
+        });
+        explosion.reserve(1);
+        explosion.explode();
+        // this.scene.time.delayedCall(500, explodeEmitter, [explosion], this);
         this.destroy();
+
 
     }
 
 
+}
+
+
+function explodeEmitter(e) {
+    e.explode();
 }
 
 
@@ -280,7 +338,7 @@ class Bullet {
             tint: 0xFF8800,
             active: true
         });
-        this.emitter.reserve(5000);
+        this.emitter.reserve(500);
 
         this.sprite = scene.matter.add.image(x, y, 'bullet');
         this.sprite.parentObject = this;
@@ -345,8 +403,8 @@ function fireBullet(scene) {
         ship.body.velocity.x + 20 * ct,
         ship.body.velocity.y + 20 * st);
     let recoil = new Phaser.Math.Vector2(
-        -0.00003 * bullet.sprite.body.velocity.x,
-        -0.00003 * bullet.sprite.body.velocity.y);
+        -0.00004 * bullet.sprite.body.velocity.x,
+        -0.00004 * bullet.sprite.body.velocity.y);
     ship.applyForce(recoil);
 }
 
