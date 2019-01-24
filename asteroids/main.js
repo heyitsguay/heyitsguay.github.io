@@ -40,8 +40,16 @@ let bulletDrag = 0.995;
 
 let asteroids = [];
 let asteroidDrag = 1;
+let nAsteroids = 18;
 
 let canFire = true;
+
+function asteroidCheck(e) {
+    if (e.gameObjectB.parentObject instanceof Bullet) {
+        e.gameObjectB.parentObject.alive = false;
+        e.gameObjectA.parentObject.health -= 20;
+    }
+}
 
 class MainScene extends Phaser.Scene {
     preload() {
@@ -53,8 +61,8 @@ class MainScene extends Phaser.Scene {
     }
 
     create() {
-        this.matter.world.engine.positionIterations=12;
-        this.matter.world.engine.velocityIterations=12;
+        this.matter.world.engine.positionIterations=10;
+        this.matter.world.engine.velocityIterations=10;
 
         ship = this.matter.add.image(400, 300, 'ship');
         ship.setFrictionAir(0.993);
@@ -69,7 +77,6 @@ class MainScene extends Phaser.Scene {
                 right: Phaser.Input.Keyboard.KeyCodes.D,
                 space: Phaser.Input.Keyboard.KeyCodes.SPACE});
 
-        let nAsteroids = 24;
         for (let i = 0; i < nAsteroids; i++) {
             let x, y;
             let d = 0;
@@ -85,17 +92,6 @@ class MainScene extends Phaser.Scene {
         text = this.add.text(10, 10, 'Move: WASD.\nShoot: Space\n' + game.loop.actualFps, {font: '16px' +
             ' Courier', fill: '#CECED1'});
 
-        this.matterCollision.addOnCollideStart({
-            objectA: asteroids.map(a => a.sprite),
-            callback: eventData => {
-                if (eventData.gameObjectB.parentObject instanceof Bullet) {
-                    eventData.gameObjectB.parentObject.alive = false;
-                    eventData.gameObjectA.parentObject.health -= 20;
-                }
-            }
-        });
-
-        // this.matter.world.setBounds(0, 0, width, height, 50);
     }
 
     update(time, delta) {
@@ -164,36 +160,47 @@ function updateInput(scene, delta) {
 
 
 class Asteroid {
-    constructor(x, y, s, scene) {
-        this.sprite = scene.matter.add.image(x, y, 'asteroid');
+    constructor(x, y, scale, scene, speed=null, heading=null) {
+        if (speed === null) speed = between(0.2, 1);
+        if (heading === null) heading = between(0, 2 * Math.PI);
+        this.scale = scale;
+        this.scene = scene;
+        this.sprite = this.scene.matter.add.image(x, y, 'asteroid');
         this.sprite.parentObject = this;
         this.sprite.setCircle(50);
-        this.sprite.setMass(s * 1000);
-        this.sprite.setScale(s);
-        this.sprite.setBounce(0.4);
-        let t = between(0, 2 * Math.PI);
-        let v = between(0.2, 1);
-        this.sprite.setVelocity(v * Math.cos(t), v * Math.sin(t));
+        this.sprite.setMass(this.scale * 1000);
+        this.sprite.setScale(this.scale);
+        this.sprite.setBounce(0.);
+        this.sprite.setVelocity(
+            speed * Math.cos(heading),
+            speed * Math.sin(heading));
         this.sprite.setFrictionAir(0);
         this.sprite.setFrictionStatic(0);
-        this.alive = true;
         this.health = 100;
+
+        this.scene.matterCollision.addOnCollideStart({
+            objectA: this.sprite,
+            callback: eventData => {
+                if (eventData.gameObjectB.parentObject instanceof Bullet) {
+                    eventData.gameObjectB.parentObject.alive = false;
+                    eventData.gameObjectA.parentObject.health -= 20;
+                }
+            }
+        });
 
         asteroids.push(this);
     }
 
     update(delta) {
         if (this.health <= 0) {
-            this.alive = false;
+            this.explode()
         }
-        if (this.alive) {
+        else {
             let v = this.sprite.body.velocity;
             this.sprite.setVelocity(asteroidDrag * v.x, asteroidDrag * v.y);
             wrap(this.sprite);
             this.updateColor();
-        } else {
-            this.sprite.destroy();
-            remove(this, asteroids);
+
         }
     }
 
@@ -202,6 +209,52 @@ class Asteroid {
         let tint_int = 255 * 256 * 256 + p * 257;
         this.sprite.setTint(tint_int);
     }
+
+    destroy() {
+        this.sprite.destroy();
+        remove(this, asteroids);
+    }
+
+    explode() {
+        if (this.scale > 0.5) {
+            let s1 = between(0.7, 1.3);
+            let s2 = 2 - s1;
+            let newScale1 = s1 * this.scale / 2;
+            let newScale2 = s2 * this.scale / 2;
+            let scales = [newScale1, newScale2];
+            for (let i in scales) {
+                let newHeading = between(0, 2 * Math.PI);
+                let newSpeed = between(0.25, 0.4) / scales[i];
+                let v = this.sprite.body.velocity;
+                let oldSpeed = Math.sqrt(v.x**2 + v.y**2);
+                let oldHeading = Math.atan2(v.y, v.x);
+                let {speed, heading} = addPolar(
+                    oldSpeed, oldHeading, newSpeed, newHeading);
+                console.log(heading, speed);
+                console.log(newHeading, newSpeed, oldHeading, oldSpeed);
+                let _ = new Asteroid(
+                    this.sprite.getCenter().x + 0.4 * 100 * this.scale * Math.cos(heading),
+                    this.sprite.getCenter().y + 0.4 * 100 * this.scale * Math.sin(heading),
+                    scales[i],
+                    this.scene,
+                    speed,
+                    heading);
+            }
+        }
+        this.destroy();
+
+    }
+
+
+}
+
+
+function addPolar(r1, t1, r2, t2) {
+    let st = Math.sin(t2 - t1);
+    let ct = Math.cos(t2 - t1);
+    let r = Math.sqrt(r1**2 + r2**2 + 2*r1*r2*ct);
+    let t = t1 + Math.atan2(r2 * st, r1 + r2 * ct);
+    return {speed: r, heading: t};
 }
 
 
@@ -217,8 +270,8 @@ class Bullet {
         this.emitter = this.particles.createEmitter({
             x: x,
             y: y,
-            frequency: 8,
-            quantity: 2,
+            frequency: 50,
+            quantity: 1,
             speed: {min: 1, max: 10},
             angle: {min: 0, max: 360},
             scale: {start: this.scale, end: this.scale},
@@ -232,8 +285,8 @@ class Bullet {
         this.sprite = scene.matter.add.image(x, y, 'bullet');
         this.sprite.parentObject = this;
         this.sprite.setCircle(3);
-        this.sprite.setMass(0.1);
-        this.sprite.setBounce(0.8);
+        this.sprite.setMass(0.025);
+        this.sprite.setBounce(0.4);
 
         this.alive = true;
 
@@ -292,8 +345,8 @@ function fireBullet(scene) {
         ship.body.velocity.x + 20 * ct,
         ship.body.velocity.y + 20 * st);
     let recoil = new Phaser.Math.Vector2(
-        -0.00005 * bullet.sprite.body.velocity.x,
-        -0.00005 * bullet.sprite.body.velocity.y);
+        -0.00003 * bullet.sprite.body.velocity.x,
+        -0.00003 * bullet.sprite.body.velocity.y);
     ship.applyForce(recoil);
 }
 
