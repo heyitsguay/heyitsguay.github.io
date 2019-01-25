@@ -9,7 +9,7 @@ $(document).ready(function() {
         height: height,
         backgroundColor: '#22222A',
         parent: 'game-container',
-        scene: MainScene,
+        scene: [MainScene, OverlayScene],
         physics: {
             default: 'matter',
             matter: {
@@ -34,34 +34,84 @@ let accelBackwardTime = 0;
 let rotLeftTime = 0;
 let rotRightTime = 0;
 
-let bullets;
-let bulletLifespan = 10;
-let bulletDrag = 0.995;
+let projectiles;
+let projectileLifespan = 10;
+let projectileDrag = 0.996;
+let projectileSpeedMax = 24;
+let projectileSpeedMin = 7.5;
+let projectileSpeed = projectileSpeedMax;
+let fireRateMax = 8;
+let fireRateMin = 2;
+let fireRate = fireRateMax;
+let timeSinceFire = 10;
 
 let asteroids;
 let asteroidDrag = 1;
-let nAsteroids = 18;
+let nAsteroids = 4;
 
 let canFire = true;
+let toggled = {m: false};
+
+let godMode = false;
+
+let endText;
+let levelText;
+
+let justWon = false;
+
+let level = 0;
 
 function asteroidCheck(e) {
-    if (e.gameObjectB.parentObject instanceof Bullet) {
+    if (e.gameObjectB.parentObject instanceof Projectile) {
         e.gameObjectB.parentObject.alive = false;
         e.gameObjectA.parentObject.health -= 20;
     }
 }
 
+
+class OverlayScene extends Phaser.Scene {
+
+    constructor() {
+        super({key: 'OverlayScene', active: true});
+    }
+
+    create() {
+        this.cameras.main.resetFX();
+        text = this.add.text(10, 10, 'Move: WASD.\nShoot: Space\n' + game.loop.actualFps, {font: '14px' +
+            ' Courier', fill: '#CECED1'});
+        endText = this.add.text(0, 0, '',
+            {font: '120px Courier', fill: '#CECED1'});
+        levelText = this.add.text(0, 0, 'Level ' + level,
+            {font: '24px Courier', fill: '#CECED1'});
+        levelText.setPosition(0.5 * (width - levelText.width), 10);
+        this.scene.bringToTop();
+    }
+
+    update(time, delta) {
+        text.setText('Move: WASD.\nShoot: Space\n' + game.loop.actualFps.toFixed(1));
+    }
+}
+
+
 class MainScene extends Phaser.Scene {
+
+    constructor() {
+        super({key: 'MainScene', active: true});
+    }
+
     preload() {
-        this.load.image('bullet', 'assets/bullet2.png');
+        this.load.image('projectile', 'assets/bullet2.png');
         this.load.image('ship', 'assets/ship.png');
         this.load.image('asteroid', 'assets/asteroid.png');
-        this.load.image('particle', 'assets/particle2.png');
+        this.load.image('particle', 'assets/particle3.png');
         this.cameras.main.setBackgroundColor('#000000');
     }
 
     create() {
-        bullets = [];
+        justWon = false;
+        godMode = false;
+        this.cameras.main.resetFX();
+        projectiles = [];
         asteroids = [];
         this.matter.world.engine.positionIterations=10;
         this.matter.world.engine.velocityIterations=10;
@@ -76,28 +126,61 @@ class MainScene extends Phaser.Scene {
         this.matterCollision.addOnCollideStart({
             objectA: ship,
             callback: eventData => {
-                let ship = eventData.gameObjectA;
-                let explosion = ship.scene.add.particles('particle').createEmitter({
-                    x: ship.x,
-                    y: ship.y,
-                    frequency: -1,
-                    quantity: 1,
-                    speed: {min: 0.5, max: 2},
-                    angle: {min: 0, max: 360},
-                    scale: {start: 0.4 * ship.scaleX, end: 10 * ship.scaleX},
-                    alpha: {start: 1, end: 0, ease: 'Sine.easeOut'},
-                    lifespan: 500,
-                    tint: 0xFF8800,
-                    active: true
-                });
-                explosion.reserve(1);
-                explosion.explode();
-                ship.scene.time.delayedCall(
-                    1000,
-                    (s) => {s.restart()},
-                    [ship.scene.scene],
-                    this);
-                ship.setVisible(false);
+                if (!godMode && !justWon) {
+                    let ship = eventData.gameObjectA;
+                    if (ship.visible) {
+                        let explosion = ship.scene.add.particles('particle').createEmitter({
+                            x: ship.x,
+                            y: ship.y,
+                            frequency: -1,
+                            quantity: 1,
+                            speed: {min: 0.5, max: 2},
+                            angle: {min: 0, max: 360},
+                            scale: {
+                                start: 0.12 * ship.scaleX,
+                                end: 4 * ship.scaleX
+                            },
+                            alpha: {start: 1, end: 0, ease: 'Sine.easeOut'},
+                            lifespan: 500,
+                            tint: 0xFF8800,
+                            active: true
+                        });
+                        explosion.reserve(1);
+                        explosion.explode();
+                        ship.scene.time.delayedCall(
+                            150,
+                            () => {
+                                endText.setText('ded');
+                                endText.setPosition(
+                                    0.5 * (width - endText.width),
+                                    0.5 * (height - endText.height));
+                            },
+                            [],
+                            this);
+                        ship.scene.time.delayedCall(
+                            2200,
+                            (s) => {
+                                s.scene.get('OverlayScene').cameras.main.fade(2300);
+                            },
+                            [ship.scene],
+                            this);
+                        ship.scene.time.delayedCall(
+                            4800,
+                            (s) => {
+                                level = 0;
+                                s.restart();
+                                s.get('OverlayScene').scene.restart();
+
+                            },
+                            [ship.scene.scene],
+                            this);
+                        ship.setVisible(false);
+                        if (eventData.gameObjectB !== null &&
+                            eventData.gameObjectB.parentObject instanceof Asteroid) {
+                            eventData.gameObjectB.parentObject.explode();
+                        }
+                    }
+                }
             }});
 
         keys = this.input.keyboard.addKeys(
@@ -105,12 +188,13 @@ class MainScene extends Phaser.Scene {
                 down: Phaser.Input.Keyboard.KeyCodes.S,
                 left: Phaser.Input.Keyboard.KeyCodes.A,
                 right: Phaser.Input.Keyboard.KeyCodes.D,
-                space: Phaser.Input.Keyboard.KeyCodes.SPACE});
+                space: Phaser.Input.Keyboard.KeyCodes.SPACE,
+                m: Phaser.Input.Keyboard.KeyCodes.M});
 
-        for (let i = 0; i < nAsteroids; i++) {
+        for (let i = 0; i < nAsteroids + 8 * level; i++) {
             let x, y;
             let d = 0;
-            while (d < 70) {
+            while (d < 200) {
                 x = Phaser.Math.Between(0, width);
                 y = Phaser.Math.Between(0, height);
                 d = Phaser.Math.Distance.Between(x, y, ship.x, ship.y);
@@ -119,9 +203,6 @@ class MainScene extends Phaser.Scene {
             let a = new Asteroid(x, y, s, this);
         }
 
-        text = this.add.text(10, 10, 'Move: WASD.\nShoot: Space\n' + game.loop.actualFps, {font: '16px' +
-            ' Courier', fill: '#CECED1'});
-
     }
 
     update(time, delta) {
@@ -129,14 +210,44 @@ class MainScene extends Phaser.Scene {
 
         updateInput(this, delta_s);
 
-        text.setText('Move: WASD.\nShoot: Space\n' + game.loop.actualFps.toFixed(1));
+        if (justWon) {
+            ship.setTint(hsv2int(between(0, 1), 1, 1));
+        }
+
+        timeSinceFire += delta_s;
+        if (canFire) {
+            let pauseMultiplier = Math.exp(timeSinceFire);
+            projectileSpeed = Math.min(
+                projectileSpeedMax,
+                projectileSpeed + pauseMultiplier * delta_s);
+            fireRate = Math.min(
+                fireRateMax,
+                fireRate + pauseMultiplier / 4 * delta_s);
+        }
 
         wrap(ship);
-        for (let bullet of bullets) {
-            bullet.update(delta_s);
+        for (let projectile of projectiles) {
+            projectile.update(delta_s);
         }
         for (let asteroid of asteroids) {
             asteroid.update(delta_s);
+        }
+
+        if (asteroids.length === 0) {
+            endText.setText('win');
+            endText.setPosition(
+                0.5 * (width - endText.width),
+                0.5 * (height - endText.height));
+            justWon = true;
+            this.time.delayedCall(
+                6000,
+                (s) => {
+                    level += 1;
+                    s.restart();
+                    s.get('OverlayScene').scene.restart();
+                },
+                [this.scene],
+                this);
         }
     }
 
@@ -177,11 +288,27 @@ function updateInput(scene, delta) {
         ship.setAngularVelocity(0);
     }
 
+    if (keys.m.isDown) {
+        if (!toggled['m']) {
+            toggled['m'] = true;
+            godMode = !godMode;
+
+            if (godMode) {
+                ship.setTint(0x4fd8ff);
+            } else {
+                ship.setTint(0xffffff);
+            }
+        }
+    }
+    else {
+        toggled['m'] = false;
+    }
+
     if (keys.space.isDown) {
         if (canFire) {
             canFire = false;
-            scene.time.delayedCall(133, () => {canFire = true}, [], this);
-            fireBullet(scene);
+            scene.time.delayedCall(1000 / fireRate, () => {canFire = true}, [], this);
+            fireProjectile(scene);
 
         }
     }
@@ -213,15 +340,15 @@ class Asteroid {
         this.scene.matterCollision.addOnCollideStart({
             objectA: this.sprite,
             callback: eventData => {
-                if (eventData.gameObjectB.parentObject instanceof Bullet) {
-                    let bulletSpeed = eventData.gameObjectB.body.speed;
+                if (eventData.gameObjectB.parentObject instanceof Projectile) {
+                    let projectileSpeed = eventData.gameObjectB.body.speed;
                     let damageMultiplier = 1;
-                    if (bulletSpeed > 10) {
-                        damageMultiplier = 1 + 0.2 * (bulletSpeed - 10);
+                    if (projectileSpeed > 7) {
+                        damageMultiplier = 1.2 + 0.2 * (projectileSpeed - 7);
                     }
                     eventData.gameObjectB.parentObject.alive = false;
                     eventData.gameObjectA.parentObject.health -=
-                        bulletSpeed * damageMultiplier;
+                        projectileSpeed * damageMultiplier;
                 }
             }
         });
@@ -284,7 +411,7 @@ class Asteroid {
             quantity: 1,
             speed: {min: 0.5, max: 2},
             angle: {min: 0, max: 360},
-            scale: {start: 0.4 * this.scale, end: 10 * this.scale},
+            scale: {start: 0.12 * this.scale, end: 4 * this.scale},
             alpha: {start: 1, end: 0, ease: 'Sine.easeOut'},
             lifespan: 500,
             tint: 0xFF8800,
@@ -316,13 +443,20 @@ function addPolar(r1, t1, r2, t2) {
 }
 
 
-class Bullet {
+class Projectile {
     constructor(x, y, scene) {
         this.scene = scene;
 
         this.age = 0;
-        this.scale = 0.5;
+        this.scale = 0.14;
         this.alpha = 1;
+
+        let tint;
+        if (justWon) {
+            tint = hsv2int(between(0, 1), 1, 1);
+        } else {
+            tint = 0xFF8800;
+        }
 
         this.particles = this.scene.add.particles('particle');
         this.emitter = this.particles.createEmitter({
@@ -335,12 +469,12 @@ class Bullet {
             scale: {start: this.scale, end: this.scale},
             alpha: {start: 1, end: 0},
             lifespan: 1000,
-            tint: 0xFF8800,
+            tint: tint,
             active: true
         });
         this.emitter.reserve(500);
 
-        this.sprite = scene.matter.add.image(x, y, 'bullet');
+        this.sprite = scene.matter.add.image(x, y, 'projectile');
         this.sprite.parentObject = this;
         this.sprite.setCircle(3);
         this.sprite.setMass(0.025);
@@ -348,7 +482,7 @@ class Bullet {
 
         this.alive = true;
 
-        bullets.push(this);
+        projectiles.push(this);
     }
 
     setVelocity(x, y) {
@@ -358,11 +492,11 @@ class Bullet {
     update(delta) {
         if (this.alive) {
             this.age += delta;
-            if (this.age > bulletLifespan) {
+            if (this.age > projectileLifespan) {
                 this.alive = false;
             } else {
                 let v = this.sprite.body.velocity;
-                let p = this.age / bulletLifespan;
+                let p = this.age / projectileLifespan;
                 this.emitter.setPosition(
                     this.sprite.x,
                     this.sprite.y);
@@ -370,42 +504,46 @@ class Bullet {
                     this.emitter.setScale(this.scale);
                     this.scale *= 0.992;
                 }
-                this.setVelocity(bulletDrag * v.x, bulletDrag * v.y);
+                this.setVelocity(projectileDrag * v.x, projectileDrag * v.y);
                 wrap(this.sprite);
                 this.updateColor();
             }
         } else {
             this.particles.destroy();
             this.sprite.destroy();
-            remove(this, bullets);
+            remove(this, projectiles);
         }
     }
 
     updateColor() {
-        let p = Math.min(1, this.age / (bulletLifespan - 2));
+        let p = Math.min(1, this.age / (projectileLifespan - 2));
         let h = 0.167 * (1 - p) ** 2;
         let s = Math.min(1, 0.1 + 1.2 * p ** .5);
         let v = 0.2 + 0.8 * (1 - p) ** 0.8;
-        let tint = Phaser.Display.Color.HSVToRGB(h, s, v);
-        let tint_int = tint.r  * 256 * 256 + tint.g * 256 + tint.b;
-        this.sprite.setTint(tint_int);
+        let tint = hsv2int(h, s, v);
+        this.sprite.setTint(tint);
     }
 }
 
 
-function fireBullet(scene) {
+function fireProjectile(scene) {
     let ct = Math.cos(ship.rotation);
     let st = Math.sin(ship.rotation);
     let emitX = ship.getCenter().x + 17 * ct;
     let emitY = ship.getCenter().y + 17 * st;
-    let bullet = new Bullet(emitX, emitY, scene);
-    bullet.setVelocity(
-        ship.body.velocity.x + 20 * ct,
-        ship.body.velocity.y + 20 * st);
+    let projectile = new Projectile(emitX, emitY, scene);
+    projectile.setVelocity(
+        ship.body.velocity.x + projectileSpeed * ct,
+        ship.body.velocity.y + projectileSpeed * st);
+    let r = 0.000002 * projectileSpeed;
     let recoil = new Phaser.Math.Vector2(
-        -0.00004 * bullet.sprite.body.velocity.x,
-        -0.00004 * bullet.sprite.body.velocity.y);
-    ship.applyForce(recoil);
+        -r * projectile.sprite.body.velocity.x,
+        -r * projectile.sprite.body.velocity.y);
+    if (!godMode) {
+        ship.applyForce(recoil);
+        projectileSpeed = Math.max(projectileSpeedMin, projectileSpeed - 2);
+        fireRate = Math.max(fireRateMin, fireRate - 0.6);
+    }
 }
 
 
@@ -456,4 +594,9 @@ function vectorFromPolar(rotation, magnitude) {
     return new Phaser.Math.Vector2(
         magnitude * Math.cos(rotation),
         magnitude * Math.sin(rotation));
+}
+
+function hsv2int(h, s, v) {
+    let c = Phaser.Display.Color.HSVToRGB(h, s, v);
+    return c.r * 256**2 + c.g * 256 + c.b;
 }
