@@ -47,6 +47,7 @@ let timeSinceFire = 10;
 
 let asteroids;
 let asteroidDrag = 1;
+let pWeirdAsteroid;
 let nAsteroids = 4;
 
 let canFire = true;
@@ -103,11 +104,13 @@ class MainScene extends Phaser.Scene {
         this.load.image('projectile', 'assets/bullet2.png');
         this.load.image('ship', 'assets/ship.png');
         this.load.image('asteroid', 'assets/asteroid.png');
+        this.load.image('weirdAsteroid', 'assets/asteroid2.png');
         this.load.image('particle', 'assets/particle3.png');
         this.cameras.main.setBackgroundColor('#000000');
     }
 
     create() {
+        pWeirdAsteroid = 0.05 + 0.02 * level;
         justWon = false;
         godMode = false;
         this.cameras.main.resetFX();
@@ -191,7 +194,7 @@ class MainScene extends Phaser.Scene {
                 space: Phaser.Input.Keyboard.KeyCodes.SPACE,
                 m: Phaser.Input.Keyboard.KeyCodes.M});
 
-        for (let i = 0; i < nAsteroids + 8 * level; i++) {
+        for (let i = 0; i < nAsteroids + 4 * level; i++) {
             let x, y;
             let d = 0;
             while (d < 200) {
@@ -199,8 +202,9 @@ class MainScene extends Phaser.Scene {
                 y = Phaser.Math.Between(0, height);
                 d = Phaser.Math.Distance.Between(x, y, ship.x, ship.y);
             }
-            let s = Phaser.Math.FloatBetween(0.2, 2);
-            let a = new Asteroid(x, y, s, this);
+            let s = Phaser.Math.FloatBetween(0.8, 2.2);
+            let isWeird = between(0, 1) < pWeirdAsteroid;
+            let a = new Asteroid(x, y, s, this, null, null, isWeird);
         }
 
     }
@@ -319,12 +323,14 @@ function updateInput(scene, delta) {
 
 
 class Asteroid {
-    constructor(x, y, scale, scene, speed=null, heading=null) {
+    constructor(x, y, scale, scene, speed=null, heading=null, weird=false) {
         if (speed === null) speed = between(0.2, 1);
         if (heading === null) heading = between(0, 2 * Math.PI);
+        this.weird = weird;
         this.scale = scale;
         this.scene = scene;
-        this.sprite = this.scene.matter.add.image(x, y, 'asteroid');
+        let image = this.weird ? 'weirdAsteroid' : 'asteroid';
+        this.sprite = this.scene.matter.add.image(x, y, image);
         this.sprite.parentObject = this;
         this.sprite.setCircle(50);
         this.sprite.setMass(this.scale * 1000);
@@ -336,6 +342,7 @@ class Asteroid {
         this.sprite.setFrictionAir(0);
         this.sprite.setFrictionStatic(0);
         this.health = 100;
+        this.timeSinceVisible = 0;
 
         this.scene.matterCollision.addOnCollideStart({
             objectA: this.sprite,
@@ -361,10 +368,39 @@ class Asteroid {
             this.explode()
         }
         else {
-            let v = this.sprite.body.velocity;
-            this.sprite.setVelocity(asteroidDrag * v.x, asteroidDrag * v.y);
+            if (this.weird) {
+                let x0 = this.sprite.getCenter().x;
+                let y0 = this.sprite.getCenter().y;
+                let x1 = ship.getCenter().x;
+                let y1 = ship.getCenter().y;
+                let headingToShip = Math.atan2(y1 - y0, x1 - x0);
+                let d2 = 100 + (y1 - y0)**2 + (x1 - x0)**2;
+                let speed = Math.max(2, 100000/d2);
+                let v = vectorFromPolar(headingToShip, speed);
+                this.sprite.setVelocity(v.x, v.y);
+                let rNow = this.sprite.rotation;
+
+                this.sprite.setRotation(0.95 * rNow + 0.05 * headingToShip);
+            }
             wrap(this.sprite);
             this.updateColor();
+
+            let bounds = this.sprite.body.bounds;
+            if (bounds.max.x < 0
+                || bounds.min.x > width - 1
+                || bounds.max.y < 0
+                || bounds.min.y > height - 1) {
+                this.timeSinceVisible += delta;
+            } else {
+                this.timeSinceVisible = 0;
+            }
+
+            if (this.timeSinceVisible > 5) {
+                this.sprite.applyForce(vectorFromPolar(
+                    between(0, 2 * Math.PI),
+                    0.01 * this.sprite.body.mass));
+                this.timeSinceVisible = 2.5;
+            }
 
         }
     }
@@ -395,13 +431,15 @@ class Asteroid {
                 let oldHeading = Math.atan2(v.y, v.x);
                 let {speed, heading} = addPolar(
                     oldSpeed, oldHeading, newSpeed, newHeading);
+                let isWeird = between(0, 1) < pWeirdAsteroid;
                 let _ = new Asteroid(
                     this.sprite.getCenter().x + 0.4 * 100 * this.scale * Math.cos(heading),
                     this.sprite.getCenter().y + 0.4 * 100 * this.scale * Math.sin(heading),
                     scales[i],
                     this.scene,
                     speed,
-                    heading);
+                    heading,
+                    isWeird);
             }
         }
         let explosion = this.scene.add.particles('particle').createEmitter({
