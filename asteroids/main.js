@@ -57,10 +57,13 @@ let godMode = false;
 
 let endText;
 let levelText;
+let livesText;
 
 let justWon = false;
 
 let level = 0;
+
+let lives = 3;
 
 function asteroidCheck(e) {
     if (e.gameObjectB.parentObject instanceof Projectile) {
@@ -79,12 +82,15 @@ class OverlayScene extends Phaser.Scene {
     create() {
         this.cameras.main.resetFX();
         text = this.add.text(10, 10, 'Move: WASD.\nShoot: Space\n' + game.loop.actualFps, {font: '14px' +
-            ' Courier', fill: '#CECED1'});
+            ' Arial', fill: '#CECED1'});
         endText = this.add.text(0, 0, '',
-            {font: '120px Courier', fill: '#CECED1'});
+            {font: '120px Arial', fill: '#CECED1'});
         levelText = this.add.text(0, 0, 'Level ' + level,
-            {font: '24px Courier', fill: '#CECED1'});
+            {font: '24px Arial', fill: '#CECED1'});
         levelText.setPosition(0.5 * (width - levelText.width), 10);
+        livesText = this.add.text(0, 0, 'Lives: ' + lives,
+            {font: '24px Arial', fill: '#CECED1'});
+        livesText.setPosition(0.25 * width - 0.5 * livesText.width, 10);
         this.scene.bringToTop();
     }
 
@@ -150,27 +156,45 @@ class MainScene extends Phaser.Scene {
                         });
                         explosion.reserve(1);
                         explosion.explode();
+                        lives -= 1;
                         ship.scene.time.delayedCall(
                             150,
                             () => {
-                                endText.setText('ded');
+                                let dispText;
+                                if (lives < 1) {
+                                    dispText = 'game over';
+                                } else {
+                                    dispText = 'ded'
+                                }
+                                endText.setText(dispText);
                                 endText.setPosition(
                                     0.5 * (width - endText.width),
                                     0.5 * (height - endText.height));
                             },
                             [],
                             this);
+                        if (lives < 1) {
+                            ship.scene.time.delayedCall(
+                                2200,
+                                (s) => {
+                                    s.scene.get('OverlayScene').cameras.main.fade(2300);
+                                },
+                                [ship.scene],
+                                this);
+                        }
+                        let restartTime;
+                        if (lives < 1) {
+                            restartTime = 6300;
+                        } else {
+                            restartTime = 4800;
+                        }
                         ship.scene.time.delayedCall(
-                            2200,
+                            restartTime,
                             (s) => {
-                                s.scene.get('OverlayScene').cameras.main.fade(2300);
-                            },
-                            [ship.scene],
-                            this);
-                        ship.scene.time.delayedCall(
-                            4800,
-                            (s) => {
-                                level = 0;
+                                if (lives < 1) {
+                                    level = 0;
+                                    lives = 3
+                                }
                                 s.restart();
                                 s.get('OverlayScene').scene.restart();
 
@@ -579,8 +603,8 @@ function fireProjectile(scene) {
         -r * projectile.sprite.body.velocity.y);
     if (!godMode) {
         ship.applyForce(recoil);
-        projectileSpeed = Math.max(projectileSpeedMin, projectileSpeed - 2);
-        fireRate = Math.max(fireRateMin, fireRate - 0.6);
+        projectileSpeed = Math.max(projectileSpeedMin, projectileSpeed - 1.3);
+        fireRate = Math.max(fireRateMin, fireRate - 0.33);
     }
 }
 
