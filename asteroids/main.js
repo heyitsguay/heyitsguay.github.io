@@ -28,7 +28,8 @@ $(document).ready(function() {
     game = new Phaser.Game(config)
 });
 
-let ship, keys, text;
+let ship, text;
+let keys = null;
 let accelForwardTime = 0;
 let accelBackwardTime = 0;
 let rotLeftTime = 0;
@@ -46,12 +47,17 @@ let fireRate = fireRateMax;
 let timeSinceFire = 10;
 
 let asteroids;
-let asteroidDrag = 1;
-let pWeirdAsteroid;
+let pCrazyAsteroid;
 let nAsteroids = 4;
 
+let powerups;
+
 let canFire = true;
-let toggled = {m: false};
+let toggled = {
+    k: false,
+    l: false,
+    m: false,
+    esc: false};
 
 let godMode = false;
 
@@ -64,6 +70,12 @@ let justWon = false;
 let level = 0;
 
 let lives = 3;
+
+let gameIsPaused = false;
+
+let cats;
+
+let powerupCanAppear;
 
 function asteroidCheck(e) {
     if (e.gameObjectB.parentObject instanceof Projectile) {
@@ -80,12 +92,14 @@ class OverlayScene extends Phaser.Scene {
     }
 
     create() {
+        this.ownKeys = this.input.keyboard.addKeys(
+            {esc: Phaser.Input.Keyboard.KeyCodes.ESC});
         this.cameras.main.resetFX();
         text = this.add.text(10, 10, 'Move: WASD.\nShoot: Space\n' + game.loop.actualFps, {font: '14px' +
             ' Arial', fill: '#CECED1'});
         endText = this.add.text(0, 0, '',
             {font: '120px Arial', fill: '#CECED1'});
-        levelText = this.add.text(0, 0, 'Level ' + level,
+        levelText = this.add.text(0, 0, 'Level ' + (level + 1),
             {font: '24px Arial', fill: '#CECED1'});
         levelText.setPosition(0.5 * (width - levelText.width), 10);
         livesText = this.add.text(0, 0, 'Lives: ' + lives,
@@ -96,6 +110,22 @@ class OverlayScene extends Phaser.Scene {
 
     update(time, delta) {
         text.setText('Move: WASD.\nShoot: Space\n' + game.loop.actualFps.toFixed(1));
+
+        if (this.ownKeys.esc.isDown) {
+            if (!toggled['esc']) {
+                toggled['esc'] = true;
+                if (gameIsPaused) {
+                    game.scene.resume('MainScene');
+                    gameIsPaused = false;
+                } else {
+                    game.scene.pause('MainScene');
+                    gameIsPaused = true;
+                }
+            }
+        }
+        else {
+            toggled['esc'] = false;
+        }
     }
 }
 
@@ -108,18 +138,30 @@ class MainScene extends Phaser.Scene {
 
     preload() {
         this.load.image('projectile', 'assets/bullet2.png');
-        this.load.image('ship', 'assets/ship.png');
+        this.load.image('ship', 'assets/ship2.png');
+        this.load.image('ship-shielded', 'assets/ship2-shielded.png');
         this.load.image('asteroid', 'assets/asteroid.png');
-        this.load.image('weirdAsteroid', 'assets/asteroid2.png');
+        this.load.image('crazyAsteroid', 'assets/asteroid2.png');
         this.load.image('particle', 'assets/particle3.png');
+        this.load.image('powerup-triple', 'assets/powerup-fire-triple.png');
+        this.load.image('powerup-shield', 'assets/powerup-aid-shield.png');
         this.cameras.main.setBackgroundColor('#000000');
     }
 
     create() {
-        pWeirdAsteroid = 0.05 + 0.02 * level;
+
+        powerupCanAppear = true;
+
+        cats = [];
+        for (let i = 0; i < 3; i++) {
+            cats.push(this.matter.world.nextCategory());
+        }
+
+        pCrazyAsteroid = 0.05 + 0.02 * level;
         justWon = false;
         godMode = false;
         this.cameras.main.resetFX();
+        powerups = [];
         projectiles = [];
         asteroids = [];
         this.matter.world.engine.positionIterations=10;
@@ -128,95 +170,115 @@ class MainScene extends Phaser.Scene {
         ship = this.matter.add.image(400, 300, 'ship');
         ship.setFrictionAir(0.993);
         ship.setMass(1000);
-        ship.setCircle(9, 7, 7);
+        ship.setCircle(9, 10, 10);
         ship.setBounce(0.4);
+        ship.setCollisionCategory(cats[0]);
+        ship.setCollidesWith(cats);
+
         ship.scene = this;
+        ship.shielded = false;
+        ship.projectileType = 'default';
 
         this.matterCollision.addOnCollideStart({
             objectA: ship,
             callback: eventData => {
-                if (!godMode && !justWon) {
+                if (eventData.gameObjectB !== null
+                    && !godMode
+                    && !justWon
+                    && !(eventData.gameObjectB.parentObject instanceof Powerup)) {
                     let ship = eventData.gameObjectA;
                     if (ship.visible) {
-                        let explosion = ship.scene.add.particles('particle').createEmitter({
-                            x: ship.x,
-                            y: ship.y,
-                            frequency: -1,
-                            quantity: 1,
-                            speed: {min: 0.5, max: 2},
-                            angle: {min: 0, max: 360},
-                            scale: {
-                                start: 0.12 * ship.scaleX,
-                                end: 4 * ship.scaleX
-                            },
-                            alpha: {start: 1, end: 0, ease: 'Sine.easeOut'},
-                            lifespan: 500,
-                            tint: 0xFF8800,
-                            active: true
-                        });
-                        explosion.reserve(1);
-                        explosion.explode();
-                        lives -= 1;
-                        ship.scene.time.delayedCall(
-                            150,
-                            () => {
-                                let dispText;
-                                if (lives < 1) {
-                                    dispText = 'game over';
-                                } else {
-                                    dispText = 'ded'
-                                }
-                                endText.setText(dispText);
-                                endText.setPosition(
-                                    0.5 * (width - endText.width),
-                                    0.5 * (height - endText.height));
-                            },
-                            [],
-                            this);
-                        if (lives < 1) {
-                            ship.scene.time.delayedCall(
-                                2200,
-                                (s) => {
-                                    s.scene.get('OverlayScene').cameras.main.fade(2300);
-                                },
-                                [ship.scene],
-                                this);
-                        }
-                        let restartTime;
-                        if (lives < 1) {
-                            restartTime = 6300;
+                        if (ship.shielded) {
+                            removeShield();
                         } else {
-                            restartTime = 4800;
-                        }
-                        ship.scene.time.delayedCall(
-                            restartTime,
-                            (s) => {
-                                if (lives < 1) {
-                                    level = 0;
-                                    lives = 3
-                                }
-                                s.restart();
-                                s.get('OverlayScene').scene.restart();
+                            let explosion = ship.scene.add.particles('particle').createEmitter({
+                                x: ship.x,
+                                y: ship.y,
+                                frequency: -1,
+                                quantity: 1,
+                                speed: {min: 0.5, max: 2},
+                                angle: {min: 0, max: 360},
+                                scale: {
+                                    start: 0.12 * ship.scaleX,
+                                    end: 4 * ship.scaleX
+                                },
+                                alpha: {start: 1, end: 0, ease: 'Sine.easeOut'},
+                                lifespan: 500,
+                                tint: 0xFF8800,
+                                active: true
+                            });
+                            explosion.reserve(1);
+                            explosion.explode();
+                            lives -= 1;
+                            ship.scene.time.delayedCall(
+                                150,
+                                () => {
+                                    let dispText;
+                                    if (lives < 1) {
+                                        dispText = 'game over';
+                                    } else {
+                                        dispText = 'ded'
+                                    }
+                                    endText.setText(dispText);
+                                    endText.setPosition(
+                                        0.5 * (width - endText.width),
+                                        0.5 * (height - endText.height));
+                                },
+                                [],
+                                this);
+                            if (lives < 1) {
+                                ship.scene.time.delayedCall(
+                                    2200,
+                                    (s) => {
+                                        s.scene.get('OverlayScene').cameras.main.fade(2300);
+                                    },
+                                    [ship.scene],
+                                    this);
+                            }
+                            let restartTime;
+                            if (lives < 1) {
+                                restartTime = 6300;
+                            } else {
+                                restartTime = 4800;
+                            }
+                            ship.scene.time.delayedCall(
+                                restartTime,
+                                (s) => {
+                                    if (lives < 1) {
+                                        level = 0;
+                                        lives = 3
+                                    }
+                                    s.restart();
+                                    s.get('OverlayScene').scene.restart();
 
-                            },
-                            [ship.scene.scene],
-                            this);
-                        ship.setVisible(false);
-                        if (eventData.gameObjectB !== null &&
-                            eventData.gameObjectB.parentObject instanceof Asteroid) {
-                            eventData.gameObjectB.parentObject.explode();
+                                },
+                                [ship.scene.scene],
+                                this);
+                            ship.setVisible(false);
+                        }
+                        if (eventData.gameObjectB !== null) {
+                            let parentB = eventData.gameObjectB.parentObject;
+                            if (parentB instanceof Asteroid) {
+                                parentB.explode();
+                            } else if (parentB instanceof Projectile) {
+                                parentB.destroy();
+                            }
                         }
                     }
                 }
             }});
 
-        keys = this.input.keyboard.addKeys(
-            {up: Phaser.Input.Keyboard.KeyCodes.W,
-                down: Phaser.Input.Keyboard.KeyCodes.S,
-                left: Phaser.Input.Keyboard.KeyCodes.A,
-                right: Phaser.Input.Keyboard.KeyCodes.D,
-                space: Phaser.Input.Keyboard.KeyCodes.SPACE,
-                m: Phaser.Input.Keyboard.KeyCodes.M});
+        keys = this.input.keyboard.addKeys({
+            up: Phaser.Input.Keyboard.KeyCodes.W,
+            down: Phaser.Input.Keyboard.KeyCodes.S,
+            left: Phaser.Input.Keyboard.KeyCodes.A,
+            right: Phaser.Input.Keyboard.KeyCodes.D,
+            space: Phaser.Input.Keyboard.KeyCodes.SPACE,
+            shift: Phaser.Input.Keyboard.KeyCodes.SHIFT,
+            k: Phaser.Input.Keyboard.KeyCodes.K,
+            l: Phaser.Input.Keyboard.KeyCodes.L,
+            m: Phaser.Input.Keyboard.KeyCodes.M,
+            p: Phaser.Input.Keyboard.KeyCodes.P});
 
         for (let i = 0; i < nAsteroids + 4 * level; i++) {
             let x, y;
@@ -227,14 +289,25 @@ class MainScene extends Phaser.Scene {
                 d = Phaser.Math.Distance.Between(x, y, ship.x, ship.y);
             }
             let s = Phaser.Math.FloatBetween(0.8, 2.2);
-            let isWeird = between(0, 1) < pWeirdAsteroid;
-            let a = new Asteroid(x, y, s, this, null, null, isWeird);
+            let isCrazy = between(0, 1) < pCrazyAsteroid;
+            let a = new Asteroid(x, y, s, this, null, null, isCrazy);
         }
 
     }
 
     update(time, delta) {
+        let time_s = time / 1000;
         let delta_s = delta / 1000;
+
+        if (powerupCanAppear && time_s % 2 < 0.1 && between(0, 1) < 0.04) {
+            powerupCanAppear = false;
+            this.time.delayedCall(10000, () => {powerupCanAppear = true}, [], this);
+            if (between(0, 1) < 0.5) {
+                addPowerup(this, 'powerup-shield');
+            } else {
+                addPowerup(this, 'powerup-triple');
+            }
+        }
 
         updateInput(this, delta_s);
 
@@ -258,7 +331,10 @@ class MainScene extends Phaser.Scene {
             projectile.update(delta_s);
         }
         for (let asteroid of asteroids) {
-            asteroid.update(delta_s);
+            asteroid.update(time_s, delta_s);
+        }
+        for (let powerup of powerups) {
+            powerup.update(delta_s);
         }
 
         if (asteroids.length === 0) {
@@ -281,8 +357,15 @@ class MainScene extends Phaser.Scene {
 
 }
 
+function addPowerup(scene, type) {
+    let _ = new Powerup(between(0, width), between(0, height), type, scene);
+}
+
 function updateInput(scene, delta) {
-    if (!ship.visible) return;
+    if (!ship.visible) {
+        return;
+    }
+    let shift = keys.shift.isDown;
     if (keys.up.isDown) {
         accelForwardTime += delta;
         accelBackwardTime = 0;
@@ -301,19 +384,47 @@ function updateInput(scene, delta) {
     if (keys.left.isDown) {
         rotLeftTime += delta;
         rotRightTime = 0;
-        let avLeft = 1e-3 * (-10 - 180 * Math.min(rotLeftTime, 0.5));
+        let a = shift? 2e-4 : 1e-3;
+        let avLeft = a * (-10 - 180 * Math.min(rotLeftTime, 0.5));
         ship.setAngularVelocity(avLeft);
     }
     else if (keys.right.isDown) {
         rotRightTime += delta;
         rotLeftTime = 0;
-        let avRight = 1e-3 * (10 + 180 * Math.min(rotRightTime, 0.5));
+        let a = shift? 2e-4 : 1e-3;
+        let avRight = a * (10 + 180 * Math.min(rotRightTime, 0.5));
         ship.setAngularVelocity(avRight);
     }
     else {
         rotRightTime = 0;
         rotLeftTime = 0;
         ship.setAngularVelocity(0);
+    }
+
+    if (keys.k.isDown) {
+        if (!toggled['k']) {
+            toggled['k'] = true;
+            if (ship.projectileType === 'default') {
+                ship.projectileType = 'triple';
+            } else if (ship.projectileType === 'triple') {
+                ship.projectileType = 'default';
+            }
+        }
+    }
+    else {
+        toggled['k'] = false;
+    }
+
+    if (keys.l.isDown) {
+        if (!toggled['l']) {
+            toggled['l'] = true;
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                asteroids[i].explode();
+            }
+        }
+    }
+    else {
+        toggled['l'] = false;
     }
 
     if (keys.m.isDown) {
@@ -343,17 +454,21 @@ function updateInput(scene, delta) {
     else {
         canFire = true;
     }
+
+    if (keys.p.isDown) {
+        addShield();
+    }
 }
 
 
 class Asteroid {
-    constructor(x, y, scale, scene, speed=null, heading=null, weird=false) {
+    constructor(x, y, scale, scene, speed=null, heading=null, crazy=false) {
         if (speed === null) speed = between(0.2, 1);
         if (heading === null) heading = between(0, 2 * Math.PI);
-        this.weird = weird;
+        this.crazy = crazy;
         this.scale = scale;
         this.scene = scene;
-        let image = this.weird ? 'weirdAsteroid' : 'asteroid';
+        let image = this.crazy ? 'crazyAsteroid' : 'asteroid';
         this.sprite = this.scene.matter.add.image(x, y, image);
         this.sprite.parentObject = this;
         this.sprite.setCircle(50);
@@ -365,21 +480,27 @@ class Asteroid {
             speed * Math.sin(heading));
         this.sprite.setFrictionAir(0);
         this.sprite.setFrictionStatic(0);
+        this.sprite.setRotation(between(0, 2* Math.PI));
         this.health = 100;
+        this.birthTime = this.scene.time.now / 1000;
         this.timeSinceVisible = 0;
+        this.sprite.setCollisionCategory(cats[1]);
+        this.sprite.setCollidesWith([cats[0], cats[1]]);
 
         this.scene.matterCollision.addOnCollideStart({
             objectA: this.sprite,
             callback: eventData => {
-                if (eventData.gameObjectB.parentObject instanceof Projectile) {
-                    let projectileSpeed = eventData.gameObjectB.body.speed;
-                    let damageMultiplier = 1;
-                    if (projectileSpeed > 7) {
-                        damageMultiplier = 1.2 + 0.2 * (projectileSpeed - 7);
+                if (eventData.gameObjectB !== null) {
+                    if (eventData.gameObjectB.parentObject instanceof Projectile) {
+                        let projectileSpeed = eventData.gameObjectB.body.speed;
+                        let damageMultiplier = 1;
+                        if (projectileSpeed > 7) {
+                            damageMultiplier = 1.2 + 0.2 * (projectileSpeed - 7);
+                        }
+                        eventData.gameObjectB.parentObject.alive = false;
+                        eventData.gameObjectA.parentObject.health -=
+                            projectileSpeed * damageMultiplier;
                     }
-                    eventData.gameObjectB.parentObject.alive = false;
-                    eventData.gameObjectA.parentObject.health -=
-                        projectileSpeed * damageMultiplier;
                 }
             }
         });
@@ -387,27 +508,37 @@ class Asteroid {
         asteroids.push(this);
     }
 
-    update(delta) {
+    update(time, delta) {
         if (this.health <= 0) {
             this.explode()
         }
         else {
-            if (this.weird) {
-                let x0 = this.sprite.getCenter().x;
-                let y0 = this.sprite.getCenter().y;
-                let x1 = ship.getCenter().x;
-                let y1 = ship.getCenter().y;
-                let headingToShip = Math.atan2(y1 - y0, x1 - x0);
-                let d2 = 100 + (y1 - y0)**2 + (x1 - x0)**2;
-                let speed = Math.max(2, 100000/d2);
-                let v = vectorFromPolar(headingToShip, speed);
-                this.sprite.setVelocity(v.x, v.y);
-                let rNow = this.sprite.rotation;
+            if (this.crazy) {
+                if (time - this.birthTime > 3 || this.health < 100) {
+                    this.updateColor();
+                    let x0 = this.sprite.getCenter().x;
+                    let y0 = this.sprite.getCenter().y;
+                    let x1 = ship.getCenter().x;
+                    let y1 = ship.getCenter().y;
+                    let headingToShip = Math.atan2(y1 - y0, x1 - x0);
+                    let d = Math.sqrt((y1 - y0) ** 2 + (x1 - x0) ** 2);
+                    let speed = Math.max(2, 100000 / (10000 + (d - 50 * this.scale) ** 2));
+                    let v = vectorFromPolar(headingToShip, speed);
+                    this.sprite.setVelocity(v.x, v.y);
+                    let rNow = this.sprite.rotation;
 
-                this.sprite.setRotation(0.95 * rNow + 0.05 * headingToShip);
+                    this.sprite.setRotation(0.95 * rNow + 0.05 * headingToShip);
+                } else {
+                    let p = (time - this.birthTime) / 3;
+                    let r = Math.floor((0.2 + 0.67 * p) * 255);
+                    let g  = Math.floor((0.5 + 0.3 * p) * 255);
+                    let tint = r * 256**2 + g * 256 + 255;
+                    this.sprite.setTint(tint);
+                }
+            } else {
+                this.updateColor();
             }
             wrap(this.sprite);
-            this.updateColor();
 
             let bounds = this.sprite.body.bounds;
             if (bounds.max.x < 0
@@ -441,7 +572,7 @@ class Asteroid {
     }
 
     explode() {
-        if (this.scale > 0.85) {
+        if (!this.crazy && this.scale > 0.85) {
             let s1 = between(0.7, 1.3);
             let s2 = 2 - s1;
             let newScale1 = s1 * this.scale / 2;
@@ -455,7 +586,7 @@ class Asteroid {
                 let oldHeading = Math.atan2(v.y, v.x);
                 let {speed, heading} = addPolar(
                     oldSpeed, oldHeading, newSpeed, newHeading);
-                let isWeird = between(0, 1) < pWeirdAsteroid;
+                let isCrazy = between(0, 1) < pCrazyAsteroid;
                 let _ = new Asteroid(
                     this.sprite.getCenter().x + 0.4 * 100 * this.scale * Math.cos(heading),
                     this.sprite.getCenter().y + 0.4 * 100 * this.scale * Math.sin(heading),
@@ -463,7 +594,7 @@ class Asteroid {
                     this.scene,
                     speed,
                     heading,
-                    isWeird);
+                    isCrazy);
             }
         }
         let explosion = this.scene.add.particles('particle').createEmitter({
@@ -481,7 +612,6 @@ class Asteroid {
         });
         explosion.reserve(1);
         explosion.explode();
-        // this.scene.time.delayedCall(500, explodeEmitter, [explosion], this);
         this.destroy();
 
 
@@ -505,12 +635,94 @@ function addPolar(r1, t1, r2, t2) {
 }
 
 
+let powerupCategories = {
+    'powerup-shield': 'aid',
+    'powerup-triple': 'fire'};
+
+class Powerup {
+    constructor(x, y, type, scene) {
+        this.scene = scene;
+        this.type = type;
+        this.category = powerupCategories[this.type];
+        this.age = 0;
+        this.lifespan = 20;
+        this.scale = 0.35;
+        this.alive = true;
+
+        this.sprite = scene.matter.add.image(x, y, this.type);
+        this.sprite.parentObject = this;
+        this.sprite.setCircle(32);
+        this.sprite.setScale(this.scale);
+
+        this.sprite.setCollisionCategory(cats[2]);
+        this.sprite.setCollidesWith([cats[0]]);
+
+        this.scene.matterCollision.addOnCollideStart({
+            objectA: this.sprite,
+            callback: eventData => {
+                if (eventData.gameObjectB !== null) {
+                    this.powerup();
+                    this.destroy();
+                }
+            }
+        });
+
+        powerups.push(this);
+    }
+
+    destroy() {
+        this.sprite.destroy();
+        remove(this, powerups);
+    }
+
+    powerup() {
+        if (this.category === 'aid') {
+            this.scene.cameras.main.flash(333, 128, 128, 255);
+        } else if (this.category === 'fire') {
+            this.scene.cameras.main.flash(333, 255, 128, 128);
+        }
+
+        if (this.type === 'powerup-shield') {
+            addShield();
+        } else if (this.type === 'powerup-triple') {
+            ship.projectileType = 'triple';
+        }
+    }
+
+    update(delta) {
+        if (this.alive) {
+            this.age += delta;
+            this.updateColor();
+            if (this.age > this.lifespan) {
+                this.alive = false;
+            }
+        }
+        else {
+            this.destroy();
+        }
+    }
+
+    updateColor() {
+        let tintFactor = 0.7 + 0.3 * Math.cos(50 * this.age);
+        let r, g, b;
+        r = g = b = tintFactor * 255;
+        if (this.category === 'aid') {
+            b /= tintFactor;
+        } else if (this.category === 'fire') {
+            r /= tintFactor;
+        }
+        let tint = Math.round(r) * 256 **2 + Math.round(g) * 256 + Math.round(b);
+        this.sprite.setTint(tint);
+    }
+}
+
+
 class Projectile {
     constructor(x, y, scene) {
         this.scene = scene;
 
         this.age = 0;
-        this.scale = 0.14;
+        this.scale = 0.16;
         this.alpha = 1;
 
         let tint;
@@ -528,7 +740,7 @@ class Projectile {
             quantity: 1,
             speed: {min: 1, max: 10},
             angle: {min: 0, max: 360},
-            scale: {start: this.scale, end: this.scale},
+            scale: {start: 0.72 * this.scale, end: 0.72 * this.scale},
             alpha: {start: 1, end: 0},
             lifespan: 1000,
             tint: tint,
@@ -538,9 +750,14 @@ class Projectile {
 
         this.sprite = scene.matter.add.image(x, y, 'projectile');
         this.sprite.parentObject = this;
+        this.sprite.setScale(1.28);
+        // this.sprite.setScale(8 * this.scale);
         this.sprite.setCircle(3);
         this.sprite.setMass(0.025);
-        this.sprite.setBounce(0.4);
+        this.sprite.setBounce(1.);
+
+        this.sprite.setCollisionCategory(cats[1]);
+        this.sprite.setCollidesWith([cats[0], cats[1]]);
 
         this.alive = true;
 
@@ -563,7 +780,7 @@ class Projectile {
                     this.sprite.x,
                     this.sprite.y);
                 if (p > 0.4) {
-                    this.emitter.setScale(this.scale);
+                    this.emitter.setScale(0.72 * this.scale);
                     this.scale *= 0.992;
                 }
                 this.setVelocity(projectileDrag * v.x, projectileDrag * v.y);
@@ -571,10 +788,14 @@ class Projectile {
                 this.updateColor();
             }
         } else {
-            this.particles.destroy();
-            this.sprite.destroy();
-            remove(this, projectiles);
+            this.destroy();
         }
+    }
+
+    destroy() {
+        this.particles.destroy();
+        this.sprite.destroy();
+        remove(this, projectiles);
     }
 
     updateColor() {
@@ -589,23 +810,56 @@ class Projectile {
 
 
 function fireProjectile(scene) {
-    let ct = Math.cos(ship.rotation);
-    let st = Math.sin(ship.rotation);
-    let emitX = ship.getCenter().x + 17 * ct;
-    let emitY = ship.getCenter().y + 17 * st;
-    let projectile = new Projectile(emitX, emitY, scene);
-    projectile.setVelocity(
-        ship.body.velocity.x + projectileSpeed * ct,
-        ship.body.velocity.y + projectileSpeed * st);
-    let r = 0.000002 * projectileSpeed;
+
+    if (ship.projectileType === 'default') {
+        let p = oneProjectile(scene, ship.rotation, projectileSpeed, 2e-6);
+    } else if (ship.projectileType === 'triple') {
+        let p0 = oneProjectile(scene, ship.rotation, projectileSpeed, 2e-6);
+        let p1 = oneProjectile(scene, ship.rotation - 0.20944, 0.9 * projectileSpeed, 5e-7);
+        let p2 = oneProjectile(scene, ship.rotation + 0.20944, 0.9 * projectileSpeed, 5e-7);
+    }
+    if (!godMode) {
+        projectileSpeed = Math.max(projectileSpeedMin, projectileSpeed - 1.3);
+        fireRate = Math.max(fireRateMin, fireRate - 0.33);
+    }
+
+    // let ct = Math.cos(ship.rotation);
+    // let st = Math.sin(ship.rotation);
+    // let emitX = ship.getCenter().x + 17 * ct;
+    // let emitY = ship.getCenter().y + 17 * st;
+    // let projectile = new Projectile(emitX, emitY, scene);
+    // projectile.setVelocity(
+    //     ship.body.velocity.x + projectileSpeed * ct,
+    //     ship.body.velocity.y + projectileSpeed * st);
+    // let r = 0.000002 * projectileSpeed;
+    // let recoil = new Phaser.Math.Vector2(
+    //     -r * projectile.sprite.body.velocity.x,
+    //     -r * projectile.sprite.body.velocity.y);
+    // if (!godMode) {
+    //     ship.applyForce(recoil);
+    //     projectileSpeed = Math.max(projectileSpeedMin, projectileSpeed - 1.3);
+    //     fireRate = Math.max(fireRateMin, fireRate - 0.33);
+    // }
+}
+
+
+function oneProjectile(scene, heading, speed, cRecoil) {
+    let ct = Math.cos(heading);
+    let st = Math.sin(heading);
+    let x = ship.getCenter().x + 17 * ct;
+    let y = ship.getCenter().y + 17 * st;
+    let projectile = new Projectile(x, y, scene);
+    let svx = ship.body.velocity.x;
+    let svy = ship.body.velocity.y;
+    projectile.setVelocity(svx + speed * ct, svy + speed * st);
+    let r = cRecoil * projectileSpeed;
     let recoil = new Phaser.Math.Vector2(
         -r * projectile.sprite.body.velocity.x,
         -r * projectile.sprite.body.velocity.y);
     if (!godMode) {
         ship.applyForce(recoil);
-        projectileSpeed = Math.max(projectileSpeedMin, projectileSpeed - 1.3);
-        fireRate = Math.max(fireRateMin, fireRate - 0.33);
     }
+    return projectile;
 }
 
 
@@ -661,4 +915,34 @@ function vectorFromPolar(rotation, magnitude) {
 function hsv2int(h, s, v) {
     let c = Phaser.Display.Color.HSVToRGB(h, s, v);
     return c.r * 256**2 + c.g * 256 + c.b;
+}
+
+
+function addShield() {
+    if (!ship.shielded) {
+        ship.shielded = true;
+        let r = ship.rotation;
+        let v = ship.body.velocity;
+        ship.setTexture('ship-shielded');
+        ship.setCircle(18, 1, 1);
+        ship.setRotation(r);
+        ship.setVelocity(v.x, v.y);
+        ship.setCollisionCategory(cats[0]);
+        ship.setCollidesWith(cats);
+    }
+}
+
+
+function removeShield() {
+    if (ship.shielded) {
+        ship.shielded = false;
+        let r = ship.rotation;
+        let v = ship.body.velocity;
+        ship.setTexture('ship');
+        ship.setCircle(9, 10, 10);
+        ship.setRotation(r);
+        ship.setVelocity(v.x, v.y);
+        ship.setCollisionCategory(cats[0]);
+        ship.setCollidesWith(cats);
+    }
 }
