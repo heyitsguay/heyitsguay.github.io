@@ -36,7 +36,7 @@ let rotLeftTime = 0;
 let rotRightTime = 0;
 
 let projectiles;
-let projectileLifespan = 10;
+let projectileLifespan = 6;
 let projectileDrag = 0.996;
 let projectileSpeedMax = 24;
 let projectileSpeedMin = 7.5;
@@ -51,6 +51,11 @@ let pCrazyAsteroid;
 let nAsteroids = 4;
 
 let powerups;
+let effects = ['shield', 'triple'];
+let activeEffects = {'shield': false,
+                     'triple': false};
+let projectileTypes = ['default', 'triple'];
+let currentProjectile = 'default';
 
 let canFire = true;
 let toggled = {
@@ -139,7 +144,7 @@ class MainScene extends Phaser.Scene {
     preload() {
         this.load.image('projectile', 'assets/bullet2.png');
         this.load.image('ship', 'assets/ship2.png');
-        this.load.image('ship-shielded', 'assets/ship2-shielded.png');
+        this.load.image('ship-shield', 'assets/ship2-shield.png');
         this.load.image('asteroid', 'assets/asteroid.png');
         this.load.image('crazyAsteroid', 'assets/asteroid2.png');
         this.load.image('particle', 'assets/particle3.png');
@@ -149,6 +154,8 @@ class MainScene extends Phaser.Scene {
     }
 
     create() {
+
+        console.log(activeEffects);
 
         powerupCanAppear = true;
 
@@ -175,9 +182,11 @@ class MainScene extends Phaser.Scene {
         ship.setCollisionCategory(cats[0]);
         ship.setCollidesWith(cats);
 
+        if (activeEffects['shield']) {
+            applyShield();
+        }
+
         ship.scene = this;
-        ship.shielded = false;
-        ship.projectileType = 'default';
 
         this.matterCollision.addOnCollideStart({
             objectA: ship,
@@ -188,7 +197,7 @@ class MainScene extends Phaser.Scene {
                     && !(eventData.gameObjectB.parentObject instanceof Powerup)) {
                     let ship = eventData.gameObjectA;
                     if (ship.visible) {
-                        if (ship.shielded) {
+                        if (activeEffects['shield']) {
                             removeShield();
                         } else {
                             let explosion = ship.scene.add.particles('particle').createEmitter({
@@ -255,6 +264,10 @@ class MainScene extends Phaser.Scene {
                                 [ship.scene.scene],
                                 this);
                             ship.setVisible(false);
+                            currentProjectile = 'default';
+                            for (let effect in activeEffects) {
+                                activeEffects[effect] = false;
+                            }
                         }
                         if (eventData.gameObjectB !== null) {
                             let parentB = eventData.gameObjectB.parentObject;
@@ -278,7 +291,9 @@ class MainScene extends Phaser.Scene {
             k: Phaser.Input.Keyboard.KeyCodes.K,
             l: Phaser.Input.Keyboard.KeyCodes.L,
             m: Phaser.Input.Keyboard.KeyCodes.M,
-            p: Phaser.Input.Keyboard.KeyCodes.P});
+            p: Phaser.Input.Keyboard.KeyCodes.P,
+            one: Phaser.Input.Keyboard.KeyCodes.ONE,
+            two: Phaser.Input.Keyboard.KeyCodes.TWO});
 
         for (let i = 0; i < nAsteroids + 4 * level; i++) {
             let x, y;
@@ -293,6 +308,8 @@ class MainScene extends Phaser.Scene {
             let a = new Asteroid(x, y, s, this, null, null, isCrazy);
         }
 
+        console.log(activeEffects);
+
     }
 
     update(time, delta) {
@@ -302,10 +319,21 @@ class MainScene extends Phaser.Scene {
         if (powerupCanAppear && time_s % 2 < 0.1 && between(0, 1) < 0.04) {
             powerupCanAppear = false;
             this.time.delayedCall(10000, () => {powerupCanAppear = true}, [], this);
-            if (between(0, 1) < 0.5) {
-                addPowerup(this, 'powerup-shield');
-            } else {
-                addPowerup(this, 'powerup-triple');
+            let possibleEffects = [];
+            for (let effect of ['shield', 'triple']) {
+                if (!activeEffects[effect]) {
+                    possibleEffects.push('powerup-' + effect);
+                }
+            }
+            let nPossible = possibleEffects.length;
+            if (nPossible > 0) {
+                let pEffect = 1 / nPossible;
+                for (let i = 0; i < nPossible; i ++) {
+                    if (between(0, 1) < (i + 1) * pEffect) {
+                        addPowerup(this, possibleEffects[i]);
+                        break;
+                    }
+                }
             }
         }
 
@@ -404,10 +432,11 @@ function updateInput(scene, delta) {
     if (keys.k.isDown) {
         if (!toggled['k']) {
             toggled['k'] = true;
-            if (ship.projectileType === 'default') {
-                ship.projectileType = 'triple';
-            } else if (ship.projectileType === 'triple') {
-                ship.projectileType = 'default';
+            if (currentProjectile === 'default') {
+                activeEffects['triple'] = true;
+                currentProjectile = 'triple';
+            } else if (currentProjectile === 'triple') {
+                currentProjectile = 'default';
             }
         }
     }
@@ -447,7 +476,7 @@ function updateInput(scene, delta) {
         if (canFire) {
             canFire = false;
             scene.time.delayedCall(1000 / fireRate, () => {canFire = true}, [], this);
-            fireProjectile(scene);
+            fire(scene);
 
         }
     }
@@ -457,6 +486,14 @@ function updateInput(scene, delta) {
 
     if (keys.p.isDown) {
         addShield();
+    }
+
+    if (keys.one.isDown) {
+        setProjectile('default');
+    } else if(keys.two.isDown) {
+        if (activeEffects['triple']) {
+            setProjectile('triple');
+        }
     }
 }
 
@@ -645,7 +682,7 @@ class Powerup {
         this.type = type;
         this.category = powerupCategories[this.type];
         this.age = 0;
-        this.lifespan = 20;
+        this.lifespan = 30;
         this.scale = 0.35;
         this.alive = true;
 
@@ -685,7 +722,8 @@ class Powerup {
         if (this.type === 'powerup-shield') {
             addShield();
         } else if (this.type === 'powerup-triple') {
-            ship.projectileType = 'triple';
+            activeEffects['triple'] = true;
+            setProjectile('triple');
         }
     }
 
@@ -809,11 +847,11 @@ class Projectile {
 }
 
 
-function fireProjectile(scene) {
+function fire(scene) {
 
-    if (ship.projectileType === 'default') {
+    if (currentProjectile === 'default') {
         let p = oneProjectile(scene, ship.rotation, projectileSpeed, 2e-6);
-    } else if (ship.projectileType === 'triple') {
+    } else if (currentProjectile === 'triple') {
         let p0 = oneProjectile(scene, ship.rotation, projectileSpeed, 2e-6);
         let p1 = oneProjectile(scene, ship.rotation - 0.20944, 0.9 * projectileSpeed, 5e-7);
         let p2 = oneProjectile(scene, ship.rotation + 0.20944, 0.9 * projectileSpeed, 5e-7);
@@ -822,24 +860,6 @@ function fireProjectile(scene) {
         projectileSpeed = Math.max(projectileSpeedMin, projectileSpeed - 1.3);
         fireRate = Math.max(fireRateMin, fireRate - 0.33);
     }
-
-    // let ct = Math.cos(ship.rotation);
-    // let st = Math.sin(ship.rotation);
-    // let emitX = ship.getCenter().x + 17 * ct;
-    // let emitY = ship.getCenter().y + 17 * st;
-    // let projectile = new Projectile(emitX, emitY, scene);
-    // projectile.setVelocity(
-    //     ship.body.velocity.x + projectileSpeed * ct,
-    //     ship.body.velocity.y + projectileSpeed * st);
-    // let r = 0.000002 * projectileSpeed;
-    // let recoil = new Phaser.Math.Vector2(
-    //     -r * projectile.sprite.body.velocity.x,
-    //     -r * projectile.sprite.body.velocity.y);
-    // if (!godMode) {
-    //     ship.applyForce(recoil);
-    //     projectileSpeed = Math.max(projectileSpeedMin, projectileSpeed - 1.3);
-    //     fireRate = Math.max(fireRateMin, fireRate - 0.33);
-    // }
 }
 
 
@@ -919,23 +939,28 @@ function hsv2int(h, s, v) {
 
 
 function addShield() {
-    if (!ship.shielded) {
-        ship.shielded = true;
-        let r = ship.rotation;
-        let v = ship.body.velocity;
-        ship.setTexture('ship-shielded');
-        ship.setCircle(18, 1, 1);
-        ship.setRotation(r);
-        ship.setVelocity(v.x, v.y);
-        ship.setCollisionCategory(cats[0]);
-        ship.setCollidesWith(cats);
+    if (!activeEffects['shield']) {
+        activeEffects['shield'] = true;
+        applyShield();
     }
 }
 
 
+function applyShield() {
+    let r = ship.rotation;
+    let v = ship.body.velocity;
+    ship.setTexture('ship-shield');
+    ship.setCircle(18, 1, 1);
+    ship.setRotation(r);
+    ship.setVelocity(v.x, v.y);
+    ship.setCollisionCategory(cats[0]);
+    ship.setCollidesWith(cats);
+}
+
+
 function removeShield() {
-    if (ship.shielded) {
-        ship.shielded = false;
+    if (activeEffects['shield']) {
+        activeEffects['shield'] = false;
         let r = ship.rotation;
         let v = ship.body.velocity;
         ship.setTexture('ship');
@@ -945,4 +970,9 @@ function removeShield() {
         ship.setCollisionCategory(cats[0]);
         ship.setCollidesWith(cats);
     }
+}
+
+
+function setProjectile(key) {
+    currentProjectile = key;
 }
