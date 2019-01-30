@@ -159,9 +159,11 @@ class MainScene extends Phaser.Scene {
 
         powerupCanAppear = true;
 
-        cats = [];
-        for (let i = 0; i < 3; i++) {
-            cats.push(this.matter.world.nextCategory());
+        if (cats === undefined) {
+            cats = [];
+            for (let i = 0; i < 3; i++) {
+                cats.push(this.matter.world.nextCategory());
+            }
         }
 
         pCrazyAsteroid = 0.05 + 0.02 * level;
@@ -176,11 +178,11 @@ class MainScene extends Phaser.Scene {
 
         ship = this.matter.add.image(400, 300, 'ship');
         ship.setFrictionAir(0.993);
-        ship.setMass(1000);
         ship.setCircle(9, 10, 10);
         ship.setBounce(0.4);
         ship.setCollisionCategory(cats[0]);
         ship.setCollidesWith(cats);
+        ship.setMass(0.25)
 
         if (activeEffects['shield']) {
             applyShield();
@@ -412,14 +414,14 @@ function updateInput(scene, delta) {
     if (keys.left.isDown) {
         rotLeftTime += delta;
         rotRightTime = 0;
-        let a = shift? 2e-4 : 1e-3;
+        let a = shift? 2e-4 : 2e-3;
         let avLeft = a * (-10 - 180 * Math.min(rotLeftTime, 0.5));
         ship.setAngularVelocity(avLeft);
     }
     else if (keys.right.isDown) {
         rotRightTime += delta;
         rotLeftTime = 0;
-        let a = shift? 2e-4 : 1e-3;
+        let a = shift? 2e-4 : 2e-3;
         let avRight = a * (10 + 180 * Math.min(rotRightTime, 0.5));
         ship.setAngularVelocity(avRight);
     }
@@ -509,7 +511,6 @@ class Asteroid {
         this.sprite = this.scene.matter.add.image(x, y, image);
         this.sprite.parentObject = this;
         this.sprite.setCircle(50);
-        this.sprite.setMass(this.scale * 1000);
         this.sprite.setScale(this.scale);
         this.sprite.setBounce(0.);
         this.sprite.setVelocity(
@@ -523,6 +524,7 @@ class Asteroid {
         this.timeSinceVisible = 0;
         this.sprite.setCollisionCategory(cats[1]);
         this.sprite.setCollidesWith([cats[0], cats[1]]);
+        this.sprite.setMass(this.scale * 1000);
 
         this.scene.matterCollision.addOnCollideStart({
             objectA: this.sprite,
@@ -741,7 +743,7 @@ class Powerup {
     }
 
     updateColor() {
-        let tintFactor = 0.7 + 0.3 * Math.cos(50 * this.age);
+        let tintFactor = 0.8 + 0.2 * Math.cos(10 * this.age);
         let r, g, b;
         r = g = b = tintFactor * 255;
         if (this.category === 'aid') {
@@ -791,7 +793,7 @@ class Projectile {
         this.sprite.setScale(1.28);
         // this.sprite.setScale(8 * this.scale);
         this.sprite.setCircle(3);
-        this.sprite.setMass(0.025);
+        this.sprite.setMass(0.015);
         this.sprite.setBounce(1.);
 
         this.sprite.setCollisionCategory(cats[1]);
@@ -951,10 +953,12 @@ function applyShield() {
     let v = ship.body.velocity;
     ship.setTexture('ship-shield');
     ship.setCircle(18, 1, 1);
+    // ship.setCircle(9, 10, 10);
     ship.setRotation(r);
     ship.setVelocity(v.x, v.y);
     ship.setCollisionCategory(cats[0]);
     ship.setCollidesWith(cats);
+    ship.setMass(0.25)
 }
 
 
@@ -969,6 +973,7 @@ function removeShield() {
         ship.setVelocity(v.x, v.y);
         ship.setCollisionCategory(cats[0]);
         ship.setCollidesWith(cats);
+        ship.setMass(0.25)
     }
 }
 
