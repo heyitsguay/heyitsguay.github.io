@@ -316,18 +316,18 @@ function handleTouchEnd(e)
 
 function button0click()
 {
-    //numStarsToDraw = Math.max(1, numStarsToDraw - 10);
-    //writeStarCount();
+    numStarsToDraw = Math.max(1, numStarsToDraw - 10);
+    writeStarCount();
 }
 
 function button1click()
 {
-    //numStarsToDraw += 10;
-    //if(numStarsToDraw > numStars)
-    //{
-    //    addStars(numStarsToDraw - numStars);
-    //}
-    //writeStarCount();
+    numStarsToDraw += 10;
+    if(numStarsToDraw > numStars)
+    {
+       addStars(numStarsToDraw - numStars);
+    }
+    writeStarCount();
 }
 
 var button0pushed = false;
@@ -654,14 +654,14 @@ function webGLStart()
     if(isTouchscreen) // On a tablet or smartphone, Linux), render fewer stars
     {
         numStars = 100;
-        var instructions = document.getElementById("instructions");
-        instructions.innerHTML = "<h4>Touch and drag to rotate. Pinch to zoom. Double tap to scatter stars.</h4>";
+        // var instructions = document.getElementById("instructions");
+        // instructions.innerHTML = "<h4>Touch and drag to rotate. Pinch to zoom. Double tap to scatter stars.</h4>";
     }
     else
     {
         numStars = 700;
-        var buttons = document.getElementById("buttons");
-        buttons.innerHTML = "";
+        // var buttons = document.getElementById("buttons");
+        // buttons.innerHTML = "";
     }
     numStarsToDraw = numStars; // Start by rendering them all. Increment/decrement as needed.
     writeStarCount();
@@ -682,7 +682,7 @@ function webGLStart()
     var button0 = document.getElementById("button0");
     var button1 = document.getElementById("button1");
 
-    if(isTouchscreen)
+    if(true) //isTouchScreen
     {
         button0.addEventListener("touchstart", handleButton0Push, false);
         button0.addEventListener("touchleave", handleButton0Release, false);
