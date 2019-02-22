@@ -1,3 +1,16 @@
+var xRot = 0;
+var xSpeed = 0;
+var yRot = 0;
+var ySpeed = 0;
+var maxSpeed = 10000;
+
+var dz = -5.0;
+var dx = 0;
+
+var filter = 0;
+
+var keys = {};
+
 var gl;
 function initGL(canvas)
 {
@@ -134,19 +147,6 @@ function degToRad(degrees)
 {
     return degrees * Math.PI / 180;
 }
-
-var xRot = 0;
-var xSpeed = 0;
-var yRot = 0;
-var ySpeed = 0;
-var maxSpeed = 10000;
-
-var dz = -5.0;
-var dx = 0;
-
-var filter = 0;
-
-var keys = {};
 
 function handleKeyDown(event)
 {
@@ -558,11 +558,11 @@ function webGLStart()
 
     isTouchscreen = touchCheck();
 
-    if(isTouchscreen)
-    {
-        var instr = document.getElementById("instructions");
-        instr.innerHTML = "<h4>Touch and drag to rotate, pinch to zoom, double-tap to switch Daves.</h4>";
-    }
+    // if(isTouchscreen)
+    // {
+    //     var instr = document.getElementById("instructions");
+    //     instr.innerHTML = "<h4>Touch and drag to rotate, pinch to zoom, double-tap to switch Daves.</h4>";
+    // }
 
     document.onkeydown = handleKeyDown;
     document.onkeyup = handleKeyUp;
