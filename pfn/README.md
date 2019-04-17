@@ -92,3 +92,11 @@ Designed to be 16"x24" with a 300dpi resolution. Fullscreen it and try to imagin
 <a href="00286.png"><img src="00286.png" align="center"></a>
 
 ---
+
+#### Take 2
+
+---
+
+<a href="00318.png"><img src="00318.png" align="center"></a>
+
+---
