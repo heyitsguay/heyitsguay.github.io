@@ -24,7 +24,7 @@ void main() {
 
     // Constants for brightness effect
     // Brightness calculation
-    float B = min(1., 5. * heat);
+    float B = 0.5 * (1. + sin(20. * min(1., 5. * heat)));
 
 	gl_FragColor = vec4(hsv2rgb(vec3(H, S, B)), 1.);
 }

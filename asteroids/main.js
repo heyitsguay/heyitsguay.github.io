@@ -824,7 +824,7 @@ class Projectile {
                     this.scale *= 0.992;
                 }
                 this.setVelocity(projectileDrag * v.x, projectileDrag * v.y);
-                wrap(this.sprite);
+                // wrap(this.sprite);
                 this.updateColor();
             }
         } else {

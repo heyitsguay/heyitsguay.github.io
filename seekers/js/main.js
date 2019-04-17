@@ -576,14 +576,6 @@ function setupComputer() {
         numSeekers,
         numSeekers
     );
-    computer.addVariable(
-        'snootB O Y E',
-        shaderSources['seekerVelocity.frag'],
-        {},//$.extend(true, {}, seekerVelocityUniforms),
-        initSeekerVelocity,
-        numSeekers,
-        numSeekers
-    );
 
 
     computer.setVariableDependencies('heat', ['heat']);

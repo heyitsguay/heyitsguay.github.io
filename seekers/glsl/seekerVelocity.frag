@@ -23,13 +23,13 @@ void main() {
     vec2 pc = 0.5 * (pRaw + 1.);
     vec2 px = pc + vec2(ds, 0.);
     vec2 py = pc + vec2(dt, 0.);
-    float heatc = texture2D(heat, pc).r;
-    float heatx = texture2D(heat, px).r;
-    float heaty = texture2D(heat, py).r;
+    float heatc = texture2D(heat, pc, 2.).r;
+    float heatx = texture2D(heat, px, 2.).r;
+    float heaty = texture2D(heat, py, 2.).r;
     vec2 grad = -dScale * vec2(heatx - heatc, heaty - heatc);
 
     vec2 oldVelocity = texture2D(seekerVelocity, vec2(0., 0.)).rg;
-    vec2 newVelocity = 1 * oldVelocity
+    vec2 newVelocity = 0. * oldVelocity
                      + seekStrength * grad;
     float newSpeed = min(length(newVelocity), maxSpeed);
     newVelocity = (1. - newSpeed * newSpeed / (maxSpeed * maxSpeed)) * newVelocity;
