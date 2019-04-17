@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta property="og:title" content="WebGL physics"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="http://heyitsguay.github.io/sketches/webgl-physics/"/>
+    <title>WebGL Physics</title>
+
+    <!-- JS libraries -->
+    <script
+            src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous"></script>
+    <script
+            src="libs/igloo-0.1.2.js"></script>
+
+    <!-- Local files -->
+    <link rel="stylesheet" href="style.css">
+    <script src="js/controller.js"></script>
+    <script src="js/fps.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/particles.js"></script>
+</head>
+
+<body>
+    <div>
+        <canvas width="512" height="256" id="canvas">Hello!</canvas>
+        <img src="igloo.png" id="image" style="display: none;"/>
+    </div>
+    <!--Left-hand menu-->
+    <div class = "tbackground toggle" id="fullleft">
+        <!--Title-->
+        <div class="lefttitle toggle" id="titlediv">
+            <h1>particles</h1>
+            Based on <a href>https://nullprogram.com/webgl-particles/</a>
+        </div>
+
+        <!--Key map-->
+        <div class="keymap padded toggle">
+            <table class="checktable keymap padded toggle">
+                <tr><td><b>C</b>: clear obstacles</td>
+                    <td><b>Q</b>: toggle menu</td></tr>
+                <tr><td><b>D</b>: double count</td>
+                <td><b>H</b>: halve count</td></tr>
+            </table>
+        </div>
+
+        <div class="controls padded toggle">
+            <div class="particles padded toggle">
+                <label>Particles:</label>
+                <button class="increase">More</button>
+                <button class="decrease">Fewer</button>
+                <button class="reset">Reset</button>
+                <div class="slider padded toggle">
+                    <label>Particle color:</label>
+                    <input class="phue" type="range" step="0.01"
+                           min="0" max="1" value="0" />
+                </div>
+                <div class="slider padded toggle">
+                    <label>Particle groove:</label>
+                    <input class="groove" type="range" step="0.0003"
+                           min="0" max="0.03" value="0" />
+                </div>
+                <div class="slider padded toggle">
+                    <label>Particle size:</label>
+                    <input class="size" type="range" step="0.1"
+                           min="0.1" max="15" value="3" />
+                </div>
+                <div class="slider padded toggle">
+                    <label>Gravity:</label>
+                    <input class="gravity" type="range" step="0.01"
+                           min="0" max="0.5" value="0.05"/>
+                </div>
+
+                <div class="slider padded toggle">
+                    <label>Wind:</label>
+                    <input class="wind" type="range" step="0.005"
+                           min="-0.2" max="0.2" value="0"/>
+                </div>
+
+                <div class="slider padded toggle">
+                    <label>Restitution:</label>
+                    <input class="restitution" type="range"
+                           step="0.05" min="0" max="1.5" value="0.25"/>
+                </div>
+            </div>
+            <div class="obstacles padded toggle">
+                <label>Obstacles:</label>
+                <input class="color" type="color" value="#735940" />
+                <button class="clear">Clear</button>
+                <div class="slider padded toggle">
+                    <label>Radius:</label>
+                    <input class="size" type="range" step="2"
+                           min="4" max="300" value="40"/>
+                </div>
+            </div>
+            <div class="snapshot padded toggle">
+                <label>Snapshot:</label>
+                <button class="save">Save</button>
+                <button class="restore">Restore</button>
+            </div>
+        </div>
+        <div class="description toggle">
+            <p>
+                Simulating <span class="count">___</span>
+                particles at <span class="fps">___</span> FPS
+            </p>
+        </div>
+    </div>
+</body>
+</html>

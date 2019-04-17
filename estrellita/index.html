@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="glMatrix-0.9.5.min.js"></script>
+    <style>
+        * {margin: 0; padding: 0;}
+        body {text-align: center; background-color: #000;}
+        h1 {
+            color: #CECECE;
+            margin-top: 10px;
+            /*border-bottom: 1px solid;*/
+            padding-bottom: 3px;
+        }
+        h2,h3,h4 {
+            color: #CECECE;
+        }
+
+        td {
+            color: #CECECE;
+        }
+
+    </style>
+
+    <style type="text/css">
+        canvas {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            outline: none;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+        }
+    </style>
+
+    <style type="text/css">
+        .mydiv {
+            display: block;
+            width: 100%;
+            background-color: black;
+            color: #CECECE;
+        }
+        .mydiv br {
+            display: none;
+        }
+    </style>
+
+    <style type="text/css">
+        table.center {
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+
+    <script id = "fshader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec2 vTextureCoord;
+
+        uniform sampler2D uSampler;
+        uniform vec3 uColor;
+
+        void main()
+        {
+            vec4 textureColor = texture2D(uSampler, vTextureCoord);
+            gl_FragColor = textureColor * vec4(uColor, 1.0);
+        }
+    </script>
+
+    <script id="vshader" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        varying vec2 vTextureCoord;
+
+        void main()
+        {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+        }
+    </script>
+
+    <script type="text/javascript" src="app.js"></script>
+</head>
+
+<body onload="webGLStart();">
+    <h1>estrellita</h1>
+    <div class="mydiv" id="fpscounter">
+        <h3> </h3>
+    </div>
+
+    <canvas id="canvas" style="border: none;" width="1024" height="768"></canvas>
+    <div class="mydiv" id="starcounter">
+        <h3> </h3>
+    </div>
+    <br/>
+<div id="instructions">
+    <h3>Keyboard</h3>
+    <h4>Cursor keys or WASD to rotate, mouse wheel or Q/E to zoom.</h4>
+    <h4>Click to scatter stars, F to toggle twinkling.</h4>
+    <h4>Z to decrease the number of stars drawn, C to increase it.</h4>
+    <h3>Mobile</h3>
+    <h4>Touch and drag to rotate. Pinch to zoom. Double tap to scatter stars.</h4>
+</div>
+<div id="buttons">
+    <table class="center" style="border:none" border="0" cellspacing="10">
+        <tr>
+            <td><input type="button" id="button0"  style="width:9em; height:5em;" onclick="button0click()" value="Fewer stars"></td>
+            <td><input type="button" id="button1"style="width:9em; height:5em;" onclick="button1click()" value="More stars"></td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

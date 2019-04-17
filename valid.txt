@@ -1,0 +1,34 @@
+original, working
+- heatsnakes
+- asteroids
+- coincircle
+- guessthenumber
+- laguna
+- sshmap
+- tilewave
+
+learningwebgl.com tutorial sketches:
+- davecube
+- estrellita
+- fractalhedron
+- planets
+
+phaser tutorial sketches:
+- phaserdemo
+- platformer
+- tileworld
+
+sketches i should finish:
+- webgl-physics
+- seekers
+- audiowave (easy)
+
+jupyter notebooks
+- kerasdemo
+- watershed
+
+non webpage resources
+- eyeo
+- optical flow vid
+- C++ gol3d
+- any VR sketches? the particles + procedural city?
