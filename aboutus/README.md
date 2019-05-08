@@ -1,4 +1,4 @@
-# Overview
+# Image annotation at LCIMB
 
 Our lab [LCIMB](https://www.nibib.nih.gov/labs-at-nibib/laboratory-cellular-imaging-and-macromolecular-biophysics-lcimb), which is a part of the [NIBIB](####NIBIB/NIH), which is an institute of the [NIH](https://www.nih.gov/), is interested in evaluating annotation sourcing companies for labeling biomedical image data in conjunction with computer vision research projects. 
 
