@@ -1,8 +1,4 @@
----
-
 # Overview
-
----
 
 Our lab [LCIMB](https://www.nibib.nih.gov/labs-at-nibib/laboratory-cellular-imaging-and-macromolecular-biophysics-lcimb), which is a part of the [NIBIB](####NIBIB/NIH), which is an institute of the [NIH](https://www.nih.gov/), is interested in evaluating annotation sourcing companies for labeling biomedical image data in conjunction with computer vision research projects. 
 
@@ -12,11 +8,7 @@ To give you an idea of the work we're interested in doing.
 
 <a href="large.png"><img src="small.png" align="center"></a><p><i>[Click for a higher-resolution image](https://heyitsguay.github.io/aboutus/large.png)</i>
 
----
-
 # Who We Are
-
----
 
 Right now, there are a few of us at NIBIB who are pursuing this:
 
@@ -32,23 +24,19 @@ Right now, there are a few of us at NIBIB who are pursuing this:
 
 #### Organization
 
-**LCIMB**: The [Laboratory of Cellular Imaging And Macromolecular Biophysics](https://www.nibib.nih.gov/labs-at-nibib/laboratory-cellular-imaging-and-macromolecular-biophysics-lcimb).
+LCIMB: The [Laboratory of Cellular Imaging And Macromolecular Biophysics](https://www.nibib.nih.gov/labs-at-nibib/laboratory-cellular-imaging-and-macromolecular-biophysics-lcimb).
 
-**NIBIB**: The [National Institute of Biomedical Imaging and Bioengineering](https://www.nibib.nih.gov/).
+NIBIB: The [National Institute of Biomedical Imaging and Bioengineering](https://www.nibib.nih.gov/).
 
-**NIH**: The [National Institutes of Health](https://www.nih.gov/).
-
----
+NIH: The [National Institutes of Health](https://www.nih.gov/).
 
 # Our problem
-
----
 
 In LCIMB, we work with electron microscopes (EM) to produce nanoscale images of biological structures. Modern EM hardware such as serial block-face scanning electron microscopes (SBF-SEM) can rapidly produce large 3D images (~1000x4000x4000 voxels). Analysis of these images helps system biologists learn about the structure and function of cells working together in body tissues, but analysis has a severe bottleneck in annotating the images. We would like to automate the process, but producing annotated images for training data is very time-consuming.
 
 ## Pilot project
 
-For a pilot project, we will provide one or more 3D EM image datasets, along with a small number of in-lab annotations for each dataset. We are interested in both **instance segmentation** and **semantic segmentation** of cells and subcellular structures. 
+For a pilot project, we will provide one or more 3D EM image datasets, along with a small number of in-lab annotations for each dataset. We are interested in both **instance segmentation** and **semantic segmentation** of cells and subcellular structures. It may be the case that instance segmentation is easier to outsource than semantic segmentation.
 
 Below: An example image, along with semantic and instance segmentation annotations for that image. 
 
@@ -79,11 +67,7 @@ Semantic segmentation of image into seven classes: Background, cytoplasm, and fi
 
 Instance segmentation of image. Note that due to the hierarchical organization of cells, some tags are contained inside others.
 
----
-
 # Challenges
-
----
 
 We have identified the following challenges so far for outsourcing annotations. There may be others.
 
