@@ -1,6 +1,23 @@
 # Words (and phrases) I have learned
 
-#### July 7
+### July 22
+_kund: customer
+_avgörande_: crucial
+_kunskap_: knowledge, skill
+_ju_: of course
+_roll_: role
+_dep spelar ingen roll_: it doesn't matter, it does not matter
+_bland_: among
+_alltså_: that is, so
+_främmande_: foreign
+_statistik_: statistics
+_arbetsmarknaden_: job market, labor market
+_kompetens_: competence, competency
+_anställa_: hire
+_vill gärna_: would like( to)
+_arbetsgivare_: employer(s)
+
+### July 7
 _förbättra_: improve
 _förberett_: prepared; from _förbereda_: prepare
 _saknas_: be lacking
@@ -24,7 +41,7 @@ _vara klar_: be ready
 _klar_: clear
 
 
-#### July 5
+### July 5
 _häktad_: arrested; from _häkta_: arrest, detain
 _tingsrätt_: district court
 _misstänkt_: suspected; from _misstänka_: suspect

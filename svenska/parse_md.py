@@ -3,14 +3,14 @@ import json
 
 def main():
 
-    translation_pairs = parse_manual_list('wordslearned.md')
+    translation_pairs = parse_markdown_list('wordslearned.md')
     with open('wordslearned.json', 'w') as f:
         json.dump(translation_pairs, f)
 
     pass
 
 
-def parse_manual_list(l):
+def parse_markdown_list(l):
     translation_pairs = []
     with open(l, 'r') as f:
         text = f.read().lower()
