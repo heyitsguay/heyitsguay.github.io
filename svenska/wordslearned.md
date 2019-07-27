@@ -1,5 +1,25 @@
 # Words (and phrases) I have learned
 
+å ä ö
+
+### July 26
+_brädspel_: board game
+_tävling_: competition
+_lördag_: saturday
+_medans_: while
+_spendera_: spend
+_kompis_: buddy, friend
+_avsnitt_: section
+_lägga ner_: put down
+_ner_: down
+_datorspel_: computer game
+_handla_: shop, trade, deal
+_sålt_: sold
+_tecknad serie_: cartoon
+_under_: during, under
+_klä ut sig_: dress up
+_tv-spel_: video game
+
 ### July 22
 _kund: customer
 _avgörande_: crucial
