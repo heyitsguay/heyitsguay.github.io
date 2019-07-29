@@ -47,7 +47,7 @@ Has nothing to do with the meat of the actual project. Instead, I will end this 
   </a>
 </p>
 
-A small amount of blurring fixes it up, but I also inadvertently discovered that a little extra selective Gaussian blurring produces a dreamy watercolor result, a slightly-surreal vibe that meshes perfectly the beautiful, endless midsummer days of Sweden's northern countryside.
+A small amount of blurring fixes it up, but I also inadvertently discovered that a little extra selective Gaussian blurring produces a dreamy watercolor result, a slightly-surreal vibe that meshes perfectly with the beautiful, endless midsummer days in Sweden's northern countryside.
 
 <p align="center">
   <a href="/images/image_extrapolation_0/r10d90.jpg">
