@@ -1,6 +1,8 @@
 ---
-title: First post
-subtitle: An inauspicious beginning
+layout: "post"
+date: "2019-07-29 02:04"
+title: "First Post"
+subtitle: "An inauspicious beginning"
 ---
 
 # Hooray!
