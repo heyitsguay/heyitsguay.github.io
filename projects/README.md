@@ -1,3 +1,1 @@
-# Projects
-
 **TODO**: Add projects
