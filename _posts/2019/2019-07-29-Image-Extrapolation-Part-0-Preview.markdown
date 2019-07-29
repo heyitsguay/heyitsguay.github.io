@@ -21,7 +21,7 @@ Find an interesting image in some image corpus. Right now I am thinking of some 
   </a>
 </p>
 
-Northern Sweden a magical place just after Midsommar, and I would be curious to see what a network might dream up from any of the pictures Eli and I took up there, but I am most curious about one we got in Angnäs:
+Northern Sweden is a magical place just after Midsommar, and I would be curious to see what a network might dream up from any of the pictures Eli and I took up there, but I am most curious about one we got in Angnäs:
 
 <p align="center">
   <a href="/images/image_extrapolation_0/original.jpg">
