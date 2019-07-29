@@ -9,9 +9,9 @@ layout: null
 body {
   font-family: 'Lora', 'Times New Roman', serif;
   font-size: 18px;
-  color: #404043;
+  color: #404040;
   position: relative;
-  background: #fefefe;
+  background: #FFF;
   {% if site.page-col %}
   background: {{ site.page-col }};
   {% endif %}
@@ -146,7 +146,7 @@ img {
   transition: padding .5s ease-in-out;
 }
 .navbar-custom .navbar-brand-logo img {
-  height: 128px;
+  height: 50px;
   -webkit-transition: height .5s ease-in-out;
   -moz-transition: height .5s ease-in-out;
   transition: height .5s ease-in-out;
@@ -178,7 +178,7 @@ img {
   -moz-transition: opacity 0.5s ease-in-out;
   transition: opacity 0.5s ease-in-out;
   left: 50%;
-  width: 128px;
+  width: 50px;
   margin-top: -25px;
 }
 .navbar-custom .avatar-container  .avatar-img-border {
@@ -206,8 +206,8 @@ img {
 
 @media only screen and (min-width: 768px) {
   .navbar-custom .avatar-container {
-    width: 192px;
-    margin-top: -96px;
+    width: 100px;
+    margin-top: -50px;
   }
 
   .navbar-custom .avatar-container  .avatar-img-border {
