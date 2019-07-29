@@ -1,4 +1,3 @@
-*~
-*.bat
-.idea/
-.idea/*
+_drafts/
+_site/
+.sass-cache/
