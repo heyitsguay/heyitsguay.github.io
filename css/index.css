@@ -7,7 +7,7 @@
 }
 @media only screen and (max-width: 365px) {
   .header-section.has-img .big-img {
-    margin-bottom: 250px;
+    margin-bottom: 0;
   }
 }
 
@@ -49,7 +49,7 @@
 
 @media only screen and (min-width: 768px) {
   .post-preview {
-    padding: 300px 10px;
+    padding: 30px 10px;
   }
 }
 
