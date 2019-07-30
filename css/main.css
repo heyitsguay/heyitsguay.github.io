@@ -523,9 +523,10 @@ footer .theme-by {
   bottom: 0;
   display: none;
 }
+/* KEEP MODIFYING HERE!!! */
 @media only screen and (min-width: 768px) {
   .intro-header {
-    margin-top: 330px;
+    margin-top: 230px;
   }
   .intro-header.big-img {
     margin-top: 91px;  /* Full navbar is small navbar + 20px padding on each side when expanded */
