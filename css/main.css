@@ -57,7 +57,7 @@ hr.small {
 .main-content {
   padding-top: 80px;
 }
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .main-content {
     padding-top: 130px;
   }
@@ -99,7 +99,7 @@ img {
   margin-top: 30px;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .disqus-comments {
     margin-top: 40px;
   }
@@ -158,7 +158,7 @@ img {
   height: 40px;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .navbar-custom {
     padding: 50px 0;
     -webkit-transition: background .5s ease-in-out,padding .5s ease-in-out;
@@ -204,7 +204,7 @@ img {
   display: none;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .navbar-custom .avatar-container {
     width: 180px;
     margin-top: -50px;
@@ -251,7 +251,7 @@ img {
     display: block;
   }
 }
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .navbar-custom .nav .navlinks-container {
     text-align: center;
   }
@@ -306,7 +306,7 @@ footer .theme-by {
   margin: 10px 0 0;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   footer {
     padding: 50px 0;
   }
@@ -325,7 +325,7 @@ footer .theme-by {
   border-bottom: 1px solid #eee;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .post-preview {
     padding: 35px 0;
   }
@@ -391,7 +391,7 @@ footer .theme-by {
   font-weight: 800;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .post-preview .post-title {
     font-size: 36px;
   }
@@ -423,7 +423,7 @@ footer .theme-by {
   margin-bottom: 0;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .post-preview .blog-tags {
     margin-top: 10px;
   }
@@ -524,7 +524,7 @@ footer .theme-by {
   display: none;
 }
 /* KEEP MODIFYING HERE!!! */
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .intro-header {
     margin-top: 230px;
   }
@@ -613,7 +613,7 @@ footer .theme-by {
   border-radius: 0;
   color: #404040;
 }
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .pager li a {
     padding: 15px 25px;
   }
@@ -633,7 +633,7 @@ footer .theme-by {
   margin-top: 0;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 512px) {
   .pager.blog-pager  {
     margin-top: 10px;
   }
