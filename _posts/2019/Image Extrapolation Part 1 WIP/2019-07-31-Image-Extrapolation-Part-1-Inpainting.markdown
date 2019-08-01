@@ -5,7 +5,9 @@ title: "Image Extrapolation: Part 1"
 subtitle: "Painting out with inpainting"
 ---
 
-This post marks the actual beginning of the image extrapolation project. I define image extrapolation, show how image inpainting can be repurposed for extrapolation, and write a simple extrapolater using [scikit image](https://scikit-image.org/)'s `skimage.restoration.inpaint.inpaint_biharmonic`.
+This post marks the actual beginning of the image extrapolation project described in [Image Extrapolation: Part 0](https://heyitsguay.github.io/2019/07/29/Image-Extrapolation-Part-0-Preview.html). 
+
+Here, I define image extrapolation, show how image inpainting can be repurposed for extrapolation, and write a simple extrapolater using [scikit image](https://scikit-image.org/)'s `inpaint_biharmonic`.
 
 The algorithms I am exploring for inpainting can be slow, so while experimenting I will run things on smaller image patches. Today, I'll use:
 <p align="center">
@@ -34,14 +36,30 @@ Nevertheless it's an important milestone from a coding standpoint - I now have t
 
 ## Definitions
 
-**Image extrapolation** is using an algorithm to fill in new image data at the boundaries of an image:
+### Image extrapolation
 
+Image extrapolation is using an algorithm to fill in new image data at the boundaries of an image:
 <p align="center">
   <a href="/images/image_extrapolation_1/extrapolation_definition.jpg">
     <img src="/images/image_extrapolation_1/extrapolation_definition.jpg" />
   </a>
 </p> 
-To be interesting, the algorithm needs to fill in that gray area with structures that resemble nearby image contents in a meaningful way.
+
+To be interesting, the algorithm needs to fill in that gray area with content that resembles nearby image contents in a meaningful way. To create such an algorithm, first consider a similar problem, _image inpainting_:
+
+### Image inpainting
+
+As defined by Wikipedia, [image inpainting](https://en.wikipedia.org/wiki/Inpainting) is the process of reconstructing lost or deteriorated parts of images and videos. Inpainting can help restore scans of physical photos that have suffered physical damage, but for my purpose it can also be used on digital images where regions have been _masked_:
+<p align="center">
+  <a href="/images/image_extrapolation_1/extrapolation_definition.jpg">
+    <img src="/images/image_extrapolation_1/extrapolation_definition.jpg" />
+  </a>
+</p> 
+
+Inpainting algorithms attempt to fill in missing content so that it matches neighboring regions in the image. 
+
+
+For my purpose, inpainting algorithms attempt to replace missing information in portions of an image obscured by a mask. What follows is a basic example, adapted from the [scikit-image inpainting example](https://scikit-image.org/docs/dev/auto_examples/filters/plot_inpaint.html):
 
 
 ## Image inpainting
