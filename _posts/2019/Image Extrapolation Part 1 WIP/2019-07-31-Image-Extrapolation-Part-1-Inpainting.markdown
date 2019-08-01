@@ -56,7 +56,7 @@ As defined by Wikipedia, [image inpainting](https://en.wikipedia.org/wiki/Inpain
   </a>
 </p> 
 
-A **mask** is a binary (black and white) image used to indicate deleted portions of another image, where an inpainting algorithm should inpaint. For this example, the mask would be: 
+A **mask** is a binary image used to indicate deleted portions of another image, where an inpainting algorithm should inpaint. For this example, the mask would be: 
 <p align="center">
   <a href="/images/image_extrapolation_1/inpainting_mask.jpg">
     <img src="/images/image_extrapolation_1/inpainting_mask.jpg" />
@@ -73,13 +73,10 @@ somewhere in the middle of a picture, like in the previous example. No part of t
   <a href="/images/image_extrapolation_1/inpainting_example.jpg">
     <img src="/images/image_extrapolation_1/inpainting_example.jpg" />
   </a>
-</p> 
-(Zoomed for detail)
-<p align="center">
   <a href="/images/image_extrapolation_1/inpainting_example_zoomed.jpg">
     <img src="/images/image_extrapolation_1/inpainting_example_zoomed.jpg" />
   </a>
-</p> 
+</p>
 
 However, there is nothing stopping us from considering masks that touch a boundary:
 <p align="center">
@@ -87,6 +84,16 @@ However, there is nothing stopping us from considering masks that touch a bounda
     <img src="/images/image_extrapolation_1/inpainting_border_1.jpg" />
   </a>
 </p> 
+
+In which case, `inpaint_biharmonic` still gives us a result, but with less detail:
+<p align="center">
+  <a href="/images/image_extrapolation_1/inpainting_example_1.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_example_1.jpg" />
+  </a>
+  <a href="/images/image_extrapolation_1/inpainting_example_1_zoomed.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_example_1_zoomed.jpg" />
+  </a>
+</p>
 
 
 
