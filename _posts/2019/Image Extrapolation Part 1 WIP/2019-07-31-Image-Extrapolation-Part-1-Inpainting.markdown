@@ -5,7 +5,7 @@ title: "Image Extrapolation: Part 1"
 subtitle: "Painting out with inpainting"
 ---
 
-This post marks the actual beginning of the image extrapolation project described in [Image Extrapolation: Part 0](https://heyitsguay.github.io/2019/07/29/Image-Extrapolation-Part-0-Preview.html). 
+_This post marks the actual beginning of the image extrapolation project described in_ [Image Extrapolation: Part 0](https://heyitsguay.github.io/2019/07/29/Image-Extrapolation-Part-0-Preview.html). 
 
 In this post, I define image extrapolation, show how image inpainting can be repurposed for extrapolation, and write a simple extrapolater using [scikit image](https://scikit-image.org/)'s `inpaint_biharmonic`.
 
