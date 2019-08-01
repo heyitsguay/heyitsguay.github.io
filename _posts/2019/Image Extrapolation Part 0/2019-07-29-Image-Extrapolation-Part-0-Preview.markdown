@@ -21,7 +21,7 @@ Find an interesting image in some image corpus. Right now I am thinking of some 
   </a>
 </p>
 
-Northern Sweden is a magical place just after Midsommar, and I would be curious to see what a network might dream up from any of the pictures Eli and I took up there, but I am most curious about one we got in Angnäs:
+Northern Sweden is a magical place just after [Midsommar](https://en.wikipedia.org/wiki/Midsummer), and I would be curious to see what a network might dream up from any of the pictures Eli and I took up there, but I am most curious about one we got in Angnäs:
 
 <p align="center">
   <a href="/images/image_extrapolation_0/original.jpg">
@@ -54,3 +54,5 @@ A small amount of blurring fixes it up, but I also inadvertently discovered that
     <img src="/images/image_extrapolation_0/r10d90.jpg" />
   </a>
 </p> 
+
+Next up: [Image Extrapolation: Part 1](https://heyitsguay.github.io/2019/07/30/Image-Extrapolation-Part-1-Inpainting.html).

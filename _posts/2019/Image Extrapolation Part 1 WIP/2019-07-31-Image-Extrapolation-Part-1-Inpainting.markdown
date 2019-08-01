@@ -7,7 +7,7 @@ subtitle: "Painting out with inpainting"
 
 This post marks the actual beginning of the image extrapolation project described in [Image Extrapolation: Part 0](https://heyitsguay.github.io/2019/07/29/Image-Extrapolation-Part-0-Preview.html). 
 
-Here, I define image extrapolation, show how image inpainting can be repurposed for extrapolation, and write a simple extrapolater using [scikit image](https://scikit-image.org/)'s `inpaint_biharmonic`.
+In this post, I define image extrapolation, show how image inpainting can be repurposed for extrapolation, and write a simple extrapolater using [scikit image](https://scikit-image.org/)'s `inpaint_biharmonic`.
 
 The algorithms I am exploring for inpainting can be slow, so while experimenting I will run things on smaller image patches. Today, I'll use:
 <p align="center">
@@ -30,7 +30,9 @@ Booooring. And even more boring if you extend any further outward:
   </a>
 </p> 
 
-Nevertheless it's an important milestone from a coding standpoint - I now have tools to turn any inpainting algorithm into an extrapolation algorithm and produce more figures like the ones above. Read on for more details:
+Nevertheless it's an important milestone from a coding standpoint - I now have tools to turn any inpainting algorithm into an extrapolation algorithm and produce more figures like the ones above. Read on for more details.
+
+The image, utility functions, and jupyter notebook used to produce the figures in this post are available [here](https://heyitsguay.github.io/data/image-extrapolation-part1.zip).
 
 
 
@@ -105,34 +107,47 @@ In which case, `inpaint_biharmonic` still gives us a result, but with less detai
   </a>
 </p>
 
-
-
 ### Extrapolating with inpainting
 
-**Main idea**: Inpainting and extrapolation can both be defined in terms of restoring masked image regions. So far we just looked at masking an existing boundary region in an image, but we can also just create a new, bigger image, with the old image in the center and the borders masked. It will look just like the first picture in this post:
+**Main idea**: Inpainting and extrapolation can both be defined in terms of restoring masked image regions. 
+
+So far we just looked at masking an existing boundary region in an image, but we can also just create a new, bigger image, with the old image in the center and the borders masked. It will look just like the first picture in this post:
 <p align="center">
   <a href="/images/image_extrapolation_1/extrapolation_definition.jpg">
     <img src="/images/image_extrapolation_1/extrapolation_definition.jpg" />
   </a>
-</p> 
+</p>
 
-We can inpaint this masked region to get our first proper extrapolation of the sample image:
+In this case, we'll add a width-60 border to the 500x372 image, giving us a new 620x492 extrapolated image. 
+
+#### Simple extrapolation
+
+The simplest thing to do to fill in this masked region is inpaint it all at once - a single call to `inpaint_biharmonic` with a width-60 border mask.
 <p align="center">
   <a href="/images/image_extrapolation_1/extrapolation_simple_full.jpg">
     <img src="/images/image_extrapolation_1/extrapolation_simple_full.jpg" />
   </a>
+</p>
+
+Image details propagate outward a little bit, but quickly fade to black.
+
+#### Recursive extrapolation
+
+ The `inpaint_biharmonic` method seems to do ok for a few pixels around the border, but no further. We can try to take advantage of this by turning our simple extrapolation into a recursive one: Instead of running the extrapolator once with a width-60 border, we can try running it 10 times, each time adding a width-6 border. The resulting image is the same size, but details are filled in only a little at a time:
+<p align="center">
+  <a href="/images/image_extrapolation_1/inpainting_rec1.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_rec1.jpg" />
+  </a>
 </p> 
 
-
-
-
-This inpainting approximately preserves the color palette and some broad structural details, but obviously a lot is missing.
-
-
-
-
-<!-- <p align="center">
-  <a href="/images/image_extrapolation_0/r10d90.jpg">
-    <img src="/images/image_extrapolation_0/r10d90.jpg" />
+Colors don't fade into black so quickly, but it's also clear that not much interesting will happen with this extrapolation - whatever colors were on the image boundary are blurrily propagated outward. With a judicious crop it can be made to look a little better, giving us the final image of this post:
+<p align="center">
+  <a href="/images/image_extrapolation_1/inpainting_rec0.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_rec0.jpg" />
   </a>
-</p>  -->
+</p>
+
+## Conclusion
+
+In this post, we saw how to use inpainting for extrapolation, and demo'd an extrapolation using the easily-available but too-basic `inpaint_biharmonic` function. This inpainting approximately preserves the color palette and some broad structural details, but obviously a lot is missing. However, this first attempt was successful at establishing a workflow for extrapolation using any inpainting function. In future posts, I'll look at replacing this with an inpainting neural network, and I can build upon the workflow established here to allow easy swapout and comparison of different inpainting algorithms.
+
