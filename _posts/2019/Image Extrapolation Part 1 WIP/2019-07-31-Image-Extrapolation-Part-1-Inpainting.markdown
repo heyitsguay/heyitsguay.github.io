@@ -80,6 +80,8 @@ somewhere in the middle of a picture, like in the previous example. No part of t
   </a>
 </p>
 
+### Boundary inpainting
+
 However, there is nothing stopping us from considering masks that touch a boundary:
 <p align="center">
   <a href="/images/image_extrapolation_1/inpainting_border_1.jpg">
@@ -98,6 +100,24 @@ In which case, `inpaint_biharmonic` still gives us a result, but with less detai
     <img src="/images/image_extrapolation_1/inpainting_example_1_zoomed.jpg" />
   </a>
 </p>
+
+
+
+### Extrapolating with inpainting
+
+**Main idea**: Inpainting and extrapolation can both be defined in terms of restoring masked image regions. So far we just looked at masking an existing boundary region in an image, but we can also just create a new, bigger image, with the old image in the center and the borders masked. It will look just like the first picture in this post:
+<p align="center">
+  <a href="/images/image_extrapolation_1/extrapolation_definition.jpg">
+    <img src="/images/image_extrapolation_1/extrapolation_definition.jpg" />
+  </a>
+</p> 
+
+We can inpaint this masked region to get our first proper extrapolation of the sample image:
+<p align="center">
+  <a href="/images/image_extrapolation_1/extrapolation_simple_full.jpg">
+    <img src="/images/image_extrapolation_1/extrapolation_simple_full.jpg" />
+  </a>
+</p> 
 
 
 
