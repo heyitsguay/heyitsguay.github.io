@@ -45,21 +45,31 @@ Image extrapolation is using an algorithm to invent new data at the boundaries o
   </a>
 </p> 
 
-To be interesting, the algorithm needs to fill in that gray area with content that resembles nearby real image content in a meaningful way. To create such an algorithm, I'm looking to a similar problem, _image inpainting_:
+To be interesting, the algorithm needs to fill in that gray area with content that resembles nearby real image content in a meaningful way. To create such an algorithm, I'm looking to _image inpainting_:
 
 ### Image inpainting
 
-As defined by Wikipedia, [image inpainting](https://en.wikipedia.org/wiki/Inpainting) is the process of reconstructing lost or deteriorated parts of images and videos. Inpainting can help restore scans of physical photos that have suffered physical damage, but for my purpose it can also be used on digital images where regions have been _masked_:
+As defined by Wikipedia, [image inpainting](https://en.wikipedia.org/wiki/Inpainting) is the process of reconstructing lost or deteriorated parts of images and videos. Inpainting can help restore scans of physical photos that have suffered physical damage, but for my purpose it can also be used on digital images where regions have been masked:
 <p align="center">
   <a href="/images/image_extrapolation_1/inpainting_definition.jpg">
     <img src="/images/image_extrapolation_1/inpainting_definition.jpg" />
   </a>
 </p> 
 
-Inpainting algorithms attempt to fill in missing content so that it matches neighboring regions in the image. 
+A **mask** is a binary (black and white) image used to indicate deleted portions of another image, where an inpainting algorithm should inpaint. For this example, the mask would be: 
+<p align="center">
+  <a href="/images/image_extrapolation_1/inpainting_mask.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_mask.jpg" />
+  </a>
+</p> 
 
 
-For my purpose, inpainting algorithms attempt to replace missing information in portions of an image obscured by a mask. What follows is a basic example, adapted from the [scikit-image inpainting example](https://scikit-image.org/docs/dev/auto_examples/filters/plot_inpaint.html):
+Inpainting algorithms attempt to fill in missing content so that it matches neighboring regions in the image. A similar task to extrapolation, albeit with better context clues to make use of. 
+
+## Inpainting for extrapolation
+
+A normal, well-defined inpainting problem would seek to restore a masked area
+somewhere in the middle of a picture, like the area in the previous example image. If I use scikit-images `inpaint_biharmonic`
 
 
 
