@@ -63,13 +63,30 @@ A **mask** is a binary (black and white) image used to indicate deleted portions
   </a>
 </p> 
 
-
 Inpainting algorithms attempt to fill in missing content so that it matches neighboring regions in the image. A similar task to extrapolation, albeit with better context clues to make use of. 
 
 ## Inpainting for extrapolation
 
 A normal, well-defined inpainting problem would seek to restore a masked area
-somewhere in the middle of a picture, like the area in the previous example image. If I use scikit-images `inpaint_biharmonic`
+somewhere in the middle of a picture, like in the inpainting example above. 
+
+If I use scikit-images `inpaint_biharmonic` on that masked image, I get this:
+<p align="center">
+  <a href="/images/image_extrapolation_1/inpainting_mask.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_mask.jpg" />
+  </a>
+  Full inpainted image
+</p> 
+
+<p align="center">
+  <a href="/images/image_extrapolation_1/inpainting_mask_zoomed.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_mask_zoomed.jpg" />
+  </a>
+  Zoomed in for detail
+</p> 
+
+This inpainting approximately preserves the color palette and some broad structural details, but obviously a lot is missing.
+
 
 
 
