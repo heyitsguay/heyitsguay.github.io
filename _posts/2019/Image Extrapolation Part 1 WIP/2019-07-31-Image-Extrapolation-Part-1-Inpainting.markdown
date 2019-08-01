@@ -68,22 +68,28 @@ Inpainting algorithms attempt to fill in missing content so that it matches neig
 ## Inpainting for extrapolation
 
 A normal, well-defined inpainting problem would seek to restore a masked area
-somewhere in the middle of a picture, like in the inpainting example above. 
-
-If I use scikit-images `inpaint_biharmonic` on that masked image, I get this:
+somewhere in the middle of a picture, like in the previous example. No part of the masked region is on (or even near) the image boundary. That means inpainting algorithms have a lot of detail on all sides of the masked region to use during restoration.  If I use scikit-images `inpaint_biharmonic` on that example, I get this:
 <p align="center">
-  <a href="/images/image_extrapolation_1/inpainting_mask.jpg">
-    <img src="/images/image_extrapolation_1/inpainting_mask.jpg" />
+  <a href="/images/image_extrapolation_1/inpainting_example.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_example.jpg" />
   </a>
-  Full inpainted image
+</p> 
+(Zoomed for detail)
+<p align="center">
+  <a href="/images/image_extrapolation_1/inpainting_example_zoomed.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_example_zoomed.jpg" />
+  </a>
 </p> 
 
+However, there is nothing stopping us from considering masks that touch a boundary:
 <p align="center">
-  <a href="/images/image_extrapolation_1/inpainting_mask_zoomed.jpg">
-    <img src="/images/image_extrapolation_1/inpainting_mask_zoomed.jpg" />
+  <a href="/images/image_extrapolation_1/inpainting_border_1.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_border_1.jpg" />
   </a>
-  Zoomed in for detail
 </p> 
+
+
+
 
 This inpainting approximately preserves the color palette and some broad structural details, but obviously a lot is missing.
 
