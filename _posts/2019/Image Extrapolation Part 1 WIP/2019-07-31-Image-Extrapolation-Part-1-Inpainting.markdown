@@ -80,11 +80,11 @@ somewhere in the middle of a picture, like in the previous example. No part of t
     <img src="/images/image_extrapolation_1/inpainting_example.jpg" />
   </a>
 </p>
-<p align="center">
+<!-- <p align="center">
   <a href="/images/image_extrapolation_1/inpainting_example_zoomed.jpg">
     <img src="/images/image_extrapolation_1/inpainting_example_zoomed.jpg" />
   </a>
-</p>
+</p> -->
 
 ### Boundary inpainting
 
@@ -106,11 +106,11 @@ In which case, `inpaint_biharmonic` still gives us a result, but with less detai
     <img src="/images/image_extrapolation_1/inpainting_example_1.jpg" />
   </a>
 </p>
-<p align="center">
+<!-- <p align="center">
   <a href="/images/image_extrapolation_1/inpainting_example_1_zoomed.jpg">
     <img src="/images/image_extrapolation_1/inpainting_example_1_zoomed.jpg" />
   </a>
-</p>
+</p> -->
 
 ### Extrapolating with inpainting
 
