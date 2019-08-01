@@ -71,7 +71,7 @@ Inpainting algorithms attempt to fill in missing content so that it matches neig
 
 Let's look at how to turn inpainting algorithms into extrapolation algorithms.
 
-### Normal inpainting
+### Standard inpainting
 
 A normal, well-defined inpainting problem would seek to restore a masked area
 somewhere in the middle of a picture, like in the previous example. No part of the masked region is on (or even near) the image boundary. That means inpainting algorithms have a lot of detail on all sides of the masked region to use during restoration.  If I use scikit-image's `inpaint_biharmonic` on that example, I get this:
