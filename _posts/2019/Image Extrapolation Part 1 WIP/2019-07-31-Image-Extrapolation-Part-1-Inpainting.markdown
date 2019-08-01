@@ -94,6 +94,11 @@ However, there is nothing stopping us from considering masks that touch a bounda
     <img src="/images/image_extrapolation_1/inpainting_border_1.jpg" />
   </a>
 </p> 
+<p align="center">
+  <a href="/images/image_extrapolation_1/inpainting_border_1_combined.jpg">
+    <img src="/images/image_extrapolation_1/inpainting_border_1_combined.jpg" />
+  </a>
+</p> 
 
 In which case, `inpaint_biharmonic` still gives us a result, but with less detail:
 <p align="center">
