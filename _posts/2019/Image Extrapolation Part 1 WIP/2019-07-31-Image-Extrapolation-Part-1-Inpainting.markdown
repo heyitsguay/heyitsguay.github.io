@@ -30,7 +30,7 @@ Booooring. And even more boring if you extend any further outward:
   </a>
 </p> 
 
-Nevertheless it's an important milestone from a coding standpoint - I now have tools to turn any inpainting algorithm into an extrapolation algorithm and get more figures like the ones above. Read on for more details:
+Nevertheless it's an important milestone from a coding standpoint - I now have tools to turn any inpainting algorithm into an extrapolation algorithm and produce more figures like the ones above. Read on for more details:
 
 
 
@@ -66,6 +66,10 @@ A **mask** is a binary image used to indicate deleted portions of another image,
 Inpainting algorithms attempt to fill in missing content so that it matches neighboring regions in the image. A similar task to extrapolation, albeit with better context clues to make use of. 
 
 ## Inpainting for extrapolation
+
+Let's look at how to turn inpainting algorithms into extrapolation algorithms.
+
+### Normal inpainting
 
 A normal, well-defined inpainting problem would seek to restore a masked area
 somewhere in the middle of a picture, like in the previous example. No part of the masked region is on (or even near) the image boundary. That means inpainting algorithms have a lot of detail on all sides of the masked region to use during restoration.  If I use scikit-images `inpaint_biharmonic` on that example, I get this:
