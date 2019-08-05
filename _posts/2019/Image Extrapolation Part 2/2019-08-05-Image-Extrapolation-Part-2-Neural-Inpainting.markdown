@@ -29,7 +29,7 @@ My search turned up several examples with interesting architectures and claims o
 
 ###  Wide-context semantic image extrapolation
 
-I can't introduce this paper better than the authors' themselves, so the following paragraph and images are quoted from author Yi Wang's excellent [GitHub repository](https://github.com/shepnerd/outpainting_srn):
+I can't introduce (Wang et al., 2019) better than the authors themselves, so the following paragraph and images are quoted from author Yi Wang's excellent [GitHub repository](https://github.com/shepnerd/outpainting_srn):
 
 > This repository gives the Tensorflow implementation of the method in CVPR 2019 paper, 'Wide-Context Semantic Image Extrapolation'. This method can expand semantically sensitive objects (face, body) / scenes beyond image boundary.
 
@@ -61,7 +61,7 @@ The results for scenes are particularly relevant and show some potential for app
 
 #### Architecture
 
-The paper's method uses a convolutional neural network architecture with two modules: A 'feature expansion' network for extracting deep features from a smaller input image, and a context prediction network to infer a larger output image from the input and its features. 
+(Wang 2019)'s' method uses a convolutional neural network architecture with two modules: A 'feature expansion' network for extracting deep features from a smaller input image, and a context prediction network to infer a larger output image from the input and its features. 
 
 <p align="center">
   <a href="/images/image_extrapolation_2/paper1-net.jpg">
@@ -85,4 +85,4 @@ Cloning the repo and downloading a [pretrained network for the CelebA-HQ_256 dat
 
 ## Next time
 
-Training the extrapolation network, creating a trainable dataset from the Balåliden images, and maybe using some subset of the MIT [Places dataset](http://places2.csail.mit.edu/) to expand the image corpus.
+Training the (Wang 2019) network, creating a trainable dataset from the Balåliden images, and maybe using some subset of the MIT [Places dataset](http://places2.csail.mit.edu/) to expand the image corpus.
