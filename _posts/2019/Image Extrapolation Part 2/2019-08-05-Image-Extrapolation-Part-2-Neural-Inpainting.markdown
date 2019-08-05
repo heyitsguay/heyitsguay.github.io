@@ -1,8 +1,8 @@
 ---
 layout: "post"
 date: "2019-08-05 14:20"
-title: "Image Extrapolation: Part 2"
-subtitle: "Literature Review"
+title: "Image Extrapolation: Part 2.1"
+subtitle: "Literature review: summary and demo 1"
 ---
 
 To figure out where to begin, I need to do a literature search on the neural architectures people are using right now for image extrapolation and inpainting. Instead of Google Scholar, for this project I will search [Papers With Code](paperswithcode.com), since papers with reproducible examples are much easier to adapt to new data. I'll start by putting together an overview of what I found for image extrapolation and inpainting.
@@ -69,4 +69,20 @@ The paper's method uses a convolutional neural network architecture with two mod
   </a>
 </p> 
 
+The paper's innovations in network layers (feature expansion, context normalization) and loss functions deserve their own deeper dive-in, but right now I am interested in results!
 
+#### Getting it running
+
+Cloning the repo and downloading a [pretrained network for the CelebA-HQ_256 dataset](https://drive.google.com/drive/folders/1q8LhVV6oFaqhWABf10lHzkPONJVO7tWr?usp=sharing) is easy enough. The test code produces some plausible output for some faces:
+
+<p align="center">
+  <a href="/images/image_extrapolation_2/paper1-demo1.jpg">
+    <img src="/images/image_extrapolation_2/paper1-demo1.jpg" />
+  </a>
+</p> 
+
+... And that is where I will leave this post for tonight!
+
+## Next time
+
+Training the extrapolation network, creating a trainable dataset from the Balåliden images, and maybe using some subset of the MIT [Places dataset](http://places2.csail.mit.edu/) to expand the image corpus.
