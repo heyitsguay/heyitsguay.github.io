@@ -69,7 +69,7 @@ The results for scenes are particularly relevant and show some potential for app
   </a>
 </p> 
 
-The paper's innovations in network layers (feature expansion, context normalization) and loss functions deserve their own deeper dive-in, but right now I am interested in results!
+The paper's innovations in network layers (feature expansion, context normalization) and loss functions deserve their own deeper dive, but right now I am interested in results!
 
 #### Getting it running
 
