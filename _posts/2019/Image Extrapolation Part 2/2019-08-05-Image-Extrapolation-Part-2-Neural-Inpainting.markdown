@@ -73,7 +73,7 @@ The paper's innovations in network layers (feature expansion, context normalizat
 
 #### Getting it running
 
-Cloning the repo and downloading a [pretrained network for the CelebA-HQ_256 dataset](https://drive.google.com/drive/folders/1q8LhVV6oFaqhWABf10lHzkPONJVO7tWr?usp=sharing) is easy enough. The test code produces some plausible output for some faces:
+Cloning the repo and downloading a [pretrained network for the CelebA-HQ_256 dataset](https://drive.google.com/drive/folders/1q8LhVV6oFaqhWABf10lHzkPONJVO7tWr?usp=sharing) is easy enough. The test script included in the repo produces plausible output for some faces:
 
 <p align="center">
   <a href="/images/image_extrapolation_2/paper1-demo1.png">
