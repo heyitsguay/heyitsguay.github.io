@@ -1,6 +1,6 @@
 ---
 layout: "post"
-date: "2019-08-01 14:20"
+date: "2019-08-05 14:20"
 title: "Image Extrapolation: Part 2"
 subtitle: "Literature Review"
 ---
@@ -19,10 +19,10 @@ Links to relevant papers and codebases from Papers With Code for image extrapola
 
 ### Image inpainting
 
-[Semantic Image Inpainting with Deep Generative Models](https://arxiv.org/abs/1607.07539v3)
+[EdgeConnect: Generative Image Inpainting with Adversarial Edge Learning](https://paperswithcode.com/paper/edgeconnect-generative-image-inpainting-with)
 
-[Free-Form Image Inpainting with Gated Convolution](https://arxiv.org/abs/1806.03589v1)
+[Semantic Image Inpainting with Deep Generative Models](https://paperswithcode.com/paper/semantic-image-inpainting-with-deep)
 
-[Generative Image Inpainting with Contextual Attention](https://arxiv.org/abs/1801.07892v2)
+[Free-Form Image Inpainting with Gated Convolution](https://paperswithcode.com/paper/free-form-image-inpainting-with-gated)
 
-[Image Inpainting for Irregular Holes Using Partial Convolutions](https://arxiv.org/abs/1804.07723v2)
+[Generative Image Inpainting with Contextual Attention](https://paperswithcode.com/paper/generative-image-inpainting-with-contextual)
