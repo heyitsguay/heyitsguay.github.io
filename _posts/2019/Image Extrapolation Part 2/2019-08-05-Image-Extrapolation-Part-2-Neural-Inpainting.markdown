@@ -2,7 +2,7 @@
 layout: "post"
 date: "2019-08-05 14:20"
 title: "Image Extrapolation: Part 2.1"
-subtitle: "Literature review: summary and demo 1"
+subtitle: "Literature review summary and paper 1 demo"
 ---
 
 To figure out where to begin, I need to do a literature search on the neural architectures people are using right now for image extrapolation and inpainting. Instead of Google Scholar, for this project I will search [Papers With Code](paperswithcode.com), since papers with reproducible examples are much easier to adapt to new data. I'll start by putting together an overview of what I found for image extrapolation and inpainting.
