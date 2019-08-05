@@ -27,9 +27,9 @@ To figure out where to begin, I need to do a literature search on the neural arc
 
 My search turned up several examples with interesting architectures and claims of photorealistic results. I want to explore at least a few of them by getting the repos up and running on available examples using pre-trained networks. Anything promising can be fine-tuned or retrained on a new data corpus with my Balåliden picture in mind.
 
-####  Wide-context semantic image extrapolation
+###  Wide-context semantic image extrapolation
 
-I can't introduce this work better than the authors' themselves, so the following paragraph and image are quoted from author Yi Wang's excellent [GitHub repository](https://github.com/shepnerd/outpainting_srn):
+I can't introduce this paper better than the authors' themselves, so the following paragraph and images are quoted from author Yi Wang's excellent [GitHub repository](https://github.com/shepnerd/outpainting_srn):
 
 > This repository gives the Tensorflow implementation of the method in CVPR 2019 paper, 'Wide-Context Semantic Image Extrapolation'. This method can expand semantically sensitive objects (face, body) / scenes beyond image boundary.
 
@@ -39,9 +39,7 @@ I can't introduce this work better than the authors' themselves, so the followin
   </a>
 </p> 
 
-The results for scenes are particularly relevant and show some potential:
-
-#### Scenes
+The results for scenes are particularly relevant and show some potential for applicability. Original image boundaries are pronounced in places, and some of the extrapolated natural landscape regions are monotonous, but these are problems that might be solved with the right training corpus:
 
 <p align="center">
   <a href="/images/image_extrapolation_2/paper1-scenes1.jpg">
@@ -58,6 +56,16 @@ The results for scenes are particularly relevant and show some potential:
 <p align="center">
   <a href="/images/image_extrapolation_2/paper1-scenes3.jpg">
     <img src="/images/image_extrapolation_2/paper1-scenes3.jpg" />
+  </a>
+</p> 
+
+#### Architecture
+
+The paper's method uses a convolutional neural network architecture with two modules: A 'feature expansion' network for extracting deep features from a smaller input image, and a context prediction network to infer a larger output image from the input and its features. 
+
+<p align="center">
+  <a href="/images/image_extrapolation_2/paper1-net.jpg">
+    <img src="/images/image_extrapolation_2/paper1-net.jpg" />
   </a>
 </p> 
 
