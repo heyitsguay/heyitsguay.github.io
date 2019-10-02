@@ -48,7 +48,8 @@ let wolframUniforms = {
     screenInverse: {value: screenInverse.multiplyScalar(wolframScale)},
     screenSize: {value: screenSize.multiplyScalar(wolframScale)},
     mousePosition: {value: mousePositionNow},
-    clicked: {value: clicked}
+    clicked: {value: clicked},
+    updateState: {value: 0.}
 };
 
 
