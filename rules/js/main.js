@@ -201,7 +201,7 @@ function update() {
     wolframUniforms.mousePosition.value = mousePositionNow;
     wolframUniforms.clicked.value = clicked;
     wolframUniforms.updateState.value = updateCounter == 0 ? 1. : 0.;
-    updateCounter = (updateCounter + 1) % 10;
+    updateCounter = (updateCounter + 1) % 30;
 }
 
 
