@@ -8,20 +8,22 @@ let shaderSources = {};
 let container;
 let camera, scene, renderer, stats, clock;
 
-let numStars = 20000;
+let numStars = 30000;
 let starGeometry, instancedStarGeometry, starMesh;
 
 let starfieldUniforms = {
-    t: {value: null},
+    uT: {value: null},
     uScale: {value: null},
     uMVP: {value: null}
 };
 
 let starfieldAttributes = {
     'center': null,
-    'color': null
+    'color': null,
+    'frequency': null,
+    'phase': null
 };
-let centerArray, colorArray;
+let centerArray, colorArray, frequencyArray, phaseArray;
 let starfieldMaterial;
 
 let starXMin = -200;
@@ -34,7 +36,7 @@ let starZMax = 150;
 let gui;
 let guiParams = {
     starSpeed: -3.,
-    starSize: 0.11};
+    starSize: 0.13};
     // hueMax: 0.5,
     // satMax: 0.5
 // };
@@ -146,9 +148,20 @@ function initStarGeometry() {
 
 
 function initStarfieldUniforms() {
-    starfieldUniforms.t.value = 0.;
+    starfieldUniforms.uT.value = 0.;
     starfieldUniforms.uScale.value = guiParams['starSize'];
     starfieldUniforms.uMVP.value = camera.projectionMatrix;
+}
+
+
+function initStars() {
+    centerArray = new Float32Array(numStars * 3);
+    colorArray = new Float32Array(numStars * 3);
+    frequencyArray = new Float32Array(numStars);
+    phaseArray = new Float32Array(numStars);
+    for (let i = 0; i < numStars; i++) {
+        resetStar(i, true);
+    }
 }
 
 
@@ -162,15 +175,18 @@ function initStarfieldAttributes() {
     instancedStarGeometry.setAttribute(
         'aColor',
        starfieldAttributes['color']);
+
+    starfieldAttributes['frequency'] = new THREE.InstancedBufferAttribute(frequencyArray, 1);
+    instancedStarGeometry.setAttribute(
+        'aFrequency',
+        starfieldAttributes['frequency']);
+
+    starfieldAttributes['phase'] = new THREE.InstancedBufferAttribute(phaseArray, 1);
+    instancedStarGeometry.setAttribute(
+        'aPhase',
+        starfieldAttributes['phase']);
 }
 
-function initStars() {
-    centerArray = new Float32Array(numStars * 3);
-    colorArray = new Float32Array(numStars * 3);
-    for (let i = 0; i < numStars; i++) {
-        resetStar(i, true);
-    }
-}
 
 function resetStar(i, firstTime) {
     if (firstTime) {
@@ -186,6 +202,10 @@ function resetStar(i, firstTime) {
     colorArray[i * 3] = 0.6 * Math.random();
     colorArray[i * 3 + 1] = 0.33 * Math.random();
     colorArray[i * 3 + 2] = 0.8 + 0.2 * Math.random();
+
+    frequencyArray[i] = 0.1 + 4.9 * Math.random();
+
+    phaseArray[i] = 2 * Math.PI * Math.random();
 }
 
 
@@ -216,7 +236,7 @@ function update() {
     }
     starMesh.geometry.attributes.aCenter.needsUpdate = true;
 
-    starfieldUniforms.t.value += clock.getDelta() / 1000;
+    starfieldUniforms.uT.value += clock.getDelta();
 }
 
 function render() {

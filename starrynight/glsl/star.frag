@@ -1,7 +1,7 @@
 precision highp float;
 precision highp int;
 
-uniform float t;
+uniform float uT;
 
 varying vec3 vColor;
 
@@ -19,6 +19,9 @@ float cos1(float x) {
 }
 
 void main() {
-    vec3 hsv = vec3(vColor.x, vColor.y, cos1(t) * vColor.z);
-    gl_FragColor = vec4(hsv2rgb(hsv), 1.0);
+//    vec3 hsv = vec3(vColor.x, vColor.y, cos1(uT) * vColor.z);
+    vec3 hsv = vec3(cos1(uT), 1, vColor.z);
+
+//    gl_FragColor = vec4(hsv2rgb(hsv), 1.0);
+    gl_FragColor = vec4(vColor, 1.);
 }
