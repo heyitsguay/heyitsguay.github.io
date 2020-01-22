@@ -1,1 +1,4 @@
-- Logarithmic scaling on starSpeed
+- Start organizing guiparams into folders
+- Separate video masking and coloring into separate uniforms + guiparams
+- Add guiparams + uniforms for hue and saturation max
+x Logarithmic scaling on starSpeed

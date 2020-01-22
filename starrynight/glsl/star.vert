@@ -10,11 +10,12 @@ attribute float aPhase;
 uniform mat4 uMVP;
 uniform float uScale;
 uniform float uT;
+uniform float uStarZInverse;
+uniform float uStarZMin;
 
 varying vec3 vColor;
 
-const float maxZInverse = 1. / 125.;
-const float minZ = 25.;
+
 
 
 // Thanks to sam at http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl (May 19, 2015).
@@ -41,17 +42,10 @@ void main() {
     vec3 vertPosition = aCenter + uScale * position;
     gl_Position = uMVP * vec4(vertPosition, 1.);
 
-    float glimmer = sigmoid(-(aCenter.z  + minZ) * maxZInverse, 0.7, 8.);
-    float shade = (1. + (aCenter.z + minZ) * maxZInverse) * (1. - glimmer)
+    float glimmer = sigmoid(-(aCenter.z  + uStarZMin) * uStarZInverse, 0.7, 8.);
+    float shade = (1. + (aCenter.z + uStarZMin) * uStarZInverse) * (1. - glimmer)
         + glimmer * cos1(aFrequency * uT - aPhase);
 
     vColor = hsv2rgb(vec3(aColor.x, aColor.y, shade * aColor.z));
 
 }
-
-//void main() {
-//    vec3 vertPosition = aCenter + uScale * position;
-//    gl_Position = uMVP * vec4(vertPosition, 1.0);
-//
-//    vColor = aColor;
-//}
