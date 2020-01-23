@@ -6,12 +6,9 @@ uniform sampler2D uVideo;
 uniform float uVidMaskStrength;
 uniform float uVidColorStrength;
 uniform float uVidBrightBoost;
+uniform vec2 uScreenInverse;
 
 varying vec3 vColor;
-
-const float dx = 1. / 1920.;
-const float dy = 1. / 1080.;
-const vec2 dScreen = vec2(dx, dy);
 
 const vec3 avg = vec3(0.299, 0.587, 0.114);
 
@@ -32,7 +29,7 @@ void main() {
 //    vec3 hsv = vec3(vColor.x, vColor.y, cos1(uT) * vColor.z);
 //    vec3 hsv = vec3(cos1(uT), 1, vColor.z);
 
-    vec2 xy = gl_FragCoord.xy * dScreen;
+    vec2 xy = gl_FragCoord.xy * uScreenInverse;
     vec2 xyFlipped = vec2(1. - xy.x, xy.y);
     vec3 camColor = texture2D(uVideo, xyFlipped).rgb;
     float camB = min(1., uVidBrightBoost * dot(camColor, avg));

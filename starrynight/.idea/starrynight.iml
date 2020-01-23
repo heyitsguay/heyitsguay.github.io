@@ -9,5 +9,6 @@
     <orderEntry type="library" name="Stats" level="application" />
     <orderEntry type="library" name="dat.gui" level="application" />
     <orderEntry type="library" name="hammer" level="application" />
+    <orderEntry type="library" name="opencv" level="application" />
   </component>
 </module>

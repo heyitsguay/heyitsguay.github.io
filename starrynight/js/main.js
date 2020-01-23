@@ -20,7 +20,8 @@ let starfieldUniforms = {
     uVidColorStrength: {value: null},
     uStarZMin: {value: null},
     uStarZInverse: {value: null},
-    uVidBrightBoost: {value: null}
+    uVidBrightBoost: {value: null},
+    uScreenInverse: {value: null}
 };
 
 let starfieldAttributes = {
@@ -61,13 +62,17 @@ let guiParams = {
     glimmerPhaseMax: 2 * Math.PI,
     vidMaskStrength: 0.,
     vidColorStrength: 0.,
-    vidBrightBoost: 2.
+    vidBrightBoost: 2.,
+    resetScene: function() {
+        initStars();
+    }
 };
     // hueMax: 0.5,
     // satMax: 0.5
 // };
 
 let video, videoTexture;
+let cap, frame, fgmask, fgbg;
 
 
 // ----------------------------
@@ -133,10 +138,19 @@ function initStream() {
         console.error('MediaDevices interface not available.');
     }
     videoTexture = new THREE.VideoTexture(video);
+
+    // cap = new cv.VideoCapture(video);
+    // frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+    // fgmask = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+    // fgbg = new cv.BackgroundSubtractorMOG2(500, 16, true);
 }
 
 
 function initStarfield() {
+    centerArray = new Float32Array(numStars * 3);
+    colorArray = new Float32Array(numStars * 3);
+    frequencyArray = new Float32Array(numStars);
+    phaseArray = new Float32Array(numStars);
     initStarGeometry();
     initStars();
     initStarfieldUniforms();
@@ -168,8 +182,8 @@ function initGUI() {
     gui = new dat.GUI();
 
     fStars = gui.addFolder('Starfield');
-    gui.add(guiParams, 'starSpeed').min(-4).max(0).step(0.005);
-    gui.add(guiParams, 'starSize').min(0.01).max(5).step(0.01).onChange(function(v) {
+    fStars.add(guiParams, 'starSpeed').min(-4).max(0).step(0.005);
+    fStars.add(guiParams, 'starSize').min(0.01).max(5).step(0.01).onChange(function(v) {
         starfieldUniforms.uScale.value = v;
     });
 
@@ -214,7 +228,9 @@ function initGUI() {
         starfieldUniforms.uVidBrightBoost.value = v;
     });
 
-    for (let f of [fStars, fStarPositions, fStarColors, fStarGlimmer, fVideo]) {
+    gui.add(guiParams, 'resetScene');
+
+    for (let f of [fStars, fVideo]) {
         f.open();
     }
 
@@ -251,15 +267,13 @@ function initStarfieldUniforms() {
     starfieldUniforms.uVidColorStrength.value = guiParams.vidColorStrength;
     starfieldUniforms.uVidBrightBoost.value = guiParams.vidBrightBoost;
     starfieldUniforms.uStarZMin.value = guiParams.starZMin;
-    starfieldUniforms.uStarZInverse = 1. / (guiParams.starZMax - guiParams.starZMin);
+    starfieldUniforms.uStarZInverse.value = 1. / (guiParams.starZMax - guiParams.starZMin);
+    starfieldUniforms.uScreenInverse.value = new THREE.Vector2(1. / window.innerWidth, 1. / window.innerHeight);
 }
 
 
 function initStars() {
-    centerArray = new Float32Array(numStars * 3);
-    colorArray = new Float32Array(numStars * 3);
-    frequencyArray = new Float32Array(numStars);
-    phaseArray = new Float32Array(numStars);
+
     for (let i = 0; i < numStars; i++) {
         resetStar(i, true);
     }
@@ -334,6 +348,7 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    starfieldUniforms.uScreenInverse.value = new THREE.Vector2(1. / document.innerWidth, 1. / document.innerHeight);
 }
 
 
@@ -341,6 +356,9 @@ function animate() {
     requestAnimationFrame(animate);
 
     update();
+
+    // cap.read(frame);
+    // fgbg.apply(frame, fgmask);
 
     render();
 
@@ -356,6 +374,9 @@ function update() {
         }
     }
     starMesh.geometry.attributes.aCenter.needsUpdate = true;
+    starMesh.geometry.attributes.aColor.needsUpdate = true;
+    starMesh.geometry.attributes.aFrequency.needsUpdate = true;
+    starMesh.geometry.attributes.aPhase.needsUpdate = true;
 
     starfieldUniforms.uT.value += clock.getDelta();
 }
