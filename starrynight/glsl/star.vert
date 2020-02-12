@@ -14,6 +14,8 @@ uniform float uStarZInverse;
 uniform float uStarZMin;
 
 varying vec3 vColor;
+//varying vec3 vCenter;
+//varying vec3 vPos;
 
 
 
@@ -47,5 +49,7 @@ void main() {
         + glimmer * cos1(aFrequency * uT - aPhase);
 
     vColor = hsv2rgb(vec3(aColor.x, aColor.y, shade * aColor.z));
+//    vCenter = (uMVP * vec4(aCenter, 1.)).xyz;
+//    vPos = gl_Position.xyz;
 
 }
