@@ -2,12 +2,21 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f452fff1-7c14-4840-b566-5792699e5868" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/jsLibraryMappings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/opticflow.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../opticflow/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../opticflow/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../opticflow/style.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../starrynight/glsl/star.frag" beforeDir="false" afterPath="$PROJECT_DIR$/../starrynight/glsl/star.frag" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../starrynight/glsl/star.vert" beforeDir="false" afterPath="$PROJECT_DIR$/../starrynight/glsl/star.vert" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../starrynight/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../starrynight/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../starrynight/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../starrynight/js/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tileworld/.idea/jsLibraryMappings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/.idea/jsLibraryMappings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tileworld/.idea/tileworld.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/.idea/tileworld.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tileworld/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tileworld/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,11 +34,10 @@
   </component>
   <component name="ProjectId" id="1WjN5RFMfd1FOJHrffECDB1pS2A" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
-  <component name="ProjectView">
-    <navigator proportions="" version="1">
-      <foldersAlwaysOnTop value="true" />
-    </navigator>
-    <panes />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="HbShouldOpenHtmlAsHb" value="" />
@@ -74,6 +82,8 @@
       <workItem from="1535948058236" duration="628000" />
       <workItem from="1535957941750" duration="4000" />
       <workItem from="1579658862466" duration="1204000" />
+      <workItem from="1584405266372" duration="634000" />
+      <workItem from="1584467291787" duration="1264000" />
     </task>
     <servers />
   </component>
