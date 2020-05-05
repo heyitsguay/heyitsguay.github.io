@@ -14,8 +14,8 @@ html, body {
 #vid-container {
     margin: 0;
     padding: 0;
-    min-width: 100vw;
-    min-height: 100vh;
+   /* max-width: 100vw;
+    max-height: 100vh;*/
     display: flex;
     align-items: center;
     justify-content: center;
@@ -23,7 +23,7 @@ html, body {
 
 video {
   /*height: 100%;*/
-  object-fit: cover;
+  object-fit: contain;
   /*position: absolute;*/
 }
 
