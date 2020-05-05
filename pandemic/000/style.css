@@ -1,0 +1,38 @@
+* {margin: 0; padding: 0;}
+html, body {
+    font-family: Monospace, sans-serif;
+    font-size: 1em;
+    background-color: #222222;
+    color: #CECED1;
+    user-select: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+#vid-container {
+    margin: 0;
+    padding: 0;
+    min-width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+video {
+  /*height: 100%;*/
+  object-fit: fill;
+  position: absolute;
+}
+
+h1 {
+    color: #CECED1;
+    padding-bottom: 3px;
+}
+h2,h3,h4 {
+    color: #CECED1;
+}
+
+.toggle {}
