@@ -11,6 +11,10 @@ html, body {
     overflow-y: hidden;
 }
 
+.click {
+    cursor: pointer;
+}
+
 #vid-container {
     margin: 0;
     padding: 0;
