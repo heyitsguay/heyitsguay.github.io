@@ -101,6 +101,11 @@ h1 {
     background-image:  url('./1/thumb.png');
     grid-row-end: span 3;
   }
+
+  &--2 {
+    background-image:  url('./2/thumb.png');
+    grid-row-end: span 3;
+  }
   
   &__details {
     position: relative;
