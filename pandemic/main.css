@@ -106,7 +106,7 @@ h1 {
 }
 .item--3 {
   background-image: url("./3/thumb.png");
-  grid-row-end: span 2;
+  grid-row-end: span 3;
 }
 .item__details {
   position: relative;
