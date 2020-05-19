@@ -104,6 +104,10 @@ h1 {
   background-image: url("./2/thumb.png");
   grid-row-end: span 3;
 }
+.item--3 {
+  background-image: url("./3/thumb.png");
+  grid-row-end: span 2;
+}
 .item__details {
   position: relative;
   z-index: 1;
