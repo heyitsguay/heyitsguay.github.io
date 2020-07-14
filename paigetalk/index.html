@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="">
+	<head>
+		<title>Paige AI Interview Presentation</title>
+		<meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/reveal.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/theme/white.min.css">
+        <link type="text/css" rel="stylesheet" href="index.css">
+
+
+    </head>
+
+    <body>
+
+    	<div class="reveal">
+    		<div class="slides">
+
+
+    			<section data-background="linear-gradient(#32629780, #65666a0a)">
+    				<h3>Paige AI Interview Presentation</h3>
+                    <hr/>
+                    <br/>
+    				Matthew Guay
+    				<br/>
+                    <br/>
+                    <a href="mailto:matthew.guay@nih.gov" target="_blank">matthew.guay@nih.gov</a>
+                    <br/>
+                    <a href="mailto:matt.d.guay@gmail.com" target="_blank">matt.d.guay@gmail.com</a>
+		    <br/><br/>
+		    <a href="https://heyitsguay.github.io/paigetalk/" target="_blank">https://heyitsguay.github.io/paigetalk/</a>
+    			</section>
+		    
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### About me
+
+                        - **Matthew Guay**. Postdoctoral applied computer vision researcher at the NIH.
+
+                        - Background in applied math, scientific computing, image processing, and computer vision.
+
+                        - **My interest**: Biomedical imaging challenges whose solutions require computer vision innovation.
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Undergraduate education
+
+                        - Cornell 2011, B.A. Mathematics, _magna cum laude_. Thesis: _Infinity-harmonic functions on SG_. <a href="https://heyitsguay.github.io/undergradthesis.pdf" target="_blank">[Paper]</a>. <a href="https://heyitsguay.github.io/undergradpresentation.pdf" target="_blank">[Presentation]</a>.
+
+                        <img src="img/undergrad.gif" alt="Numerical solutions to a fractal PDE">
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Graduate education
+
+                        - UMD 2016, Ph.D. AMSC. Thesis on sparse signal processing in digital and biological systems: <a href="https://heyitsguay.github.io/gradthesis.pdf" target="_blank">[Paper]</a>. <a href="https://heyitsguay.github.io/gradpresentation.pdf" target="_blank">[Presentation]</a>.
+
+                        <img src="img/gradsmall.gif" alt="Compressed sensing image reconstruction vs. weighted backprojection">
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Postdoctoral appointment
+
+                        - Leading a new, small AI research team with <a href="https://www.nibib.nih.gov/labs-at-nibib/laboratory-cellular-imaging-and-macromolecular-biophysics-lcimb" target="_blank">LCIMB</a> @ NIH.
+
+                        - Just finished a semantic segmentation project for platelet SBF-SEM.
+
+                        - **Current research**: 2D-to-3D instance segmentation transfer learning, 3D panoptic segmentation.
+
+                        - **Current development**: Integrating algorithmic and manual annotation for large-scale structural modeling of COVID-19 platelet samples.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <video width="500" height="500" autoplay muted loop><source data-src="img/out.mp4" type="video/mp4" /></video>
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img data-src="img/semantic_overview.png" alt="Large-scale platelet segmentation overview">
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Publications
+
+                        - (2020) _Dense cellular segmentation for EM using 2D-3D neural network ensembles_. In submission. <a href="https://www.biorxiv.org/content/10.1101/2020.01.05.895003v5" target="_blank">[Paper]</a>.
+
+                        - (2016) _Compressed Sensing Electron Tomography for Biological Imaging_. Scientific Reports. <a href="https://www.nature.com/articles/srep27614" target="_blank">[Paper]</a>.
+
+                        - Talks, papers, and posters in ISBI, the Biophysical Society, and Microscopy and Microanalysis conferences.
+                    </textarea>
+                </section>
+
+
+                <section id="jumpoff" data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Research Paper Deep Dives
+
+                        1. <a href="#/efficientps">EfficientPS: Efficient panoptic segmentation</a>
+
+                        2. <a href="#/care">Content-aware image restoration: Pushing the limits of fluorescence microscopy</a>
+
+                        3. <a href="#/densecellular">Dense cellular segmentation for EM using 2D-3D neural network ensembles</a>
+
+                        <a href="#/theend">End</a>
+                    </textarea>
+                </section>
+
+
+                <section id="efficientps" data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### EfficientPS
+
+                        - _EfficientPS: Efficient panoptic segmentation_, Mohan et al., 2020.
+
+                        - Full paper: [[arXiv]](https://arxiv.org/abs/2004.02307)
+
+                        - **Main idea**: EfficientNet-based panoptic segmentation architecture achieves SOTA results with fewer parameters and faster inference than competitors.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Panoptic segmentation
+
+                        - **Panoptic segmentation**: Unite semantic and instance segmentation into one consistent framework.
+
+                        - Segment uncountable "stuff" regions semantically while providing non-overlapping instance predictions and class labels for countable "things".
+
+                        - Interest revived in [(Kirillov et al., 2019)](https://openaccess.thecvf.com/content_CVPR_2019/papers/Kirillov_Panoptic_Segmentation_CVPR_2019_paper.pdf)
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### EfficientPS Network
+
+                        - **EfficientPS**: End-to-end jointly optimized instance and semantic predictions combined in a parameter-free panoptic fusion module.
+
+                        - Big picture: Modifications to standard ResNet + feature pyramid network (FPN) backbones and Mask R-CNN modules emphasizing efficiency.
+
+                        - Semantic module processes scales differently: less processing for fine features, full ASPP for coarse features. Outputs are combined.
+
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### EfficientPS Network
+
+                        - Panoptic fusion module builds on previous heuristic to adaptively fuse predictions.
+
+                        - Focus on efficiency ends up performing better, too.
+
+                        - SOTA performance on Cityscapes, Mapillary Vistas, Indian Driving Dataset, and KITTI.
+
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### EfficientPS Network: Backbone
+
+                        - In place of a ResNet feature encoder, EfficientPS uses an **EfficientNet-B5** with squeeze-and-excitation connections removed.
+
+                        - **2-way FPN**: Typical FPNs use top-down feature aggregation. EfficientPS combines top-down and bottom-up aggregation to generate FPN outputs.
+
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### EfficientPS Network: Semantic Segmentation
+
+                        - "Large-scale" (4x and 8x downsampled) backbone outputs are passed through **large-scale feature extractor** (LSFE) modules to capture fine detail.
+
+                        - "Small-scale" (16x, 32x) backbone outputs are passed through ASPP-like **dense prediction cells** (DPC) to capture long range context.
+
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### EfficientPS Network: Semantic Segmentation
+
+                        - LFSE and DPC outputs are upsampled and sequentially added together.
+
+                        - Subsequent scale outputs are upsampled, concatenated, upsampled again, and 1x1 convolved to produce **semantic logits**.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### EfficientPS Network: Instance Segmentation
+
+                        - Instance segmentation module is a modified **Mask R-CNN** predictor.
+
+                        - Convs have been replaced with separable convs, ReLUs replaced with Leaky ReLUs, batch norms replaced with in-place activated batch norms (iABN sync).
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### EfficientPS Network: Instance Segmentation
+
+                        - A **region proposal network** (RPN) module uses FPN features to predict object proposals
+
+                        - An **ROI align module** uses RPN output to extract backbone feature regions per proposal.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### EfficientPS Network: Panoptic Fusion
+
+                        - Produces two sets of mask logits: One from instance module alone, the other extracting semantic features from instance proposal regions.
+
+                        - Mask logits are fused, concatenated with "stuff" semantic logits, and argmaxed to produce intermediate instance predictions.
+
+                        - Remaining pixels are filled with assignments from argmaxed semantic logits.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img data-src="img/efficientps-main.png" alt="Main overview of the EfficientPS network architecture">
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img data-src="img/efficientps-modules.png" alt="Details on some small EfficientPS network modules">
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img data-src="img/efficientps-fusion.png" alt="Details on the EfficientPS panoptic fusion module">
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Loss
+
+                        - Loss contributions from the semantic and instance modules.
+
+                        - **Semantic loss**: Weighted per-pixel log-loss, weights chosen to propagate loss gradients from only the worst 25% of predictions.
+
+                        - **Instance loss**: Same 5 terms as in Mask R-CNN: object score, object proposal, classification, bounding box, and mask segmentation.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Training
+
+                        - Network was implemented in PyTorch, final evaluation used the **panoptic quality** (PQ) metric.
+
+                        - Trained on crops of different resolutions of source images
+
+                        - EfficientPS backbone initialized with conv weights pre-trained from ImageNet and iABN weights 1.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Training
+
+                        - Models trained with SGD with momentum 0.9 and a multi-step learning rate schedule.
+
+                        - Learning rate has a warm-up phase and a final set of 10 epochs in which iABN layers are frozen.
+
+                        - Data-parallel training on 16 Titan X GPUs, 1 image per GPU.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Ablation study
+
+                        - EfficientNet-B5 compared with other common encoders.
+
+                        - 2-way FPN compared with top-down-only, bottom-up-only, and PANet-style FPN variants.
+
+                        - Semantic module compares multiple variants testing differential scale processing and use of separable convolutions.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Conclusion
+
+                        - EfficientPS network beats other SOTA models on panoptic quality evaluation on all datasets.
+
+                        - Model fitting on one Titan X is attractive for inference.
+
+                        - Code will soon be available at [https://github.com/DeepSceneSeg/EfficientPS](https://github.com/DeepSceneSeg/EfficientPS).
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img data-src="img/efficientps-cityscapes.png" alt="Results on the Cityscapes benchmark dataset">
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img data-src="img/efficientps-size.png" alt="Parameter count, FLOPs, and inference time comparisons between EfficientPS and other panoptic segmentation networks">
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img data-src="img/efficientps-results.png" alt="Sample EfficientPS outputs on three benchmark datasets">
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        <a href="#/jumpoff"><b>Return</b></a>
+                    </textarea>
+                </section>
+
+
+
+                <section id="care" data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Content-Aware Image Restoration
+
+                        - _Content-aware image restoration: Pushing the limits of fluorescence microscopy_, Weigert et al., 2018.
+
+                        - Full paper: [[PDF]](https://www.nature.com/articles/s41592-018-0216-7.pdf)
+
+                        - **Main idea**: U-Nets can be used in SOTA solutions to image-to-image translation problems in fluorescence microscopy such as denoising and superresolution.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Image Denoising
+
+                        - **Photon budgets** trade off between depth, intensity, and spatial and temporal resolution.
+
+                        - Cheat the trade-off by restoring image features from low-intensity acquisitions.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Volume-to-surface projection
+
+                        - Max-project 3D thin-section volume to 2D to understand cell structure.
+
+                        - Combined with other tasks (denoising).
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Superresolution
+
+                        - Data-driven upsampling to predict a higher-resolution image from a lower-resolution input along one or more axes.
+
+                        - Explored for both depth anisotropy correction and sub-diffraction superresolution from widefield images.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Experiments
+
+                        - Experiments train networks on data derived from three sources: physical experiment, semi-synthetic generation, and fully-synthetic generation.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Experiments: Physical
+
+                        - **Flatworm imaging**: Goal is to image live, moving flatworms. High intensity/SNR acquisition causes muscle flinching, safe low intensity acquisition has very low SNR.
+
+                        - Generate training data by fixing a flatworm and imaging at multiple laser intensities.
+
+                        - Train network to generate high-intensity images from low-intensity counterparts.
+
+                        - Apply trained network to live, unfixed flatworms.
+                    </textarea>
+                </section>
+
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    <img class="stretch" src="img/care_flatworm.png" alt="CARE network restoring a low-SNR flatworm image">
+
+                    <br/>
+
+                    <small><a href="https://www.biorxiv.org/content/biorxiv/early/2018/07/03/236463.full.pdf">(Weigert et al., 2018)</a>. Restoring flatworm stained nuclei from low SNR images.</small>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Experiments: Physical
+
+                        - **Fruit fly wing imaging**: Useful model for studying epithelial cell development.
+
+                        - Goal: Jointly performing 3D-to-2D projection and denoising.
+
+                        - Outperforms existing SOTA methods.
+                    </textarea>
+                </section>
+
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    <img class="stretch" src="img/care_fruitfly.png" alt="Joint surface projection and denoising comparison">
+
+                    <br/>
+
+                    <small><a href="https://www.biorxiv.org/content/biorxiv/early/2018/07/03/236463.full.pdf">(Weigert et al., 2018)</a>. Joint surface projection and denoising comparison</small>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Experiments: Semi-Synthetic
+
+                        - **Axial superresolution**: Volumetric fluorescence microscopy often exhibits lower depth resolution during fast imaging.
+
+                        - Goal: Train an axial superresolution network to correct this.
+
+                        - Acquire slow, well-resolved isotropic volumes, synthetically generate anisotropic versions, and train a U-Net to reverse this.
+                    </textarea>
+                </section>
+
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    <img class="stretch" src="img/care-semisynth.png" alt="Axial superresolution on real data after semi-synthetic training">
+
+                    <br/>
+
+                    <small><a href="https://www.biorxiv.org/content/biorxiv/early/2018/07/03/236463.full.pdf">(Weigert et al., 2018)</a>. Axial superresolution on zebrafish retina data after semi-synthetic training</small>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Experiments: Fully-Synthetic
+
+                        - **Sub-diffraction digital superresolution**: Can fast widefield images resolve sub-diffraction structures like slow physical superresolution images?
+
+                        - Authors develop a synthetic model of tubular and point-like structures, apply a simulated degradation procedure to mimic widefield images.
+
+                        - Trained network is applied to several real time-lapse widefield images of biological structures.
+                    </textarea>
+                </section>
+
+
+                 <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    <img class="stretch" src="img/superres1.png" alt="Diffraction-limited structure enhancement: rat INS-1 cell 1">
+
+                    <br/>
+
+                    <small><a href="https://www.biorxiv.org/content/biorxiv/early/2018/07/03/236463.full.pdf">(Weigert et al., 2018)</a>. CARE enhancement of diffraction-limited secretory granules and microtubules in rat INS-1 cells.</small>
+                </section>
+
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    <img class="stretch" src="img/superres2.png" alt="Diffraction-limited structure enhancement: rat INS-1 cell 2">
+
+                    <br/>
+
+                    <small><a href="https://www.biorxiv.org/content/biorxiv/early/2018/07/03/236463.full.pdf">(Weigert et al., 2018)</a>. CARE enhancement of diffraction-limited secretory granules and microtubules in rat INS-1 cells.</small>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Reliability
+
+                        - Huge question from practitioners: **Can results be trusted?**
+                    </textarea>
+                </section>
+
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    <img class="stretch" src="img/trust1.png" alt="Network trust example: word restoration">
+
+                    <br/>
+                    <small><a href="https://pdfs.semanticscholar.org/0398/b175a01c68b08272f2cf998837a1650eb946.pdf">(Belthangady et al., 2019)</a>. Demonstration of the pitfalls of data-driven image restoration. An image of the word "Witenagemot" is restored by U-Nets trained on different datasets. Each network produces a visually-plausible answer, but only the one trained on the right dataset produces a correct answer.</small>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Reliability: Confidence Prediction
+
+                        - **Confidence prediction**: Instead of predicting a single intensity value per pixel, predict a parameteric statistical model.
+
+                        - Paper tries predicting mean and standard deviation of a Laplace distribution per pixel.
+
+                        - Standard deviation generally correlates with mean, difficult to intuitively interpret.
+
+                        - No guarantee resulting distributions are physically meaningful. 
+                    </textarea>
+                </section>
+
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    <img class="stretch" src="img/trust2.png" alt="Quantifying network confidence by predicting probability distributions">
+
+                    <br/>
+                    <small><a href="https://www.biorxiv.org/content/biorxiv/early/2018/07/03/236463.full.pdf">(Weigert et al., 2018)</a>. Predicting per-pixel probability distributions allows one to build pseudo-confidence intervals for network predictions. Here, even when ground-truth values differ from predictions, they fall within the predicted confidence interval. Still no guarantees the learned probability distributions converge to anything physical.</small>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Reliability: Ensemble Agreement
+
+                        - **Ensemble agreement**: Train multiple instances of the same network from different initializations. Measure disagreement of predictions to create an uncertainty heatmap.
+
+                        - Disagreement measure is average KL-divergence between the individual model distributions and the mixture model distribution.
+
+                        - More visually intuitive, but still no guarantees the heatmaps highlight unreliable outputs.
+                    </textarea>
+                </section>
+
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    <img class="stretch" src="img/trust3.png" alt="Using ensemble disagreement to measure prediction confidence">
+
+                    <br/>
+                    <small><a href="https://www.biorxiv.org/content/biorxiv/early/2018/07/03/236463.full.pdf">(Weigert et al., 2018)</a>. Using ensemble disagreement to measure prediction confidence.</small>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Conclusion
+
+                        - U-Net-based models perform multiple image translation tasks for fluorescence microscopy better than previous methods.
+
+                        - CARE methods open up new experiment design options that are otherwise impossible.
+
+                        - No guarantees that network outputs correspond to underlying physical structure.
+
+                        - Can these methods be trusted for rigorous scientific research? **Unclear**.
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        <a href="#/jumpoff"><b>Return</b></a>
+                    </textarea>
+                </section>
+
+
+                <section id="densecellular" data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Dense Cellular Segmentation
+
+                        - _Dense cellular segmentation for EM using 2D-3D neural network ensembles_, Guay et al., 2020.
+
+                        - Full paper: [[bioRxiv]](https://www.biorxiv.org/content/10.1101/2020.01.05.895003v5)
+
+                        - **Main idea**: Hybrid 2D-3D convolutional networks offer superior semantic segmentation performance than 2D-only or 3D-only architectures for platelet SBF-SEM analysis.  
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Background
+
+                        - Worked with LCIMB in grad school on compressed sensing, but image denoising was not a significant bottleneck.
+
+                        - Bigger problem: **segmentation**. Modern electron microscopes (SBF-SEM, FIB-SEM) rapidly create gigavoxel datasets.
+
+                        - Biologists want structural analysis of <i>everything</i>, but tracing structures by hand is tedious, does not scale.
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img src="img/platelet-sample2.png" alt="Platelet dataset sample">
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Goal
+
+                        - **Automate semantic segmentation** for LCIMB platelet datasets.
+
+                        - LCIMB had manually-labeled images with six classes - cell material and five organelles.
+
+                        - Can a segmentation algorithm produce usable results for scientific research?
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Challenges
+
+                        - **3D context**: Necessary for humans. Can I build an algorithm that uses it to do better than 2D segmentation algorithms?
+
+                        - **Architecture design**: When comparing neural net architectures, how to properly decide when one is better?
+
+                        - **Edge preservation**: Biological structures are complicated and densely packed. How to avoid merging together of nearby structures?
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - 3D Context
+
+                        - **Establish baselines**. I trained existing 2D U-Net and Deeplab architectures on our segmentation problem, as well as 3D U-Net variants.
+
+                        - Large fully-3D nets require more memory than 2D nets with similar fields of view, causes hardware issues.
+
+                        - Using unpadded convolutions like the original U-Net requires inputs with large z dimension, which is impractical.
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - 3D Context
+
+                        - Conversations at a conference led to an interest in **hybrid 2D-3D** architectures.
+
+                        - Idea: Use a large memory-friendly 2D module and a smaller 3D module.
+
+                        - Initially saw sequence methods used for 3D, but can also be done with fully-convolutional architectures.
+
+                        - Both modules can be placed in one computation graph and trained end-to-end.
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - 3D Context
+
+                        - Final architecture: (mostly) 2D U-Net + 3D spatial pooling pyramid.
+
+                        - 2D U-Net has conv block-initial 3x3x3 convs.
+
+                        - 2D module makes intermediate segmentation predictions which are included in the training loss.
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - 3D Context
+
+                        <img src="img/arch.png" alt="Hybrid 2D-3D semantic segmentation architecture">
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - 3D Context
+
+                        <img src="img/loss.png" alt="Training loss equation">
+
+                        Full training loss objective.
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - Architecture Design
+
+                        - I had to explore new neural net architectures. How do I decide when one is better than another?
+
+                        - Basic: Ablation study for proposed new features.
+
+                        - **Bigger problem**: Initialization-dependent performance.
+
+                        - Random weight initialization induces random distribution of final performance metrics on validation data.
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - Architecture Design
+
+                        - **Solution**: Controlled training of multiple instances per architecture.
+
+                        - Vary only the random seed responsible for weight initialization, create empirical validation performance distributions.
+
+                        - Bonus: When the procedure creates several high-performing instances, they can be ensembled for an overall performance bump.
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - Architecture Design
+
+                        <img src="img/performance.png" alt="Validation performance histograms per architecture">
+
+                        Empirical validation MIoU histograms
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - Edge Preservation
+
+                        - **Problem**: How to keep, e.g., nearby cells from being merged together by a segmentation algorithm. 
+
+                        - Original U-Net paper uses a weighted loss function that penalizes errors in regions where two cells come close to touching.
+
+                        - Building required knowing which region is cell 1, cell 2, etc.
+
+                        - I wanted to do the same with just voxel-level data.
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - Edge Preservation
+
+                        - **Solution**: Build an error weighting array from three parts.
+
+                        - Weight floor: minimum weight value for each voxel.
+
+                        - Class balancing: Weight each voxel inversely proportionally to its correct class' frequency.
+
+                        - Edge preserving: Use thresholded, scaled diffusion operations to upweight regions where structures almost touch and small cross-sections.
+                        
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Solutions - Edge Preservation
+
+                        <img src="img/weights.png" alt="Weight array construction description">
+
+                        Error weight array construction
+                        
+                    </textarea>
+                </section>
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Results
+
+                        - Final network ensemble tested on multiple datasets including two different physical samples.
+
+                        - Performance compared with human annotators on downstream analysis tasks in addition to standard metrics (MIoU).
+
+                        - Result is nearing human performance, regarded as a viable proof of concept for our institute.
+                        
+                    </textarea>
+                </section>
+                
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        <a href="#/jumpoff"><b>Return</b></a>
+                    </textarea>
+                </section>
+
+
+                <section id="theend" data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        **Thank you Paige!!**                        
+                    </textarea>
+                </section>
+
+
+
+    		</div>
+    	</div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/js/reveal.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/markdown/marked.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/markdown/markdown.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/math/math.js"></script>
+
+        
+        <script type="text/javascript">
+            Reveal.initialize({
+
+                math: {
+                    mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js',
+                    config: 'TeX-AMS_HTML-full'
+                },
+
+                // Factor of the display size that should remain empty around the content
+                margin: 0.03,
+
+                // Display controls in the bottom right corner
+                controls: true,
+
+                // Display a presentation progress bar
+                progress: true,
+
+                // Set default timing of 2 minutes per slide
+                defaultTiming: 90,
+
+                // Display the page number of the current slide
+                slideNumber: true,
+
+                // Push each slide change to the browser history
+                history: false,
+
+                // Enable keyboard shortcuts for navigation
+                keyboard: true,
+
+                // Enable the slide overview mode
+                overview: true,
+
+                // Vertical centering of slides
+                center: true,
+
+                // Enables touch navigation on devices with touch input
+                touch: true,
+
+                // Loop the presentation
+                loop: false,
+
+                // Change the presentation direction to be RTL
+                rtl: false,
+
+                // Randomizes the order of slides each time the presentation loads
+                shuffle: false,
+
+                // Turns fragments on and off globally
+                fragments: true,
+
+                // Flags if the presentation is running in an embedded mode,
+                // i.e. contained within a limited portion of the screen
+                embedded: false,
+
+                // Flags if we should show a help overlay when the questionmark
+                // key is pressed
+                help: true,
+
+                // Flags if speaker notes should be visible to all viewers
+                showNotes: false,
+
+                // Global override for autolaying embedded media (video/audio/iframe)
+                // - null: Media will only autoplay if data-autoplay is present
+                // - true: All media will autoplay, regardless of individual setting
+                // - false: No media will autoplay, regardless of individual setting
+                autoPlayMedia: null,
+
+                // Number of milliseconds between automatically proceeding to the
+                // next slide, disabled when set to 0, this value can be overwritten
+                // by using a data-autoslide attribute on your slides
+                autoSlide: 0,
+
+                // Stop auto-sliding after user input
+                autoSlideStoppable: true,
+
+                // Use this method for navigation when auto-sliding
+                autoSlideMethod: Reveal.navigateNext,
+
+                // Enable slide navigation via mouse wheel
+                mouseWheel: false,
+
+                // Hides the address bar on mobile devices
+                hideAddressBar: true,
+
+                // Opens links in an iframe preview overlay
+                previewLinks: false,
+
+                // Transition style
+                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+                // Transition speed
+                transitionSpeed: 'default', // default/fast/slow
+
+                // Transition style for full page slide backgrounds
+                backgroundTransition: 'fade', // none/fade/slide/convex/concave/zoom
+
+                // Number of slides away from the current that are visible
+                viewDistance: 3,
+
+                // Parallax background image
+                parallaxBackgroundImage: '', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+
+                // Parallax background size
+                parallaxBackgroundSize: '', // CSS syntax, e.g. "2100px 900px"
+
+                // Number of pixels to move the parallax background per slide
+                // - Calculated automatically unless specified
+                // - Set to 0 to disable movement along an axis
+                parallaxBackgroundHorizontal: null,
+                parallaxBackgroundVertical: null,
+
+                // The display mode that will be used to show slides
+                display: 'block'
+            });
+        </script>
+
+    </body>
+        
+</html>
