@@ -99,7 +99,7 @@ html {
   opacity: 0;
 }
 .item--0 {
-  background-image: url("./0/thumb.png");
+  background-image: url("./thumbs/heatsnakes2.png");
   grid-row-end: span 3;
 }
 .item--1 {
