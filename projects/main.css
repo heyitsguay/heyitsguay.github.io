@@ -1,8 +1,8 @@
-@import url("https://fonts.googleapis.com/css?family=Arvo");
+/*@import url("https://fonts.googleapis.com/css?family=Arvo");*/
 body,
 html {
   display: flex;
-  justify-content: center;
+/*  justify-content: center;
   align-items: center;
   position: relative;
   width: 100%;
@@ -10,7 +10,7 @@ html {
   background-color: #222222;
   color: #CECED1;
   font-size: 13px;
-  font-family: "Arvo", monospace;
+  font-family: "Arvo", monospace;*/
 }
 @supports (display: grid) {
   body,
@@ -46,10 +46,10 @@ html {
   }
 }
 
-h1 {
+/*h1 {
   font-size: 2rem;
   margin: 0 0 1.5em;
-}
+}*/
 
 .grid {
   display: grid;
