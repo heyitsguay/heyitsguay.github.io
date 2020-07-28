@@ -100,19 +100,19 @@ html {
 }
 .item--0 {
   background-image: url("./thumbs/heatsnakes2.png");
-  grid-row-end: span 3;
+  grid-row-end: span 1;
 }
 .item--1 {
   background-image: url("./thumbs/tilewave.png");
-  grid-row-end: span 3;
+  grid-row-end: span 1;
 }
 .item--2 {
   background-image: url("./thumbs/apollo.png");
-  grid-row-end: span 3;
+  grid-row-end: span 1;
 }
 .item--3 {
   background-image: url("./thumbs/asteroids.png");
-  grid-row-end: span 3;
+  grid-row-end: span 1;
 }
 .item__details {
   position: relative;
