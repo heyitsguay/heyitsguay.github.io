@@ -1,0 +1,43 @@
+* {margin: 0; padding: 0;}
+html, body {
+    font-family: Monospace, sans-serif;
+    font-size: 1em;
+    background-color: #222222;
+    color: #CECED1;
+    user-select: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.click {
+    cursor: pointer;
+}
+
+#vid-container {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+}
+
+h1 {
+    color: #CECED1;
+    padding-bottom: 3px;
+}
+h2,h3,h4 {
+    color: #CECED1;
+}
+
+.toggle {}
