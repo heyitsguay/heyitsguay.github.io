@@ -87,18 +87,31 @@ $(document).ready(function() {
  * Sketch on-ready function.
  */
 function main() {
-    init();
-    animate();
-}
-
-
-function init() {
     container = document.createElement('div');
     document.body.appendChild(container);
     clock = new THREE.Clock;
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 500);
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f061f);
+    
+    restart();
+    // init();
+    // animate();
+}
+
+function restart() {
+    init();
+    animate();
+}
+
+
+function init() {
+    // container = document.createElement('div');
+    // document.body.appendChild(container);
+    // clock = new THREE.Clock;
+    // camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 500);
+    // scene = new THREE.Scene();
+    // scene.background = new THREE.Color(0x0f061f);
 
     initStream();
 
@@ -185,6 +198,9 @@ function initGUI() {
     fStars.add(guiParams, 'starSpeed').min(-4).max(0).step(0.005);
     fStars.add(guiParams, 'starSize').min(0.01).max(5).step(0.01).onChange(function(v) {
         starfieldUniforms.uScale.value = v;
+    });
+    fStars.add(guiParams, 'numStars').min(5000).max(50000).step(1000).onChange(function(v) {
+        restart();
     });
 
     fStarPositions = fStars.addFolder('Star Bounding Box');
