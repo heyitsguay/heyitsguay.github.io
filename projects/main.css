@@ -118,6 +118,14 @@ html {
   background-image: url("./thumbs/coincircle.png");
   grid-row-end: span 1;
 }
+.item--5 {
+  background-image: url("./thumbs/ripple.png");
+  grid-row-end: span 1;
+}
+.item--6 {
+  background-image: url("./thumbs/rules.png");
+  grid-row-end: span 1;
+}
 .item__details {
   position: relative;
   z-index: 1;
