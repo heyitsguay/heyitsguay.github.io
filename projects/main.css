@@ -126,6 +126,10 @@ html {
   background-image: url("./thumbs/rules.png");
   grid-row-end: span 1;
 }
+.item--7 {
+  background-image: url("./thumbs/starrynight.png");
+  grid-row-end: span 1;
+}
 .item__details {
   position: relative;
   z-index: 1;
