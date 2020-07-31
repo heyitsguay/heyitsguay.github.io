@@ -32,6 +32,8 @@ let starfieldAttributes = {
 let centerArray, colorArray, frequencyArray, phaseArray;
 let starfieldMaterial;
 
+let initialized = false;
+
 
 let gui, fStars, fStarPositions, fStarColors, fStarGlimmer, fVideo;
 let guiParams = {
@@ -88,15 +90,6 @@ function main() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f061f);
 
-    window.addEventListener('resize', onWindowResize, false);
-
-    document.onkeydown = handleKeys;
-
-    let ham = new Hammer(renderer.domElement);
-    ham.on('doubletap', function() {
-        dat.GUI.toggleHide();
-    });
-
     restart();
     // init();
     // animate();
@@ -124,15 +117,19 @@ function init() {
 
     initGUI();
 
-    // window.addEventListener('resize', onWindowResize, false);
+    if(!initialized) {
+        window.addEventListener('resize', onWindowResize, false);
 
-    // document.onkeydown = handleKeys;
+        document.onkeydown = handleKeys;
 
-    // let ham = new Hammer(renderer.domElement);
+        let ham = new Hammer(renderer.domElement);
 
-    // ham.on('doubletap', function() {
-    //     dat.GUI.toggleHide();
-    // });
+        ham.on('doubletap', function() {
+            dat.GUI.toggleHide();
+        });
+
+        initialized = true;
+    }
 }
 
 
