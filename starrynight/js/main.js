@@ -8,7 +8,6 @@ let shaderSources = {};
 let container;
 let camera, scene, renderer, stats, clock;
 
-let numStars = 15000;
 let starGeometry, instancedStarGeometry, starMesh;
 
 let starfieldUniforms = {
@@ -33,17 +32,12 @@ let starfieldAttributes = {
 let centerArray, colorArray, frequencyArray, phaseArray;
 let starfieldMaterial;
 
-// let starXMin = -200;
-// let starXMax = 200;
-// let starYMin = -150;
-// let starYMax = 150;
-// let starZMin = 50;
-// let starZMax = 150;
 
 let gui, fStars, fStarPositions, fStarColors, fStarGlimmer, fVideo;
 let guiParams = {
     starSpeed: -3.,
     starSize: 0.13,
+    numStars: 15000,
     starXMin: -200,
     starXMax: 200,
     starYMin:-150,
@@ -93,7 +87,16 @@ function main() {
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 500);
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f061f);
-    
+
+    window.addEventListener('resize', onWindowResize, false);
+
+    document.onkeydown = handleKeys;
+
+    let ham = new Hammer(renderer.domElement);
+    ham.on('doubletap', function() {
+        dat.GUI.toggleHide();
+    });
+
     restart();
     // init();
     // animate();
@@ -121,15 +124,15 @@ function init() {
 
     initGUI();
 
-    window.addEventListener('resize', onWindowResize, false);
+    // window.addEventListener('resize', onWindowResize, false);
 
-    document.onkeydown = handleKeys;
+    // document.onkeydown = handleKeys;
 
-    let ham = new Hammer(renderer.domElement);
+    // let ham = new Hammer(renderer.domElement);
 
-    ham.on('doubletap', function() {
-        dat.GUI.toggleHide();
-    });
+    // ham.on('doubletap', function() {
+    //     dat.GUI.toggleHide();
+    // });
 }
 
 
@@ -160,10 +163,10 @@ function initStream() {
 
 
 function initStarfield() {
-    centerArray = new Float32Array(numStars * 3);
-    colorArray = new Float32Array(numStars * 3);
-    frequencyArray = new Float32Array(numStars);
-    phaseArray = new Float32Array(numStars);
+    centerArray = new Float32Array(guiParams.numStars * 3);
+    colorArray = new Float32Array(guiParams.numStars * 3);
+    frequencyArray = new Float32Array(guiParams.numStars);
+    phaseArray = new Float32Array(guiParams.numStars);
     initStarGeometry();
     initStars();
     initStarfieldUniforms();
@@ -290,7 +293,7 @@ function initStarfieldUniforms() {
 
 function initStars() {
 
-    for (let i = 0; i < numStars; i++) {
+    for (let i = 0; i < guiParams.numStars; i++) {
         resetStar(i, true);
     }
 }
@@ -383,7 +386,7 @@ function animate() {
 }
 
 function update() {
-    for (let i = 0; i < numStars; i++) {
+    for (let i = 0; i < guiParams.numStars; i++) {
         centerArray[i * 3] -= 10 ** guiParams['starSpeed'];
         if (centerArray[i * 3] < guiParams['starXMin']) {
             resetStar(i, false);
