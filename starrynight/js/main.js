@@ -200,7 +200,7 @@ function initGUI() {
         starfieldUniforms.uScale.value = v;
     });
     fStars.add(guiParams, 'numStars').min(5000).max(50000).step(1000).onChange(function(v) {
-        restart();
+        initStarfield();
     });
 
     fStarPositions = fStars.addFolder('Star Bounding Box');
