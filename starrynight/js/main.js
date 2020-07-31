@@ -160,6 +160,9 @@ function initStream() {
 
 
 function initStarfield() {
+    while(scene.children.length > 0) {
+        scene.remove(scene.children[0]);
+    }
     centerArray = new Float32Array(guiParams.numStars * 3);
     colorArray = new Float32Array(guiParams.numStars * 3);
     frequencyArray = new Float32Array(guiParams.numStars);
@@ -199,7 +202,7 @@ function initGUI() {
     fStars.add(guiParams, 'starSize').min(0.01).max(5).step(0.01).onChange(function(v) {
         starfieldUniforms.uScale.value = v;
     });
-    fStars.add(guiParams, 'numStars').min(5000).max(50000).step(1000).onChange(function(v) {
+    fStars.add(guiParams, 'numStars').min(5000).max(250000).step(5000).onChange(function(v) {
         initStarfield();
     });
 
