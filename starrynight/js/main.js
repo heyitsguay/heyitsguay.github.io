@@ -270,7 +270,7 @@ function initStarGeometry() {
         instancedStarGeometry.attributes[attributeName] = starGeometry.attributes[attributeName]});
     // Copy over vertex index
     instancedStarGeometry.index = starGeometry.index;
-    instancedStarGeometry.maxInstancedCount = numStars;
+    instancedStarGeometry.maxInstancedCount = guiParams.numStars;
 }
 
 
