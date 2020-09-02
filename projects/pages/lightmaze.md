@@ -28,7 +28,7 @@ Bleach tiles to mark your path. Find a way to the exit tile in the bottom right 
 
 ## Video demo
 
-<div class="contain_iframe"><iframe src="https://www.youtube.com/embed/YZuFiGgbSR4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="vid"></iframe></div>
+<div style="position:relative;width:100%;height:0;padding-bottom:56.25%;"><iframe src="https://www.youtube.com/embed/YZuFiGgbSR4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
 
 ## Download
 
