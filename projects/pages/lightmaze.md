@@ -44,4 +44,4 @@ Using Processing 3's export function, it is possible to create standalone execut
 
 ## Old version
 
-A demo page for an older version of the maze sketch is available at [https://heyitsguay.github.io/projects/pages/lightmaze_old.md](https://heyitsguay.github.io/projects/pages/lightmaze_old)
+A demo page for an older version of the maze sketch is available at [https://heyitsguay.github.io/projects/pages/lightmaze_old](https://heyitsguay.github.io/projects/pages/lightmaze_old)
