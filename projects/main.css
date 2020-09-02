@@ -131,7 +131,7 @@ html {
   grid-row-end: span 1;
 }
 .item--8 {
-  background-image: url("./thumbs/beacon.png");
+  background-image: url("./thumbs/lightmaze.png");
   grid-row-end: span 1;
 }
 .item__details {
