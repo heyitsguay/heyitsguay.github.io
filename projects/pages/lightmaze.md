@@ -14,7 +14,7 @@ Click to push out light into the maze.
 
 ![Lightmaze light push](./media/lightmaze/push_combined.png)
 
-Too much light bleaches the tiles.
+Too much light bleaches the tiles. Pushing light bleaches tiles much faster.
 
 ![Lightmaze bleaching](./media/lightmaze/bleach_combined.png)
 
