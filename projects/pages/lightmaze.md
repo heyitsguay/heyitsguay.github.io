@@ -28,7 +28,7 @@ Bleach tiles to mark your path. Find a way to the exit tile in the bottom right 
 
 ## Video demo
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/YZuFiGgbSR4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe style="text-align:center" width="560" height="315" src="https://www.youtube.com/embed/YZuFiGgbSR4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Download
 
@@ -44,4 +44,4 @@ Using Processing 3's export function, it is possible to create standalone execut
 
 ## Old version
 
-A demo page for an older version of the maze sketch is available at [https://heyitsguay.github.io/projects/pages/lightmaze_old.md](https://heyitsguay.github.io/projects/pages/lightmaze_old.md)
+A demo page for an older version of the maze sketch is available at [https://heyitsguay.github.io/projects/pages/lightmaze_old.md](https://heyitsguay.github.io/projects/pages/lightmaze_old)
