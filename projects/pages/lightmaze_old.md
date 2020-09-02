@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Lightmaze (old version)
+title: Lightmaze (old)
 subtitle: Play with light in procedurally-generated mazes
 ---
 
