@@ -10,7 +10,7 @@ Starting out: a small light in the dark
 
 ![Lightmaze 0](./media/lightmaze_old/0.png)
 
-Click to push out light into the maze.
+Click to push out light into the maze. Pushing depletes your energy reserves (blue bar).
 
 ![Lightmaze 1](./media/lightmaze_old/1.png)
 
