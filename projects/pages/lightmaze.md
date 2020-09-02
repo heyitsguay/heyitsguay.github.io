@@ -10,7 +10,7 @@ Starting out: a small light in the dark, in the top left of the maze.
 
 ![Lightmaze intro](./media/lightmaze/intro.png)
 
-Click to push out light into the maze.
+Click to push out light into the maze. Pushing light uses up your charge meter (blue bar).
 
 ![Lightmaze light push](./media/lightmaze/push_combined.png)
 
@@ -18,7 +18,7 @@ Too much light bleaches the tiles. Pushing light bleaches tiles much faster.
 
 ![Lightmaze bleaching](./media/lightmaze/bleach_combined.png)
 
-Pick up items to grow your light. More light reveals more of the maze around you.
+Pick up items to grow your light and restore your charge meter. More light reveals more of the maze around you.
 
 ![Lightmaze items](./media/lightmaze/items.png)
 
