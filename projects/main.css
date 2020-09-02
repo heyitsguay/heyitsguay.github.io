@@ -153,13 +153,13 @@ html {
 }
 
 .h_iframe iframe {
-    width:80%;
-    height:80%;
+    width: 80%;
+    height: 100%;
     margin: 0 auto;
 }
 .h_iframe {
-    height: 80%;
-    width:80%;
+    height: 100%;
+    width: 80%;
     margin:auto: 0 auto;
 }
 
