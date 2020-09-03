@@ -1,30 +1,30 @@
 ---
 layout: page
-title: Lightmaze
+title: lightmaze
 subtitle: Play with light in procedurally-generated mazes
 ---
 
-# Lightmaze
+# lightmaze
 
 Starting out: a small light in the dark, in the top left of the maze.
 
-![Lightmaze intro](./media/lightmaze/intro.png)
+![lightmaze intro](./media/lightmaze/intro.png)
 
 Click to push out light into the maze. Pushing light uses up your charge meter (blue bar).
 
-![Lightmaze light push](./media/lightmaze/push_combined.png)
+![lightmaze light push](./media/lightmaze/push_combined.png)
 
 Too much light bleaches the tiles. Pushing light bleaches tiles much faster.
 
-![Lightmaze bleaching](./media/lightmaze/bleach_combined.png)
+![lightmaze bleaching](./media/lightmaze/bleach_combined.png)
 
 Pick up items to grow your light and restore your charge meter. More light reveals more of the maze around you.
 
-![Lightmaze items](./media/lightmaze/items.png)
+![lightmaze items](./media/lightmaze/items.png)
 
 Bleach tiles to mark your path. Find a way to the exit tile in the bottom right of the maze! 
 
-![Lightmaze find your way](./media/lightmaze/findyourway_combined.png)
+![lightmaze find your way](./media/lightmaze/findyourway_combined.png)
 
 ## Video demo
 
@@ -32,7 +32,7 @@ Bleach tiles to mark your path. Find a way to the exit tile in the bottom right 
 
 ## Download
 
-Using Processing 3's export function, it is possible to create standalone executables for Linux and Windows. Download the appropriate ZIP file below, extract it, and run the executable inside. If you don't know whether you need a 64-bit or 32-bit version, you probably need 64-bit.
+If you are using a Windows or Linux computer, you can download the appropriate ZIP file below, extract it, and run the executable inside. If you don't know whether you need a 64-bit or 32-bit version, you probably need 64-bit.
 
 [Windows (64bit)](./assets/lightmaze/application.windows64.zip) (90.6 MB)
 
