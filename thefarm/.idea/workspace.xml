@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/../thefarm/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/jsLibraryMappings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/tileworld.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/thefarm.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas.json" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas.tps" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas.tps" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas_eli.json" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas_eli.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas_eli.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas_eli.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas_eli2.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas_eli2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back-walk.000.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back-walk.000.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back-walk.001.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back-walk.001.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back-walk.002.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back-walk.002.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back-walk.003.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back-walk.003.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front-walk.000.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front-walk.000.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front-walk.001.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front-walk.001.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front-walk.002.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front-walk.002.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front-walk.003.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front-walk.003.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left-walk.000.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left-walk.000.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left-walk.001.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left-walk.001.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left-walk.002.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left-walk.002.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left-walk.003.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left-walk.003.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right-walk.000.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right-walk.000.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right-walk.001.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right-walk.001.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right-walk.002.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right-walk.002.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right-walk.003.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right-walk.003.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/images/escheresque_dark.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/images/escheresque_dark.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/sources.md" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/sources.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilemaps/catastrophi_level3.csv" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilemaps/catastrophi_level3.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilemaps/tuxemon-town.json" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilemaps/tuxemon-town.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilemaps/tuxemon-town.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilemaps/tuxemon-town.tmx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilemaps/untitled.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilemaps/untitled.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilesets/catastrophi_tiles_16_blue.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/catastrophi_tiles_16_blue.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilesets/super-mario-nes-arrow-32px.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/super-mario-nes-arrow-32px.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilesets/super-mario-nes-arrow.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/super-mario-nes-arrow.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilesets/super-mario-tiles.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/super-mario-tiles.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample-32px-extruded.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/tuxemon-sample-32px-extruded.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample-32px.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/tuxemon-sample-32px.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/tuxemon-sample.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample.psd" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/tuxemon-sample.psd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/style.css" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+        <option value="JavaScript File" />
+        <option value="CSS File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="JsFlowSettings">
+    <service-enabled>true</service-enabled>
+    <exe-path />
+    <other-services-enabled>true</other-services-enabled>
+    <auto-save>true</auto-save>
+  </component>
+  <component name="ProjectId" id="1XgWzorhqpu2e4EkOkBX0PFDCIe" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="JavaScriptWeakerCompletionTypeGuess" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="list.type.of.created.stylesheet" value="CSS" />
+    <property name="node.js.detected.package.prettier" value="true" />
+    <property name="node.js.path.for.package.prettier" value="project" />
+    <property name="node.js.selected.package.prettier" value="" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="Settings.JavaScript" />
+    <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RunManager">
+    <configuration name="index.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/tileworld/index.html">
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JavaScript Debug.index.html" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="" />
+      <created>1536031329874</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1536031329874</updated>
+      <workItem from="1536031331149" duration="3285000" />
+      <workItem from="1536706153578" duration="13934000" />
+      <workItem from="1536809903614" duration="2998000" />
+      <workItem from="1536890379703" duration="1274000" />
+      <workItem from="1538101207254" duration="1844000" />
+      <workItem from="1547435780008" duration="816000" />
+      <workItem from="1547535729680" duration="714000" />
+      <workItem from="1547702309474" duration="209000" />
+      <workItem from="1581468484099" duration="984000" />
+      <workItem from="1582238116822" duration="1451000" />
+      <workItem from="1583114833628" duration="58000" />
+      <workItem from="1600290074547" duration="17461000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="776" y="1390" width="424" height="484" key="FileChooserDialogImpl" timestamp="1600404565500">
+      <screen x="0" y="1080" width="1920" height="1080" />
+    </state>
+    <state x="776" y="1390" width="424" height="484" key="FileChooserDialogImpl/0.1080.1920.1080/1248.0.1920.1080/1920.1080.1920.1080@0.1080.1920.1080" timestamp="1600404565500" />
+  </component>
+</project>
