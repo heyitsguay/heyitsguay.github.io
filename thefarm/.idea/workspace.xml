@@ -20,56 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/../thefarm/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/jsLibraryMappings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/tileworld.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/thefarm.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas.json" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas.tps" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas.tps" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas_eli.json" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas_eli.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas_eli.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas_eli.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/atlas_eli2.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/atlas_eli2.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back-walk.000.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back-walk.000.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back-walk.001.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back-walk.001.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back-walk.002.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back-walk.002.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back-walk.003.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back-walk.003.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-back.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-back.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front-walk.000.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front-walk.000.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front-walk.001.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front-walk.001.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front-walk.002.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front-walk.002.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front-walk.003.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front-walk.003.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-front.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-front.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left-walk.000.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left-walk.000.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left-walk.001.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left-walk.001.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left-walk.002.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left-walk.002.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left-walk.003.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left-walk.003.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-left.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-left.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right-walk.000.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right-walk.000.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right-walk.001.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right-walk.001.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right-walk.002.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right-walk.002.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right-walk.003.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right-walk.003.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/atlas/tuxemon-misa/misa-right.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/atlas/tuxemon-misa/misa-right.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/escheresque_dark.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/images/escheresque_dark.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/sources.md" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/sources.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilemaps/catastrophi_level3.csv" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilemaps/catastrophi_level3.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilemaps/tuxemon-town.json" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilemaps/tuxemon-town.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilemaps/tuxemon-town.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilemaps/tuxemon-town.tmx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilemaps/untitled.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilemaps/untitled.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/catastrophi_tiles_16_blue.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/catastrophi_tiles_16_blue.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/super-mario-nes-arrow-32px.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/super-mario-nes-arrow-32px.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/super-mario-nes-arrow.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/super-mario-nes-arrow.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/super-mario-tiles.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/super-mario-tiles.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample-32px-extruded.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/tuxemon-sample-32px-extruded.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample-32px.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/tuxemon-sample-32px.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample.png" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/tuxemon-sample.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample.psd" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/assets/tilesets/tuxemon-sample.psd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../thefarm/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/main.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -150,7 +101,7 @@
       <workItem from="1581468484099" duration="984000" />
       <workItem from="1582238116822" duration="1451000" />
       <workItem from="1583114833628" duration="58000" />
-      <workItem from="1600290074547" duration="17461000" />
+      <workItem from="1600290074547" duration="18078000" />
     </task>
     <servers />
   </component>

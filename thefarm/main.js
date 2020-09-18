@@ -248,9 +248,9 @@ function updateWorld(scene, time) {
 function placeFlower(x, y, time) {
     // const flowerIds = [16, 40, 64, 88, 112, 136, 160, 184, 208];
     const flowerTransitions = [
-        {'chain': [16, 40, 64, 174], 'delta': [0, 5000, 10000, 20000], 'updateTime': null, 'location': null, 'layer': null},
-        {'chain': [88, 112, 136, 174], 'delta': [0, 10000, 20000, 180000], 'updateTime': null, 'location': null, 'layer': null},
-        {'chain': [160, 184, 208, 174], 'delta': [0, 2500, 5000, 10000], 'updateTime': null, 'location': null, 'layer': null}
+        {'chain': [16, 40, 64, -1], 'delta': [0, 5000, 10000, 20000], 'updateTime': null, 'location': null, 'layer': null},
+        {'chain': [88, 112, 136, -1], 'delta': [0, 10000, 20000, 180000], 'updateTime': null, 'location': null, 'layer': null},
+        {'chain': [160, 184, 208, -1], 'delta': [0, 2500, 5000, 10000], 'updateTime': null, 'location': null, 'layer': null}
     ];
 
     const belowTile = belowLayer.getTileAtWorldXY(x, y, true);
