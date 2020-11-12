@@ -1,10 +1,58 @@
 const debug = false;
-const tileWidth = 30;
-const tileHeight = 20;
+const tileWidth = 100;
+const tileHeight = 100;
 const tileSize = 32;
+
+const T_DIRT = 174;
+const T_STONE = 129;
+const T_GRASS = 126;
+const T_VOID = 335;
+const T_REDFLOWER1 = 236;
+const T_REDFLOWER2 = 260;
+const T_REDFLOWER3 = 284;
+const T_BLUEFLOWER1 = 237;
+const T_BLUEFLOWER2 = 261;
+const T_BLUEFLOWER3 = 285;
+const T_YELLOWFLOWER1 = 238;
+const T_YELLOWFLOWER2 = 262;
+const T_YELLOWFLOWER3 = 286;
+
+let activeTile = T_STONE
+
 
 let width, height;
 let config, game;
+
+let time;
+
+// // Maintain a list of tiles with active ongoing state transitions, and process a certain number of them per tick
+// let activeTiles = {};
+// let nTilesProcessedPerTick = 1000;
+// // TODO: Keep going. A 2D hashmap with an associated ordered list of (x, y) tile ids to update.
+
+// Float32 array of some tile property. This first one is "growth", a deliberately vague abstract thing we'll use to 
+const propertyBytes = 4
+let propertyArray_growth = new ArrayBuffer(tileWidth * tileHeight * propertyBytes)
+
+let activeTiles = [];
+let activeIndex = 0;
+let nTilesProcessedPerTick = 1000;
+function updateActiveTiles() {
+    let newActiveTiles = [];
+    let nActiveTiles = activeTiles.length;
+    let nTilesToProcess = Math.min(nActiveTiles, nTilesProcessedPerTick);
+    if (nActiveTiles > 0) {
+        for (let i = activeIndex; i < activeIndex + nTilesToProcess; i++) {
+            let imod = i % nActiveTiles;
+            let tileInfo = activeTiles[imod];
+            let tileInfosOut = tileInfo.update(tileInfo.tile);
+            for (let infoOut of tileInfosOut) {
+                newActiveTiles.push(infoOut);
+            }
+        }
+    }
+    activeTiles = newActiveTiles;
+}
 
 let transitions = [];
 function pushTransition(transition) {
@@ -54,10 +102,11 @@ window.onload = () => {
 }
 
 function preload() {
-    this.load.image('tiles', 'assets/tilesets/tuxemon-sample-32px.png');
+    // this.load.image('tiles', 'assets/tilesets/tuxemon-sample-32px.png');
+    this.load.image('tiles', 'assets/tilesets/tuxemon-void-extruded.png');
     // this.load.image('tiles', 'assets/tilesets/tuxemon-sample-32px-extruded.png');
     // this.load.tilemapTiledJSON('map', 'assets/tilemaps/tuxemon-town.json');
-    this.load.tilemapTiledJSON('map', 'assets/tilemaps/farm.json');
+    this.load.tilemapTiledJSON('map', 'assets/tilemaps/void.json');
     this.load.atlas('atlas',
                     'assets/atlas/atlas_eli2.png',
                     'assets/atlas/atlas_eli.json');
@@ -147,11 +196,14 @@ function createLevel(scene) {
     map = scene.make.tilemap({key: 'map'});
     // Add Tiled tileset to the map
     // tileset = map.addTilesetImage('tuxmon-sample-32px-extruded', 'tiles');
-    tileset = map.addTilesetImage('tuxemon', 'tiles');
+    tileset = map.addTilesetImage('void', 'tiles', 32, 32, 1, 2);
+    // tileset = map.addTilesetImage('tuxemon', 'tiles');
     // Add Tiled layers to the map
-    belowLayer = map.createStaticLayer('Below Player', tileset, 0, 0);
+    belowLayer = map.createDynamicLayer('Below Player', tileset, 0, 0);
     worldLayer = map.createDynamicLayer('World', tileset, 0, 0);
     worldLayer.setCollisionByProperty({collides: true});
+    aboveLayer = map.createDynamicLayer('Above Player', tileset, 0, 0);
+    // worldLayer.setDepth(10);
     if (debug) {
         const debugGraphics = scene.add.graphics().setAlpha(0.66);
         worldLayer.renderDebug(debugGraphics, {
@@ -195,7 +247,9 @@ function createWASDKeys(scene) {
         right: Phaser.Input.Keyboard.KeyCodes.D,
         space: Phaser.Input.Keyboard.KeyCodes.SPACE,
         shift: Phaser.Input.Keyboard.KeyCodes.SHIFT,
-        secret: Phaser.Input.Keyboard.KeyCodes.O
+        secret: Phaser.Input.Keyboard.KeyCodes.O,
+        use: Phaser.Input.Keyboard.KeyCodes.E,
+        next_tile: Phaser.Input.Keyboard.KeyCodes.P
     });
 }
 
@@ -229,11 +283,33 @@ function applyTransition(transition, time) {
 }
 
 let pointerPressed = false;
+let nextTilePressed = false;
 function updateWorld(scene, time) {
     const pointer = scene.input.activePointer;
     const worldPoint = pointer.positionToCamera(scene.cameras.main);
     const worldX = Math.floor(worldPoint.x);
     const worldY = Math.floor(worldPoint.y);
+
+    if (cursors.next_tile.isDown) {
+        if (!nextTilePressed) {
+            if (activeTile == T_STONE) {
+                activeTile == T_DIRT;
+            } else {
+                activeTile == T_STONE;
+            }
+        }
+        nextTilePressed = true;
+    } else {
+        nextTilePressed = false;
+    }
+
+
+    if (cursors.use.isDown) {
+        if (playerDistanceCheck(worldX, worldY)) {
+            createRock(worldX, worldY);
+            // waterGround(worldX, worldY);
+        }
+    }
 
     if (pointer.isDown) {
         if (playerDistanceCheck(worldX, worldY)) {
@@ -245,12 +321,28 @@ function updateWorld(scene, time) {
         pointerPressed = false;
     }
 }
+function createRock(x, y) {
+    const tile = belowLayer.getTileAtWorldXY(x, y, true);
+    const tileId = tile === null ? -1 : tile.index;
+    console.log('making rock. found id ', tileId);
+    if (tileId === 335) {
+        console.log('found a void!');
+        belowLayer.putTileAtWorldXY(activeTile, x, y);
+    } 
+}
+function waterGround(x, y) {
+    const belowTile = belowLayer.getTileAtWorldXY(x, y, true);
+    const belowId = belowTile === null ? -1 : belowTile.index;
+    if (belowId === 174) {
+        belowLayer.putTileAtWorldXY(182, x, y);
+    }
+}
 function placeFlower(x, y, time) {
     // const flowerIds = [16, 40, 64, 88, 112, 136, 160, 184, 208];
     const flowerTransitions = [
-        {'chain': [16, 40, 64, -1], 'delta': [0, 5000, 10000, 20000], 'updateTime': null, 'location': null, 'layer': null},
-        {'chain': [88, 112, 136, -1], 'delta': [0, 10000, 20000, 180000], 'updateTime': null, 'location': null, 'layer': null},
-        {'chain': [160, 184, 208, -1], 'delta': [0, 2500, 5000, 10000], 'updateTime': null, 'location': null, 'layer': null}
+        {'chain': [236, 260, 284, -1], 'delta': [0, 5000, 10000, 20000], 'updateTime': null, 'location': null, 'layer': null},
+        {'chain': [237, 261, 285, -1], 'delta': [0, 10000, 20000, 180000], 'updateTime': null, 'location': null, 'layer': null},
+        {'chain': [238, 262, 286, -1], 'delta': [0, 2500, 5000, 10000], 'updateTime': null, 'location': null, 'layer': null}
     ];
 
     const belowTile = belowLayer.getTileAtWorldXY(x, y, true);
@@ -259,7 +351,7 @@ function placeFlower(x, y, time) {
     const worldTile = worldLayer.getTileAtWorldXY(x, y, true);
     const worldId = worldTile === null ? -1 : worldTile.index;
 
-    if (worldTile !== null && worldId === -1 && belowId === 174) {
+    if (worldId === -1 && belowId === 174) {
         let flowerTransition = randomElement(flowerTransitions);
         flowerTransition.updateTime = time + flowerTransition['delta'][0];
         flowerTransition.location = new Phaser.Math.Vector2(x, y);

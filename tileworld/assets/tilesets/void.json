@@ -1,0 +1,14 @@
+{ "columns":24,
+ "image":"..\/..\/..\/thefarm\/assets\/tilesets\/tuxemon-void.png",
+ "imageheight":960,
+ "imagewidth":768,
+ "margin":0,
+ "name":"void",
+ "spacing":0,
+ "tilecount":720,
+ "tiledversion":"1.4.1",
+ "tileheight":32,
+ "tilewidth":32,
+ "type":"tileset",
+ "version":1.4
+}
