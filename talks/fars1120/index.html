@@ -45,7 +45,9 @@
                     <textarea data-template>
                         - Electron microscopy (EM) computer vision challenges center around **segmentation**.
 
-                        - Convolutional neural networks (CNNs) are starting to make automated segmentation viable, but devils remain in the details.
+                        - Convolutional neural networks (CNNs) are starting to make algorithmic segmentation viable in theory. 
+
+                        - Practice should translate to building larger, more detailed 3D structural models much faster. 
 
                         - **Main question**: How to accelerate EM image segmentation in practice?
 
@@ -60,7 +62,7 @@
 
                         - Laboratory of Cellular Imaging and Macromolecular Biophysics (**LCIMB**).
 
-                        - Dr. Matthew Guay working on automated segmentation R&D for EM.
+                        - Dr. Matthew Guay working on algorithmic segmentation R&D for EM.
                     </textarea>
                 </section>
 
@@ -130,7 +132,7 @@
                 <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
                     <textarea data-template>
 
-                        <video width="500" height="500" autoplay muted loop><source data-src="img/cellanim.mp4" type="video/mp4" /></video>
+                        <video width="500" height="500" controls autoplay muted loop><source data-src="img/cellanim.mp4" type="video/mp4" /></video>
                     </textarea>
                 </section>
 
@@ -405,7 +407,264 @@
 
                         <!-- - Shift in objective: Minimize time to gold-standard accuracy (by any means necessary) instead of maximizing unassisted accuracy. -->
 
-                        - **Bootstrapping**: "Seed" a label dataset with a small manually-labeled region. Iteratively train networks on labels, segment surrounding regions, and correct.
+                        - **Bootstrapping**: 
+                            1. "Seed" a label dataset with a small manually-labeled region. 
+                            2. Iteratively train networks on labels, segment surrounding regions, and correct.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Proof of concept result
+
+                        - ISBI 2021 submission on platelet cell membrane segmentation. <a href="https://heyitsguay.github.io/doc/isbi2021-draft.pdf" target="_blank">[Draft]</a>
+
+                        - Headline: **131x average decrease** in image labeling time between initial seed region and final algorithm assistance. 
+
+                        - Algorithmic refinements, training dataset expansion over 4 **bootstrap iterations**.
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)" data-transition="slide-in none-out">
+                    <textarea data-template>
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/cell-membrane-before.png" alt="SBF-SEM image of human platelet cells">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)" data-transition="none-in slide-out">
+                    <textarea data-template>
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/cell-membrane-after.png" alt="Human platelet cells with cell membranes labeled">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img style="max-width: 66%; max-height: 66%" src="img/bi-results.png" alt="Labeling acceleration results">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Software stack
+
+                        - PyTorch + Python. More friendly than Tensorflow, better code.
+
+                        - Manual labeling and label correction done using GNU Image Manipulation Program.
+
+                        - Same computer setup as before.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Image preprocessing
+
+                        - Unsharp filtering then median blurring seems to help learning, especially when training dataset size is small.
+
+                        <img style="max-width: 66%; max-height: 66%" src="img/filtering.png" alt="Preprocessing filtering example">
+
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Prediction error weighting
+
+                        - BI `$n$`'s training data is the corrected output of previous BIs, so we know where nets make mistakes.
+
+                        - **Prediction error weighting**: Upweight regions where previous BI's nets made mistakes.
+
+                        - Ended up upweighting only false negatives, the more costly error to correct.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img style="max-width: 60%; max-height: 60%" src="img/pred-error.png" alt="Prediction error weighting example">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### More ensembling
+
+                        - In addition to instance ensembling, used **tile overlap ensembling**.
+
+                        - For tiled image volumes, predict highly-overlapping tiles and average predictions per-voxel.
+
+                        - Tradeoff: increased runtime, though could be parallelized.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Thin 3D U-Net
+
+                        - For simplicity's sake, went with a **Thin 3D U-Net**.
+
+                        - Alter a standard 2D U-Net to use 3D conv ops padded in `$z$`, and no `$z$` spatial pooling or upsampling.
+
+                        - Fix a small $z$ value for all net tensors, including input and output (e.g. $z=5$).
+
+                        - More advantageous for anisotropic SBF-SEM, but also provides 3D context with lower memory footprint.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Testing spatially-dependent performance
+
+                        - **Main claim**: iterative label volume expansion beats random labeling because overfit nets perform better on new data spatially near training data.
+
+                        - We tested by validating each BI's algorithm performance on two eval regions: _eval-near_ near the training region, _eval-far_ far from the training region.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img style="max-width: 50%; max-height: 50%" src="img/bootstrap-graph.png" alt="Eval near vs far performance comparison">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### What's missing
+
+                        - **Faster retraining**: Majority of errors corrected in each BI were correlated from slice to slice. Updating nets after each slice for faster correction.
+
+                        - **Retrain optimization**: Much to be done to decrease retraining time after each new batch of corrections.
+
+                        - **Workflow integration**: Clunky workflow of manually moving files between the file system and the image processing program can be refined.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### What LCIMB is doing now
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Dataset expansion
+
+                        - Currently amassing a number of platelet FIB-SEM and SBF-SEM datasets.
+
+                        - Differences in resolution, image quality, platelet biology, extracellular material.
+
+                        - How to segment robustly across these differences?
+
+                        - How to deal with "long-tail" structures found in larger image volumes?
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Panoptic segmentation
+
+                        - **Panoptic segmentation**: Combination of semantic and instance segmentation, usually in a single computation graph.
+
+                        - Experiments with 2D and 3D Mask R-CNN for platelet cells and organelles are OK in 2D, bad in 3D.
+
+                        - RPN modules are a pain. **Foolish hope**: Replace RPN modules with biophysical boundary detection for cellular panoptic segmentation.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### COVID-10 thrombus modeling
+
+                        - **Goal**: Build structural models of platelet cells in human blood samples from COVID-19 and control patients.
+
+                        - Technical challenge: Scaling nanoscale-resolution segmentation to 100s of cells per physical sample.
+
+                        - Population comparison inference challenges whether sample sizes are large or small.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Seeking new EM collaborations
+
+                        - LCIMB has a Gatan 3View **SBF-SEM** with low utilization.
+
+                        - **FIB-SEM** incoming soon, too.
+
+                        - We are interested in new collaborations that leverage large volume imaging capabilities.
+
+                        - I am interested in samples combining multiple cell types, and systems outside the large-volume EM spotlight. 
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Expanding IRP microscopy AI
+
+                        - I am interested in helping labs hire computational staff, and connecting existing computational staff to computer vision training resources.
+
+                        - **Considering a project?** Let's talk about your data and your goals during discussion!
 
                     </textarea>
                 </section>
