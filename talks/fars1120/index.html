@@ -19,6 +19,15 @@
     		<div class="slides">
 
 
+<!-- 
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                    </textarea>
+                </section>
+ -->
+
+
     			<section data-background="linear-gradient(#32629780, #65666a0a)">
     				<h2>Putting Deep Learning to Work for EM</h3>
                     <hr/><br/>
@@ -47,6 +56,18 @@
 
                 <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
                     <textarea data-template>
+                        - Answer via case study: what's going on in our lab?
+
+                        - Laboratory of Cellular Imaging and Macromolecular Biophysics (**LCIMB**).
+
+                        - Dr. Matthew Guay working on automated segmentation R&D for EM.
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
                         ### Overview
 
                         - What LCIMB has done.
@@ -57,6 +78,338 @@
 
                     </textarea>
                 </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ## What LCIMB has done
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Dense cellular segmentation
+
+                        - "Holy grail" goal: 3D structural models of all cells and all resolvable subcellular structures in a large volume.
+
+                        - **Current achievement**: Good but imperfect multi-class semantic segmentation in a human platelet sample.
+
+                        - Preprints: <a href="https://heyitsguay.github.io/doc/2d3d-main.pdf" target="_blank">[Main Paper]</a>.  <a href="https://heyitsguay.github.io/doc/2d3d-supplementary.pdf" target="_blank">[Supplementary]</a>.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)" data-transition="slide-in none-out">
+                    <textarea data-template>
+
+                        <img style="max-width: 80%; max-height: 80%" src="img/densecell-before.png" alt="SBF-SEM image of human platelet cells">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)" data-transition="none-in slide-out">
+                    <textarea data-template>
+
+                        <img style="max-width: 80%; max-height: 80%" src="img/densecell-after.png" alt="Segmented SBF-SEM image of human platelet cells">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <video width="500" height="500" autoplay muted loop><source data-src="img/cellanim.mp4" type="video/mp4" /></video>
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Technical challenges
+
+                        - **Anisotropy**: 10nm `$y-x$`, 40nm `$z$` resolution.
+                        - **Large images**: Tiling smaller segmentations across larger volumes.
+                        - **3D Processing**: 2D vs 3D tradeoffs in memory, processing, spatial context.
+                        - **Training data**: Tedious to create training labels.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Data setup
+
+                        - Taken from two human blood donors, imaged on Gatan 3View SBF-SEM.
+
+                        - **Training** data: `$50\times 800\times 800$` subvolume from Donor 1. 
+
+                        - **Eval** data: `$24\times 800\times 800$` subvolume from Donor 1 (different cells)
+
+                        - **Test** data: `$121\times 609\times 400$` and `$110\times 602 \times 509$` subvolumes from Donor 2.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/data-training.png" alt="Training data sample">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/data-eval.png" alt="Eval data sample">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/data-test.png" alt="Test data samples">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Software stack
+
+                         - TensorFlow + Python.
+
+                         - Local workstation: Ubuntu with an NVIDIA GTX 1080.
+
+                         - Training and inference on Biowulf as well.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Data augmentation
+
+                        - **Elastic deformation**: Wiggle biological blobs to create somewhat different blobs.
+                        - **Isometries**: Rotate and reflect images.
+                        - **Intensity augmentation**: Tweak brightness and contrast `$\pm 10\%$`.
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+                        ### Loss weighting
+
+                        - Training loss is a weighted sum of per-voxel cross entropy.
+
+                        - **Class balancing**: Upweight regions belonging to rare classes.
+
+                        - **Edge preserving**: Upweight regions where multiple cells or organelles are in close proximity.
+
+                        - Generated edge preserving weights directly from label data with no morphological information, using thresholded diffusion operations.  
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Training error weights
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/weight-ex.png" alt="Example weight image">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Payoff: better cell separation
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/cdeep3m-comparison.png" alt="Comparison between CDeep3M and our results">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Full training loss
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/loss.png" alt="Complete training loss function">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Architecture selection
+
+                        - **First step**: Literature review. We tried U-Nets (2D and 3D), DeeplabV3.
+
+                        - Doing better: Stick together better modules, **validate** whether your choices help.
+
+                        - Final result: **2D-3D+3x3x3** net.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### 2D-3D+3x3x3 net
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/2d3d-net.png" alt="2D-3D+3x3x3 net architecture">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Validation challenges
+
+                        - **Eval metric randomness** induced by random weight initialization.
+
+                        - Likely due to small training datasets.
+
+                        - Brute force solution: Train multiple net instances with different initializations.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Architecture comparison
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/arch-validation.png" alt="Eval MIoU histograms for net variants">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Ensembling
+
+                        - Architecture validation generates several high-performing instances per architecture.
+
+                        - **Instance ensembling**: run multiple good instances, average predictions.
+
+                        - Simple idea, big performance boost.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img style="max-width: 80%; max-height: 80%" src="img/ensembling.png" alt="Eval MIoU histograms for net variants">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Final results
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        <img style="max-width: 100%; max-height: 100%" src="img/final-results.png" alt="Final results on test data">
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### What's missing
+
+                        - **Better accuracy**: Enough said.
+
+                        - **Better generalization**: We see a significant performance drop on Donor 2.
+
+                        - **Instance segmentation**: Identify objects, not just voxel classes.
+
+                        - **Workflow integration**: Bring training, inference, and manual correction into one tool for fast feedback.
+
+                    </textarea>
+                </section>
+
+
+
+                <section data-markdown data-background="linear-gradient(#32629780, #65666a0a)">
+                    <textarea data-template>
+
+                        ### Label dataset bootstrapping
+
+                        - **Goal**: Segment large image volumes to gold-standard accuracy with as little manual labor as possible.
+
+                        <!-- - Shift in objective: Minimize time to gold-standard accuracy (by any means necessary) instead of maximizing unassisted accuracy. -->
+
+                        - **Bootstrapping**: "Seed" a label dataset with a small manually-labeled region. Iteratively train networks on labels, segment surrounding regions, and correct.
+
+                    </textarea>
+                </section>
+
 
 <!-- 
 
