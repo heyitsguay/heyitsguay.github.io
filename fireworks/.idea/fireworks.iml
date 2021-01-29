@@ -12,5 +12,6 @@
     <orderEntry type="library" name="jquery-3.1.1" level="application" />
     <orderEntry type="library" name="dat-gui" level="application" />
     <orderEntry type="library" name="stats.js" level="application" />
+    <orderEntry type="library" name="hammer.js" level="application" />
   </component>
 </module>

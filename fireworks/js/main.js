@@ -32,6 +32,8 @@ let guiParams = {
 let stats;
 let showingStats = true;
 
+let lastTap = 0;
+
 
 $(document).ready(function() {
   loadFiles().then(main);
@@ -54,6 +56,16 @@ function main() {
   canvas = document.getElementById('canvas');
   $(window).resize(resize);
   document.onkeydown = handleKeys;
+
+  canvas.addEventListener('touchend', function(e) {
+    let currentTime = new Date().getTime();
+    let tapLength = currentTime - lastTap;
+    if (tapLength < 500 && tapLength > 0) {
+      toggleHide();
+    }
+    lastTap = currentTime;
+  });
+
   initGUI();
   initStats();
 
@@ -64,16 +76,20 @@ function main() {
 function handleKeys(e) {
   switch (e.keyCode) {
     case 32:
-      dat.GUI.toggleHide();
+      toggleHide();
+  }
+}
 
-      if (showingStats) {
-        stats.domElement.style.visibility = 'hidden';
-        showingStats = false;
-      } else {
-        stats.domElement.style.visibility = 'visible';
-        showingStats = true;
-      }
 
+function toggleHide() {
+  dat.GUI.toggleHide();
+
+  if (showingStats) {
+    stats.domElement.style.visibility = 'hidden';
+    showingStats = false;
+  } else {
+    stats.domElement.style.visibility = 'visible';
+    showingStats = true;
   }
 }
 
@@ -109,7 +125,7 @@ function restart() {
 
 function initGUI() {
   gui = new dat.GUI();
-  let fTitle = gui.addFolder('Press Space to hide')
+  let fTitle = gui.addFolder('To hide: space or double tap')
   fTitle.add(guiParams, 'canvasScale').min(1).max(4).step(1).onChange(resize);
   fTitle.open();
 }
