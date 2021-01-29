@@ -37,7 +37,7 @@ struct Firework {
 const Firework fireworks[4] = Firework[4](
   Firework(0., 0.1, 1., 1., 1., 1., 0., 1., 0., 0., 25.),
   Firework(1., 0.01, 1., 3., 0.3, 1., 0., 1., 0., 0., 25.),
-  Firework(0.5, 0.3, 0.6, 1., 1., 1., 1., 2., 4., 0., 22.),
+  Firework(0.5, 0.3, 0.6, 1., 1., 1., 1., 2., 2., 0., 22.),
   Firework(1., 1. * RING_STEP, 1.5 * RING_STEP, 4., 1., 0.6, 0.5, 0.2, 0., 1., 6.)
 );
 
@@ -156,12 +156,12 @@ void main(void) {
   float tRamp = min(1., 10. * (1. - t));
   vec3 cBase = hsv2rgb(vec3(h, s, tRamp));
 
-  vec2 mn = Hash12(startSeed + float(tCycle + 1) * 31.49);
+  vec2 mn = Hash12(startSeed + float(tCycle + 1) * 3.149);
   float sizeBase = 0.2 + 0.8 * mn.x;
 
   float rAddOn = float(idx == 3) * mn.y * 2.;
 
-  //float nPetalsFinal = float(firework.nPetals > 0.) * (1. + mn.y);
+  float nPetalsFinal = firework.nPetals + float(firework.nPetals > 0.) * round(3. * mn.y);
 
   for (int i = 0; i < NUM_PARTICLES; i++) {
 
@@ -172,7 +172,7 @@ void main(void) {
       firework.rMin,
       firework.rMax + RING_STEP*rAddOn,
       firework.rPow,
-      firework.nPetals,
+      nPetalsFinal,
       firework.rRound);
     dir.y *= firework.dirYScale;
     dir.y -= (1. + firework.gravityScale*t*t)*GRAVITY * sizeBase * sizeBase * t;
