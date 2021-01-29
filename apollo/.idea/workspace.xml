@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="f452fff1-7c14-4840-b566-5792699e5868" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fireworks/glsl/quad.frag" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/glsl/quad.frag" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fireworks/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/js/main.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,6 +75,7 @@
       <workItem from="1584467291787" duration="1264000" />
       <workItem from="1611889421359" duration="2615000" />
       <workItem from="1611896277807" duration="611000" />
+      <workItem from="1611903681036" duration="75000" />
     </task>
     <servers />
   </component>

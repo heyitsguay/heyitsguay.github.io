@@ -17,6 +17,7 @@ precision mediump float;
 uniform float time;
 uniform vec2 resolution;
 uniform vec2 iResolution;
+uniform float startSeed;
 
 struct Firework {
   float sparkleScale;
@@ -125,10 +126,10 @@ void main(void) {
   float finalScale = launchDist * FIREWORK_SCALE;
   float launchFactor = (launchDist - 1.) * 0.5;
 
-  vec2 rand1 = Hash12(float(tCycle+1)*0.674);
+  vec2 rand1 = Hash12(float(tCycle+1)*0.674 + startSeed);
   vec2 center = vec2(0.2 + 0.6*rand1.x, 0.4-0.033*launchFactor+(0.4-0.15*launchFactor)*rand1.y);
 
-  vec2 rand2 = Hash12(50. + 49. * sin(float(tCycle+1)*0.853));
+  vec2 rand2 = Hash12(startSeed + 50. + 49. * sin(float(tCycle+1)*0.853));
   vec2 start = vec2(0.3 + 0.4 * rand2.x, 0.);
 
   if (u < 0.2) {
@@ -143,7 +144,7 @@ void main(void) {
 
   float t = 1.25 * (u-0.2);
 
-  int idx = int(4. * Hash11(float(tCycle+15)));
+  int idx = int(4. * Hash11(startSeed + float(tCycle+15)));
   Firework firework = fireworks[idx];
 
   vec2 uv = finalScale * (gl_FragCoord.xy-center*resolution) * imx ;

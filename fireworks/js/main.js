@@ -21,7 +21,8 @@ let mainMesh;
 let mainUniforms = {
   time: {value: 0},
   resolution: {value: screenResolution},
-  iResolution: {value: screenInverseResolution}
+  iResolution: {value: screenInverseResolution},
+  startSeed: {value: 0}
 };
 
 let gui;
@@ -68,6 +69,9 @@ function main() {
 
   initGUI();
   initStats();
+
+  let now = new Date().getTime();
+  mainUniforms.startSeed.value = (now / 1000000) % 10;
 
   restart();
 }
