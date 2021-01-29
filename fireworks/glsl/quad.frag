@@ -48,7 +48,7 @@ const float iRingStep = 1. / RING_STEP;
 //}
 
 float sigmoid(float x, float c, float m) {
-  return clamp(0.5 + 0.1*m * (x - c), 0., 1.);
+  return clamp(0.5 + m * (x - c), 0., 1.);
 }
 
 float Hash11(float t) {
@@ -91,12 +91,14 @@ void main(void) {
 
   float mx = max(resolution.x, resolution.y);
   float imx = min(iResolution.x, iResolution.y);
-  vec2 xy = gl_FragCoord.xy * iResolution;
+  vec2 xy = gl_FragCoord.xy * imx;
+  float yMax = resolution.y * imx;
 
-  float hill1Mask = sigmoid(xy.y, (0.25 + 0.1 * sin(3. * xy.x )), 1000.);
-  float hill2Mask = sigmoid(xy.y, (0.33 + 0.08 * cos(5. * xy.x)), 500.);
+  float hill1Mask = sigmoid(xy.y, yMax * (0.25 + 0.1 * sin(3. * xy.x )), 150.);
+  float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5. * xy.x)), 50.);
 
-  float dColor = (0.5 + 3.2 * (1. - xy.y * xy.y));
+  float yp = gl_FragCoord.y * iResolution.y;
+  float dColor = (0.5 + 3.2 * (1. - yp * yp));
   vec3 color = vec3(0.025*dColor, 0., 0.075*dColor);
   color *= 0.2 + 0.8*hill2Mask;
   float hy = Hash11(0.141*gl_FragCoord.y);
