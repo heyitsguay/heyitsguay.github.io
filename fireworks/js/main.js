@@ -30,6 +30,7 @@ let guiParams = {
 }
 
 let stats;
+let showingStats = true;
 
 
 $(document).ready(function() {
@@ -52,10 +53,28 @@ function main() {
 
   canvas = document.getElementById('canvas');
   $(window).resize(resize);
+  document.onkeydown = handleKeys;
   initGUI();
   initStats();
 
   restart();
+}
+
+
+function handleKeys(e) {
+  switch (e.keyCode) {
+    case 32:
+      dat.GUI.toggleHide();
+
+      if (showingStats) {
+        stats.domElement.style.visibility = 'hidden';
+        showingStats = false;
+      } else {
+        stats.domElement.style.visibility = 'visible';
+        showingStats = true;
+      }
+
+  }
 }
 
 
@@ -90,7 +109,9 @@ function restart() {
 
 function initGUI() {
   gui = new dat.GUI();
-  gui.add(guiParams, 'canvasScale').min(1).max(4).step(1).onChange(resize);
+  let fTitle = gui.addFolder('Press Space to hide')
+  fTitle.add(guiParams, 'canvasScale').min(1).max(4).step(1).onChange(resize);
+  fTitle.open();
 }
 
 
