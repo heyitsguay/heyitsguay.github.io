@@ -188,8 +188,9 @@ void main(void) {
     float brightness = 0.25* bump + sqrt(size)*firework.brightnessScale*0.0013/(1.+ 9. * t24);
     float hNew = mod(float(i)*0.12, 1.);
     vec3 cNew = hsv2rgb(vec3(hNew, s, tRamp));
+    float particleSize = 0.25 + 0.6 * rand2.y + 0.35 * size;
     vec3 particleColor = mix(cBase, cNew, firework.colorShift);
-    color += hill1Mask *  (0.75*bump + brightness * particleColor) / pow(d + 0.005, 1.25+size);
+    color += hill1Mask *  (0.75*bump + brightness * particleColor) / pow(d + 0.025, 1.5+0.8*particleSize);
   }
   }
   color *= 0.75 + 0.25*hill2Mask;
