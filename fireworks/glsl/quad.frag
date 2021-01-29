@@ -99,7 +99,7 @@ void main(void) {
   float u = fract(T_SPEED*0.8*time);
 
   float mx = max(resolution.x, resolution.y);
-  float imx = 1. / mx;
+  float imx = min(iResolution.x, iResolution.y);
   vec2 xy = gl_FragCoord.xy * imx;
   float xMax = resolution.x * imx;
   float yMax = resolution.y * imx;

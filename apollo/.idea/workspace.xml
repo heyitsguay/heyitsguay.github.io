@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f452fff1-7c14-4840-b566-5792699e5868" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/../fireworks/favicon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/favicon.ico" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fireworks/glsl/quad.frag" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/glsl/quad.frag" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fireworks/icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/icon.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fireworks/tile-wide.png" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/tile-wide.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fireworks/tile.png" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/tile.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +78,7 @@
       <workItem from="1584405266372" duration="634000" />
       <workItem from="1584467291787" duration="1264000" />
       <workItem from="1611889421359" duration="2615000" />
-      <workItem from="1611896277807" duration="335000" />
+      <workItem from="1611896277807" duration="611000" />
     </task>
     <servers />
   </component>
