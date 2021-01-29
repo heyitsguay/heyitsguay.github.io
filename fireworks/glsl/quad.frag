@@ -98,7 +98,7 @@ void main(void) {
   float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5. * xy.x)), 50.);
 
   float yp = gl_FragCoord.y * iResolution.y;
-  float dColor = (0.5 + 3.2 * (1. - yp * yp));
+  float dColor = (0.5 + 1.2 * (1. - yp * yp));
   vec3 color = vec3(0.025*dColor, 0., 0.075*dColor);
   color *= 0.2 + 0.8*hill2Mask;
   float hy = Hash11(0.141*gl_FragCoord.y);
