@@ -113,7 +113,8 @@ void main(void) {
   color *= 0.2 + 0.8*hill2Mask;
   float hy = Hash11(0.141*gl_FragCoord.y);
   float starColor = 0.2 + 0.7 * pow(Hash11(gl_FragCoord.x + 18.2*hy), 3.);
-  color += 0.66 * hill2Mask * starColor * float(fract(31.163*xy.x*(hy+0.2)) < 0.02 && fract(51.853 * xy.y * starColor) < 0.02);
+  float starFlicker = (0.85 + 0.15 * cos(6. * time + 7.9 * hy));
+  color += 0.66 * hill2Mask * starColor * starFlicker * float(fract(31.163*xy.x*(hy+0.2)) < 0.02 && fract(51.853 * xy.y * starColor) < 0.02);
 
   float dHouse2 = 0.1 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hy+0.2)));
   color += max(vec3(0),(1. - hill2Mask) * 0.4 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.003 / dHouse2));

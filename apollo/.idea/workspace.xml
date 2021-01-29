@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f452fff1-7c14-4840-b566-5792699e5868" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/../fireworks/favicon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/favicon.ico" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fireworks/glsl/quad.frag" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/glsl/quad.frag" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fireworks/icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/icon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fireworks/tile-wide.png" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/tile-wide.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fireworks/tile.png" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/tile.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fireworks/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/js/main.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

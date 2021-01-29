@@ -26,7 +26,7 @@ let mainUniforms = {
 
 let gui;
 let guiParams = {
-  canvasScale: 1
+  quality: 1
 }
 
 let stats;
@@ -95,7 +95,7 @@ function toggleHide() {
 
 
 function resize() {
-  canvasScale = 0.5 ** (guiParams.canvasScale - 1);
+  canvasScale = guiParams.quality;
   cWidth = Math.floor(canvasScale * window.innerWidth);
   cHeight = Math.floor(canvasScale * window.innerHeight);
   screenInverseResolution.x = 1 / cWidth;
@@ -126,7 +126,7 @@ function restart() {
 function initGUI() {
   gui = new dat.GUI();
   let fTitle = gui.addFolder('To hide: space or double tap')
-  fTitle.add(guiParams, 'canvasScale').min(1).max(4).step(1).onChange(resize);
+  fTitle.add(guiParams, 'quality', {'Best': 1, 'High': 0.75, 'Medium': 0.5, 'Low': 0.3}).onChange(resize);
   fTitle.open();
 }
 
