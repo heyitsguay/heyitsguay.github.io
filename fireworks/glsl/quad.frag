@@ -13,7 +13,7 @@ precision mediump float;
 
 #define R_MIN 5.
 #define R_MAX 15.
-#define PI 3.1415927
+#define TWOPI 6.28318530718
 
 uniform float time;
 uniform vec2 resolution;
@@ -35,55 +35,41 @@ struct Firework {
 };
 
 const Firework fireworks[4] = Firework[4](
-  Firework(0., 0.1, 1., 1., 1., 1., 0., 1., 0., 0., 25.),
-  Firework(1., 0.01, 1., 3., 0.3, 1., 0., 1., 0., 0., 25.),
-  Firework(0.5, 0.3, 0.6, 1., 1., 1., 1., 2., 2., 0., 22.),
-  Firework(1., 1. * RING_STEP, 1.5 * RING_STEP, 4., 1., 0.6, 0.5, 0.2, 0., 1., 6.)
+  Firework(0., 0.1, 1., 0., 1., 1., 0., 1., 0., 0., 25.),
+  Firework(1., 0.01, 1., 1., 0.3, 1., 0., 1., 0., 0., 25.),
+  Firework(0.5, 0.3, 0.6, 0., 1., 1., 1., 2., 2., 0., 22.),
+  Firework(1., RING_STEP, 1.5 * RING_STEP, 0., 1., 0.6, 0.5, 0.2, 0., 1., 6.)
 );
 
 const float iRingStep = 1. / RING_STEP;
+
+//float sigmoid(float x, float c, float m) {
+//  return 1. / (1. + exp(-m*(x-c)));
+//}
+
+float sigmoid(float x, float c, float m) {
+  return clamp(0.5 + 0.1*m * (x - c), 0., 1.);
+}
 
 float Hash11(float t) {
   return fract(sin(t*34.1674));
 }
 
-float sigmoid(float x, float c, float m) {
-  return 1. / (1. + exp(-m*(x-c)));
-}
-
-
 vec2 Hash12(float t) {
-  float x = fract(sin(t*553.2379));
-  float y = fract(sin(t*670.3438));
-  return vec2(x, y);
+  return fract(sin(t * vec2(553.2379, 670.3438)));
 }
 
 vec3 Hash13(float t) {
-  float x = fract(sin(t*483.9812));
-  float y = fract(sin(t*691.3455));
-  float z = fract(sin(t*549.7206));
-  return vec3 (x, y, z);
+  return fract(sin(t * vec3(483.9812, 691.3455, 549.7206)));
 }
 
-vec4 Hash14(float t) {
-  float x = fract(sin(t*281.3812));
-  float y = fract(sin(t*601.8855));
-  float z = fract(sin(t*459.0926));
-  float w = fract(sin(t*330.8649));
-  return vec4(x, y, z, w);
-}
-
-vec2 Rand2(vec2 t) {
-  float x = fract(sin(t.x*3526.1061 - 0.*t.y));
-  float y = fract(sin(t.x*6711.6523 + 0.*t.y));
-  return vec2(x, y);
-}
-
-vec2 RandDirection(float seed, float rMin, float rMax, float rPow, float nPetals, float round) {
+vec2 RandDirection(float seed, float rMin, float rMax, float rPow, float nPetals, float doRound) {
   vec3 xyt = Hash13(seed);
-  float r = mix(rMin, rMax, (pow(xyt.x, rPow)));
-  r = mix(r, float(int(r * iRingStep)) * RING_STEP, round);
-  float theta = 2. * PI * (xyt.y + xyt.z);
+  float rScale = xyt.x * (1. - rPow) + xyt.x * xyt.x * xyt.x;
+  float r = mix(rMin, rMax, rScale);
+//  float r = mix(rMin, rMax, pow(xyt.x, rPow));
+  r = mix(r, float(int((r * iRingStep))) * RING_STEP, doRound);
+  float theta = TWOPI * (xyt.y + xyt.z);
   r *= mix(1., 1.+ cos(nPetals*theta), nPetals > 0.);
   return vec2(r*cos(theta), r*sin(theta));
 }
@@ -98,22 +84,19 @@ vec3 hsv2rgb(vec3 c)
 
 out vec4 fragColor;
 void main(void) {
-
-  int tCycle = int(mod(T_SPEED * 0.8 * time, 99999.));
+  float tt = T_SPEED * 0.8 * time;
+  int tCycle = int(mod(tt, 99999.));
   float sfc = sin(float(tCycle + 1));
-  float u = fract(T_SPEED*0.8*time);
+  float u = fract(tt);
 
   float mx = max(resolution.x, resolution.y);
   float imx = min(iResolution.x, iResolution.y);
-  vec2 xy = gl_FragCoord.xy * imx;
-  float xMax = resolution.x * imx;
-  float yMax = resolution.y * imx;
+  vec2 xy = gl_FragCoord.xy * iResolution;
 
-  float hill1Mask = sigmoid(xy.y, yMax * (0.25 + 0.1 * sin(3. * xy.x)), 1000.);
-  float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5. * xy.x)), 500.);
+  float hill1Mask = sigmoid(xy.y, (0.25 + 0.1 * sin(3. * xy.x )), 1000.);
+  float hill2Mask = sigmoid(xy.y, (0.33 + 0.08 * cos(5. * xy.x)), 500.);
 
-  float yp = xy.y / yMax;
-  float dColor = (0.5 + 1.2 * (1. - yp*yp));
+  float dColor = (0.5 + 3.2 * (1. - xy.y * xy.y));
   vec3 color = vec3(0.025*dColor, 0., 0.075*dColor);
   color *= 0.2 + 0.8*hill2Mask;
   float hy = Hash11(0.141*gl_FragCoord.y);
@@ -131,7 +114,7 @@ void main(void) {
   float launchFactor = (launchDist - 1.) * 0.5;
 
   vec2 rand1 = Hash12(sfc*32.674 + startSeed);
-  vec2 center = vec2(0.2 + 0.6*rand1.x, 0.5-0.183*launchFactor+(0.35-0.1*launchFactor)*rand1.y);
+  vec2 center = vec2(0.2 + 0.6*rand1.x, 0.5-0.133*launchFactor+(0.35-0.1*launchFactor)*rand1.y);
 
   vec2 rand2 = Hash12(startSeed + 50. + 49. * sin(float(tCycle+1)*0.853));
   vec2 start = vec2(0.3 + 0.4 * rand2.x, 0.);
@@ -165,17 +148,17 @@ void main(void) {
 
   for (int i = 0; i < NUM_PARTICLES; i++) {
 
-    float size = sizeBase * mix(1., mix(1., tRamp * (1.1 + sin( t * float(i))), t*t), firework.sparkleScale);
+    float size = sizeBase * mix(1., tRamp * (1.5 + 1.5 * sin(t * float(i))), firework.sparkleScale);
 
     vec2 dir = RandDirection(
-      float(i+1) + sin(float(tCycle+1)),
+      float(i+1) + fract(0.17835497 *(float(tCycle+1))),
       firework.rMin,
       firework.rMax + RING_STEP*rAddOn,
       firework.rPow,
       nPetalsFinal,
       firework.rRound);
     dir.y *= firework.dirYScale;
-    dir.y -= (1. + firework.gravityScale*t*t)*GRAVITY * sizeBase * sizeBase * t;
+    dir.y -= (1. + firework.gravityScale*t*t*t)*GRAVITY * sizeBase * sizeBase * t;
 
     float tRate = log(1. + (firework.burstRate + 5. * float(idx == 3) * float(2 - int(rAddOn))) * t);
     float d = length(uv - dir * tRate);
