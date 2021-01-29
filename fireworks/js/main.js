@@ -5,6 +5,7 @@ const shaderFiles = [
 let shaderSources = {};
 
 let canvas;
+let canvasScale = 1;
 let cWidth;
 let cHeight;
 let screenResolution = new THREE.Vector2(0, 0);
@@ -28,6 +29,8 @@ let guiParams = {
   canvasScale: 1
 }
 
+let stats;
+
 
 $(document).ready(function() {
   loadFiles().then(main);
@@ -50,13 +53,14 @@ function main() {
   canvas = document.getElementById('canvas');
   $(window).resize(resize);
   initGUI();
+  initStats();
 
   restart();
 }
 
 
 function resize() {
-  let canvasScale = 0.5 ** (guiParams.canvasScale - 1);
+  canvasScale = 0.5 ** (guiParams.canvasScale - 1);
   cWidth = Math.floor(canvasScale * window.innerWidth);
   cHeight = Math.floor(canvasScale * window.innerHeight);
   screenInverseResolution.x = 1 / cWidth;
@@ -87,6 +91,18 @@ function restart() {
 function initGUI() {
   gui = new dat.GUI();
   gui.add(guiParams, 'canvasScale').min(1).max(4).step(1).onChange(resize);
+}
+
+
+function initStats() {
+  stats = new Stats();
+  stats.setMode(0);
+
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.left = '0';
+  stats.domElement.style.top = '0';
+
+  document.body.appendChild(stats.domElement);
 }
 
 
@@ -151,4 +167,5 @@ function update() {
 function render() {
   renderer.setSize(cWidth, cHeight);
   renderer.render(mainScene, mainCamera);
+  stats.update();
 }

@@ -125,7 +125,7 @@ void main(void) {
   float launchFactor = (launchDist - 1.) * 0.5;
 
   vec2 rand1 = Hash12(float(tCycle+1)*0.674);
-  vec2 center = vec2(0.2 + 0.6*rand1.x, 0.4-0.033*launchFactor+(0.27-0.15*launchFactor)*rand1.y);
+  vec2 center = vec2(0.2 + 0.6*rand1.x, 0.4-0.033*launchFactor+(0.4-0.15*launchFactor)*rand1.y);
 
   vec2 rand2 = Hash12(50. + 49. * sin(float(tCycle+1)*0.853));
   vec2 start = vec2(0.3 + 0.4 * rand2.x, 0.);
@@ -192,9 +192,9 @@ void main(void) {
   //color += (1. - hill1Mask) * 1.5 * vec3(1., 0.8, 0.)*starColor * float(abs(fract(-8.*xy.y) - fract(8.*xy.x*xy.x)) < 0.0002);
   //float dHouse1 = float(0.01+abs(fract(-8.*xy.y) - fract(8.*xy.x*xy.x)));
 
-  float hx = Hash11(833.3*gl_FragCoord.x);
+  float hx = Hash11(gl_FragCoord.x);
   float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hx+0.2)));
 
-  color += (1. - hill1Mask) * 1. * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.00007 / dHouse1);
+  color += (1. - hill1Mask) * 1.5 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.00002 / dHouse1);
   fragColor = vec4(color, 1.0);
 }
