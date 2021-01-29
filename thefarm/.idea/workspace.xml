@@ -19,21 +19,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/../starrynight/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../tileworld/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/catastrophi_tiles_16_blue.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/super-mario-nes-arrow-32px.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/super-mario-nes-arrow.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/super-mario-tiles.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample-32px.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample-32px.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/tilesets/tuxemon-sample.psd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../tileworld/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="8482dc74-61ed-436c-9ab0-2de4f1061521" name="Default" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -115,6 +101,7 @@
       <workItem from="1583114833628" duration="58000" />
       <workItem from="1600290074547" duration="30100000" />
       <workItem from="1604000451591" duration="31000" />
+      <workItem from="1611888602959" duration="42000" />
     </task>
     <servers />
   </component>
@@ -132,11 +119,5 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="776" y="1390" width="424" height="484" key="FileChooserDialogImpl" timestamp="1600404565500">
-      <screen x="0" y="1080" width="1920" height="1080" />
-    </state>
-    <state x="776" y="1390" width="424" height="484" key="FileChooserDialogImpl/0.1080.1920.1080/1248.0.1920.1080/1920.1080.1920.1080@0.1080.1920.1080" timestamp="1600404565500" />
   </component>
 </project>

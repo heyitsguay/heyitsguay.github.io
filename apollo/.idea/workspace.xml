@@ -2,21 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f452fff1-7c14-4840-b566-5792699e5868" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/jsLibraryMappings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/opticflow.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../opticflow/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../opticflow/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../opticflow/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../opticflow/style.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../fireworks/.oldcss/main.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../fireworks/.oldcss/normalize.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../platformer/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../tileworld/.idea/jsLibraryMappings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/.idea/jsLibraryMappings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../tileworld/.idea/tileworld.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/.idea/tileworld.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../tileworld/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../tileworld/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../tileworld/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../thefarm/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,18 +25,20 @@
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="JavaScriptWeakerCompletionTypeGuess" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.prettier" value="true" />
     <property name="node.js.path.for.package.prettier" value="project" />
     <property name="node.js.selected.package.prettier" value="" />
     <property name="settings.editor.selected.configurable" value="Settings.JavaScript" />
+    <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="ServiceViewManager">
     <option name="viewStates">
@@ -61,6 +52,7 @@
       </list>
     </option>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -84,10 +76,22 @@
       <workItem from="1579658862466" duration="1204000" />
       <workItem from="1584405266372" duration="634000" />
       <workItem from="1584467291787" duration="1264000" />
+      <workItem from="1611889421359" duration="2615000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
