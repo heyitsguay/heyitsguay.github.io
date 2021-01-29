@@ -110,7 +110,7 @@ void main(void) {
   float yp = xy.y / yMax;
   float dColor = (0.5 + 1.2 * (1. - yp*yp));
   vec3 color = vec3(0.025*dColor, 0., 0.075*dColor);
-  color *= 0.1 + 0.9*hill2Mask;
+  color *= 0.2 + 0.8*hill2Mask;
   float hy = Hash11(0.141*gl_FragCoord.y);
   float starColor = 0.2 + 0.7 * pow(Hash11(gl_FragCoord.x + 18.2*hy), 3.);
   color += 0.66 * hill2Mask * starColor * float(fract(31.163*xy.x*(hy+0.2)) < 0.02 && fract(51.853 * xy.y * starColor) < 0.02);

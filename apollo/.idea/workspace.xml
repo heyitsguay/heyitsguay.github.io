@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f452fff1-7c14-4840-b566-5792699e5868" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/../fireworks/.oldcss/main.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../fireworks/.oldcss/normalize.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../thefarm/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../thefarm/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fireworks/glsl/quad.frag" beforeDir="false" afterPath="$PROJECT_DIR$/../fireworks/glsl/quad.frag" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,6 +74,7 @@
       <workItem from="1584405266372" duration="634000" />
       <workItem from="1584467291787" duration="1264000" />
       <workItem from="1611889421359" duration="2615000" />
+      <workItem from="1611896277807" duration="335000" />
     </task>
     <servers />
   </component>
@@ -93,5 +91,6 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
 </project>
