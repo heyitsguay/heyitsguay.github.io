@@ -9,6 +9,7 @@ precision mediump float;
 #define T_SPEED 0.2
 #define FIREWORK_SCALE 15.
 #define GRAVITY 0.33
+#define RING_STEP 0.5
 
 #define R_MIN 5.
 #define R_MAX 15.
@@ -37,8 +38,10 @@ const Firework fireworks[4] = Firework[4](
   Firework(0., 0.1, 1., 1., 1., 1., 0., 1., 0., 0., 25.),
   Firework(1., 0.01, 1., 3., 0.3, 1., 0., 1., 0., 0., 25.),
   Firework(0.5, 0.3, 0.6, 1., 1., 1., 1., 2., 4., 0., 22.),
-  Firework(1., 1., 1.8, 4., 1., 1., 0.5, 0.2, 0., 1., 6.)
+  Firework(1., 1. * RING_STEP, 1.5 * RING_STEP, 4., 1., 0.6, 0.5, 0.2, 0., 1., 6.)
 );
+
+const float iRingStep = 1. / RING_STEP;
 
 float Hash11(float t) {
   return fract(sin(t*34.1674));
@@ -79,7 +82,7 @@ vec2 Rand2(vec2 t) {
 vec2 RandDirection(float seed, float rMin, float rMax, float rPow, float nPetals, float round) {
   vec3 xyt = Hash13(seed);
   float r = mix(rMin, rMax, (pow(xyt.x, rPow)));
-  r = mix(r, float(int(r)), round);
+  r = mix(r, float(int(r * iRingStep)) * RING_STEP, round);
   float theta = 2. * PI * (xyt.y + xyt.z);
   r *= mix(1., 1.+ cos(nPetals*theta), nPetals > 0.);
   return vec2(r*cos(theta), r*sin(theta));
@@ -96,7 +99,8 @@ vec3 hsv2rgb(vec3 c)
 out vec4 fragColor;
 void main(void) {
 
-  int tCycle = int(mod(T_SPEED * 0.8 * time, 999999.));
+  int tCycle = int(mod(T_SPEED * 0.8 * time, 99999.));
+  float sfc = sin(float(tCycle + 1));
   float u = fract(T_SPEED*0.8*time);
 
   float mx = max(resolution.x, resolution.y);
@@ -119,15 +123,15 @@ void main(void) {
 
   float dHouse2 = 0.1 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hy+0.2)));
   color += max(vec3(0),(1. - hill2Mask) * 0.4 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.003 / dHouse2));
-  vec3 hsf = Hash13(float(tCycle + 1));
+  vec3 hsf = Hash13(startSeed + 48.7132 * sfc);
   float h = hsf.x;
   float s = 0.3 + 0.7 * hsf.y;
   float launchDist = (1. + 2. * hsf.z*hsf.z*hsf.z);
   float finalScale = launchDist * FIREWORK_SCALE;
   float launchFactor = (launchDist - 1.) * 0.5;
 
-  vec2 rand1 = Hash12(float(tCycle+1)*0.674 + startSeed);
-  vec2 center = vec2(0.2 + 0.6*rand1.x, 0.4-0.033*launchFactor+(0.4-0.15*launchFactor)*rand1.y);
+  vec2 rand1 = Hash12(sfc*32.674 + startSeed);
+  vec2 center = vec2(0.2 + 0.6*rand1.x, 0.5-0.183*launchFactor+(0.35-0.1*launchFactor)*rand1.y);
 
   vec2 rand2 = Hash12(startSeed + 50. + 49. * sin(float(tCycle+1)*0.853));
   vec2 start = vec2(0.3 + 0.4 * rand2.x, 0.);
@@ -152,7 +156,7 @@ void main(void) {
   float tRamp = min(1., 10. * (1. - t));
   vec3 cBase = hsv2rgb(vec3(h, s, tRamp));
 
-  vec2 mn = Hash12(float(tCycle + 1) * 31.49);
+  vec2 mn = Hash12(startSeed + float(tCycle + 1) * 31.49);
   float sizeBase = 0.2 + 0.8 * mn.x;
 
   float rAddOn = float(idx == 3) * mn.y * 2.;
@@ -166,7 +170,7 @@ void main(void) {
     vec2 dir = RandDirection(
       float(i+1) + sin(float(tCycle+1)),
       firework.rMin,
-      firework.rMax + rAddOn,
+      firework.rMax + RING_STEP*rAddOn,
       firework.rPow,
       firework.nPetals,
       firework.rRound);
