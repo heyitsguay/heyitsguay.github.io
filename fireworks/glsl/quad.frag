@@ -5,14 +5,12 @@ precision highp float;
 precision mediump float;
 #endif
 
-#define NUM_PARTICLES 200
+#define NUM_PARTICLES 200.
 #define T_SPEED 0.2
 #define FIREWORK_SCALE 15.
 #define GRAVITY 0.33
 #define RING_STEP 0.5
 
-#define R_MIN 5.
-#define R_MAX 15.
 #define TWOPI 6.28318530718
 
 uniform float time;
@@ -106,7 +104,7 @@ void main(void) {
   float starFlicker = (0.85 + 0.15 * cos(6. * time + 7.9 * hy));
   color += 0.66 * hill2Mask * starColor * starFlicker * float(fract(31.163*xy.x*(hy+0.2)) < 0.02 && fract(51.853 * xy.y * starColor) < 0.02);
 
-  float dHouse2 = 0.1 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hy+0.2)));
+  float dHouse2 = 0.1 + 0.5*float(fract(31.163*xy.x*starColor) + sin(0.0001 * time + 51.853 * xy.y * (hy+0.2)));
   color += max(vec3(0),(1. - hill2Mask) * 0.4 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.003 / dHouse2));
   vec3 hsf = Hash13(startSeed + 48.7132 * sfc);
   float h = hsf.x;
@@ -148,12 +146,12 @@ void main(void) {
 
   float nPetalsFinal = firework.nPetals + float(firework.nPetals > 0.) * round(3. * mn.y);
 
-  for (int i = 0; i < NUM_PARTICLES; i++) {
+  for (float i = 0.; i < NUM_PARTICLES; i++) {
 
-    float size = sizeBase * mix(1., tRamp * (1.5 + 1.5 * sin(t * float(i))), firework.sparkleScale);
+    float size = sizeBase * mix(1., tRamp * (1.5 + 1.5 * sin(t * i)), firework.sparkleScale);
 
     vec2 dir = RandDirection(
-      float(i+1) + fract(0.17835497 *(float(tCycle+1))),
+      i + fract(0.17835497 *(float(tCycle+1))),
       firework.rMin,
       firework.rMax + RING_STEP*rAddOn,
       firework.rPow,
@@ -170,12 +168,12 @@ void main(void) {
     float t6 = t3*t3;
     float t24 = t6*t6*t6*t6;
 
-    float brightness = 0.25* bump + sqrt(size)*firework.brightnessScale*0.0013/(1.+ 9. * t24);
-    float hNew = mod(float(i)*0.12, 1.);
+    float brightness = sqrt(size)*firework.brightnessScale*0.0013/(1.+ 9. * t24);
+    float hNew = mod(i*0.1618033988, 1.);
     vec3 cNew = hsv2rgb(vec3(hNew, s, tRamp));
     vec3 particleColor = mix(cBase, cNew, firework.colorShift);
     float ds = d + 0.004;
-    color += hill1Mask *  (0.75*bump + brightness * particleColor) / (ds*ds);
+    color += hill1Mask *  (bump + brightness * particleColor) / (ds*ds);
   }
   }
   color *= 0.75 + 0.25*hill2Mask;
@@ -184,9 +182,9 @@ void main(void) {
   //color += (1. - hill1Mask) * 1.5 * vec3(1., 0.8, 0.)*starColor * float(abs(fract(-8.*xy.y) - fract(8.*xy.x*xy.x)) < 0.0002);
   //float dHouse1 = float(0.01+abs(fract(-8.*xy.y) - fract(8.*xy.x*xy.x)));
 
-  float hx = Hash11(gl_FragCoord.x);
-  float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hx+0.2)));
-
-  color += (1. - hill1Mask) * 1.5 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.00002 / dHouse1);
+//  float hx = Hash11(gl_FragCoord.x);
+//  float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + fract(0.853 * xy.y * (hx+0.2)));
+//
+//  color += (1. - hill1Mask) * 1.5 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.00002 / dHouse1);
   fragColor = vec4(color, 1.0);
 }
