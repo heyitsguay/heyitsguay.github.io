@@ -66,7 +66,7 @@ vec2 RandDirection(float seed, float rMin, float rMax, float rPow, float nPetals
   float rScale = xyt.x * (1. - rPow) + xyt.x * xyt.x * xyt.x;
   float r = mix(rMin, rMax, rScale);
 //  float r = mix(rMin, rMax, pow(xyt.x, rPow));
-  r = mix(r, float(int((r * iRingStep))) * RING_STEP, doRound);
+  r = mix(r, float(int(r * iRingStep)) * RING_STEP, doRound);
   float theta = TWOPI * (xyt.y + xyt.z);
   r *= mix(1., 1.+ cos(nPetals*theta), nPetals > 0.);
   return vec2(r*cos(theta), r*sin(theta));
@@ -183,8 +183,9 @@ void main(void) {
   //float dHouse1 = float(0.01+abs(fract(-8.*xy.y) - fract(8.*xy.x*xy.x)));
 
 //  float hx = Hash11(gl_FragCoord.x);
-//  float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + fract(0.853 * xy.y * (hx+0.2)));
+//  float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hx+0.2)));
 //
 //  color += (1. - hill1Mask) * 1.5 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.00002 / dHouse1);
+  color += (1. - hill1Mask) * vec3(0.15, 0.33, 0) * (0.25 - gl_FragCoord.y * iResolution.y);
   fragColor = vec4(color, 1.0);
 }
