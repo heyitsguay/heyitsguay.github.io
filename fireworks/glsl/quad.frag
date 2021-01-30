@@ -186,6 +186,6 @@ void main(void) {
 //  float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hx+0.2)));
 //
 //  color += (1. - hill1Mask) * 1.5 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.00002 / dHouse1);
-  color += (1. - hill1Mask) * vec3(0.15, 0.33, 0) * (0.25 - gl_FragCoord.y * iResolution.y);
+  color += (1. - hill1Mask) * vec3(0.15, 0.33, 0) * max(0., 0.25 - gl_FragCoord.y * iResolution.y);
   fragColor = vec4(color, 1.0);
 }
