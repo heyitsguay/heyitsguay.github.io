@@ -22,7 +22,8 @@ let mainUniforms = {
   time: {value: 0},
   resolution: {value: screenResolution},
   iResolution: {value: screenInverseResolution},
-  startSeed: {value: 0}
+  startSeed: {value: 0},
+  numParticles: {value: 200}
 };
 
 let gui;
@@ -202,6 +203,7 @@ function update() {
   mainUniforms.time.value = elapsedTime;
   mainUniforms.resolution.value = screenResolution;
   mainUniforms.iResolution.value = screenInverseResolution;
+  mainUniforms.numParticles.value = 200;
 }
 
 

@@ -17,6 +17,7 @@ uniform float time;
 uniform vec2 resolution;
 uniform vec2 iResolution;
 uniform float startSeed;
+uniform float numParticles;
 
 struct Firework {
   float sparkleScale;
@@ -83,8 +84,7 @@ vec3 hsv2rgb(vec3 c)
 out vec4 fragColor;
 void main(void) {
   float tt = T_SPEED * 0.8 * time;
-  int tCycle = int(mod(tt, 99999.));
-  float sfc = sin(float(tCycle + 1));
+  float tCycle = 1. + floor(mod(tt, 99999.));
   float u = fract(tt);
 
   float mx = max(resolution.x, resolution.y);
@@ -107,17 +107,17 @@ void main(void) {
 
   float dHouse2 = 0.1 + 0.5*float(fract(31.163*xy.x*starColor) + sin(0.0001 * time + 51.853 * xy.y * (hy+0.2)));
   color += max(vec3(0),(1. - hill2Mask) * 0.4 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.003 / dHouse2));
-  vec3 hsf = Hash13(startSeed + 48.7132 * sfc);
+  vec3 hsf = Hash13(startSeed + 0.7132 * tCycle);
   float h = hsf.x;
   float s = 0.3 + 0.7 * hsf.y;
   float launchDist = (1. + 2. * hsf.z*hsf.z*hsf.z);
   float finalScale = launchDist * FIREWORK_SCALE;
   float launchFactor = (launchDist - 1.) * 0.5;
 
-  vec2 rand1 = Hash12(sfc*32.674 + startSeed);
+  vec2 rand1 = Hash12(tCycle * 1.674 + startSeed);
   vec2 center = vec2(0.2 + 0.6*rand1.x, 0.5-0.133*launchFactor+(0.35-0.1*launchFactor)*rand1.y);
 
-  vec2 rand2 = Hash12(startSeed + 50. + 49. * sin(float(tCycle+1)*0.853));
+  vec2 rand2 = Hash12(startSeed + 0.85358 * tCycle);
   vec2 start = vec2(0.3 + 0.4 * rand2.x, 0.);
 
   if (u < 0.2) {
@@ -132,7 +132,7 @@ void main(void) {
 
   float t = 1.25 * (u-0.2);
 
-  int idx = int(4. * Hash11(startSeed + float(tCycle+15)));
+  int idx = int(4. * Hash11(startSeed + tCycle * 0.1185));
   Firework firework = fireworks[idx];
 
   vec2 uv = finalScale * (gl_FragCoord.xy-center*resolution) * imx ;
@@ -140,19 +140,19 @@ void main(void) {
   float tRamp = min(1., 10. * (1. - t));
   vec3 cBase = hsv2rgb(vec3(h, s, tRamp));
 
-  vec2 mn = Hash12(startSeed + float(tCycle + 1) * 3.149);
+  vec2 mn = Hash12(startSeed + tCycle * 3.149);
   float sizeBase = 0.2 + 0.8 * mn.x;
 
   float rAddOn = float(idx == 3) * mn.y * 2.;
 
   float nPetalsFinal = firework.nPetals + float(firework.nPetals > 0.) * round(3. * mn.y);
 
-  for (float i = 0.; i < NUM_PARTICLES; i++) {
+  for (float i = 0.; i < numParticles; i++) {
 
     float size = sizeBase * mix(1., tRamp * (1.5 + 1.5 * sin(t * i)), firework.sparkleScale);
 
     vec2 dir = RandDirection(
-      i + fract(0.17835497 *(float(tCycle+1))),
+      i + fract(0.17835497 * tCycle),
       firework.rMin,
       firework.rMax + RING_STEP*rAddOn,
       firework.rPow,
