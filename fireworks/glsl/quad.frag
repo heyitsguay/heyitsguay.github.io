@@ -5,7 +5,7 @@ precision highp float;
 precision mediump float;
 #endif
 
-#define NUM_PARTICLES 200.
+#define NUM_PARTICLES 120.
 #define T_SPEED 0.2
 #define FIREWORK_SCALE 15.
 #define GRAVITY 0.33
@@ -18,6 +18,7 @@ uniform vec2 resolution;
 uniform vec2 iResolution;
 uniform float startSeed;
 uniform float numParticles;
+uniform float skyGlow;
 
 struct Firework {
   float sparkleScale;
@@ -87,17 +88,15 @@ void main(void) {
   float tCycle = 1. + floor(mod(tt, 99999.));
   float u = fract(tt);
 
-  float mx = max(resolution.x, resolution.y);
   float imx = min(iResolution.x, iResolution.y);
   vec2 xy = gl_FragCoord.xy * imx;
   float yMax = resolution.y * imx;
-  float s3x = sin(3. * xy.x);
 
-  float hill1Mask = sigmoid(xy.y, yMax * (0.25 + 0.1 * s3x), 150.);
+  float hill1Mask = sigmoid(xy.y, yMax * (0.25 + 0.1 * sin(3. * xy.x)), 150.);
   float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5. * xy.x)), 50.);
 
   float yp = gl_FragCoord.y * iResolution.y;
-  float dColor = (0.5 + 1.2 * (1. - yp * yp));
+  float dColor = (0.25 + skyGlow * (1. - yp * yp));
   vec3 color = vec3(0.025*dColor, 0., 0.075*dColor);
   color *= 0.2 + 0.8*hill2Mask;
   float hy = Hash11(0.141*gl_FragCoord.y);

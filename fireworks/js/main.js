@@ -4,6 +4,20 @@ const shaderFiles = [
 ];
 let shaderSources = {};
 
+let gui;
+let guiParams = {
+  quality: 0.75,
+  numParticles: 200,
+  skyGlow: 2,
+  resetOptions: function() {
+    guiParams.quality = 0.75;
+    guiParams.numParticles = 200;
+    guiParams.skyGlow = 2;
+    resize();
+  }
+}
+
+
 let canvas;
 let canvasScale = 1;
 let cWidth;
@@ -23,13 +37,12 @@ let mainUniforms = {
   resolution: {value: screenResolution},
   iResolution: {value: screenInverseResolution},
   startSeed: {value: 0},
-  numParticles: {value: 200}
+  numParticles: {value: guiParams.numParticles},
+  skyGlow: {value: guiParams.skyGlow}
 };
 
-let gui;
-let guiParams = {
-  quality: 1
-}
+
+
 
 let stats;
 let showingStats = true;
@@ -79,9 +92,10 @@ function main() {
 
 
 function handleKeys(e) {
-  switch (e.keyCode) {
-    case 32:
+  switch (e.key) {
+    case ' ':
       toggleHide();
+      break;
   }
 }
 
@@ -127,12 +141,16 @@ function restart() {
   animate();
 }
 
-
+let fPerf;
 function initGUI() {
   gui = new dat.GUI();
-  let fTitle = gui.addFolder('To hide: press space or double tap')
-  fTitle.add(guiParams, 'quality', {'Best': 1, 'High': 0.75, 'Medium': 0.5, 'Low': 0.3}).onChange(resize);
-  fTitle.open();
+  let fTitle = gui.addFolder('To hide: press space or double tap');
+  fPerf = gui.addFolder('Options');
+  fPerf.add(guiParams, 'quality', {'Best': 1, 'High': 0.75, 'Medium': 0.5, 'Low': 0.3}).onChange(resize).listen();
+  fPerf.add(guiParams, 'numParticles').min(10).max(300).step(10).listen();
+  fPerf.add(guiParams, 'skyGlow').min(0).max(5).step(0.1).listen();
+  fPerf.add(guiParams, 'resetOptions');
+  fPerf.open();
 }
 
 
@@ -203,7 +221,8 @@ function update() {
   mainUniforms.time.value = elapsedTime;
   mainUniforms.resolution.value = screenResolution;
   mainUniforms.iResolution.value = screenInverseResolution;
-  mainUniforms.numParticles.value = 200;
+  mainUniforms.numParticles.value = guiParams.numParticles;
+  mainUniforms.skyGlow.value = guiParams.skyGlow;
 }
 
 
