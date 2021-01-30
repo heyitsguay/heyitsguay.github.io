@@ -187,6 +187,11 @@ void main(void) {
 //  float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hx+0.2)));
 //
 //  color += (1. - hill1Mask) * 1.5 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.00002 / dHouse1);
-  color += (1. - hill1Mask) * vec3(0.005, 0.035, 0);
+  #ifdef GL_FRAGMENT_PRECISION_HIGH
+  color += (1. - hill1Mask) * vec3(0.010, 0.07, 0) * (1. - 4. * gl_FragCoord.y * iResolution.y);
+  #else
+  color += (1. - hill1Mask) * vec3(0.075, 0.044, 0);
+  #endif
+
   fragColor = vec4(color, 1.0);
 }
