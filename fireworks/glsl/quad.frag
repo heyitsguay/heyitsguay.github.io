@@ -97,7 +97,7 @@ void main(void) {
   vec2 xy = gl_FragCoord.xy * imx;
   float yMax = resolution.y * imx;
 
-  float hill1Mask = sigmoid(xy.y, yMax * (0.25 + 0.1 * sin(3. * xy.x)), 150.);
+  float hill1Mask = sigmoid(xy.y, yMax * (0.25 + 0.1 * sin(1. * xy.x)), 150.);
   float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5. * xy.x)), 50.);
 
   float yp = gl_FragCoord.y * iResolution.y;
@@ -190,6 +190,7 @@ void main(void) {
   float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hy+0.2)));
 
 //  color += (1. - hill1Mask) * frontHillGlow * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.) * frontHillDensity  / dHouse2);
-  color += (1. - hill1Mask) * 0.5 * (0.5 - 1.5 * length(xy - vec2(0.5, -0.1))) * vec3(0.1, 0.4, 0);
+//  color += (1. - hill1Mask) * 0.5 * (0.5 - 1.5 * length(xy - vec2(0.5, -0.1))) * vec3(0.1, 0.4, 0);
+  color += (1. - hill1Mask) * vec3(0.006, 0.025, 0.);
   fragColor = vec4(color, 1.0);
 }
