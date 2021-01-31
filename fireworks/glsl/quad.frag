@@ -26,8 +26,6 @@ uniform float backHillGlow;
 uniform float starGlow;
 uniform float cityGlow;
 
-uniform vec2 inverseResolution = 1. / resolution;
-
 struct Firework {
   float sparkleScale;
   float rMin;
