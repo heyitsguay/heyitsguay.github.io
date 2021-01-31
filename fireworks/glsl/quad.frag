@@ -26,6 +26,8 @@ uniform float backHillGlow;
 uniform float starGlow;
 uniform float cityGlow;
 
+uniform vec2 inverseResolution = 1. / resolution;
+
 struct Firework {
   float sparkleScale;
   float rMin;
@@ -97,7 +99,7 @@ void main(void) {
 
   float sx = sin(xy.x);
   float hill1Mask = sigmoid(xy.y, yMax * (0.21 + 0.1 * sx), 150.);
-  float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5.5 * min(xy.x, 0.7))), 50.);
+  float hill2Mask = sigmoid(yMax * xy.y, (0.33 + 0.08 * cos(5.5 * min(xy.x, 0.7))), 50.);
 
   float yp = gl_FragCoord.y * iResolution.y;
   float dColor = (0.25 + skyGlow * (1. - yp * yp));
