@@ -70,29 +70,15 @@ vec3 Hash13(float t) {
 
 vec2 RandDirection(float seed, float rMin, float rMax, float rPow, float nPetals, float doRound) {
   vec3 xyt = Hash13(seed);
-  float rScale = xyt.x * (1. - rPow) + xyt.x * xyt.x * xyt.x;
+  float rScale = xyt.x * (1. - rPow) + xyt.x * xyt.x * rPow;
   float r = mix(rMin, rMax, rScale);
-//  float r = mix(rMin, rMax, pow(xyt.x, rPow));
   r = mix(r, float(int(r * iRingStep)) * RING_STEP, doRound);
   float theta = TWOPI * (xyt.y + xyt.z);
   r *= mix(1., 1.+ cos(nPetals*theta), nPetals > 0.);
   return vec2(r*cos(theta), r*sin(theta));
 }
 
-//vec3 RandDirection(float seed, float rMin, float rMax, float rPow, float nPetals, float doRound) {
-//  vec3 xyt = Hash13(seed);
-//  float rScale = xyt.x * (1. - rPow) + xyt.x * xyt.x * xyt.x;
-//  float r = mix(rMin, rMax, rScale);
-//  //  float r = mix(rMin, rMax, pow(xyt.x, rPow));
-//  r = mix(r, float(int(r * iRingStep)) * RING_STEP, doRound);
-//  float theta = TWOPI * (xyt.y + xyt.z);
-//  r *= mix(1., 1.+ cos(nPetals*theta), nPetals > 0.);
-//  return vec3(r*cos(theta), r*sin(theta), xyt.z);
-//}
-
-// All components are in the range [01], including hue.
-vec3 hsv2rgb(vec3 c)
-{
+vec3 hsv2rgb(vec3 c) {
     const vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
@@ -116,9 +102,10 @@ void main(void) {
   vec3 color = vec3(0.025*dColor, 0., 0.075*dColor);
   color *= 0.2 + 0.8*hill2Mask;
   float hy = Hash11(0.141*gl_FragCoord.y);
-  float starColor = 0.2 + 0.7 * pow(Hash11(gl_FragCoord.x + 18.2*hy), 3.);
+  float starFactor = Hash11(gl_FragCoord.x + 18.2*hy);
+  float starColor = 0.2 + 0.7 * starFactor * starFactor * starFactor;
   float starFlicker = (0.85 + 0.15 * cos(6. * time + 7.9 * hy));
-  color += starGlow * hill2Mask * starColor * starFlicker * float(fract(31.163*xy.x*(hy+0.2)) < 0.02 && fract(51.853 * xy.y * starColor) < 0.02);
+  color += starGlow * hill2Mask * starColor * starFlicker * float(fract(31.163*xy.x*(hy+0.1)) < 0.02 && fract(51.853 * xy.y * starColor) < 0.02);
 
   float dHouse2 = 0.1 + 0.5*float(fract(31.163*xy.x*starColor) + sin(0.0001 * time + 51.853 * xy.y * (hy+0.2)));
   color += max(vec3(0),(1. - hill2Mask) * backHillGlow * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* backHillDensity / dHouse2));
@@ -129,10 +116,8 @@ void main(void) {
   float finalScale = launchDist * FIREWORK_SCALE;
   float launchFactor = (launchDist - 1.) * 0.5;
 
-  vec3 rand1 = Hash13(0.1 * tCycle * 1.674 + startSeed);
+  vec3 rand1 = Hash13(0.131 * tCycle * 1.674 + startSeed);
   vec2 center = vec2(0.2 + 0.6*rand1.x, 0.5-0.133*launchFactor+(0.35-0.1*launchFactor)*rand1.y);
-
-//  vec2 rand2 = Hash12(startSeed + 0.85358 * tCycle);
   vec2 start = vec2(0.3 + 0.4 * rand1.z, 0.);
 
   if (u < 0.2) {
@@ -147,7 +132,9 @@ void main(void) {
 
   float t = 1.25 * (u-0.2);
 
-  int idx = int(4. * Hash11(startSeed + tCycle * 0.1185));
+  vec3 rand2 = Hash13(startSeed + tCycle * 0.1185);
+
+  int idx = int(4. * rand2.x);
   Firework firework = fireworks[idx];
 
   vec2 uv = finalScale * (gl_FragCoord.xy-center*resolution) * imx ;
@@ -155,12 +142,11 @@ void main(void) {
   float tRamp = min(1., 10. * (1. - t));
   vec3 cBase = hsv2rgb(vec3(h, s, tRamp));
 
-  vec2 mn = Hash12(startSeed + tCycle * 3.149);
-  float sizeBase = 0.2 + 0.8 * mn.x;
+  float sizeBase = 0.2 + 0.8 * rand2.y;
 
-  float rAddOn = float(idx == 3) * mn.y * 2.;
+  float rAddOn = float(idx == 3) * rand2.z * 2.;
 
-  float nPetalsFinal = firework.nPetals + float(firework.nPetals > 0.) * round(3. * mn.y);
+  float nPetalsFinal = firework.nPetals + float(firework.nPetals > 0.) * round(3. * rand2.z);
 
   for (float i = 0.; i < numParticles; i++) {
 
@@ -176,7 +162,7 @@ void main(void) {
     dir.y *= firework.dirYScale;
     dir.y -= (1. + firework.gravityScale*t*t*t)*GRAVITY * sizeBase * sizeBase * t;
 
-    float tRate = log(1. + (firework.burstRate + 5. * float(idx == 3) * float(2 - int(rAddOn))) * t);
+    float tRate = 0.916291 + log(0.4 + (firework.burstRate + 5. * float(idx == 3) * float(2 - int(rAddOn))) * t);
 
     float at = abs(t - 0.015);
     float bump = 0.012 / (1. + 40000. * at*at);
