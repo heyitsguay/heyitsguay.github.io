@@ -14,6 +14,7 @@ let guiParams = {
   backHillDensity: 0,
   backHillGlow: 0.4,
   starGlow: 0.65,
+  cityGlow: 0.8,
   resetOptions: function() {
     guiParams.quality = 0.75;
     guiParams.numParticles = 200;
@@ -23,6 +24,7 @@ let guiParams = {
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 0.4;
     guiParams.starGlow = 0.65;
+    guiParams.cityGlow = 0.8;
     resize();
   }
 }
@@ -52,10 +54,9 @@ let mainUniforms = {
   frontHillGlow: {value: guiParams.frontHillGlow},
   backHillDensity: {value: 0.003 * 1.2**guiParams.backHillDensity},
   backHillGlow: {value: guiParams.backHillGlow},
-  starGlow: {value: guiParams.starGlow}
+  starGlow: {value: guiParams.starGlow},
+  cityGlow: {value: guiParams.cityGlow}
 };
-
-
 
 
 let stats;
@@ -170,6 +171,7 @@ function initGUI() {
   fBright.add(guiParams, 'backHillDensity').min(-7).max(7).step(1).listen();
   fBright.add(guiParams, 'backHillGlow').min(0).max(3).step(0.05).listen();
   fBright.add(guiParams, 'starGlow').min(0).max(3).step(0.05).listen();
+  fBright.add(guiParams, 'cityGlow').min(0).max(2).step(0.1).listen();
   gui.add(guiParams, 'resetOptions');
 }
 function applyPreset() {
@@ -179,12 +181,14 @@ function applyPreset() {
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 0.4;
     guiParams.starGlow = 0.65;
+    guiParams.cityGlow = 0.8;
   } else {
     guiParams.skyGlow = 4.5;
     guiParams.frontHillGlow = 1.85;
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 1.;
     guiParams.starGlow = 1.2;
+    guiParams.cityGlow = 1.1;
   }
 }
 
@@ -262,6 +266,7 @@ function update() {
   mainUniforms.backHillDensity.value = 0.003 * 1.2**guiParams.backHillDensity;
   mainUniforms.backHillGlow.value = guiParams.backHillGlow;
   mainUniforms.starGlow.value = guiParams.starGlow;
+  mainUniforms.cityGlow.value = guiParams.cityGlow;
 }
 
 
