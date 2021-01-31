@@ -118,11 +118,11 @@ void main(void) {
   float finalScale = launchDist * FIREWORK_SCALE;
   float launchFactor = (launchDist - 1.) * 0.5;
 
-  vec2 rand1 = Hash12(tCycle * 1.674 + startSeed);
+  vec3 rand1 = Hash13(0.1 * tCycle * 1.674 + startSeed);
   vec2 center = vec2(0.2 + 0.6*rand1.x, 0.5-0.133*launchFactor+(0.35-0.1*launchFactor)*rand1.y);
 
-  vec2 rand2 = Hash12(startSeed + 0.85358 * tCycle);
-  vec2 start = vec2(0.3 + 0.4 * rand2.x, 0.);
+//  vec2 rand2 = Hash12(startSeed + 0.85358 * tCycle);
+  vec2 start = vec2(0.3 + 0.4 * rand1.z, 0.);
 
   if (u < 0.2) {
     float t = 5. * u;
