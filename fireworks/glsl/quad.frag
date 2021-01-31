@@ -195,7 +195,7 @@ void main(void) {
 //  color += (1. - hill1Mask) * frontHillGlow * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.) * frontHillDensity  / dHouse2);
 //  color += (1. - hill1Mask) * 0.5 * (0.5 - 1.5 * length(xy - vec2(0.5, -0.1))) * vec3(0.1, 0.4, 0);
   color += (1. - hill1Mask) * frontHillGlow * vec3(0.008, 0.06, 0) * (1. - 4. * yn - 0.3 * sxn);
-  color += hill1Mask * cityGlow * max(0., (1. - 3.9 * yn + 0.25 * sin(xy.x))) * vec3(1., 0.7, 0.);
+  color += hill1Mask * cityGlow * max(0., (1. - 3.9 * yn + 0.25 * sxn)) * vec3(1., 0.7, 0.);
 
   fragColor = vec4(color, 1.0);
 }
