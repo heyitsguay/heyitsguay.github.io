@@ -100,7 +100,7 @@ void main(void) {
 
   float sxn = sin(xn);
 
-  float hill1Mask = sigmoid(yn, (0.21 + 0.1 * sin(xy.x)), 150.);
+  float hill1Mask = sigmoid(yn, (0.21 + 0.1 * sxn), 150.);
   float hill2Mask = sigmoid(yn, (0.33 + 0.08 * cos(6. * min(xy.x, 0.5))), 50.);
 
 
