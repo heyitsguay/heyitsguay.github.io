@@ -191,6 +191,6 @@ void main(void) {
 
 //  color += (1. - hill1Mask) * frontHillGlow * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.) * frontHillDensity  / dHouse2);
 //  color += (1. - hill1Mask) * 0.5 * (0.5 - 1.5 * length(xy - vec2(0.5, -0.1))) * vec3(0.1, 0.4, 0);
-  color += (1. - hill1Mask) * vec3(0.006, 0.025, 0.);
+  color += (1. - hill1Mask) * vec3(0.006, 0.015, 0.006);
   fragColor = vec4(color, 1.0);
 }
