@@ -167,7 +167,7 @@ function initGUI() {
   fPerf.add(guiParams, 'numParticles').min(10).max(300).step(10).listen();
   fPerf.open();
   fBright = gui.addFolder('Scene Brightness');
-  fBright.add(guiParams, 'preset', {'Night': 1, 'Day': 2}).onChange(applyPreset).listen();
+  fBright.add(guiParams, 'preset', {'Low': 1, 'High': 2}).onChange(applyPreset).listen();
   fBright.add(guiParams, 'skyGlow').min(0).max(5).step(0.1).listen();
   fBright.add(guiParams, 'frontHillDensity').min(-7).max(7).step(1).listen();
   fBright.add(guiParams, 'frontHillGlow').min(0).max(3).step(0.05).listen();
