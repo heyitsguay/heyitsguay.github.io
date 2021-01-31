@@ -19,7 +19,7 @@ uniform vec2 iResolution;
 uniform float startSeed;
 uniform float numParticles;
 uniform float skyGlow;
-uniform float frontHillDensity;
+//uniform float frontHillDensity;
 uniform float frontHillGlow;
 uniform float backHillDensity;
 uniform float backHillGlow;
@@ -98,7 +98,7 @@ void main(void) {
   float yMax = resolution.y * imx;
 
   float hill1Mask = sigmoid(xy.y, yMax * (0.21 + 0.1 * sin(1. * xy.x)), 150.);
-  float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5. * min(xy.x, 0.7))), 50.);
+  float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5.5 * min(xy.x, 0.7))), 50.);
 
   float yp = gl_FragCoord.y * iResolution.y;
   float dColor = (0.25 + skyGlow * (1. - yp * yp));
@@ -187,10 +187,10 @@ void main(void) {
   //color += (1. - hill1Mask) * 1.5 * vec3(1., 0.8, 0.)*starColor * float(abs(fract(-8.*xy.y) - fract(8.*xy.x*xy.x)) < 0.0002);
   //float dHouse1 = float(0.01+abs(fract(-8.*xy.y) - fract(8.*xy.x*xy.x)));
 
-  float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hy+0.2)));
+//  float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hy+0.2)));
 
 //  color += (1. - hill1Mask) * frontHillGlow * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.) * frontHillDensity  / dHouse2);
 //  color += (1. - hill1Mask) * 0.5 * (0.5 - 1.5 * length(xy - vec2(0.5, -0.1))) * vec3(0.1, 0.4, 0);
-  color += (1. - hill1Mask) * vec3(0.006, 0.015, 0.006);
+  color += (1. - hill1Mask) * frontHillGlow * vec3(0.006, 0.02, 0);
   fragColor = vec4(color, 1.0);
 }

@@ -8,20 +8,18 @@ let gui;
 let guiParams = {
   quality: 0.75,
   numParticles: 200,
-  preset: 1,
+  brightnessPreset: 1,
   skyGlow: 2,
-  frontHillDensity: 0,
-  frontHillGlow: 1.5,
+  frontHillGlow: 1.,
   backHillDensity: 0,
   backHillGlow: 0.4,
   starGlow: 0.65,
   resetOptions: function() {
     guiParams.quality = 0.75;
     guiParams.numParticles = 200;
-    guiParams.preset = 1;
+    guiParams.brightnessPreset = 1;
     guiParams.skyGlow = 2;
-    guiParams.frontHillDensity = 0;
-    guiParams.frontHillGlow = 1.5;
+    guiParams.frontHillGlow = 1.;
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 0.4;
     guiParams.starGlow = 0.65;
@@ -51,7 +49,6 @@ let mainUniforms = {
   startSeed: {value: 0},
   numParticles: {value: guiParams.numParticles},
   skyGlow: {value: guiParams.skyGlow},
-  frontHillDensity: {value: 0.00002 * 2.**guiParams.frontHillDensity},
   frontHillGlow: {value: guiParams.frontHillGlow},
   backHillDensity: {value: 0.003 * 1.2**guiParams.backHillDensity},
   backHillGlow: {value: guiParams.backHillGlow},
@@ -162,14 +159,13 @@ let fPerf, fBright;
 function initGUI() {
   gui = new dat.GUI();
   let fTitle = gui.addFolder('To hide: press space or double tap');
+  gui.add(guiParams, 'brightnessPreset', {'Low': 1, 'High': 2}).onChange(applyPreset).listen();
   fPerf = gui.addFolder('Performance');
   fPerf.add(guiParams, 'quality', {'Best': 1, 'High': 0.75, 'Medium': 0.5, 'Low': 0.3}).onChange(resize).listen();
   fPerf.add(guiParams, 'numParticles').min(10).max(300).step(10).listen();
   fPerf.open();
-  fBright = gui.addFolder('Scene Brightness');
-  fBright.add(guiParams, 'preset', {'Low': 1, 'High': 2}).onChange(applyPreset).listen();
+  fBright = gui.addFolder('Advanced');
   fBright.add(guiParams, 'skyGlow').min(0).max(5).step(0.1).listen();
-  fBright.add(guiParams, 'frontHillDensity').min(-7).max(7).step(1).listen();
   fBright.add(guiParams, 'frontHillGlow').min(0).max(3).step(0.05).listen();
   fBright.add(guiParams, 'backHillDensity').min(-7).max(7).step(1).listen();
   fBright.add(guiParams, 'backHillGlow').min(0).max(3).step(0.05).listen();
@@ -177,17 +173,15 @@ function initGUI() {
   gui.add(guiParams, 'resetOptions');
 }
 function applyPreset() {
-  if (guiParams.preset == 1) {
+  if (guiParams.brightnessPreset == 1) {
     guiParams.skyGlow = 2;
-    guiParams.frontHillDensity = 0;
-    guiParams.frontHillGlow = 1.5;
+    guiParams.frontHillGlow = 1.;
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 0.4;
     guiParams.starGlow = 0.65;
   } else {
-    guiParams.skyGlow = 5;
-    guiParams.frontHillDensity = 1;
-    guiParams.frontHillGlow = 2.5;
+    guiParams.skyGlow = 4.5;
+    guiParams.frontHillGlow = 2.75;
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 1.;
     guiParams.starGlow = 1.2;
@@ -264,7 +258,6 @@ function update() {
   mainUniforms.iResolution.value = screenInverseResolution;
   mainUniforms.numParticles.value = guiParams.numParticles;
   mainUniforms.skyGlow.value = guiParams.skyGlow;
-  mainUniforms.frontHillDensity.value = 0.00002 * 2.**guiParams.frontHillDensity;
   mainUniforms.frontHillGlow.value = guiParams.frontHillGlow;
   mainUniforms.backHillDensity.value = 0.003 * 1.2**guiParams.backHillDensity;
   mainUniforms.backHillGlow.value = guiParams.backHillGlow;
