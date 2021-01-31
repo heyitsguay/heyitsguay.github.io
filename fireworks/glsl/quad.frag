@@ -19,6 +19,11 @@ uniform vec2 iResolution;
 uniform float startSeed;
 uniform float numParticles;
 uniform float skyGlow;
+uniform float frontHillDensity;
+uniform float frontHillGlow;
+uniform float backHillDensity;
+uniform float backHillGlow;
+uniform float starGlow;
 
 struct Firework {
   float sparkleScale;
@@ -102,10 +107,10 @@ void main(void) {
   float hy = Hash11(0.141*gl_FragCoord.y);
   float starColor = 0.2 + 0.7 * pow(Hash11(gl_FragCoord.x + 18.2*hy), 3.);
   float starFlicker = (0.85 + 0.15 * cos(6. * time + 7.9 * hy));
-  color += 0.66 * hill2Mask * starColor * starFlicker * float(fract(31.163*xy.x*(hy+0.2)) < 0.02 && fract(51.853 * xy.y * starColor) < 0.02);
+  color += starGlow * hill2Mask * starColor * starFlicker * float(fract(31.163*xy.x*(hy+0.2)) < 0.02 && fract(51.853 * xy.y * starColor) < 0.02);
 
   float dHouse2 = 0.1 + 0.5*float(fract(31.163*xy.x*starColor) + sin(0.0001 * time + 51.853 * xy.y * (hy+0.2)));
-  color += max(vec3(0),(1. - hill2Mask) * 0.4 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.003 / dHouse2));
+  color += max(vec3(0),(1. - hill2Mask) * backHillGlow * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* backHillDensity / dHouse2));
   vec3 hsf = Hash13(startSeed + 0.7132 * tCycle);
   float h = hsf.x;
   float s = 0.3 + 0.7 * hsf.y;
@@ -185,7 +190,7 @@ void main(void) {
   float hx = Hash11(gl_FragCoord.x);
   float dHouse1 = 0.01 + 0.5*float(fract(31.163*xy.x*starColor) + sin(51.853 * xy.y * (hx+0.2)));
 
-  color += (1. - hill1Mask) * 1.5 * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.)* 0.00002 / dHouse1);
+  color += (1. - hill1Mask) * frontHillGlow * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.) * frontHillDensity  / dHouse1);
 
   fragColor = vec4(color, 1.0);
 }
