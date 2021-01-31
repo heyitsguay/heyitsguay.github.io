@@ -95,12 +95,14 @@ void main(void) {
   vec2 xy = gl_FragCoord.xy * imx;
   float yMax = resolution.y * imx;
 
-  float sx = sin(xy.x);
-  float hill1Mask = sigmoid(xy.y, yMax * (0.21 + 0.1 * sx), 150.);
-  float hill2Mask = sigmoid(yMax * xy.y, (0.33 + 0.08 * cos(5.5 * min(xy.x, 0.7))), 50.);
+  float yn = gl_FragCoord.y * iResolution.y;
 
-  float yp = gl_FragCoord.y * iResolution.y;
-  float dColor = (0.25 + skyGlow * (1. - yp * yp));
+  float sx = sin(xy.x);
+  float hill1Mask = sigmoid(yn, (0.21 + 0.1 * sx), 150.);
+  float hill2Mask = sigmoid(yn, (0.33 + 0.08 * cos(5.5 * min(xy.x, 0.7))), 50.);
+
+
+  float dColor = (0.25 + skyGlow * (1. - yn * yn));
   vec3 color = vec3(0.025*dColor, 0., 0.075*dColor);
   color *= 0.2 + 0.8*hill2Mask;
   float hy = Hash11(0.141*gl_FragCoord.y);
@@ -190,8 +192,8 @@ void main(void) {
 
 //  color += (1. - hill1Mask) * frontHillGlow * min(vec3(1.,1.,1.), vec3(1., 0.7, 0.) * frontHillDensity  / dHouse2);
 //  color += (1. - hill1Mask) * 0.5 * (0.5 - 1.5 * length(xy - vec2(0.5, -0.1))) * vec3(0.1, 0.4, 0);
-  color += (1. - hill1Mask) * frontHillGlow * vec3(0.008, 0.06, 0) * (1. - 4. * yp - 0.3 * sx);
-  color += hill1Mask * cityGlow * max(0., (1. - 3.75 * yp + 0.25 * sx)) * vec3(1., 0.7, 0.);
+  color += (1. - hill1Mask) * frontHillGlow * vec3(0.008, 0.06, 0) * (1. - 4. * yn - 0.3 * sx);
+  color += hill1Mask * cityGlow * max(0., (1. - 3.9 * yn + 0.25 * sx)) * vec3(1., 0.7, 0.);
 
   fragColor = vec4(color, 1.0);
 }

@@ -14,7 +14,7 @@ let guiParams = {
   backHillDensity: 0,
   backHillGlow: 0.4,
   starGlow: 0.65,
-  cityGlow: 0.4,
+  cityGlow: 0.8,
   resetOptions: function() {
     guiParams.quality = 0.75;
     guiParams.numParticles = 200;
@@ -24,7 +24,7 @@ let guiParams = {
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 0.4;
     guiParams.starGlow = 0.65;
-    guiParams.cityGlow = 0.4;
+    guiParams.cityGlow = 0.8;
     resize();
   }
 }
@@ -181,14 +181,14 @@ function applyPreset() {
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 0.4;
     guiParams.starGlow = 0.65;
-    guiParams.cityGlow = 0.4;
+    guiParams.cityGlow = 0.8;
   } else {
     guiParams.skyGlow = 4.5;
     guiParams.frontHillGlow = 1.85;
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 1.;
     guiParams.starGlow = 1.2;
-    guiParams.cityGlow = 1.;
+    guiParams.cityGlow = 1.4;
   }
 }
 
