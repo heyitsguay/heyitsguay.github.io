@@ -181,7 +181,7 @@ function applyPreset() {
     guiParams.starGlow = 0.65;
   } else {
     guiParams.skyGlow = 4.5;
-    guiParams.frontHillGlow = 2.75;
+    guiParams.frontHillGlow = 1.85;
     guiParams.backHillDensity = 0;
     guiParams.backHillGlow = 1.;
     guiParams.starGlow = 1.2;
