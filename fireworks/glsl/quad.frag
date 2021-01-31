@@ -79,6 +79,17 @@ vec2 RandDirection(float seed, float rMin, float rMax, float rPow, float nPetals
   return vec2(r*cos(theta), r*sin(theta));
 }
 
+//vec3 RandDirection(float seed, float rMin, float rMax, float rPow, float nPetals, float doRound) {
+//  vec3 xyt = Hash13(seed);
+//  float rScale = xyt.x * (1. - rPow) + xyt.x * xyt.x * xyt.x;
+//  float r = mix(rMin, rMax, rScale);
+//  //  float r = mix(rMin, rMax, pow(xyt.x, rPow));
+//  r = mix(r, float(int(r * iRingStep)) * RING_STEP, doRound);
+//  float theta = TWOPI * (xyt.y + xyt.z);
+//  r *= mix(1., 1.+ cos(nPetals*theta), nPetals > 0.);
+//  return vec3(r*cos(theta), r*sin(theta), xyt.z);
+//}
+
 // All components are in the range [01], including hue.
 vec3 hsv2rgb(vec3 c)
 {
@@ -166,19 +177,19 @@ void main(void) {
     dir.y -= (1. + firework.gravityScale*t*t*t)*GRAVITY * sizeBase * sizeBase * t;
 
     float tRate = log(1. + (firework.burstRate + 5. * float(idx == 3) * float(2 - int(rAddOn))) * t);
-    float d = length(uv - dir * tRate);
+
     float at = abs(t - 0.015);
     float bump = 0.012 / (1. + 40000. * at*at);
     float t3 = (t+0.2)*(t+0.2)*(t+0.2);
     float t6 = t3*t3;
     float t24 = t6*t6*t6*t6;
 
-    float brightness = sqrt(size)*firework.brightnessScale*0.0013/(1.+ 9. * t24);
+    float brightness = sqrt(size)*firework.brightnessScale*0.0013/(1.+ 2. * t24);
     float hNew = mod(i*0.1618033988, 1.);
     vec3 cNew = hsv2rgb(vec3(hNew, s, tRamp));
     vec3 particleColor = mix(cBase, cNew, firework.colorShift);
-    float ds = d + 0.004;
-    color += hill1Mask *  (bump + brightness * particleColor) / (ds*ds);
+    float d = 0.0004 + length(uv - dir * tRate);
+    color += hill1Mask *  (bump + brightness * particleColor) / (d * d);
   }
   }
   color *= 0.75 + 0.25*hill2Mask;
