@@ -97,8 +97,8 @@ void main(void) {
   vec2 xy = gl_FragCoord.xy * imx;
   float yMax = resolution.y * imx;
 
-  float hill1Mask = sigmoid(xy.y, yMax * (0.25 + 0.1 * sin(1. * xy.x)), 150.);
-  float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5. * xy.x)), 50.);
+  float hill1Mask = sigmoid(xy.y, yMax * (0.21 + 0.1 * sin(1. * xy.x)), 150.);
+  float hill2Mask = sigmoid(xy.y, yMax * (0.33 + 0.08 * cos(5. * min(xy.x, 0.7))), 50.);
 
   float yp = gl_FragCoord.y * iResolution.y;
   float dColor = (0.25 + skyGlow * (1. - yp * yp));
