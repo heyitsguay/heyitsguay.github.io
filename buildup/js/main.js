@@ -34,16 +34,12 @@ $(document).ready(function() {
 function checkLocalStorage() {
   return $.when().then(function() {
     if (localStorage.getItem('lastShader')) {
-      console.log('found last');
-      console.log(localStorage.getItem('lastShader'));
       mainCode.innerHTML = localStorage.getItem('lastShader');
     } else {
       localStorage.setItem('lastShader', mainCode.innerHTML);
     }
 
     if (localStorage.getItem('lastWorkingShader')) {
-      console.log('found lastworking');
-      console.log(localStorage.getItem('lastWorkingShader'));
       lastWorkingFragShader = localStorage.getItem('lastWorkingShader');
     } else {
       localStorage.setItem('lastWorkingShader', mainCode.innerText);
@@ -100,6 +96,7 @@ let enterPressed = false;
 let tabPressed = false;
 let lastKeyDownTime;
 let shaderCanReload = false;
+let showingEditor = true;
 function handleKeysDown(e) {
   lastKeyDownTime = new Date().getTime();
   shaderCanReload = true;
@@ -141,8 +138,6 @@ function handleKeysDown(e) {
       }
       break;
 
-    default:
-
   }
 }
 
@@ -155,7 +150,18 @@ function handleKeysUp(e) {
     enterPressed = false;
   } else if (e.key === 'Tab') {
     tabPressed = false;
+  } else if (e.key === ' ') {
+    if (e.ctrlKey) {
+      if (showingEditor) {
+        mainDiv.style.visibility = 'hidden';
+        showingEditor = false;
+      } else {
+        mainDiv.style.visibility = 'visible';
+        showingEditor = true;
+      }
+    }
   }
+
 
 }
 
@@ -165,9 +171,7 @@ function parseError(...args) {
     if (args.length > 7) {
       let errorLine = args[7];
       let errorParts = errorLine.split('ERROR:');
-      console.log(errorLine);
       if (errorParts.length > 1) {
-        console.log('layer 3');
         shaderErrorMessage = "● ERROR:" + errorParts[1].substring(0, errorParts[1].length - 1);
         return;
       }
