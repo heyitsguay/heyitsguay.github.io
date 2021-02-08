@@ -22,9 +22,16 @@ let mainUniforms = {
   resolution: {value: screenResolution}
 }
 
+let ua = navigator.userAgent.toLowerCase();
+let isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
+
 $(document).ready(function() {
 
   mainDiv = document.getElementById("maindiv");
+  if (isAndroid) {
+    mainDiv.style.fontSize = "12";
+    mainDiv.style.height = "80%";
+  }
   mainCode = document.getElementById("maincode");
   // compileButton = document.getElementById('compilebutton');
   errorText = document.getElementById('errortext');
