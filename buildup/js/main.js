@@ -28,11 +28,12 @@ let isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
 $(document).ready(function() {
 
   mainDiv = document.getElementById("maindiv");
-  if (isAndroid) {
-    mainDiv.style.fontSize = "12";
-    mainDiv.style.height = "80%";
-  }
+  
   mainCode = document.getElementById("maincode");
+if (isAndroid) {
+    mainCode.style.fontSize = "12";
+    mainCode.style.height = "80vh";
+  }
   // compileButton = document.getElementById('compilebutton');
   errorText = document.getElementById('errortext');
   loadFiles().then(main);
