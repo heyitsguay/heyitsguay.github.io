@@ -107,30 +107,34 @@ html {
   grid-row-end: span 1;
 }
 .item--2 {
-  background-image: url("./thumbs/apollo.png");
+  background-image: url("./thumbs/gol3d.png");
   grid-row-end: span 1;
 }
 .item--3 {
-  background-image: url("./thumbs/asteroids.png");
+  background-image: url("./thumbs/apollo.png");
   grid-row-end: span 1;
 }
 .item--4 {
-  background-image: url("./thumbs/coincircle.png");
+  background-image: url("./thumbs/asteroids.png");
   grid-row-end: span 1;
 }
 .item--5 {
-  background-image: url("./thumbs/ripple.png");
+  background-image: url("./thumbs/coincircle.png");
   grid-row-end: span 1;
 }
 .item--6 {
-  background-image: url("./thumbs/rules.png");
+  background-image: url("./thumbs/ripple.png");
   grid-row-end: span 1;
 }
 .item--7 {
-  background-image: url("./thumbs/starrynight3.png");
+  background-image: url("./thumbs/rules.png");
   grid-row-end: span 1;
 }
 .item--8 {
+  background-image: url("./thumbs/starrynight3.png");
+  grid-row-end: span 1;
+}
+.item--9 {
   background-image: url("./thumbs/lightmaze.png");
   grid-row-end: span 1;
 }
