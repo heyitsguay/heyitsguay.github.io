@@ -10,11 +10,11 @@ subtitle: An engine for 3D cellular automata
 
 Explore different rules that control how cubes are born, change, and die in an infinite 3D universe. Discover the complex patterns that can arise from simple specifications.
 
-<!-- <div style="position:relative;width:100%;height:0;padding-bottom:56.25%;"> -->
+<div class="contain_iframe_oaigj">
 	<video style="position:relative;width:100%;height:0;padding-bottom:56.25%;" controls="false" autoplay poster="./media/gol3d/vidthumb.png">
 		<source src="./media/gol3d/cubegrid.mp4" type="video/mp4">
 	</video>
-<!-- </div> -->
+</div>
 
 
 Styled after the famous 2D [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) (GoL), **gol3d** is an engine for building and visualizing the evolution 3D cellular automata.
