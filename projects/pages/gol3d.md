@@ -10,8 +10,8 @@ subtitle: An engine for 3D cellular automata
 
 Explore different rules that control how cubes are born, change, and die in an infinite 3D universe. Discover the complex patterns that can arise from simple specifications.
 
-<div class="contain_iframe_oaigj">
-	<video style="position:relative;width:100%;height:0;padding-bottom:56.25%;" controls="false" autoplay poster="./media/gol3d/vidthumb.png">
+<div>
+	<video class="contain_iframe_oaigj" controls="false" autoplay poster="./media/gol3d/vidthumb.png">
 		<source src="./media/gol3d/cubegrid.mp4" type="video/mp4">
 	</video>
 </div>
@@ -25,15 +25,15 @@ My experiments indicate that the B/S rulespace of GoL produces less interesting 
 
 ## Videos
 
-<div style="position:relative;width:40%;height:0;padding-bottom:56.25%;"><iframe src="https://www.youtube.com/embed/SoJvS6GuM3c" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
+<div style="position:relative;width:100%;height:0;padding-bottom:56.25%;margin-bottom:10px;"><iframe src="https://www.youtube.com/embed/SoJvS6GuM3c" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
 
-<div style="position:relative;width:40%;height:0;padding-bottom:56.25%;"><iframe src="https://www.youtube.com/embed/EW9Q0qMc2Xc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
+<div style="position:relative;width:100%;height:0;padding-bottom:56.25%;margin-bottom:10px;"><iframe src="https://www.youtube.com/embed/EW9Q0qMc2Xc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
 
-<div style="position:relative;width:40%;height:0;padding-bottom:56.25%;"><iframe src="https://www.youtube.com/embed/jXvAfxO2LUY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
+<div style="position:relative;width:100%;height:0;padding-bottom:56.25%;margin-bottom:10px;"><iframe src="https://www.youtube.com/embed/jXvAfxO2LUY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
 
-<div style="position:relative;width:40%;height:0;padding-bottom:56.25%;"><iframe src="https://www.youtube.com/embed/6Xb_g4WppdY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
+<div style="position:relative;width:100%;height:0;padding-bottom:56.25%;margin-bottom:10px;"><iframe src="https://www.youtube.com/embed/6Xb_g4WppdY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
 
-<div style="position:relative;width:40%;height:0;padding-bottom:56.25%;"><iframe src="https://www.youtube.com/embed/nzYhxOUmeiU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
+<div style="position:relative;width:100%;height:0;padding-bottom:56.25%;margin-bottom:10px;"><iframe src="https://www.youtube.com/embed/nzYhxOUmeiU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
 
 ## Code
 
