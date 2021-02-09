@@ -1,7 +1,7 @@
 ---
 layout: page
 title: golcam
-subtitle: Interact with cellular automata through your webcam
+subtitle: Webcam-interactive cellular automata
 ---
 
 # golcam
