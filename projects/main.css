@@ -40,6 +40,10 @@ html {
 .section {
   display: none;
   padding: 2rem;
+  position: relative;
+  width: 80vw;
+  left: 50%;
+  transform: translate(-50%, 0%);
 }
 @media screen and (min-width: 768px) {
   .section {
