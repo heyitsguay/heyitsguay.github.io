@@ -11,7 +11,7 @@ subtitle: An engine for 3D cellular automata
 Explore different rules that control how cubes are born, change, and die in an infinite 3D universe. Discover the complex patterns that can arise from simple specifications.
 
 <div>
-	<video class="contain_iframe_oaigj" controls="false" autoplay poster="./media/gol3d/vidthumb.png">
+	<video id="myVideo" controls="false" autoplay muted loop poster="./media/gol3d/vidthumb.png">
 		<source src="./media/gol3d/cubegrid.mp4" type="video/mp4">
 	</video>
 </div>
