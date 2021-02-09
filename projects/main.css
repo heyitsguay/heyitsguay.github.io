@@ -67,10 +67,6 @@ html {
   grid-template-columns: repeat(auto-fit, minmax(256px, 1fr));
   grid-auto-rows: 256px;
   grid-auto-flow: row dense;
-  position: relative;
-  width: 80vw;
-  left: 50%;
-  transform: translate(-50%, 0%);
 }
 
 .item {
