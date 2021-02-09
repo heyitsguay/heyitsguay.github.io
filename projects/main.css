@@ -142,6 +142,10 @@ html {
   background-image: url("./thumbs/golcam.png");
   grid-row-end: span 1;
 }
+.item--11 {
+  background-image: url("./thumbs/fireworks.png");
+  grid-row-end: span 1;
+}
 .item__details {
   position: relative;
   z-index: 1;
