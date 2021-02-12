@@ -139,6 +139,7 @@ function restart() {
 let fPerf;
 function initGUI() {
   gui = new dat.GUI();
+  let fTitle = gui.addFolder('To hide: press space or double tap');
   fPerf = gui.addFolder('Performance');
   fPerf.add(guiParams, 'quality', {'Best': 1, 'High': 0.75, 'Medium': 0.5, 'Low': 0.3}).onChange(resize).listen();
   fPerf.open();
