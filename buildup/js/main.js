@@ -2,7 +2,7 @@ let vertShaderFile = 'quad.vert';
 let shaderSources = {};
 let lastWorkingFragShader = null;
 
-let mainDiv, mainCode, compileButton, errorText;
+let mainDiv, mainCode, compileButton, errorText, fullDiv;
 
 let canvas;
 let canvasScale = 1;
@@ -19,7 +19,8 @@ let mainMaterial;
 let mainMesh;
 let mainUniforms = {
   time: {value: 0},
-  resolution: {value: screenResolution}
+  resolution: {value: screenResolution},
+  startSeed: {value: null}
 }
 
 let ua = navigator.userAgent.toLowerCase();
@@ -28,7 +29,8 @@ let isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
 $(document).ready(function() {
 
   mainDiv = document.getElementById("maindiv");
-  
+  fullDiv = document.getElementById("fulldiv");
+
   mainCode = document.getElementById("maincode");
 if (isAndroid) {
     mainCode.style.fontSize = "12";
@@ -36,6 +38,9 @@ if (isAndroid) {
   }
   // compileButton = document.getElementById('compilebutton');
   errorText = document.getElementById('errortext');
+
+  mainUniforms.startSeed.value = (new Date().getTime() / 1000000) % 10.;
+
   loadFiles().then(main);
 });
 
@@ -161,10 +166,10 @@ function handleKeysUp(e) {
   } else if (e.key === ' ') {
     if (e.ctrlKey) {
       if (showingEditor) {
-        mainDiv.style.visibility = 'hidden';
+        fullDiv.style.visibility = 'hidden';
         showingEditor = false;
       } else {
-        mainDiv.style.visibility = 'visible';
+        fullDiv.style.visibility = 'visible';
         showingEditor = true;
       }
     }
