@@ -81,7 +81,7 @@ function main() {
 
   let now = new Date().getTime();
   mainUniforms.startSeed.value = (now / 1000000) % 10;
-
+  toggleHide();
   restart();
 }
 
