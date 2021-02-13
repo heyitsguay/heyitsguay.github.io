@@ -99,6 +99,7 @@ float circle(vec2 p, float r) {
 
 float mandala_df(float localTime, vec2 p, vec2 c) {
   vec4 hc = hash24(c);
+  rot(p, .2 * sin(3. * hc.x) * localTime);
   vec2 pp = toPolar(p);
   float a = TAU/(64.*(.12+1.4*hc.x*hc.x));
   float np = pp.y/a;
@@ -112,11 +113,12 @@ float mandala_df(float localTime, vec2 p, vec2 c) {
   p = abs(p);
   p -= vec2(0.5);
 
+
   float d = 10000.0;
 
-  for (int i = 0; i < 1 + int(4.*hc.z*hc.z); ++i) {
+  for (int i = 0; i < 1 + int(3.*hc.z); ++i) {
     mod2(p, vec2(1.0));
-    float da = hsin(.02*localTime + sin(hc.x + hc.y));
+    float da = hsin(.02*localTime + 7. * sin(hc.x + hc.y));
     rot(p, .1*(hc.x + hc.z)*time);
     float sb = box(p, vec2(1.) * (.1 + .7 * (hc.y + hc.z))) + da ;
     float cb = circle(p - 0.5*(0.1+0.9*hc.w), (0.5)) + da*cos(.0333*localTime - 7. * hc.x);
@@ -154,12 +156,9 @@ vec3 mandala_postProcess(float localTime, vec3 col, vec2 uv, vec2 c)
 vec3 mandala_sample(float localTime, vec2 p)
 {
 
-  float lt = 0.8*localTime;
   vec2 uv = p;
   uv *=12.;
   uv += vec2(2., 1.) * 0.1*time;
-  //rot(uv, lt);
-  //uv *= 0.2 + 1.1 - 1.1*cos(0.1*time);
 
   vec2 c = modMirror2(uv, vec2(4.5));
   vec4 hc = hash24(c - 8.675309);
@@ -176,7 +175,7 @@ vec3 mandala_sample(float localTime, vec2 p)
 
   vec3 col = vec3(0.);
 
-  float r = 0.5*(.1+hsin(.25*time - hc.x * hc.x));
+  float r = 0.5*(.1+hsin(.05*time - hc.x * hc.x));
   //float r = 0.01 + 0.449*hsin(.2*time);
 
   float nd = d / r;
@@ -184,10 +183,10 @@ vec3 mandala_sample(float localTime, vec2 p)
 
 
   if (abs(md) < 0.05*(.25 + 1.75*hc.y)) {
-    col = (d > 0.0 ? vec3(0.25,0.25,0.65) : vec3(0.65, 0.25, 0.25 + .5*hsin(.1*time - 7. * hc.z)))/abs(nd*(.5+hsin(.1*time - 7.* hc.x - 4. * hc.y)));
+    col = (d > 0.0 ? vec3(0.25,0.25,0.65) : vec3(0.65, 0.25, 0.25 + .5*hsin(.08*time - 7. * hc.z)))/abs(nd*(.5+hsin(.1*time - 7.* hc.x - 4. * hc.y)));
   }
 
-  if (abs(d) < .02*(0.5 + 1.5 * hsin(.1*time - hc.y - hc.x))*(.5+.5*hc.w)) {
+  if (abs(d) < .02*(0.5 + 1.5 * hsin(.11*time - hc.y - hc.x))*(.5+.5*hc.w)) {
     col = vec3(1.0);
   }
 
