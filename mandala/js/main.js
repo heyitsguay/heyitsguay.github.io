@@ -16,7 +16,7 @@ let guiParams = {
   }
 }
 
-
+let devicePixelRatio;
 let canvas;
 let canvasScale = 1;
 let cWidth;
@@ -62,7 +62,7 @@ function loadFile(fileName) {
 
 
 function main() {
-
+  devicePixelRatio = window.devicePixelRatio;
   canvas = document.getElementById('canvas');
   $(window).resize(resize);
   document.onkeydown = handleKeys;
@@ -110,8 +110,8 @@ function toggleHide() {
 
 function resize() {
   canvasScale = guiParams.quality;
-  cWidth = Math.floor(canvasScale * window.innerWidth);
-  cHeight = Math.floor(canvasScale * window.innerHeight);
+  cWidth = Math.floor(canvasScale * devicePixelRatio * window.innerWidth);
+  cHeight = Math.floor(canvasScale * devicePixelRatio * window.innerHeight);
   screenInverseResolution.x = 1 / cWidth;
   screenInverseResolution.y = 1 / cHeight;
   screenResolution.x = cWidth;
