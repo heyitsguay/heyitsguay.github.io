@@ -147,7 +147,7 @@ vec3 mandala_postProcess(float localTime, vec3 col, vec2 uv, vec2 c)
   col = pow(col, vec3(ff*.5*hsin(.05*localTime*hc.x - 7. * hc.y), .25*ff*(hc.x + hc.w), .2*ff));
   col *= 0.5*sqrt(max(4. - r*r, 0.0));
   vec2 og = gl_FragCoord.xy/resolution.y;
-  col += vec3(.4)*clamp(r - 1.9, 0., 0.25) * (.4 + .4*(og.y+2.*og.x));
+  col += vec3(.5)*clamp(r - 1.9, 0., 0.25) * (.4 + .4*(og.y+2.*og.x));
   return clamp(col, 0.0, 1.0);
 }
 
