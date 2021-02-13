@@ -1,5 +1,5 @@
 
-on4KScreen = ((screen.height < screen.width) ? (screen.width > 3000 ) : (screen.height > 3000 ) );
+on4KScreen = ((screen.height < screen.width) ? (screen.width > 3000 / window.devicePixelRatio ) : (screen.height > 3000 / window.devicePixelRatio ) );
 
 const shaderFiles = [
   'quad.frag',

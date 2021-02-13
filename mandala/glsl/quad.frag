@@ -107,7 +107,7 @@ float mandala_df(float localTime, vec2 p, vec2 c) {
   if (m2 > 1.0) {
     pp.y = a - pp.y;
   }
-  pp.y += localTime/40.0* cos(10.*hc.y);
+  pp.y += 7. * cos(localTime * .002 * (hc.x + hc.w) - 10.*hc.y);
   p = toRect(pp);
   p = abs(p);
   p -= vec2(0.5);
@@ -116,7 +116,7 @@ float mandala_df(float localTime, vec2 p, vec2 c) {
 
   for (int i = 0; i < 1 + int(4.*hc.z*hc.z); ++i) {
     mod2(p, vec2(1.0));
-    float da = hsin(.02*localTime*sin(hc.x + hc.y));
+    float da = hsin(.02*localTime + sin(hc.x + hc.y));
     rot(p, .1*(hc.x + hc.z)*time);
     float sb = box(p, vec2(1.) * (.1 + .7 * (hc.y + hc.z))) + da ;
     float cb = circle(p - 0.5*(0.1+0.9*hc.w), (0.5)) + da*cos(.0333*localTime - 7. * hc.x);
@@ -125,7 +125,7 @@ float mandala_df(float localTime, vec2 p, vec2 c) {
     d = min(dd, d);
 
     p *= 1.5 +1.0*(0.5 + 0.5*sin(0.5*localTime - 6.5*(hc.x + hc.w)));
-    rot(p, (hc.y + hc.w)*.1*sin(.03*time - 3.2 * (hc.z + hc.w)));
+    rot(p, (hc.y + hc.w)*.1*sin(.03*localTime - 3.2 * (hc.z + hc.w)));
   }
 
 
@@ -147,12 +147,13 @@ vec3 mandala_postProcess(float localTime, vec3 col, vec2 uv, vec2 c)
   col = pow(col, vec3(ff*.5*hsin(.05*localTime*hc.x - 7. * hc.y), .25*ff*(hc.x + hc.w), .2*ff));
   col *= 0.5*sqrt(max(4. - r*r, 0.0));
   vec2 og = gl_FragCoord.xy/resolution.y;
-  col += vec3(.5)*clamp(r - 1.9, 0., 0.25) * (.4 + .4*(og.y+2.*og.x));
+  col += vec3(.5)*clamp(r - 1.95, 0., 0.25) * (.4 + .4*(og.y+2.*og.x));
   return clamp(col, 0.0, 1.0);
 }
 
 vec3 mandala_sample(float localTime, vec2 p)
 {
+
   float lt = 0.8*localTime;
   vec2 uv = p;
   uv *=12.;
@@ -161,6 +162,7 @@ vec3 mandala_sample(float localTime, vec2 p)
   //uv *= 0.2 + 1.1 - 1.1*cos(0.1*time);
 
   vec2 c = modMirror2(uv, vec2(4.5));
+  vec4 hc = hash24(c - 8.675309);
 
   //vec2 nuv = mandala_distort(localTime, uv, c);
   //vec2 nuv2 = mandala_distort(localTime, uv + vec2(0.001), c);
@@ -174,18 +176,18 @@ vec3 mandala_sample(float localTime, vec2 p)
 
   vec3 col = vec3(0.);
 
-  float r = 0.5*(.1+hsin(.25*time - hash21(c))*hash21(c));
+  float r = 0.5*(.1+hsin(.25*time - hc.x * hc.x));
   //float r = 0.01 + 0.449*hsin(.2*time);
 
   float nd = d / r;
   float md = mod(d, r);
 
 
-  if (abs(md) < 0.05*(.25 + 1.75*hash21(c+2.))) {
-    col = (d > 0.0 ? vec3(0.25,0.25,0.65) : vec3(0.65, 0.25, 0.25 + .5*hsin(.1*time)))/abs(nd*(.5+hsin(.1*time)));
+  if (abs(md) < 0.05*(.25 + 1.75*hc.y)) {
+    col = (d > 0.0 ? vec3(0.25,0.25,0.65) : vec3(0.65, 0.25, 0.25 + .5*hsin(.1*time - 7. * hc.z)))/abs(nd*(.5+hsin(.1*time - 7.* hc.x - 4. * hc.y)));
   }
 
-  if (abs(d) < .02*(0.5 + 1.5 * hsin(.1*time))*(.5+.5*hash21(c))) {
+  if (abs(d) < .02*(0.5 + 1.5 * hsin(.1*time - hc.y - hc.x))*(.5+.5*hc.w)) {
     col = vec3(1.0);
   }
 
