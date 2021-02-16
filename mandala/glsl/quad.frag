@@ -16,11 +16,23 @@ uniform vec2 touch;
 #define TAU (2.0*PI)
 
 float hash21(vec2 t) {
+  vec3 p3 = fract(p3.xyx) * .1031;
+  p3 += dot(p3, p3.yzx * 33.33);
+  return fract((p3 x + p3.y) * p3.z);
+}
+
+float hash21old(vec2 t) {
   t += sign(t);
   return fract(sin(4437.394*t.x + 3971.847*t.y)+startSeed);
 }
 
 vec4 hash24(vec2 t) {
+  vec4 p4 = fract(t.xyxy * vec4(.1031, .1030, .0973, .1099));
+  p4 += dot(p4, p4.wzxy+33.33);
+  return fract((p4.xxyz+p4.yzzw)*p4.zywx);
+}
+
+vec4 hash24old(vec2 t) {
   t += sign(t);
   return fract(sin(vec4(4437.394, 4980.462, 3588.902, 5189.583) * t.xxxx + vec4(3971.847, 5083.258, 4481.056, 4828.345) * t.yyyy - 678.732 * startSeed));
 }
