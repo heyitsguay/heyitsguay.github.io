@@ -16,7 +16,8 @@ uniform vec2 touch;
 #define TAU (2.0*PI)
 
 float hash21(vec2 t) {
-  vec3 p3 = fract(t.xyx) * .1031;
+  vec3 p = vec3(t.x, t.y, startSeed);
+  vec3 p3 = fract(p * .1031);
   p3 += dot(p3, p3.yzx * 33.33);
   return fract((p3.x + p3.y) * p3.z);
 }
@@ -27,7 +28,8 @@ float hash21old(vec2 t) {
 }
 
 vec4 hash24(vec2 t) {
-  vec4 p4 = fract(t.xyxy * vec4(.1031, .1030, .0973, .1099));
+  vec3 p = vec3(t.x, t.y, startSeed);
+  vec4 p4 = fract(p.xzyz * vec4(.1031, .1030, .0973, .1099));
   p4 += dot(p4, p4.wzxy+33.33);
   return fract((p4.xxyz+p4.yzzw)*p4.zywx);
 }
