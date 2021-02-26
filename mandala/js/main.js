@@ -16,6 +16,12 @@ let guiParams = {
   }
 }
 
+let center = new THREE.Vector2(0, 0);
+let baseMovementSpeed = 0.12;
+let viewScale = 12;
+let selectedCenter = null;
+let selectedViewScale = null;
+
 let devicePixelRatio;
 let canvas;
 let canvasScale = 1;
@@ -23,6 +29,7 @@ let cWidth;
 let cHeight;
 let screenResolution = new THREE.Vector2(0, 0);
 let screenInverseResolution = new THREE.Vector2(0, 0);
+let rawScreenResolution = new THREE.Vector2(0, 0);
 
 let renderer;
 let quadGeometry;
@@ -36,6 +43,8 @@ let mainUniforms = {
   resolution: {value: screenResolution},
   iResolution: {value: screenInverseResolution},
   startSeed: {value: 0},
+  center: {value: center},
+  viewScale: {value: viewScale}
 };
 
 
@@ -43,6 +52,8 @@ let stats;
 let showingStats = true;
 
 let lastTap = 0;
+
+
 
 
 $(document).ready(function() {
@@ -65,13 +76,17 @@ function main() {
   devicePixelRatio = window.devicePixelRatio;
   canvas = document.getElementById('canvas');
   $(window).resize(resize);
-  document.onkeydown = handleKeys;
+  document.onkeydown = handleKeyDown;
+  document.onkeyup = handleKeyUp;
+  document.addEventListener('dblclick', handleDoubleClick)
+
+  canvas.addEventListener('touchstart', handleTouchStart);
 
   canvas.addEventListener('touchend', function(e) {
     let currentTime = new Date().getTime();
     let tapLength = currentTime - lastTap;
     if (tapLength < 500 && tapLength > 0) {
-      toggleHide();
+      handleDoubleTap(e);
     }
     lastTap = currentTime;
   });
@@ -85,12 +100,76 @@ function main() {
   restart();
 }
 
+function handleDoubleClick(e) {
+  let screenPosition = new THREE.Vector2(e.offsetX, window.innerHeight - e.offsetY);
+  handleSelect(screenPosition);
+}
 
-function handleKeys(e) {
+function handleDoubleTap(e) {
+  let x = e.changedTouches[0].clientX;
+  let y = e.changedTouches[0].clientY;
+  let screenPosition = new THREE.Vector2(x, window.innerHeight - y);
+  handleSelect(screenPosition);
+}
+
+function handleSelect(pos) {
+  let uv = pos.divide(rawScreenResolution).subScalar(0.5);
+  uv.x *= rawScreenResolution.x / rawScreenResolution.y;
+  uv = uv.multiplyScalar(viewScale);
+  uv = uv.add(center);
+  selectedCenter = getCenter(uv, 4.5);
+}
+
+function getCenter(p, size) {
+  let halfSize = size * 0.5;
+  let c = new THREE.Vector2(
+    Math.floor((p.x + halfSize) / size),
+    Math.floor((p.y + halfSize) / size));
+  return c;
+}
+
+function handleTouchStart(e) {
+  switch(e.touches.length) {
+    case 1: handleSingleTouch(e); break;
+    case 2: handleDoubleTouch(e); break;
+  }
+}
+
+function handleSingleTouch(e) {
+  
+}
+
+pressed = {}
+
+let contKeys = ['w', 'a', 's', 'd', 'Shift', 'r', 'f'];
+
+function handleKeyUp(e) {
+  if (contKeys.includes(e.key)) {
+    pressed[e.key] = false;
+  }
+}
+
+
+function handleKeyDown(e) {
+  if (contKeys.includes(e.key)) {
+    pressed[e.key] = true;
+  }
+
   switch (e.key) {
     case ' ':
       toggleHide();
       break;
+
+    case 'q': {
+      selectedCenter = new THREE.Vector2(0,0);
+      break;
+    }
+
+    case 'v': {
+      selectedviewScale = 12;
+      break;
+    }
+
   }
 }
 
@@ -118,6 +197,9 @@ function resize() {
   screenResolution.y = cHeight;
   canvas.width = cWidth;
   canvas.height = cHeight;
+
+  rawScreenResolution.x = window.innerWidth;
+  rawScreenResolution.y = window.innerHeight;
 
   mainUniforms.resolution.value = screenResolution;
   mainUniforms.iResolution.value = screenInverseResolution;
@@ -214,7 +296,64 @@ function update() {
   thisTime = new Date().getTime();
   elapsedTime = (thisTime - startTime) * 0.001;
 
+  if (selectedCenter != null) {
+    let selectedCenterCoords = selectedCenter.clone();
+    selectedCenterCoords.multiplyScalar(4.5);
+
+    if (center.distanceTo(selectedCenterCoords) >= 1e-4) {
+      let diff = selectedCenterCoords.clone();
+      diff.sub(center);
+      diff.multiplyScalar(0.1);
+      center.add(diff);
+
+    } else {
+      center = selectedCenterCoords;
+      selectedCenter = null;
+    }
+  }
+
+  if (selectedViewScale != null) {
+    if(Math.abs(selectedViewScale - viewScale) >= 1e-4) {
+      viewScale += 0.1 * (selectedViewScale - viewScale);
+    } else {
+      viewScale = selectedViewScale;
+      selectedViewScale = null;
+    }
+  }
+
+  if (pressed['r']) {
+    viewScale *= 1.025;
+    selectedViewScale = null;
+  }
+  if (pressed['f']) {
+    viewScale *= 0.975;
+    selectedViewScale = null;
+  }
+
+  // let movementSpeed = pressed['Shift'] ? 4. * baseMovementSpeed : baseMovementSpeed;
+  let movementSpeed = viewScale / 12 * baseMovementSpeed;
+
+  if (pressed['a']) {
+    center.x -= movementSpeed;
+    selectedCenter = null;
+  }
+  if (pressed['d']) {
+    center.x += movementSpeed;
+    selectedCenter = null;
+  }
+  if (pressed['w']) {
+    center.y += movementSpeed;
+    selectedCenter = null;
+  }
+  if (pressed['s']) {
+    center.y -= movementSpeed;
+    selectedCenter = null;
+  }
+
+
   mainUniforms.time.value = elapsedTime;
+  mainUniforms.center.value = center;
+  mainUniforms.viewScale.value = viewScale;
 
 }
 
