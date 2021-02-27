@@ -54,7 +54,9 @@ let showingStats = true;
 
 let lastTap = 0;
 
-
+function clearDiv() {
+  document.getElementById('introdiv').remove();
+}
 
 
 $(document).ready(function() {
@@ -141,7 +143,7 @@ function handleTouchMove(e) {
 
 let startTouchPoint = null;
 let latestTouchPoint;
-let touchScrollSpeed = 18;
+let touchScrollSpeed = 80;
 
 function handleSingleTouchStart(e) {
   let touch = e.targetTouches[0];
@@ -184,13 +186,13 @@ function handleTouchEnd(e) {
   startTouchPoint = null;
   startTouchSpread = null;
   if (e.targetTouches.length === 0 ) {
-    console.log('touched');
     let currentTime = new Date().getTime();
     let tapLength = currentTime - lastTap;
     if (tapLength < 500 && tapLength > 0) {
       handleDoubleTap(e);
+    } else {
+      lastTap = currentTime;
     }
-    lastTap = currentTime;
   }
 }
 
@@ -368,13 +370,14 @@ function update() {
   elapsedTime = (thisTime - startTime) * 0.001;
 
   if (startTouchPoint != null) {
-  let touchVector = latestTouchPoint.clone();
-  touchVector.sub(startTouchPoint);
-  let dTouch = Math.min(0.1, touchVector.lengthSq());
-  touchVector.multiply(new THREE.Vector2(-1, 1));
-  touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(viewScale / 12  * touchScrollSpeed);
-  center.add(touchVector);
-  lastTouchVector = touchVector;
+    let touchVector = latestTouchPoint.clone();
+    touchVector.sub(startTouchPoint);
+    let dTouch = touchVector.length();
+    touchVector.multiply(new THREE.Vector2(-1, 1));
+    touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(viewScale / 12  * touchScrollSpeed);
+    center.add(touchVector);
+    lastTouchVector = touchVector;
+    startTouchPoint = latestTouchPoint.clone();
   } else {
     let lastLenSq = lastTouchVector.lengthSq();
     if (lastLenSq > 1e-8) {
