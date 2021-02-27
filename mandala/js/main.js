@@ -143,18 +143,18 @@ function handleTouchMove(e) {
 
 let startTouchPoint = null;
 let latestTouchPoint;
-let touchScrollSpeed = 80;
+let touchScrollSpeed = 40;
 
 function handleSingleTouchStart(e) {
   let touch = e.targetTouches[0];
-  startTouchPoint = new THREE.Vector2(touch.clientX / screenResolution.x, touch.clientY / screenResolution.y);
+  startTouchPoint = new THREE.Vector2(touch.clientX / screenMinSize, touch.clientY / screenMinSize);
   latestTouchPoint = startTouchPoint.clone();
 }
 
 function handleSingleTouchMove(e) {
   startTouchSpread = null;
   let touch = e.targetTouches[0];
-  latestTouchPoint = new THREE.Vector2(touch.clientX / screenResolution.x, touch.clientY / screenResolution.y);
+  latestTouchPoint = new THREE.Vector2(touch.clientX / screenMinSize, touch.clientY / screenMinSize);
   selectedCenter = null;
 }
 
