@@ -155,14 +155,14 @@ let foundTouch = false;
 
 function handleSingleTouchStart(e) {
   let touch = e.targetTouches[0];
-  startTouchPoint = new THREE.Vector2(touch.clientX / screenMinSize, touch.clientY / screenMinSize);
+  startTouchPoint = new THREE.Vector2(touch.clientX / screenResolution.x, touch.clientY / screenResolution.y);
   latestTouchPoint = startTouchPoint.clone();
 }
 
 function handleSingleTouchMove(e) {
   startTouchSpread = null;
   let touch = e.targetTouches[0];
-  latestTouchPoint = new THREE.Vector2(touch.clientX / screenMinSize, touch.clientY / screenMinSize);
+  latestTouchPoint = new THREE.Vector2(touch.clientX / screenResolution.x, touch.clientY / screenResolution.y);
   selectedCenter = null;
 }
 
@@ -173,8 +173,8 @@ let touchZoomSpeed = 0.08;
 function handleDoubleTouchStart(e) {
   let touch0 = e.targetTouches[0];
   let touch1 = e.targetTouches[1];
-  let p0 = new THREE.Vector2(touch0.clientX / screenMinSize, touch0.clientY / screenMinSize);
-  let p1 = new THREE.Vector2(touch1.clientX / screenMinSize, touch1.clientY / screenMinSize);
+  let p0 = new THREE.Vector2(touch0.clientX / screenResolution.x, touch0.clientY / screenResolution.y);
+  let p1 = new THREE.Vector2(touch1.clientX / screenResolution.x, touch1.clientY / screenResolution.y);
   startTouchSpread = p1.sub(p0).lengthSq();
 }
 
@@ -182,8 +182,8 @@ function handleDoubleTouchMove(e) {
   startTouchPoint = null;
   let touch0 = e.targetTouches[0];
   let touch1 = e.targetTouches[1];
-  let p0 = new THREE.Vector2(touch0.clientX / screenMinSize, touch0.clientY / screenMinSize);
-  let p1 = new THREE.Vector2(touch1.clientX / screenMinSize, touch1.clientY / screenMinSize);
+  let p0 = new THREE.Vector2(touch0.clientX / screenResolution.x, touch0.clientY / screenResolution.y);
+  let p1 = new THREE.Vector2(touch1.clientX / screenResolution.x, touch1.clientY / screenResolution.y);
   latestTouchSpread = p1.sub(p0).lengthSq();
   selectedViewScale = null;
 }
