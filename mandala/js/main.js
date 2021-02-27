@@ -190,7 +190,7 @@ function handleTouchEnd(e) {
   startTouchSpread = null;
   let touchEndTime = new Date().getTime();
   let touchLength = (touchEndTime - lastTouchStartTime) / 1000;
-  if (e.targetTouches.length === 0 && touchLength > 0.1) {
+  if (e.targetTouches.length === 0 && touchLength < 0.12) {
     let currentTime = new Date().getTime();
     let tapLength = currentTime - lastTap;
     if (tapLength < 500 && tapLength > 0) {
