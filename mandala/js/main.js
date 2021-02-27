@@ -84,7 +84,7 @@ function main() {
   canvas.addEventListener('touchstart', handleTouchStart);
   canvas.addEventListener('touchmove', handleTouchMove);
   canvas.addEventListener('touchend', handleTouchEnd);
-  canvas.addEventListener('touchcancel', handleTouchEnd);
+  canvas.addEventListener('touchcancel', handleTouchCancel);
 
   initGUI();
   initStats();
@@ -193,6 +193,12 @@ function handleTouchEnd(e) {
     }
     lastTap = currentTime;
   }
+}
+
+function handleTouchCancel(e) {
+  e.preventDefault();
+  startTouchPoint = null;
+  startTouchSpread = null;
 }
 
 pressed = {}
