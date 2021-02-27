@@ -370,9 +370,9 @@ function update() {
   }
 
   if (startTouchSpread != null) {
-    if (latestTouchSpread > startTouchSpread) {
+    if (latestTouchSpread > startTouchSpread + 0.05) {
       updateViewScale(1 - touchZoomSpeed);
-    } else if (latestTouchSpread < startTouchSpread) {
+    } else if (latestTouchSpread < startTouchSpread - 0.05) {
       updateViewScale(1 + touchZoomSpeed);
     }
     startTouchSpread = latestTouchSpread;
