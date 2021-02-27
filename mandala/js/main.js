@@ -194,7 +194,7 @@ function handleTouchEnd(e) {
     let currentTime = new Date().getTime();
     let tapLength = currentTime - lastTap;
     if (tapLength < 250 && tapLength > 0) {
-      handleDoubleTap(e);
+      // handleDoubleTap(e);
     } else {
       lastTap = currentTime;
     }
