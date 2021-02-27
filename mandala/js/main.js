@@ -163,10 +163,12 @@ function handleSingleTouchMove(e) {
   let touch = e.targetTouches[0];
   let newTouchPoint = new THREE.Vector2(touch.clientX / screenMaxSize, touch.clientY / screenMaxSize);
   let touchVector = newTouchPoint.clone();
-  touchVector.sub(startTouchPoint).normalize().multiply(new THREE.Vector2(1, -1));
-  let dTouch = Math.min(0.33, touchVector.length());
+  touchVector.sub(startTouchPoint);
+  let dTouch = Math.min(0.33, touchVector.lengthSq());
+  touchVector.multiply(new THREE.Vector2(1, -1));
   touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(touchScrollSpeed);
   center.add(touchVector);
+  selectedCenter = null;
 }
 
 function handleDoubleTouchStart(e) {
