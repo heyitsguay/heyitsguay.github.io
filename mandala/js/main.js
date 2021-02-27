@@ -146,28 +146,20 @@ function handleTouchMove(e) {
   }
 }
 
-let startTouchPoint = new THREE.Vector2(0, 0);
-let touchScrollSpeed = 1;
+let startTouchPoint = null;
+let latestTouchPoint;
+let touchScrollSpeed = 0.3;
 let foundTouch = false;
 
 function handleSingleTouchStart(e) {
-  if (true) {
-    foundTouch = true;
-    let touch = e.targetTouches[0];
-    startTouchPoint.x = touch.clientX / screenMaxSize;
-    startTouchPoint.y = touch.clientY / screenMaxSize;
-  }
+  let touch = e.targetTouches[0];
+  startTouchPoint = new THREE.Vector2(touch.clientX / screenMaxSize, touch.clientY / screenMaxSize);
+  latestTouchPoint = startTouchPoint.clone();
 }
 
 function handleSingleTouchMove(e) {
   let touch = e.targetTouches[0];
-  let newTouchPoint = new THREE.Vector2(touch.clientX / screenMaxSize, touch.clientY / screenMaxSize);
-  let touchVector = newTouchPoint.clone();
-  touchVector.sub(startTouchPoint);
-  let dTouch = Math.min(0.1, touchVector.lengthSq());
-  touchVector.multiply(new THREE.Vector2(1, -1));
-  touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(touchScrollSpeed);
-  center.add(touchVector);
+  latestTouchPoint = new THREE.Vector2(touch.clientX / screenMaxSize, touch.clientY / screenMaxSize);
   selectedCenter = null;
 }
 
@@ -180,7 +172,7 @@ function handleDoubleTouchMove(e) {
 }
 
 function handleTouchEnd(e) {
-
+  startTouchPoint = null;
 }
 
 pressed = {}
@@ -340,6 +332,15 @@ let elapsedTime;
 function update() {
   thisTime = new Date().getTime();
   elapsedTime = (thisTime - startTime) * 0.001;
+
+  if (startTouchPoint != null) {
+  let touchVector = latestTouchPoint.clone();
+  touchVector.sub(startTouchPoint);
+  let dTouch = Math.min(0.1, touchVector.lengthSq());
+  touchVector.multiply(new THREE.Vector2(1, -1));
+  touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(touchScrollSpeed);
+  center.add(touchVector);
+  }
 
   if (selectedCenter != null) {
     let selectedCenterCoords = selectedCenter.clone();
