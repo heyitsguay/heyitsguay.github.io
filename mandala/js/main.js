@@ -83,6 +83,8 @@ function main() {
 
   canvas.addEventListener('touchstart', handleTouchStart);
   canvas.addEventListener('touchmove', handleTouchMove);
+  canvas.addEventListener('touchend', handleTouchEnd);
+  canvas.addEventListenen('touchcancel', handleTouchEnd);
 
   canvas.addEventListener('touchend', function(e) {
     let currentTime = new Date().getTime();
@@ -145,20 +147,24 @@ function handleTouchMove(e) {
 }
 
 let startTouchPoint = new THREE.Vector2(0, 0);
-let touchScrollSpeed = 0.1;
+let touchScrollSpeed = 1;
+let foundTouch = false;
 
 function handleSingleTouchStart(e) {
-  let touch = e.targetTouches[0];
-  startTouchPoint.x = touch.clientX / screenMaxSize;
-  startTouchPoint.y = touch.clientY / screenMaxSize;
+  if (!foundTouch) {
+    foundTouch = true;
+    let touch = e.targetTouches[0];
+    startTouchPoint.x = touch.clientX / screenMaxSize;
+    startTouchPoint.y = touch.clientY / screenMaxSize;
+  }
 }
 
 function handleSingleTouchMove(e) {
   let touch = e.targetTouches[0];
   let newTouchPoint = new THREE.Vector2(touch.clientX / screenMaxSize, touch.clientY / screenMaxSize);
-  let touchVector = startTouchPoint.clone();
-  touchVector.sub(newTouchPoint).normalize();
-  let dTouch = Math.min(0.4, touchVector.length());
+  let touchVector = newTouchPoint.clone();
+  touchVector.sub(startTouchPoint).normalize().multiply(new THREE.Vector2(1, -1));
+  let dTouch = Math.min(0.33, touchVector.length());
   touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(touchScrollSpeed);
   center.add(touchVector);
 }
@@ -168,6 +174,10 @@ function handleDoubleTouchStart(e) {
 }
 
 function handleDoubleTouchMove(e) {
+
+}
+
+function handleTouchEnd(e) {
 
 }
 
