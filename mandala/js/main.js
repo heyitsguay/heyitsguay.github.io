@@ -28,7 +28,7 @@ let canvasScale = 1;
 let cWidth;
 let cHeight;
 let screenResolution = new THREE.Vector2(0, 0);
-let screenMaxSize;
+let screenMinSize;
 let screenInverseResolution = new THREE.Vector2(0, 0);
 let rawScreenResolution = new THREE.Vector2(0, 0);
 
@@ -148,18 +148,18 @@ function handleTouchMove(e) {
 
 let startTouchPoint = null;
 let latestTouchPoint;
-let touchScrollSpeed = 8;
+let touchScrollSpeed = 6;
 let foundTouch = false;
 
 function handleSingleTouchStart(e) {
   let touch = e.targetTouches[0];
-  startTouchPoint = new THREE.Vector2(touch.clientX / screenMaxSize, touch.clientY / screenMaxSize);
+  startTouchPoint = new THREE.Vector2(touch.clientX / screenMinSize, touch.clientY / screenMinSize);
   latestTouchPoint = startTouchPoint.clone();
 }
 
 function handleSingleTouchMove(e) {
   let touch = e.targetTouches[0];
-  latestTouchPoint = new THREE.Vector2(touch.clientX / screenMaxSize, touch.clientY / screenMaxSize);
+  latestTouchPoint = new THREE.Vector2(touch.clientX / screenMinSize, touch.clientY / screenMinSize);
   selectedCenter = null;
 }
 
@@ -231,7 +231,7 @@ function resize() {
   screenInverseResolution.y = 1 / cHeight;
   screenResolution.x = cWidth;
   screenResolution.y = cHeight;
-  screenMaxSize = Math.max(cWidth, cHeight);
+  screenMinSize = Math.min(cWidth, cHeight);
   canvas.width = cWidth;
   canvas.height = cHeight;
 
