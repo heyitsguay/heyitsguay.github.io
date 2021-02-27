@@ -361,6 +361,8 @@ function updateViewScale(factor) {
 let startTime = new Date().getTime();
 let thisTime;
 let elapsedTime;
+let lastTouchVector = new THREE.Vector2(0, 0);
+let scrollMomentum = 0.9;
 function update() {
   thisTime = new Date().getTime();
   elapsedTime = (thisTime - startTime) * 0.001;
@@ -369,9 +371,16 @@ function update() {
   let touchVector = latestTouchPoint.clone();
   touchVector.sub(startTouchPoint);
   let dTouch = Math.min(0.1, touchVector.lengthSq());
-  touchVector.multiply(new THREE.Vector2(1, -1));
+  touchVector.multiply(new THREE.Vector2(-1, 1));
   touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(viewScale / 12  * touchScrollSpeed);
   center.add(touchVector);
+  lastTouchVector = touchVector;
+  } else {
+    let lastLenSq = lastTouchVector.lengthSq();
+    if (lastLenSq > 1e-8) {
+      lastTouchVector.multiplyScalar(scrollMomentum);
+      center.add(lastTouchVector);
+    }
   }
 
   if (startTouchSpread != null) {
