@@ -142,7 +142,6 @@ function handleTouchMove(e) {
 let startTouchPoint = null;
 let latestTouchPoint;
 let touchScrollSpeed = 10;
-let foundTouch = false;
 
 function handleSingleTouchStart(e) {
   let touch = e.targetTouches[0];
@@ -159,7 +158,7 @@ function handleSingleTouchMove(e) {
 
 let startTouchSpread = null;
 let latestTouchSpread;
-let touchZoomSpeed = 0.08;
+let touchZoomSpeed = 0.1;
 
 function handleDoubleTouchStart(e) {
   let touch0 = e.targetTouches[0];
@@ -376,7 +375,7 @@ function update() {
   }
 
   if (startTouchSpread != null) {
-    let spreadDist = Math.min(1., 5. * Math.abs(latestTouchSpread - startTouchSpread));
+    let spreadDist = Math.min(1., 10. * Math.abs(latestTouchSpread - startTouchSpread));
     if (latestTouchSpread > startTouchSpread) {
       updateViewScale(1 - spreadDist * touchZoomSpeed);
     } else if (latestTouchSpread < startTouchSpread) {
