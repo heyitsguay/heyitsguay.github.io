@@ -381,7 +381,6 @@ function update() {
     } else if (latestTouchSpread < startTouchSpread) {
       updateViewScale(1 + spreadDist * touchZoomSpeed);
     }
-    startTouchSpread = latestTouchSpread;
   }
 
   if (selectedCenter != null) {
