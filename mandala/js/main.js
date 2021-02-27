@@ -125,8 +125,11 @@ function getCenter(p, size) {
   return c;
 }
 
+let lastTouchStartTime;
+
 function handleTouchStart(e) {
   e.preventDefault();
+  lastTouchStartTime = new Date().getTime();
   switch(e.targetTouches.length) {
     case 1: handleSingleTouchStart(e); break;
     case 2: handleDoubleTouchStart(e); break;
@@ -185,7 +188,9 @@ function handleTouchEnd(e) {
   e.preventDefault();
   startTouchPoint = null;
   startTouchSpread = null;
-  if (e.targetTouches.length === 0 ) {
+  let touchEndTime = new Date().getTime();
+  let touchLength = (touchEndTime - lastTouchStartTime) / 1000;
+  if (e.targetTouches.length === 0 && touchLength > 0.1) {
     let currentTime = new Date().getTime();
     let tapLength = currentTime - lastTap;
     if (tapLength < 500 && tapLength > 0) {
