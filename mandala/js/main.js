@@ -28,6 +28,7 @@ let canvasScale = 1;
 let cWidth;
 let cHeight;
 let screenResolution = new THREE.Vector2(0, 0);
+let screenMaxSize;
 let screenInverseResolution = new THREE.Vector2(0, 0);
 let rawScreenResolution = new THREE.Vector2(0, 0);
 
@@ -81,6 +82,7 @@ function main() {
   document.addEventListener('dblclick', handleDoubleClick)
 
   canvas.addEventListener('touchstart', handleTouchStart);
+  canvas.addEventListener('touchmove', handleTouchMove);
 
   canvas.addEventListener('touchend', function(e) {
     let currentTime = new Date().getTime();
@@ -129,14 +131,44 @@ function getCenter(p, size) {
 }
 
 function handleTouchStart(e) {
-  switch(e.touches.length) {
-    case 1: handleSingleTouch(e); break;
-    case 2: handleDoubleTouch(e); break;
+  switch(e.targetTouches.length) {
+    case 1: handleSingleTouchStart(e); break;
+    case 2: handleDoubleTouchStart(e); break;
   }
 }
 
-function handleSingleTouch(e) {
-  
+function handleTouchMove(e) {
+  switch(e.targetTouches.length) {
+    case 1: handleSingleTouchMove(e); break;
+    case 2: handleDoubleTouchMove(e); break;
+  }
+}
+
+let startTouchPoint = new THREE.Vector2(0, 0);
+let touchScrollSpeed = 0.1;
+
+function handleSingleTouchStart(e) {
+  let touch = e.targetTouches[0];
+  startTouchPoint.x = touch.clientX / screenMaxSize;
+  startTouchPoint.y = touch.clientY / screenMaxSize;
+}
+
+function handleSingleTouchMove(e) {
+  let touch = e.targetTouches[0];
+  let newTouchPoint = new THREE.Vector2(touch.clientX / screenMaxSize, touch.clientY / screenMaxSize);
+  let touchVector = startTouchPoint.clone();
+  touchVector.sub(newTouchPoint).normalize();
+  let dTouch = Math.min(0.4, touchVector.length());
+  touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(touchScrollSpeed);
+  center.add(touchVector);
+}
+
+function handleDoubleTouchStart(e) {
+
+}
+
+function handleDoubleTouchMove(e) {
+
 }
 
 pressed = {}
@@ -195,6 +227,7 @@ function resize() {
   screenInverseResolution.y = 1 / cHeight;
   screenResolution.x = cWidth;
   screenResolution.y = cHeight;
+  screenMaxSize = Math.max(cWidth, cHeight);
   canvas.width = cWidth;
   canvas.height = cHeight;
 
