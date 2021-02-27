@@ -31,7 +31,7 @@ video {
   /*width:min(460px, 80%);*/
   transform:translate(-50%, -50%);
   color: #CECED1;
-  background: #111111bb;
+  background: #111111dd;
   z-index: 1000;
   text-align: center;
   padding: 15px;
