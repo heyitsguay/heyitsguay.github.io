@@ -167,6 +167,7 @@ function handleDoubleTouchStart(e) {
   let p0 = new THREE.Vector2(touch0.clientX / screenResolution.x, touch0.clientY / screenResolution.y);
   let p1 = new THREE.Vector2(touch1.clientX / screenResolution.x, touch1.clientY / screenResolution.y);
   startTouchSpread = p1.sub(p0).lengthSq();
+  latestTouchSpread = startTouchSpread.clone();
 }
 
 function handleDoubleTouchMove(e) {
@@ -374,6 +375,7 @@ function update() {
     } else if (latestTouchSpread < startTouchSpread) {
       updateViewScale(1 + touchZoomSpeed);
     }
+    startTouchSpread = latestTouchSpread;
   }
 
   if (selectedCenter != null) {
