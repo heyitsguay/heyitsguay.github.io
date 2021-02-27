@@ -376,10 +376,11 @@ function update() {
   }
 
   if (startTouchSpread != null) {
-    if (latestTouchSpread > startTouchSpread + 0.05) {
-      updateViewScale(1 - touchZoomSpeed);
-    } else if (latestTouchSpread < startTouchSpread - 0.05) {
-      updateViewScale(1 + touchZoomSpeed);
+    let spreadDist = Math.min(1., 5. * Math.abs(latestTouchSpread - startTouchSpread));
+    if (latestTouchSpread > startTouchSpread) {
+      updateViewScale(1 - spreadDist * touchZoomSpeed);
+    } else if (latestTouchSpread < startTouchSpread) {
+      updateViewScale(1 + spreadDist * touchZoomSpeed);
     }
     startTouchSpread = latestTouchSpread;
   }
