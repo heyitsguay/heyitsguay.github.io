@@ -141,7 +141,7 @@ function handleTouchMove(e) {
 
 let startTouchPoint = null;
 let latestTouchPoint;
-let touchScrollSpeed = 10;
+let touchScrollSpeed = 18;
 
 function handleSingleTouchStart(e) {
   let touch = e.targetTouches[0];
@@ -370,7 +370,7 @@ function update() {
   touchVector.sub(startTouchPoint);
   let dTouch = Math.min(0.1, touchVector.lengthSq());
   touchVector.multiply(new THREE.Vector2(1, -1));
-  touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(touchScrollSpeed);
+  touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(viewScale / 12  * touchScrollSpeed);
   center.add(touchVector);
   }
 
