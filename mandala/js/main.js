@@ -148,7 +148,7 @@ function handleTouchMove(e) {
 
 let startTouchPoint = null;
 let latestTouchPoint;
-let touchScrollSpeed = 0.3;
+let touchScrollSpeed = 2;
 let foundTouch = false;
 
 function handleSingleTouchStart(e) {
