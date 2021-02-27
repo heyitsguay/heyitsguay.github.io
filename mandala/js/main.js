@@ -84,7 +84,7 @@ function main() {
   canvas.addEventListener('touchstart', handleTouchStart);
   canvas.addEventListener('touchmove', handleTouchMove);
   canvas.addEventListener('touchend', handleTouchEnd);
-  canvas.addEventListenen('touchcancel', handleTouchEnd);
+  canvas.addEventListener('touchcancel', handleTouchEnd);
 
   canvas.addEventListener('touchend', function(e) {
     let currentTime = new Date().getTime();
@@ -151,7 +151,7 @@ let touchScrollSpeed = 1;
 let foundTouch = false;
 
 function handleSingleTouchStart(e) {
-  if (!foundTouch) {
+  if (true) {
     foundTouch = true;
     let touch = e.targetTouches[0];
     startTouchPoint.x = touch.clientX / screenMaxSize;
