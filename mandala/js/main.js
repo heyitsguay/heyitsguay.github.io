@@ -79,7 +79,7 @@ function main() {
   $(window).resize(resize);
   document.onkeydown = handleKeyDown;
   document.onkeyup = handleKeyUp;
-  document.addEventListener('dblclick', handleDoubleClick)
+  canvas.addEventListener('dblclick', handleDoubleClick)
 
   canvas.addEventListener('touchstart', handleTouchStart);
   canvas.addEventListener('touchmove', handleTouchMove);
@@ -133,6 +133,7 @@ function getCenter(p, size) {
 }
 
 function handleTouchStart(e) {
+  e.preventDefault();
   switch(e.targetTouches.length) {
     case 1: handleSingleTouchStart(e); break;
     case 2: handleDoubleTouchStart(e); break;
@@ -140,6 +141,7 @@ function handleTouchStart(e) {
 }
 
 function handleTouchMove(e) {
+  e.preventDefault();
   switch(e.targetTouches.length) {
     case 1: handleSingleTouchMove(e); break;
     case 2: handleDoubleTouchMove(e); break;
@@ -158,21 +160,38 @@ function handleSingleTouchStart(e) {
 }
 
 function handleSingleTouchMove(e) {
+  startTouchSpread = null;
   let touch = e.targetTouches[0];
   latestTouchPoint = new THREE.Vector2(touch.clientX / screenMinSize, touch.clientY / screenMinSize);
   selectedCenter = null;
 }
 
-function handleDoubleTouchStart(e) {
+let startTouchSpread = null;
+let latestTouchSpread;
+let touchZoomSpeed = 0.02;
 
+function handleDoubleTouchStart(e) {
+  let touch0 = e.targetTouches[0];
+  let touch1 = e.targetTouches[1];
+  let p0 = new THREE.Vector2(touch0.clientX / screenMinSize, touch0.clientY / screenMinSize);
+  let p1 = new THREE.Vector2(touch1.clientX / screenMinSize, touch1.clientY / screenMinSize);
+  startTouchSpread = p1.sub(p0).lengthSq();
 }
 
 function handleDoubleTouchMove(e) {
-
+  startTouchPoint = null;
+  let touch0 = e.targetTouches[0];
+  let touch1 = e.targetTouches[1];
+  let p0 = new THREE.Vector2(touch0.clientX / screenMinSize, touch0.clientY / screenMinSize);
+  let p1 = new THREE.Vector2(touch1.clientX / screenMinSize, touch1.clientY / screenMinSize);
+  latestTouchSpread = p1.sub(p0).lengthSq();
+  selectedViewScale = null;
 }
 
 function handleTouchEnd(e) {
+  e.preventDefault();
   startTouchPoint = null;
+  startTouchSpread = null;
 }
 
 pressed = {}
@@ -325,6 +344,13 @@ function animate() {
   render();
 }
 
+let minViewScale = 0.1;
+let maxViewScale = 1000;
+
+function updateViewScale(factor) {
+  viewScale = Math.min(maxViewScale, Math.max(minViewScale, factor * viewScale));
+}
+
 
 let startTime = new Date().getTime();
 let thisTime;
@@ -340,6 +366,14 @@ function update() {
   touchVector.multiply(new THREE.Vector2(1, -1));
   touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(touchScrollSpeed);
   center.add(touchVector);
+  }
+
+  if (startTouchSpread != null) {
+    if (latestTouchSpread > startTouchSpread) {
+      updateViewScale(1 + touchZoomSpeed);
+    } else if (latestTouchSpread < startTouchSpread) {
+      updateViewScale(1 - touchZoomSpeed);
+    }
   }
 
   if (selectedCenter != null) {
@@ -368,11 +402,11 @@ function update() {
   }
 
   if (pressed['r']) {
-    viewScale *= 1.025;
+    updateViewScale(1.025);
     selectedViewScale = null;
   }
   if (pressed['f']) {
-    viewScale *= 0.975;
+    updateViewScale(0.975);
     selectedViewScale = null;
   }
 
