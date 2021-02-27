@@ -183,8 +183,8 @@ function handleTouchEnd(e) {
   e.preventDefault();
   startTouchPoint = null;
   startTouchSpread = null;
-
-  if (e.targetTouches.length === 1 ) {
+  if (e.targetTouches.length === 0 ) {
+    console.log('touched');
     let currentTime = new Date().getTime();
     let tapLength = currentTime - lastTap;
     if (tapLength < 500 && tapLength > 0) {
