@@ -86,15 +86,6 @@ function main() {
   canvas.addEventListener('touchend', handleTouchEnd);
   canvas.addEventListener('touchcancel', handleTouchEnd);
 
-  canvas.addEventListener('touchend', function(e) {
-    let currentTime = new Date().getTime();
-    let tapLength = currentTime - lastTap;
-    if (tapLength < 500 && tapLength > 0) {
-      handleDoubleTap(e);
-    }
-    lastTap = currentTime;
-  });
-
   initGUI();
   initStats();
 
@@ -192,6 +183,15 @@ function handleTouchEnd(e) {
   e.preventDefault();
   startTouchPoint = null;
   startTouchSpread = null;
+
+  if (e.targetTouches.length === 1 ) {
+    let currentTime = new Date().getTime();
+    let tapLength = currentTime - lastTap;
+    if (tapLength < 500 && tapLength > 0) {
+      handleDoubleTap(e);
+    }
+    lastTap = currentTime;
+  }
 }
 
 pressed = {}
