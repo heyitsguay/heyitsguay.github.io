@@ -168,7 +168,7 @@ function handleSingleTouchMove(e) {
 
 let startTouchSpread = null;
 let latestTouchSpread;
-let touchZoomSpeed = 0.2;
+let touchZoomSpeed = 0.08;
 
 function handleDoubleTouchStart(e) {
   let touch0 = e.targetTouches[0];
