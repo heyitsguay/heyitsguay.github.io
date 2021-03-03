@@ -150,6 +150,10 @@ html {
   background-image: url("./thumbs/fireworks.png");
   grid-row-end: span 1;
 }
+.item--12 {
+  background-image: url("./thumbs/mandala.png");
+  grid-row-end: span 1;
+}
 .item__details {
   position: relative;
   z-index: 1;

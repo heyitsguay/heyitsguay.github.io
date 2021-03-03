@@ -102,7 +102,7 @@ function main() {
   initStats();
 
   let now = new Date().getTime();
-  mainUniforms.startSeed.value = 1.2345678; //(now / 1000000) % 10;
+  mainUniforms.startSeed.value = (now / 1000000) % 10;
   toggleHide();
   restart();
 }
