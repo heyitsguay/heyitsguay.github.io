@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://heyitsguay.github.io/mandala">
   <meta property="og:image" content="ogimage.png">
 
-  <link rel="manifest" href="site.webmanifest">
+<!--  <link rel="manifest" href="site.webmanifest">-->
   <link rel="apple-touch-icon" href="icon.png">
   <!-- Place favicon.ico in the root directory -->
 
@@ -38,7 +38,7 @@
   <script src="js/vendor/modernizr-3.11.2.min.js"></script>
   <script src="js/main.js"></script>
 
-  <div id="introdiv" class="overlay-box" onclick="clearDiv()">
+  <div id="introdiv" class="overlay-box">
     <p><b>mandala garden</b></p>
     <p>&nbsp;</p>
     <p><b>Move</b>: Swipe or WASD</p>
@@ -46,10 +46,14 @@
 <!--    <p>&nbsp;</p>-->
 <!--    <p>Double click a mandala to center on it</p>-->
     <p>&nbsp;</p>
-    <p>Click here to hide this</p>
+    <p>Click to hide this</p>
   </div>
 
   <canvas class="mainCanvas" width="1px" height="1px" id="canvas"></canvas>
+
+  <div id="fullscreendiv" class="overlay-invisible" onclick="clearDiv()">
+
+  </div>
 
 </body>
 

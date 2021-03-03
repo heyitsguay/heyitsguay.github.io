@@ -2,7 +2,8 @@
 on4KScreen = ((screen.height < screen.width) ? (screen.width > 3000 / window.devicePixelRatio ) : (screen.height > 3000 / window.devicePixelRatio ) );
 
 const shaderFiles = [
-  'quad.frag',
+  'lab.frag',
+  'garden.frag',
   'quad.vert'
 ];
 let shaderSources = {};
@@ -15,6 +16,8 @@ let guiParams = {
     resize();
   }
 }
+
+let labMode = false;
 
 let center = new THREE.Vector2(0, 0);
 let baseMovementSpeed = 0.12;
@@ -38,14 +41,18 @@ let quadGeometry;
 let mainScene;
 let mainCamera;
 let mainMaterial;
+let labMaterial;
 let mainMesh;
+let labMesh;
 let mainUniforms = {
   time: {value: 0},
   resolution: {value: screenResolution},
   iResolution: {value: screenInverseResolution},
   startSeed: {value: 0},
   center: {value: center},
-  viewScale: {value: viewScale}
+  viewScale: {value: viewScale},
+  selectedCenter: {value: new THREE.Vector2(0, 0)},
+  selectedTime: {value: 0}
 };
 
 
@@ -54,8 +61,11 @@ let showingStats = true;
 
 let lastTap = 0;
 
+let divCleared = false;
 function clearDiv() {
   document.getElementById('introdiv').remove();
+  document.getElementById('fullscreendiv').remove();
+  divCleared = true;
 }
 
 
@@ -92,9 +102,21 @@ function main() {
   initStats();
 
   let now = new Date().getTime();
-  mainUniforms.startSeed.value = (now / 1000000) % 10;
+  mainUniforms.startSeed.value = 1.2345678; //(now / 1000000) % 10;
   toggleHide();
   restart();
+}
+
+function checkForCenterQuery() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('cx') && params.has('cy')) {
+    let cx = parseFloat(params.get('cx'));
+    let cy = parseFloat(params.get('cy'));
+    center = new THREE.Vector2(cx * 4.5, cy * 4.5);
+    selectedCenter = new THREE.Vector2(cx, cy);
+    mainUniforms.selectedCenter.value = selectedCenter;
+    toggleMeshes();
+  }
 }
 
 function handleDoubleClick(e) {
@@ -115,6 +137,7 @@ function handleSelect(pos) {
   uv = uv.multiplyScalar(viewScale);
   uv = uv.add(center);
   selectedCenter = getCenter(uv, 4.5);
+  mainUniforms.selectedCenter.value = selectedCenter;
 }
 
 function getCenter(p, size) {
@@ -129,6 +152,9 @@ let lastTouchStartTime;
 
 function handleTouchStart(e) {
   e.preventDefault();
+  if (!divCleared) {
+    clearDiv();
+  }
   lastTouchStartTime = new Date().getTime();
   switch(e.targetTouches.length) {
     case 1: handleSingleTouchStart(e); break;
@@ -146,7 +172,6 @@ function handleTouchMove(e) {
 
 let startTouchPoint = null;
 let latestTouchPoint;
-let touchScrollSpeed = 40;
 
 function handleSingleTouchStart(e) {
   let touch = e.targetTouches[0];
@@ -217,28 +242,49 @@ function handleKeyUp(e) {
   }
 }
 
-
+let lastViewScale = 4;
 function handleKeyDown(e) {
+  if (!divCleared) {
+    clearDiv();
+  }
   if (contKeys.includes(e.key)) {
     pressed[e.key] = true;
   }
 
   switch (e.key) {
     case ' ':
-      toggleHide();
+      // toggleHide();
       break;
 
     case 'q': {
       selectedCenter = new THREE.Vector2(0,0);
+      mainUniforms.selectedCenter.value = selectedCenter;
       break;
     }
 
     case 'v': {
-      selectedviewScale = 12;
+      selectedViewScale = 12;
+      break;
+    }
+
+    case 'l': {
+      // toggleMeshes();
       break;
     }
 
   }
+}
+
+
+function toggleMeshes() {
+  labMode = !labMode;
+  let tmp = viewScale;
+  selectedViewScale = lastViewScale;
+  lastViewScale = tmp;
+  labMesh.visible = !labMesh.visible;
+  mainMesh.visible = !mainMesh.visible;
+  let thisTime = new Date().getTime();
+  mainUniforms.selectedTime.value = (thisTime - startTime) * 0.001;
 }
 
 
@@ -278,7 +324,7 @@ function resize() {
   }
 }
 
-
+let firstTime = true;
 function restart() {
   resize();
 
@@ -287,6 +333,12 @@ function restart() {
   }
 
   setupGL();
+
+  if (firstTime) {
+    checkForCenterQuery();
+    firstTime = false;
+  }
+
   animate();
 }
 
@@ -343,11 +395,19 @@ function setupGL() {
   mainScene.add(mainCamera);
   mainMaterial = new THREE.RawShaderMaterial({
     vertexShader: shaderSources['quad.vert'],
-    fragmentShader: shaderSources['quad.frag'],
+    fragmentShader: shaderSources['garden.frag'],
     uniforms: mainUniforms
   });
   mainMesh = new THREE.Mesh(quadGeometry, mainMaterial);
   mainScene.add(mainMesh);
+  labMaterial = new THREE.RawShaderMaterial({
+    vertexShader: shaderSources['quad.vert'],
+    fragmentShader: shaderSources['lab.frag'],
+    uniforms: mainUniforms
+  });
+  labMesh = new THREE.Mesh(quadGeometry, labMaterial);
+  mainScene.add(labMesh);
+  labMesh.visible = false;
 }
 
 
@@ -369,6 +429,7 @@ let startTime = new Date().getTime();
 let thisTime;
 let elapsedTime;
 let lastTouchVector = new THREE.Vector2(0, 0);
+let touchScrollSpeed = 24;
 let scrollMomentum = 0.9;
 function update() {
   thisTime = new Date().getTime();
@@ -377,9 +438,9 @@ function update() {
   if (startTouchPoint != null) {
     let touchVector = latestTouchPoint.clone();
     touchVector.sub(startTouchPoint);
-    let dTouch = touchVector.length();
     touchVector.multiply(new THREE.Vector2(-1, 1));
-    touchVector.normalize().multiplyScalar(dTouch).multiplyScalar(viewScale / 12  * touchScrollSpeed);
+    touchVector.multiplyScalar(viewScale / 12  * touchScrollSpeed);
+    console.log(touchVector.length());
     center.add(touchVector);
     lastTouchVector = touchVector;
     startTouchPoint = latestTouchPoint.clone();

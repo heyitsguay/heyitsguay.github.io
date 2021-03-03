@@ -7,12 +7,11 @@ precision mediump float;
 
 uniform float time;
 uniform vec2 resolution;
-uniform int pointerCount;
-uniform vec3 pointers[10];
 uniform float startSeed;
 uniform vec2 touch;
-uniform vec2 center;
 uniform float viewScale;
+uniform vec2 selectedCenter;
+uniform float selectedTime;
 
 #define PI  3.141592654
 #define TAU (2.0*PI)
@@ -116,7 +115,7 @@ float circle(vec2 p, float r) {
 float mandala_df(float localTime, vec2 p, vec2 c) {
   vec4 hc = hash24(c);
   vec4 hc2 = hash24(c + 12.53);
-  rot(p, .05 * sin(3. * hc.x) * localTime);
+  rot(p, .05 * sin(3. * hc.x) * time);
   vec2 pp = toPolar(p);
 //  float a = TAU/(64.*(.12+1.4*hc.x*hc.x));
   float nsyms = 2. * round(3. + 37.*hc.x*hc.x);
@@ -138,7 +137,7 @@ float mandala_df(float localTime, vec2 p, vec2 c) {
   for (int i = 0; i < 1 + int(3.*hc.z); ++i) {
     mod2(p, vec2(1.0));
     float da = hsin(.02*localTime + 7. * sin(hc.x + hc.y));
-    rot(p, .1*(hc.x + hc.z)*time);
+    rot(p, .1*(hc.x + hc.z)*localTime);
     float sb = box(p, vec2(1.) * (.1 + .7 * (hc.y + hc.z)) )+ da;
     float cb = circle(p - 0.5*(0.1+0.9*hc.w), (0.5)) + da*cos(.0333*localTime - 7. * hc.x);
 
@@ -187,24 +186,21 @@ vec3 mandala_sample(float localTime, vec2 p)
 
   vec2 uv = p;
   uv *= viewScale;
-  uv += center;
 
-  vec2 c = modMirror2(uv, vec2(4.5));
+  float st = selectedTime + 5. * sin(0.2 * (time - selectedTime));
+  float stLocal = st + 30.;
+
+  vec2 c = selectedCenter.xy;//modMirror2(uv, vec2(4.5));
   vec4 hc = hash24(c - 8.675309);
 
-  //vec2 nuv = mandala_distort(localTime, uv, c);
-  //vec2 nuv2 = mandala_distort(localTime, uv + vec2(0.001), c);
-
   float d = mandala_df(localTime, uv , c);
-  float d2 = mandala_df(localTime+1./60., uv, c);
-  float nl = length(d - d2);
-  float nf = 1.0 - smoothstep(0.0, 0.006, nl);
-
-
 
   vec3 col = vec3(0.);
 
-  float r = 0.5*(.1+hsin(.05*time - hc.x * hc.x));
+
+//  float st = selectedTime + 100. * (time - selectedTime);
+
+  float r = 0.5*(.1+hsin(.05*st - hc.x * hc.x));
   //float r = 0.01 + 0.449*hsin(.2*time);
 
   float nd = d / r;
@@ -212,25 +208,17 @@ vec3 mandala_sample(float localTime, vec2 p)
 
 
   if (abs(md) < 0.05*(.25 + 15.*(hc.x * hc.y))) {
-    col = (d > 0.0 ? vec3(0.25,0.25,0.65) : vec3(0.65, 0.25, 0.25 + .5*hsin(.08*time - 7. * hc.z)))/abs(nd*(.5+hsin((0.05 * (hc.x + hc.w))*time - 7.* hc.x - 4. * hc.y)));
+    col = (d > 0.0 ? vec3(0.25,0.25,0.65) : vec3(0.65, 0.25, 0.25 + .5*hsin(.08*st - 7. * hc.z)))/abs(nd*(.5+hsin((0.05 * (hc.x + hc.w))*st - 7.* hc.x - 4. * hc.y)));
   }
 
   float whiteMultiplier = hc.x + hc.y + hc.z;
   float whiteScale = 0.05 * pow(2., -(0.01 + 2.5 * hc.w));
-  // .01 + .19
-  // scale * (1 + multiplier * variable)
-//  if (abs(d) < .02*(0.5 + 9.5 * hsin(.11*time - 7. * hc.y))*(.5+.5*hc.w)) {
-  if (abs(d) < whiteScale*(1. + 0. * hsin(.11*time - 7. * hc.y))) {
+  if (abs(d) < whiteScale*(1. + 0. * hsin(.11*st - 7. * hc.y))) {
     col = vec3(1.0);
   }
 
-  //col = vec3(d,0,0);
+  col = mandala_postProcess(stLocal, col, uv, c);;
 
-  //col *= pow(nf, 1.);
-
-  col = mandala_postProcess(localTime, col, uv, c);;
-
-  //col += 1.0 - pow(nf, 1.0);
   return saturate(col);
 }
 
@@ -245,7 +233,6 @@ vec3 mandala_main(vec2 p) {
 out vec4 fragColor;
 void main()
 {
-  float time = 0.1*time;
   vec2 uv = gl_FragCoord.xy/resolution.xy - vec2(0.5);
   uv.x *= resolution.x/resolution.y;
 
