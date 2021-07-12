@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="JavaScriptLibraryMappings">
-    <file url="file://$PROJECT_DIR$/js/ComputeRenderer.js" libraries="{three}" />
-    <file url="file://$PROJECT_DIR$/js/main.js" libraries="{jquery-3.2.1, three}" />
-    <file url="PROJECT" libraries="{OrbitControls, Stats, dat.gui}" />
-  </component>
-</project>
