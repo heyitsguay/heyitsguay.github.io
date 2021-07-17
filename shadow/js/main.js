@@ -8,58 +8,37 @@ let shaderSources = {};
 
 let gui;
 let guiParams = {
-  quality: on4KScreen? 1. : 2.,
-  dScale: 2.82,
+  quality: on4KScreen? 2. : 1.,
+  dScale: 6.77,
   shadowDecay: 0.1,
   shadowOnset: 2.,
   shadowStrength: 0.03,
   onsetStrength: 1.,
   innerGlow: 0.8,
-  outerShadow: 0.,
-  patternStrength: 0.03,
+  outerShadow: 0.06,
+  patternStrength: 0.05,
   patternFrequency: 2.,
   patternPhase: 0.,
-  maxBrightness: 0.9,
+  maxBrightness: 0.98,
   startSeed: 0,
   nSymmetries: 1,
-  recurseScale: 0,
-  nRecursions: 4,
-  rotPerLevel: -2,
+  recurseScale: 0.2,
+  nRecursions: 10,
+  recursionDecay: 0.,
+  rotPerLevel: 15,
+  wiggleRadSlope: 0.,
+  wiggleRadStart: 0.,
   wiggleBase: -3.16,
-  wiggleFrequency: 4.,
-  wiggleRScale: 4.,
-  wiggleTScale: 1.,
-  hyperbolaWidth: -3.3,
+  wiggleFrequency: 1.8,
+  wiggleRScale: 2.2,
+  wiggleTScale: 0.,
+  hyperbolaWidth: -2.99,
   hyperbolaScale: 1.,
-  circle1Width: 0.1,
-  circle2Width: 0.05,
+  circle1Width: 0.025,
+  circle2Width: 0.0025,
   tentacleBlunter: -3.09,
   resetOptions: function() {
-    guiParams.quality = on4KScreen? 1. : 2.;
-    guiParams.dScale = 2.82;
-    guiParams.shadowDecay = 0.1;
-    guiParams.shadowOnset = 2.;
-    guiParams.shadowStrength = 0.03;
-    guiParams.onsetStrength = 1.;
-    guiParams.innerGlow = 0.8;
-    guiParams.outerShadow = 0.;
-    guiParams.patternStrength = 0.03;
-    guiParams.patternFrequency = 2.;
-    guiParams.patternPhase = 0.;
-    guiParams.maxBrightness = 0.9;
-    guiParams.nSymmetries = 1;
-    guiParams.recurseScale = 0;
-    guiParams.nRecursions = 4;
-    guiParams.rotPerLevel = -2;
-    guiParams.wiggleBase = -3.16;
-    guiParams.wiggleFrequency = 4.;
-    guiParams.wiggleRScale = 4.;
-    guiParams.wiggleTScale = 1.;
-    guiParams.hyperbolaWidth = -3.3;
-    guiParams.hyperbolaScale = 1.;
-    guiParams.circle1Width = 0.1;
-    guiParams.circle2Width = 0.05;
-    guiParams.tentacleBlunter = -3.09;
+    gui.revert(gui);
     resize();
   }
 }
@@ -98,7 +77,10 @@ let mainUniforms = {
   nSymmetries: {value: 1},
   recurseScale: {value: 1},
   nRecursions: {value: 4},
+  recursionDecay: {value: 1},
   rotPerLevel: {value: 0.0675},
+  wiggleRadSlope: {value: 0.},
+  wiggleRadStart: {value: 0.},
   wiggleBase: {value: 0.0125},
   wiggleFrequency: {value: 4.},
   wiggleRScale: {value: 4.},
@@ -207,6 +189,8 @@ function restart() {
     mainCamera.aspect = cWidth / cHeight;
   }
 
+  decreaseTentacleBlunter(0, -2.71,  0.01, 3000, 33);
+
   setupGL();
   animate();
 }
@@ -228,8 +212,8 @@ function initGUI() {
   fShadow.add(guiParams, 'innerGlow').min(0).max(2).step(0.01).listen();
   fShadow.add(guiParams, 'outerShadow').min(0).max(1).step(0.01).listen();
   fShadow.add(guiParams, 'patternStrength').min(0).max(1).step(0.01).listen();
-  fShadow.add(guiParams, 'patternFrequency').min(0).max(10).step(0.01).listen();
-  fShadow.add(guiParams, 'patternPhase').min(0).max(6.29).step(0.01).listen();
+  //fShadow.add(guiParams, 'patternFrequency').min(0).max(10).step(0.01).listen();
+  //fShadow.add(guiParams, 'patternPhase').min(0).max(6.29).step(0.01).listen();
   fShadow.open();
   fOther = gui.addFolder('Other settings');
   fOther.add(guiParams, 'maxBrightness').min(0).max(1).step(0.01).listen();
@@ -239,7 +223,10 @@ function initGUI() {
   //fStructure.add(guiParams, 'nSymmetries').min(1).max(40).step(1).listen();
   fStructure.add(guiParams, 'recurseScale').min(-1).max(3).step(0.01).listen();
   fStructure.add(guiParams, 'nRecursions').min(1).max(10).step(1).listen();
-  fStructure.add(guiParams, 'rotPerLevel').min(-5).max(1).step(0.01).listen();
+  fStructure.add(guiParams, 'recursionDecay').min(0).max(1).step(0.001).listen();
+  fStructure.add(guiParams, 'rotPerLevel').min(0).max(20).step(1).listen();
+  fStructure.add(guiParams, 'wiggleRadSlope').min(-10).max(10).step(0.01).listen();
+  fStructure.add(guiParams, 'wiggleRadStart').min(0).max(1).step(0.001).listen();
   fStructure.add(guiParams, 'wiggleBase').min(-5).max(0).step(0.01).listen();
   fStructure.add(guiParams, 'wiggleFrequency').min(0).max(10).step(0.01).listen();
   fStructure.add(guiParams, 'wiggleRScale').min(0).max(10).step(0.01).listen();
@@ -310,6 +297,23 @@ function animate() {
 }
 
 
+function decreaseTentacleBlunter(start, threshold, delta, delay, frequency) {
+  guiParams.tentacleBlunter = start;
+  setTimeout(function () {
+    setTimeout(decrementer, frequency)
+  }, delay);
+
+  function decrementer() {
+    setTimeout(function () {
+      if (guiParams.tentacleBlunter > threshold) {
+        guiParams.tentacleBlunter -= delta;
+        setTimeout(decrementer, frequency);
+      }
+    })
+  }
+}
+
+
 let startTime = new Date().getTime();
 let thisTime;
 let elapsedTime;
@@ -333,7 +337,10 @@ function update() {
   mainUniforms.nSymmetries.value = guiParams.nSymmetries;
   mainUniforms.recurseScale.value = 2**guiParams.recurseScale;
   mainUniforms.nRecursions.value = guiParams.nRecursions;
-  mainUniforms.rotPerLevel.value = guiParams.rotPerLevel === -5. ? 0 : 4 ** guiParams.rotPerLevel;
+  mainUniforms.recursionDecay.value = 1. - guiParams.recursionDecay;
+  mainUniforms.rotPerLevel.value = guiParams.rotPerLevel === 0 ? 1. : 1. / guiParams.rotPerLevel;
+  mainUniforms.wiggleRadSlope.value = guiParams.wiggleRadSlope;
+  mainUniforms.wiggleRadStart.value = guiParams.wiggleRadStart;
   mainUniforms.wiggleBase.value = guiParams.wiggleBase === -5. ? 0 : 4 ** guiParams.wiggleBase;
   mainUniforms.wiggleFrequency.value = guiParams.wiggleFrequency;
   mainUniforms.wiggleRScale.value = guiParams.wiggleRScale;

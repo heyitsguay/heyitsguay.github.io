@@ -26,8 +26,11 @@ uniform float maxBrightness; // 0.9
 uniform float nSymmetries; // 4
 uniform float recurseScale; // 0.5 = 2**-1
 uniform int nRecursions; // 4
+uniform float recursionDecay;
 uniform float rotPerLevel; // 0.0625 = 4**-2
 uniform float wiggleBase; // 0.0125 = 4**-3.16
+uniform float wiggleRadSlope;
+uniform float wiggleRadStart;
 uniform float wiggleFrequency; // 4
 uniform float wiggleRScale; // 4
 uniform float wiggleTScale; // 1
@@ -60,6 +63,9 @@ vec4 hash24(vec2 t) {
 
 vec3 saturate(vec3 col) {
   return clamp(col, 0.0, 1.0);
+}
+float saturate(float col) {
+  return clamp(col, 0., 1.);
 }
 
 
@@ -117,25 +123,30 @@ float shadow_df(vec2 p) {
   //float a = TAU / nSymmetries;
   float r = pp.x;
   float t = pp.y;
-  pp.y = pp.y/nSymmetries;
+  pp.y = abs(pp.y - PI); //pp.y/nSymmetries;
   p = toRect(pp);
-  p = abs(p);
+  //p = abs(p);
   //p -= vec2(0.5);
 
   float d = 10000.;
 
+  float recurseScaleNow = recurseScale;
+
+  vec2 q = p;
   for(int i = 0; i < nRecursions; ++i) {
     //mod2(p, vec2(1.));
-    vec2 q = p;
+//    vec2 q = p;
     rot(q, rotPerLevel * TAU * float(i));
-    rot(q, wiggleBase*sin(wiggleFrequency * (wiggleRScale*r+wiggleTScale*t))*TAU);
+//    rot(q, wiggleBase*sin(wiggleFrequency * (wiggleRScale*r+wiggleTScale*t + saturate(wiggleRadSlope * (r - wiggleRadStart)) * (floor(rotPerLevel * float(i))))*TAU));
+    rot(q, wiggleBase*sin(time + wiggleFrequency * (wiggleRScale*r+wiggleTScale*t + float(mod(float(i), 1. / rotPerLevel)))*TAU));
     float sb = hyperbola(q,
       hyperbolaWidth * pow(float(nRecursions - i) / float(nRecursions), hyperbolaScale));
-    float cb = circle(q, circle1Width);
-    float cb2 = circle(q, circle2Width);
-    float dd = min(sb, cb) + tentacleBlunter*cb2; // min(sb, cb);
+    float cb = circle(p, circle1Width);
+    float cb2 = circle(p, circle2Width);
+    float dd = min(sb, cb) + (tentacleBlunter + 0.001 * float(i * i))*cb2; // min(sb, cb);
     d = min(dd, d);
-    p *= recurseScale;
+    q *= recurseScaleNow;
+    recurseScaleNow = pow(recurseScaleNow, recursionDecay);
   }
 
   return d;
@@ -152,7 +163,8 @@ vec3 shadow_sample(vec2 p) {
   float intensity = 1. - shadowStrength * exp(-shadowDecay * (d * d))
                     + onsetStrength * exp(-shadowOnset * (d * d))
                     + innerGlow * float(d < 0.)
-                   - (outerShadow + patternStrength * hsin(patternFrequency * (p.x * p.x + p.y * p.y) + patternPhase)) * float(d > 0.);
+//                   - (outerShadow + patternStrength * hsin(patternFrequency * (p.x * p.x + p.y * p.y) + patternPhase)) * float(d > 0.);
+                   - (outerShadow - patternStrength * sqrt(dot(p, p))) * float(d > 0.);
 
   return  maxBrightness * saturate(intensity * vec3(1, 1, 1));
 }
