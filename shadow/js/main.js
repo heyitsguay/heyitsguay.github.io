@@ -1,3 +1,5 @@
+on4KScreen = ((screen.height < screen.width) ? (screen.width > 3000 / window.devicePixelRatio ) : (screen.height > 3000 / window.devicePixelRatio ) );
+
 const shaderFiles = [
   'quad.frag',
   'quad.vert'
@@ -6,7 +8,7 @@ let shaderSources = {};
 
 let gui;
 let guiParams = {
-  quality: 1,
+  quality: on4KScreen? 1. : 2.,
   dScale: 2.82,
   shadowDecay: 0.1,
   shadowOnset: 2.,
@@ -33,7 +35,7 @@ let guiParams = {
   circle2Width: 0.05,
   tentacleBlunter: -3.09,
   resetOptions: function() {
-    guiParams.quality = 1;
+    guiParams.quality = on4KScreen? 1. : 2.;
     guiParams.dScale = 2.82;
     guiParams.shadowDecay = 0.1;
     guiParams.shadowOnset = 2.;
@@ -180,8 +182,8 @@ function toggleHide() {
 
 function resize() {
   canvasScale = guiParams.quality;
-  cWidth = Math.floor(canvasScale * window.innerWidth);
-  cHeight = Math.floor(canvasScale * window.innerHeight);
+  cWidth = Math.floor(canvasScale * window.devicePixelRatio * window.innerWidth);
+  cHeight = Math.floor(canvasScale * window.devicePixelRatio * window.innerHeight);
   screenInverseResolution.x = 1 / cWidth;
   screenInverseResolution.y = 1 / cHeight;
   screenResolution.x = cWidth;
@@ -215,7 +217,7 @@ function initGUI() {
   let fTitle = gui.addFolder('To hide: press space or double tap');
   gui.add(guiParams, 'resetOptions');
   fPerf = gui.addFolder('Performance');
-  fPerf.add(guiParams, 'quality', {'Best': 1, 'High': 0.75, 'Medium': 0.5, 'Low': 0.3}).onChange(resize).listen();
+  fPerf.add(guiParams, 'quality', {'Best+AA': 2, 'Best': 1, 'High': 0.75, 'Medium': 0.5, 'Low': 0.3}).onChange(resize).listen();
   fPerf.open();
   fShadow = gui.addFolder('Shadow settings');
   fShadow.add(guiParams, 'dScale').min(0).max(10).step(0.01).listen();
@@ -234,7 +236,7 @@ function initGUI() {
   fOther.add(guiParams, 'startSeed').min(0).max(10000).step(0.1)
   fOther.open();
   fStructure = gui.addFolder('Structure');
-  fStructure.add(guiParams, 'nSymmetries').min(1).max(40).step(1).listen();
+  //fStructure.add(guiParams, 'nSymmetries').min(1).max(40).step(1).listen();
   fStructure.add(guiParams, 'recurseScale').min(-1).max(3).step(0.01).listen();
   fStructure.add(guiParams, 'nRecursions').min(1).max(10).step(1).listen();
   fStructure.add(guiParams, 'rotPerLevel').min(-5).max(1).step(0.01).listen();
