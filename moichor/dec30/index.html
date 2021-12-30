@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="">
+	<head>
+		<title>Content-Aware Computation for Optical Microscopy</title>
+		<meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/reveal.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/theme/white.min.css">
+        <link type="text/css" rel="stylesheet" href="index.css">
+
+
+    </head>
+
+    <body>
+
+    	<div class="reveal">
+    		<div class="slides">
+
+    			<section data-background="linear-gradient(#32629780, #65666a0a)">
+    				<h3>Parrot WBC Detection Model Comparison</h3>
+                    <hr/>
+                    <br/>
+                    Single best model vs. top-3 ensemble
+                    <br/><br/>
+				
+                <br/>
+                <a href="https://heyitsguay.github.io/moichor/dec30/" target="_blank">heyitsguay.github.io/moichor/dec30/</a>
+    			</section>
+
+
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_21: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_21.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_21: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_21.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_47: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_47.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_47: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_47.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_9: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_9.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_9: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_9.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_15: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_15.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_15: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_15.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_45: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_45.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_45: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_45.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_3: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_3.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_3: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_3.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_11: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_11.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_11: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_11.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_5: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_5.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_5: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_5.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_49: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_49.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_49: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_49.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_1: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_1.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_1: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_1.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_29: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_29.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_29: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_29.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_5: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_5.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_5: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_5.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_39: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_39.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_39: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_39.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_59: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_59.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_59: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_59.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_43: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_43.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_43: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_43.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_23: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_23.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_23: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_23.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_35: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_35.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_35: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_35.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_27: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_27.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_27: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_27.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_23: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_23.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_23: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_23.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_67: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_67.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_67: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_67.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_25: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_25.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_25: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_25.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_57: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_57.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_57: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_57.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_51: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_51.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_51: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_51.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_13: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_13.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_13: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_13.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_19: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_19.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_19: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_19.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_35: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_35.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_35: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_35.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_31: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_31.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_31: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_31.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_21: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_21.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_21: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_21.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_17: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_17.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_17: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_17.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_19: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_19.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_19: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_19.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_15: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_15.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_15: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_15.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_33: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_33.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_33: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_33.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_77: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_77.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_77: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_77.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_7: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_7.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_7: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_7.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_51: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_51.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_51: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_51.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_59: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_59.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_59: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_59.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_37: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_37.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_37: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_37.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_5: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_5.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_5: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_5.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_69: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_69.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_69: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_69.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_37: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_37.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_37: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_37.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_61: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_61.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_61: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_61.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_69: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_69.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_69: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_69.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_57: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_57.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_57: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_57.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_79: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_79.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_79: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_79.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_3: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_3.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_3: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_3.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_37: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_37.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_37: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_37.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_29: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_29.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_29: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_29.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_5: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_5.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_5: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_5.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_47: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_47.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_47: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_47.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_25: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_25.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_25: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_25.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_77: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_77.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_77: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_77.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_37: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_37.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_37: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_37.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_13: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_13.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_13: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_13.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_47: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_47.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_47: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_47.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_9: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_9.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_9: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_9.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_27: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_27.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_27: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_27.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_27: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_27.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_27: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_27.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_59: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_59.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_59: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_59.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_3: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_3.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_3: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_3.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_43: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_43.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_43: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_43.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_41: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_41.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_41: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_41.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_25: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_25.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_25: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_25.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_17: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_17.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_17: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_17.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_45: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_45.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_45: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_45.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_47: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_47.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_47: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_47.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_23: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_23.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_23: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_23.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_29: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_29.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_29: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_29.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_41: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_41.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_41: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_41.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_65: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_65.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_65: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_65.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_33: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_33.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_33: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_33.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_67: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_67.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_67: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_67.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_55: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_55.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_55: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_55.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_25: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_25.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_25: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_25.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_55: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1119392ejn_55.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1119392ejn_55: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1119392ejn_55.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_51: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_51.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_51: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_51.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_11: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_11.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_11: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_11.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_9: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_9.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_9: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_9.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_27: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101256fjv_27.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101256fjv_27: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101256fjv_27.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_43: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1101178cvr_43.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1101178cvr_43: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1101178cvr_43.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_39: <i>parrot-1224-1</i>
+                    <img class="stretch" src="parrot-1224-1/ref1653287qsq_39.jpg" alt="">
+
+                    <br/>
+                </section>
+                <section data-background="linear-gradient(#32629780, #65666a0a)">
+                    ref1653287qsq_39: <i>parrot-ensemble-1226-1</i>
+                    <img class="stretch" src="parrot-ensemble-1226-1/ref1653287qsq_39.jpg" alt="">
+
+                    <br/>
+                </section>
+    
+
+    		</div>
+    	</div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/js/reveal.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/markdown/marked.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/markdown/markdown.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/math/math.js"></script>
+
+        
+        <script type="text/javascript">
+            Reveal.initialize({
+
+                math: {
+                    mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js',
+                    config: 'TeX-AMS_HTML-full'
+                },
+
+                // Factor of the display size that should remain empty around the content
+                margin: 0.01,
+
+                // Display controls in the bottom right corner
+                controls: true,
+
+                // Display a presentation progress bar
+                progress: true,
+
+                // Set default timing of 2 minutes per slide
+                defaultTiming: 90,
+
+                // Display the page number of the current slide
+                slideNumber: true,
+
+                // Push each slide change to the browser history
+                history: false,
+
+                // Enable keyboard shortcuts for navigation
+                keyboard: true,
+
+                // Enable the slide overview mode
+                overview: true,
+
+                // Vertical centering of slides
+                center: true,
+
+                // Enables touch navigation on devices with touch input
+                touch: true,
+
+                // Loop the presentation
+                loop: false,
+
+                // Change the presentation direction to be RTL
+                rtl: false,
+
+                // Randomizes the order of slides each time the presentation loads
+                shuffle: false,
+
+                // Turns fragments on and off globally
+                fragments: true,
+
+                // Flags if the presentation is running in an embedded mode,
+                // i.e. contained within a limited portion of the screen
+                embedded: false,
+
+                // Flags if we should show a help overlay when the questionmark
+                // key is pressed
+                help: true,
+
+                // Flags if speaker notes should be visible to all viewers
+                showNotes: false,
+
+                // Global override for autolaying embedded media (video/audio/iframe)
+                // - null: Media will only autoplay if data-autoplay is present
+                // - true: All media will autoplay, regardless of individual setting
+                // - false: No media will autoplay, regardless of individual setting
+                autoPlayMedia: null,
+
+                // Number of milliseconds between automatically proceeding to the
+                // next slide, disabled when set to 0, this value can be overwritten
+                // by using a data-autoslide attribute on your slides
+                autoSlide: 0,
+
+                // Stop auto-sliding after user input
+                autoSlideStoppable: true,
+
+                // Use this method for navigation when auto-sliding
+                autoSlideMethod: Reveal.navigateNext,
+
+                // Enable slide navigation via mouse wheel
+                mouseWheel: false,
+
+                // Hides the address bar on mobile devices
+                hideAddressBar: true,
+
+                // Opens links in an iframe preview overlay
+                previewLinks: false,
+
+                // Transition style
+                transition: 'none', // none/fade/slide/convex/concave/zoom
+
+                // Transition speed
+                transitionSpeed: 'default', // default/fast/slow
+
+                // Transition style for full page slide backgrounds
+                backgroundTransition: 'fade', // none/fade/slide/convex/concave/zoom
+
+                // Number of slides away from the current that are visible
+                viewDistance: 3,
+
+                // Parallax background image
+                parallaxBackgroundImage: '', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+
+                // Parallax background size
+                parallaxBackgroundSize: '', // CSS syntax, e.g. "2100px 900px"
+
+                // Number of pixels to move the parallax background per slide
+                // - Calculated automatically unless specified
+                // - Set to 0 to disable movement along an axis
+                parallaxBackgroundHorizontal: null,
+                parallaxBackgroundVertical: null,
+
+                // The display mode that will be used to show slides
+                display: 'block'
+            });
+        </script>
+
+    </body>
+        
+</html>
