@@ -1,0 +1,30 @@
+span.emph {
+    color: #424f95;;
+}
+
+img {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+hr {
+    display: block;
+    position: relative;
+    padding: 0;
+    margin: 8px auto;
+    height: 0;
+    width: 100%;
+    max-height: 0;
+    font-size: 1px;
+    line-height: 0;
+    clear: both;
+    border: none;
+    border-top: 1px solid #222222;
+    border-bottom: 1px solid #666666;
+}
+
+.reveal section img {
+    border: none;
+    box-shadow: none;
+    background-color: #00000000;
+}
