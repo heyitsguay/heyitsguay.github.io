@@ -2,6 +2,12 @@ span.emph {
     color: #424f95;;
 }
 
+html, body {
+    max-width:  min(100vh, 100vw);
+    margin:  0 auto;
+    background-color: #f2f0ee;
+}
+
 img {
     max-height: 100%;
     max-width: 100%;
