@@ -50,6 +50,9 @@ let asteroids;
 let pCrazyAsteroid;
 let nAsteroids = 4;
 
+let npcs;
+let nNpcs = 1;
+
 let powerups;
 let effects = ['shield', 'triple'];
 let activeEffects = {'shield': false,
@@ -142,6 +145,7 @@ class MainScene extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image('npcship', 'assets/npcship1.png')
         this.load.image('projectile', 'assets/bullet2.png');
         this.load.image('ship', 'assets/ship2.png');
         this.load.image('ship-shield', 'assets/ship2-shield.png');
@@ -182,13 +186,23 @@ class MainScene extends Phaser.Scene {
         ship.setBounce(0.4);
         ship.setCollisionCategory(cats[0]);
         ship.setCollidesWith(cats);
-        ship.setMass(0.25)
+        ship.setMass(0.25);
 
         if (activeEffects['shield']) {
             applyShield();
         }
 
         ship.scene = this;
+
+        for (let i = 0; i < nNpcs; i++) {
+            let npc = this.matter.add.image(400, 300, 'npcship');
+            npc.setFrictionAir(0.993);
+            npc.setCircle(9, 10, 10);
+            npc.setBounce(0.4);
+            npc.setCollisionCategory(cats[0]);
+            npc.setCollidesWith(cats);
+            npc.setMass(0.25);
+        }
 
         this.matterCollision.addOnCollideStart({
             objectA: ship,
@@ -496,6 +510,13 @@ function updateInput(scene, delta) {
         if (activeEffects['triple']) {
             setProjectile('triple');
         }
+    }
+}
+
+
+class NPC {
+    constructor(x, y, scale, scene, maxSpeed, heading=null) {
+        // TODO: Base it off of Asteroid + ship properties. Start thinking about control :)
     }
 }
 

@@ -48,11 +48,6 @@ float hash21(vec2 t) {
   return fract((p3.x + p3.y) * p3.z);
 }
 
-float hash21old(vec2 t) {
-  t += sign(t);
-  return fract(sin(4437.394*t.x + 3971.847*t.y)+startSeed);
-}
-
 vec4 hash24(vec2 t) {
   vec3 p = vec3(t.x, t.y, startSeed);
   vec4 p4 = fract(p.xzyz * vec4(.1031, .1030, .0973, .1099));
@@ -118,7 +113,7 @@ float hyperbola(vec2 p, float r) {
 }
 
 
-float shadow_df(vec2 p) {
+float shadow_df(vec2 p, float phase) {
   vec2 pp = toPolar(p);
   //float a = TAU / nSymmetries;
   float r = pp.x;
@@ -137,8 +132,9 @@ float shadow_df(vec2 p) {
     //mod2(p, vec2(1.));
 //    vec2 q = p;
     rot(q, rotPerLevel * TAU * float(i));
+
 //    rot(q, wiggleBase*sin(wiggleFrequency * (wiggleRScale*r+wiggleTScale*t + saturate(wiggleRadSlope * (r - wiggleRadStart)) * (floor(rotPerLevel * float(i))))*TAU));
-    rot(q, wiggleBase*sin(time + wiggleFrequency * (wiggleRScale*r+wiggleTScale*t + float(mod(float(i), 1. / rotPerLevel)))*TAU));
+    rot(q, wiggleBase*sin(time * phase + wiggleFrequency * (wiggleRScale*r+wiggleTScale*t + float(mod(float(i), 1. / rotPerLevel)))*TAU));
     float sb = hyperbola(q,
       hyperbolaWidth * pow(float(nRecursions - i) / float(nRecursions), hyperbolaScale));
     float cb = circle(p, circle1Width);
@@ -155,7 +151,12 @@ float shadow_df(vec2 p) {
 
 vec3 shadow_sample(vec2 p) {
   vec2 q = vec2(p.x, p.y);
-  float d = dScale * shadow_df(q);
+  float d = shadow_df(q, 1.);
+//  for (float i = 1.; i < 3.; ++i) {
+//    d = min(d, shadow_df(q, 1. - 0.1 * i));
+//  }
+  d *= dScale;
+//  float d = dScale * shadow_df(q);
 
   vec2 w = vec2(p.x, p.y);
   w.y += time;
@@ -173,7 +174,7 @@ vec3 shadow_sample(vec2 p) {
 vec3 shadow_main(vec2 p) {
   vec3 col = vec3(0.);
   vec2 unit = 1. / resolution.xy;
-  const int aa = 4;
+  const int aa = 2;
   const float ainv = 1. / float(aa);
   const float normalizer = ainv * ainv;
   for(int y = 0; y < aa; ++y) {

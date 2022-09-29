@@ -10,7 +10,7 @@ let gui;
 let guiParams = {
   quality: on4KScreen? 2. : 1.,
   dScale: 6.77,
-  shadowDecay: 0.1,
+  shadowDecay: -1.43,
   shadowOnset: 2.,
   shadowStrength: 0.03,
   onsetStrength: 1.,
@@ -25,7 +25,7 @@ let guiParams = {
   recurseScale: 0.2,
   nRecursions: 10,
   recursionDecay: 0.,
-  rotPerLevel: 15,
+  rotPerLevel: 14,
   wiggleRadSlope: 0.,
   wiggleRadStart: 0.,
   wiggleBase: -3.16,
@@ -40,6 +40,15 @@ let guiParams = {
   resetOptions: function() {
     gui.revert(gui);
     resize();
+  },
+  presetName: 'Default',
+  savePreset: function() {
+    for (let key in guiParams.entries()) {
+      if (!isNaN(guiParams[key])) {
+        localStorage.setItem(`preset-${guiParams.presetName}-${key}`, guiParams[key]);
+      }
+      localStorage.setItem(`preset-${guiParams.presetName}`, true.toString());
+    }
   }
 }
 
@@ -82,7 +91,7 @@ let mainUniforms = {
   wiggleRadSlope: {value: 0.},
   wiggleRadStart: {value: 0.},
   wiggleBase: {value: 0.0125},
-  wiggleFrequency: {value: 4.},
+  wiggleFrequency: {value: 0.82},
   wiggleRScale: {value: 4.},
   wiggleTScale: {value: 1.},
   hyperbolaWidth: {value: 0.0005},
@@ -189,7 +198,7 @@ function restart() {
     mainCamera.aspect = cWidth / cHeight;
   }
 
-  decreaseTentacleBlunter(0, -2.71,  0.01, 3000, 33);
+  decreaseTentacleBlunter(0, -4.,  0.01, 3000, 20);
 
   setupGL();
   animate();
@@ -205,7 +214,7 @@ function initGUI() {
   fPerf.open();
   fShadow = gui.addFolder('Shadow settings');
   fShadow.add(guiParams, 'dScale').min(0).max(10).step(0.01).listen();
-  fShadow.add(guiParams, 'shadowDecay').min(0).max(1).step(0.001).listen();
+  fShadow.add(guiParams, 'shadowDecay').min(-10).max(0).step(0.01).listen();
   fShadow.add(guiParams, 'shadowOnset').min(0.01).max(5).step(0.01).listen();
   fShadow.add(guiParams, 'shadowStrength').min(0).max(1).step(0.001).listen();
   fShadow.add(guiParams, 'onsetStrength').min(0).max(5).step(0.001).listen();
@@ -324,7 +333,7 @@ function update() {
   mainUniforms.time.value = elapsedTime;
   mainUniforms.startSeed.value = guiParams.startSeed;
   mainUniforms.dScale.value = 4**guiParams.dScale;
-  mainUniforms.shadowDecay.value = guiParams.shadowDecay;
+  mainUniforms.shadowDecay.value = 4**guiParams.shadowDecay;
   mainUniforms.shadowOnset.value = 10**guiParams.shadowOnset;
   mainUniforms.shadowStrength.value = guiParams.shadowStrength;
   mainUniforms.onsetStrength.value = guiParams.onsetStrength;
