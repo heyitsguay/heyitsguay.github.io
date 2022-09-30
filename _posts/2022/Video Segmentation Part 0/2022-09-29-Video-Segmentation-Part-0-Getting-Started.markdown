@@ -42,8 +42,45 @@ My initial testing of the hardware followed the [official guide](https://docs.ar
     <img src="/images/video_segmentation_0/linux.jpg" />
   </a>
 </p>
+To add the new udev rules, I created a file with `sudo touch /etc/udev/rules.d/990arduino.portenta.rules` and added the three suggested lines of text into it.
 
-As suggested in the official guide, I first tried running basic scripts using [Arduino IDE 2.0](https://www.arduino.cc/en/software). I was able to get the "hello world" blinking LED script to work, but nothing involving the camera. In my search for a solution, I learned about the OpenMV IDE as a micropython-based alternative to the Arduino IDE. With OpenMV, everything basically Just Worked, so this page will focus on that.
+As suggested in the official guide, I first tried running basic scripts using [Arduino IDE 2.0](https://www.arduino.cc/en/software). I was able to get the Arduino "hello world" blinking LED script to work, but nothing involving the camera. In my search for a solution, I learned about the OpenMV IDE as a micropython-based alternative to the Arduino IDE. With OpenMV, everything basically Just Worked, so this page will focus on that.
 
 #### OpenMV
 
+Compared to Arduino IDE, getting my hardware working in OpenMV was a breeze. I downloaded the Ubuntu runfile [here](https://openmv.io/pages/download), and to get the default OpenMV "hello world" script reporting a camera image back to the IDE, I followed a few steps most easily conveyed as an image series:
+
+<p align="center">
+  <a href="/images/video_segmentation_0/openmv1.jpg">
+    <img src="/images/video_segmentation_0/openmv1.jpg" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="/images/video_segmentation_0/openmv2.jpg">
+    <img src="/images/video_segmentation_0/openmv2.jpg" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="/images/video_segmentation_0/openmv3.jpg">
+    <img src="/images/video_segmentation_0/openmv3.jpg" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="/images/video_segmentation_0/openmv4.jpg">
+    <img src="/images/video_segmentation_0/openmv4.jpg" />
+  </a>
+</p>
+
+If all has gone well up to this point, the script should work! You'll see a video feed, and live updates from the color channel histogram displays.
+
+<p align="center">
+  <a href="/images/video_segmentation_0/openmv5.mp4">
+  	<video style="max-width: 910px" autoplay muted loop>
+    	<source src="/images/video_segmentation_0/openmv5.mp4" type="video/mp4" />
+    	Your browser does not support the video tag.
+    </video>
+  </a>
+</p>
