@@ -42,7 +42,7 @@ My initial testing of the hardware followed the [official guide](https://docs.ar
     <img src="/images/video_segmentation_0/linux.jpg" />
   </a>
 </p>
-To add the new udev rules, I created a file with `sudo touch /etc/udev/rules.d/990arduino.portenta.rules` and added the three suggested lines of text into it.
+To add the new udev rules, I created a file with `sudo touch /etc/udev/rules.d/99-arduino.portenta.rules` and added the three suggested lines of text into it.
 
 As suggested in the official guide, I first tried running basic scripts using [Arduino IDE 2.0](https://www.arduino.cc/en/software). I was able to get the Arduino "hello world" blinking LED script to work, but nothing involving the camera. In my search for a solution, I learned about the OpenMV IDE as a micropython-based alternative to the Arduino IDE. With OpenMV, everything basically Just Worked, so this page will focus on that.
 
