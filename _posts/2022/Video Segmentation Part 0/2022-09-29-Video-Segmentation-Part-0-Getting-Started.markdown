@@ -96,8 +96,13 @@ You can also easily record the video stream, a capability that will be useful wh
 Here's an example of what that recorded video looks like in my dim office:
 
 <p align="center">
-  	<video style="max-width: 910px" autoplay muted loop>
+  	<video style="max-width: 324px" autoplay muted loop>
     	<source src="/images/video_segmentation_0/recording.mp4" type="video/mp4" />
     	Your browser does not support the video tag.
     </video>
 </p>
+
+
+## Wrapping up
+
+If everything has worked up to this point, you have a working OpenMV camera and you're set up to continue. Try out some of the other example OpenMV sketches (File > Examples). In the next post, we'll look at creating training data for a segmentation algorithm from our camera video streams.
