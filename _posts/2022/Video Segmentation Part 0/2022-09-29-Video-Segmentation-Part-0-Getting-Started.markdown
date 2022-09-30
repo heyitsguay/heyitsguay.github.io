@@ -7,7 +7,7 @@ subtitle: "Getting Started"
 
 The past decade has been witness to an explosion in research and development for computer vision. From [Alexnet](https://en.wikipedia.org/wiki/AlexNet)'s modest roots, leveraging gaming GPUs to bump convnet performance on the [ImageNet](https://en.wikipedia.org/wiki/ImageNet) challenge, neural net-based computer vision methods now underly powerful economic engines, and a huge research community has released a host of open source tools for solving computer vision problems for fun, art, and profit. The ability to algorithmically understand image content offers new capabilities for interactive algorithmic experiences, and as megacorp labs pour billions of dollars into ever-growing concentrations of data and compute, onlookers breathlessly foretell a technological singularity powered by Artificial General Intelligence.
 
-In the face of such power and progress, one might then reasonably ask -- cool, but can I actually *use* computer vision for anythhing?
+In the face of such power and progress, one might then reasonably ask -- cool, but can I actually *use* computer vision for anything?
 
 ## From 0 to 1
 
