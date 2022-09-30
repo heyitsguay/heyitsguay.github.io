@@ -11,7 +11,7 @@ In the face of this power and progress, one might then reasonably ask -- cool, b
 
 ## From 0 to 1
 
-By "do", I mean, how can we take the methods and tools available in the broader machine learning (ML) community, and deploy them on our own hardware to solve a problem in the real-world? Beyond gated, nonfree cloud offerings,  Solutions that work for whatever unique data and environments we might have, for tasks beyond face recognition or autonomous vehicle street understanding, or detecting Pepsi logos on a TV screen.
+By "use", I mean, how can we take the methods and tools available in the broader machine learning (ML) community, and deploy them on our own hardware to solve a problem in the real-world? Beyond gated, nonfree cloud offerings,  Solutions that work for whatever unique data and environments we might have, for tasks beyond face recognition or autonomous vehicle street understanding, or detecting Pepsi logos on a TV screen.
 
 This blog series will provide a step-by-step guide to answering this question in its entirety, starting from scratch and ending with an app running on Arduino hardware. The focus will be on how to practically use computer vision to create a real-time Arduino video segmentation app. To keep the project tangible, I will explore creating a segmentation app for my two new kitties, Peach and Daisy: 
 
