@@ -5,9 +5,9 @@ title: "Video Segmentation: Part 0"
 subtitle: "Getting Started"
 ---
 
-The past decade has been witness to an explosion in research and development for computer vision. From [Alexnet]()'s modest roots, leveraging gaming GPUs to bump convnet performance on the [ImageNet]() challenge, neural net-based computer vision methods now underly powerful economic engines, and a huge research community has released a host of open source tools for solving computer vision problems for fun, art, and profit. The ability to algorithmically understand image content offers new capabilities for interactive algorithmic experiences, and as megacorp labs pour billions of dollars into ever-growing datasets and compute power, onlookers breathlessly speculate about an incoming technological singularity powered by Artificial General Intelligence.
+The past decade has been witness to an explosion in research and development for computer vision. From [Alexnet]()'s modest roots, leveraging gaming GPUs to bump convnet performance on the [ImageNet]() challenge, neural net-based computer vision methods now underly powerful economic engines, and a huge research community has released a host of open source tools for solving computer vision problems for fun, art, and profit. The ability to algorithmically understand image content offers new capabilities for interactive algorithmic experiences, and as megacorp labs pour billions of dollars into ever-growing datasets and compute power, onlookers breathlessly foretell a technological singularity powered by Artificial General Intelligence.
 
-In the face of this power and progress, one might then reasonably ask -- cool, but how do I *do* anything with computer vision?
+In the face of this power and progress, one might then reasonably ask -- cool, but **how can I use this?**
 
 ## From 0 to 1
 
