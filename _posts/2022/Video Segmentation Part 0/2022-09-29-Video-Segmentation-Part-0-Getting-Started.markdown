@@ -13,6 +13,18 @@ In the face of this power and progress, one might then reasonably ask -- cool, b
 
 By "do", I mean, how can we take the methods and tools available in the broader machine learning (ML) community, and deploy them to solve a problem in the real-world? Beyond beating benchmarks and operating black-box turnkey solutions like [AWS Rekognition]() when our needs happen to overlap with their narrow domains, how can we create computer vision solutions of our own? Solutions that work for whatever unique data and environments we might have, for tasks beyond face recognition or autonomous vehicle street understanding, or detecting Pepsi logos on a TV screen.
 
-This blog series will provide a step-by-step guide to answering this question. The focus will be on how to practically use computer vision to create a real-time Arduino video segmentation app. To keep the project tangible, I will explore creating a segmentation app for my two new kitties, Peach and Daisy: [**Insert photo here**]
+This blog series will provide a step-by-step guide to answering this question in its entirety, starting from scratch and ending with an app running on Arduino hardware. The focus will be on how to practically use computer vision to create a real-time Arduino video segmentation app. To keep the project tangible, I will explore creating a segmentation app for my two new kitties, Peach and Daisy: 
 
-This post will cover initial setup of the hardware I'm using
+<p align="center">
+  <a href="/images/video_segmentation_0/beans.jpg">
+    <img src="/images/video_segmentation_0/beans.jpg" />
+  </a>
+</p>
+
+## Project Setup
+
+This post will cover initial setup of the hardware I will be using throughout the series, as well as the [OpenMV IDE]() for working on embedded machine vision applications.
+
+#### Arduino
+
+This project uses the Arduino [Portenta H7]() along with the [Vision Shield]() camera and computer vision module, which I purchased together as the Arduino [Machine Vision Bundle]().
