@@ -76,12 +76,13 @@ Compared to Arduino IDE, getting my hardware working in OpenMV was a breeze. I d
 
 If all has gone well up to this point, the script should work! You'll see a video feed, and live updates from the color channel histogram displays.
 
-<p align="center">
+![OpenMV video display](/images/video_segmentation_0/openmv5.mp4)
+<!-- <p align="center">
   	<video style="max-width: 910px" autoplay muted loop>
     	<source src="/images/video_segmentation_0/openmv5.mp4" type="video/mp4" />
     	Your browser does not support the video tag.
     </video>
-</p>
+</p> -->
 
 #### Recording Video
 
@@ -95,12 +96,13 @@ You can also easily record the video stream, a capability that will be useful wh
 
 Here's an example of what that recorded video looks like in my dim office:
 
-<p align="center">
+![OpenMV recording](/images/video_segmentation_0/recording.mp4)
+<!-- <p align="center">
   	<video style="max-width: 324px" autoplay muted loop>
     	<source src="/images/video_segmentation_0/recording.mp4" type="video/mp4" />
     	Your browser does not support the video tag.
     </video>
-</p>
+</p> -->
 
 
 ## Wrapping up
