@@ -24,8 +24,8 @@ This blog series will provide a step-by-step guide to answering this question in
 Segmentation involves automatically creating pixel masks of objects of interest, like so:
 
 <p align="center">
-  <a href="/images/video_segmentation_0/segmented_beans.jpg">
-    <img src="/images/video_segmentation_0/segmented_beans.jpg" />
+  <a href="/images/video_segmentation_0/segmentedbeans.png">
+    <img src="/images/video_segmentation_0/segmentedbeans.png" />
   </a>
 </p>
 
