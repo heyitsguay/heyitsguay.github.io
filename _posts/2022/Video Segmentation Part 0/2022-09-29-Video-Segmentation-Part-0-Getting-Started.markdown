@@ -104,7 +104,7 @@ You can also easily record the video stream, a capability that will be useful wh
 Here's an example of what that recorded video looks like in my dim office:
 
 <p align="center">
-  	<video width="100%" autoplay muted loop>
+  	<video width="50%" autoplay muted loop>
     	<source src="/images/video_segmentation_0/recording.mp4" type="video/mp4" />
     	Your browser does not support the video tag.
     </video>

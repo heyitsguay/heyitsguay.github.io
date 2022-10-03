@@ -21,7 +21,7 @@ The overall project goal is to create a segmentation app, running on the Portent
 The [previous post](https://heyitsguay.github.io/2022/09/29/Video-Segmentation-Part-0-Getting-Started.html) detailed setting up our Arduino hardware with the [OpenMV IDE](https://openmv.io/pages/download) to access and record the Vision Shield camera feed, like so:
 
 <p align="center">
-    <video width="100%" autoplay muted loop>
+    <video width="50%" autoplay muted loop>
       <source src="/images/video_segmentation_0/recording.mp4" type="video/mp4" />
       Your browser does not support the video tag.
     </video>
@@ -32,3 +32,4 @@ In this post, I will
   2. Talk more about image/video segmentation tasks -- definitions, objectives, and methods.
   3. Load clips extracted from my recorded video into [MiVOS](https://paperswithcode.com/method/mivos) to generate training data for a segmentation neural network.
 
+By the end of this post, we will be ready to start training a segmentation neural network on our Vision Shield camera's video data. In the next post, we will run through the details of training a segmentation neural network on consumer desktop NVIDIA GPU hardware, leading to a final post where the large desktop segmentation model is transferred to an embedded model capable of running on the Arduino.
