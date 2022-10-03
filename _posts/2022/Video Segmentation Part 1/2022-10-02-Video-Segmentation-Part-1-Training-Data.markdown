@@ -59,5 +59,18 @@ To keep it concrete: I want a cat segmenter. I want a cat segmenter, running on 
 
 To record video with OpenMV, I followed the final steps described in the [previous post](https://heyitsguay.github.io/2022/09/29/Video-Segmentation-Part-0-Getting-Started.html), running helloworld_1.py and using OpenMV's built-in Record feature to save MP4s as I moved about the apartment with my camera and laptop. I did this 5 times to get 5 source videos for making clips.
 
-Given the 5 recorded videos, I created clips of \~10s length
+Given the 5 recorded videos, I created clips of \~10s length using an [ffmpeg](https://www.ffmpeg.org/ffmpeg.html) one-liner. From a terminal open in the same directory where I saved a given video, I ran:
+```
+mkdir clips && ffmpeg -i <video name> -c copy -map 0 -segment_time 00:00:10 -f segment -reset_timestamps 1 clips/%03d.mp4
+```
 
+This creates a _clips/_ subdirectory with the desired clips. 
+
+<p align="center">
+  <table>
+        <tr><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip1.mp4" type="video/mp4" /></video></td><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip2.mp4" type="video/mp4" /></video></td><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip3.mp4" type="video/mp4" /></video></td></tr>
+        <tr><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip4.mp4" type="video/mp4" /></video></td><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip5.mp4" type="video/mp4" /></video></td><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip6.mp4" type="video/mp4" /></video></td></tr>
+  </table>
+</p>
+
+We'll select a subset of the clips to start labeling with [MiVOS](https://paperswithcode.com/method/mivos)
