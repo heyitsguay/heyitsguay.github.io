@@ -31,11 +31,11 @@ Segmentation involves automatically creating pixel masks of objects of interest,
 
 ## Project Setup
 
-This page will cover initial setup of the hardware I will be using throughout the series, as well as the [OpenMV IDE](https://openmv.io/pages/download) for working on embedded machine vision applications.
+This post will cover initial setup of the hardware I will be using throughout the series, as well as the [OpenMV IDE](https://openmv.io/pages/download) for working on embedded machine vision applications.
 
 #### Hardware
 
-This project uses the Arduino [Portenta H7]() along with the [Vision Shield](https://store-usa.arduino.cc/products/arduino-portenta-vision-shield-ethernet) camera and computer vision module, which I purchased together as the Arduino [Machine Vision Bundle](https://store-usa.arduino.cc/products/machine-vision-bundle). The Vision Shield has a low-power 324x324 grayscale camera that's well-suited for the limitations we will face trying to do embedded ML.
+This project uses the Arduino [Portenta H7](https://store-usa.arduino.cc/products/portenta-h7) along with the [Vision Shield](https://store-usa.arduino.cc/products/arduino-portenta-vision-shield-ethernet) camera and computer vision module, which I purchased together as the Arduino [Machine Vision Bundle](https://store-usa.arduino.cc/products/machine-vision-bundle). The Vision Shield has a low-power 324x324 grayscale camera that's well-suited for the limitations we will face trying to do embedded ML.
 
 I make no claims to whether or not this will work with other Arduino hardware, but the OpenMV IDE claims compatibility with a broad host of camera modules, and this project may transfer in whole or part to other OpenMV-compatible hardware.
 
@@ -52,7 +52,7 @@ My initial testing of the hardware followed the [official guide](https://docs.ar
 </p>
 To add the new udev rules, I created a file with `sudo touch /etc/udev/rules.d/99-arduino.portenta.rules` and added the three suggested lines of text into it.
 
-As suggested in the official guide, I first tried running basic scripts using [Arduino IDE 2.0](https://www.arduino.cc/en/software). I was able to get the Arduino "hello world" blinking LED script to work, but nothing involving the camera. In my search for a solution, I learned about the OpenMV IDE as a micropython-based alternative to the Arduino IDE. With OpenMV, everything basically Just Worked, so this page will focus on that.
+As suggested in the official guide, I first tried running basic scripts using [Arduino IDE 2.0](https://www.arduino.cc/en/software). I was able to get the Arduino "hello world" blinking LED script to work, but nothing involving the camera. In my search for a solution, I learned about the OpenMV IDE as a micropython-based alternative to the Arduino IDE. With OpenMV, everything basically Just Worked, so this post will focus on that.
 
 #### OpenMV
 
