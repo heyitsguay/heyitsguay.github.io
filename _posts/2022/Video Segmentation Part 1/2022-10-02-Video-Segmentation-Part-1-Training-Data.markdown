@@ -36,7 +36,7 @@ By the end of this post, we will be ready to start training a segmentation neura
 
 ## Image & Video Segmentation
 
-The fundamental task this project is concerned with is **semantic segmentation** -- the classification of pixels in an image into one or more categories. For this project we will have a single category: "cat". For each of the 76,800 pixels in our $320\times 240$ camera frames, our segmentation algorithm will predict a probability that the pixel belongs to a cat in the scene. This next image illustrates the idea of per-pixel probabilities, and how those probability values (from 0 to 1) can get mapped to image intensities (from 0 to 255).
+The fundamental task this project is concerned with is **semantic segmentation** -- the classification of pixels in an image into one or more categories. For this project we will have a single category: "cat". For each of the 76,800 pixels in our 320x240 camera frames, our segmentation algorithm will predict a probability that the pixel belongs to a cat in the scene. This next image illustrates the idea of per-pixel probabilities, and how those probability values (from 0 to 1) can get mapped to image intensities (from 0 to 255).
 
 <p align="center">
   <a href="/images/video_segmentation_1/seg_demo.jpg">
@@ -47,6 +47,12 @@ The fundamental task this project is concerned with is **semantic segmentation**
 For a more complete introduction to problems in computer vision in general, check out [this blog post](https://blog.superannotate.com/introduction-to-computer-vision/) put out by SuperAnnotate, a data labeling company. For an introduction to semantic segmentation and the similarities and differences with _instance segmentation_, check out [this blog post](https://blog.superannotate.com/guide-to-semantic-segmentation/) by the same people.
 
 
-
 ## Recording Video
 
+Neural networks are brittle. For computer vision tasks, inputs that are very different from the data a neural network was trained on may drop performance to a greater degree than a human would intuit. Tautologically, our visual systems get exposed to all the different sorts of environments that humans care about, while our machine learning algorithm will only get trained on a comparatively-tiny set of video data. Success therefore depends on aligning our distribution of training data with project goals.
+
+To keep it concrete: I want a cat segmenter. I want a cat segmenter, running on a Vision Shield, that I can use attached to a little robot mouse as it scurries around my apartment. This means I want to collect data from all the different locations and conditions that such a device is likely to experience in my apartment. I need to:
+- Record from the Vision Shield camera. Compared to modern webcams and phone cameras, the Vision Shield camera's 384x384 grayscale sensor is very simple. A neural network trained on consumer digital video may fail to properly transfer to the Vision Shield camera. There are likely some tricks one could use to leverage existing datasets, and we'll probably still start our neural network training with pretrained model weights, but capturing data from the actual hardware we're going to use is important. The bottleneck will be creating data labels, as discussed below.
+- Get lots of footage of the cats, at different distances and angles and locations throughout the house. But also lots of footage that doesn't contain the cats, if I want to keep my false positive rate low.
+- Record from close to ground level, from a perspective similar to that of the Arduino car I might eventually mount the camera on. Matching the exact height and orientation shouldn't matter, and in fact getting a bit of variety will probably help robustness. For the sake of speed, I recorded my footage just holding the Arduino attached to a laptop running OpenMV.
+- Record under many lighting conditions. Lighting has a huge role in introducing visual variability into natural environments, and simpler cameras like the Vision Shield's don't handle high dynamic ranges as well as consumer digital cameras. To push model robustness
