@@ -46,10 +46,14 @@ The fundamental task this project is concerned with is **semantic segmentation**
 
 For a more complete introduction to problems in computer vision in general, check out [this blog post](https://blog.superannotate.com/introduction-to-computer-vision/) put out by SuperAnnotate, a data labeling company. For an introduction to semantic segmentation and the similarities and differences with _instance segmentation_, check out [this blog post](https://blog.superannotate.com/guide-to-semantic-segmentation/) by the same people.
 
+#### Data labeling
+
+What is the practical upshot of all this background material? Creating a successful computer vision algorithm via supervised learning requires a good model and great labeled data, with the highest accuracy possible and the more volume the better. For image segmentation this can be challenging, as manually creating accurate object masks (like I did for the previous figure) using a tool like Photoshop or GIMP is time-consuming. For video segmentation, this challenge is greatly magnified by the need to update masks as objects move and change within a field of view.
+
 
 ## Recording Video
 
-_Neural networks are brittle_. For computer vision tasks, inputs that are very different from the data a neural network was trained on may drop performance to a greater degree than a human would intuit. Tautologically, our visual systems get exposed to all the different sorts of environments that humans care about, while our machine learning algorithm will only get trained on a comparatively-tiny set of video data. Success therefore depends on aligning our distribution of training data with project goals.
+Neural networks are brittle. For computer vision tasks, inputs that are very different from the data a neural network was trained on may drop performance to a greater degree than a human would intuit. Tautologically, our visual systems get exposed to all the different sorts of environments that humans care about, while our machine learning algorithm will only get trained on a comparatively-tiny set of video data. Success therefore depends on aligning our distribution of training data with project goals.
 
 To keep it concrete: I want a cat segmenter. I want a cat segmenter, running on a Vision Shield, that I can use attached to a little robot mouse as it scurries around my apartment. This means I want to collect data from all the different locations and conditions that such a device is likely to experience in my apartment. I need to record:
 - _Diverse footage of the cats_, at different distances and angles and locations throughout the house. But _also diverse footage without cats_, if I want to keep my false positive rate low.
@@ -67,10 +71,14 @@ mkdir clips && ffmpeg -i <video name> -c copy -map 0 -segment_time 00:00:10 -f s
 This creates a _clips/_ subdirectory with the desired clips. 
 
 <p align="center">
-  <table>
+  <table cellspacing='2' cellpadding='0' border-spacing='0'>
         <tr><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip1.mp4" type="video/mp4" /></video></td><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip2.mp4" type="video/mp4" /></video></td><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip3.mp4" type="video/mp4" /></video></td></tr>
         <tr><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip4.mp4" type="video/mp4" /></video></td><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip5.mp4" type="video/mp4" /></video></td><td><video width="100%" autoplay muted loop><source src="/images/video_segmentation_1/clip6.mp4" type="video/mp4" /></video></td></tr>
   </table>
 </p>
 
 We'll select a subset of the clips to start labeling with [MiVOS](https://paperswithcode.com/method/mivos)
+
+## Video Labeling
+
+The labeled data we
