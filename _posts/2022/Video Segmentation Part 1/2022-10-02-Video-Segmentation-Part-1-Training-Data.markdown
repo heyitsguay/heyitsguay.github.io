@@ -77,7 +77,7 @@ This creates a _clips/_ subdirectory with the desired clips.
   </table>
 </p>
 
-We'll select a subset of the clips to start labeling with MiVOS
+We'll select a subset of the clips to start labeling with MiVOS.
 
 ## Video Labeling
 
