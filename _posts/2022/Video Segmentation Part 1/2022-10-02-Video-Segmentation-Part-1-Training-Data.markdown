@@ -81,4 +81,11 @@ We'll select a subset of the clips to start labeling with [MiVOS](https://papers
 
 ## Video Labeling
 
-The labeled data we
+The goal of our data labeling is to create annotations like this:
+
+<p align="center">
+    <video width="75%" autoplay muted loop>
+      <source src="/images/video_segmentation_1/labeled_clip.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+</p>
