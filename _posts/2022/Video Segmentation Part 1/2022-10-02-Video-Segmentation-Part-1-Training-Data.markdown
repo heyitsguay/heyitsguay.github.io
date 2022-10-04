@@ -77,7 +77,7 @@ This creates a _clips/_ subdirectory with the desired clips.
   </table>
 </p>
 
-We'll select a subset of the clips to start labeling with [MiVOS](https://paperswithcode.com/method/mivos)
+We'll select a subset of the clips to start labeling with MiVOS
 
 ## Video Labeling
 
@@ -89,3 +89,5 @@ The goal of our data labeling is to create annotations like this:
       Your browser does not support the video tag.
     </video>
 </p>
+
+Manually tracing Daisy's outline in each of 385 frames would be infeasible, but tools exist to help with this task, sometimes called _video object segmentation_ in the literature. I have chosen [MiVOS](https://paperswithcode.com/method/mivos) because of its accessible UI and decent performance. MiVOS makes use of
