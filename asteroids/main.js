@@ -51,7 +51,7 @@ let pCrazyAsteroid;
 let nAsteroids = 4;
 
 let npcs;
-let nNpcs = 1;
+let nNpcs = 0;
 
 let powerups;
 let effects = ['shield', 'triple'];
@@ -195,7 +195,7 @@ class MainScene extends Phaser.Scene {
         ship.scene = this;
 
         for (let i = 0; i < nNpcs; i++) {
-            let npc = this.matter.add.image(400, 300, 'npcship');
+            let npc = this.matter.add.image(800, 500, 'npcship');
             npc.setFrictionAir(0.993);
             npc.setCircle(9, 10, 10);
             npc.setBounce(0.4);
