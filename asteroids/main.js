@@ -56,7 +56,8 @@ let nNpcs = 0;
 let powerups;
 let effects = ['shield', 'triple'];
 let activeEffects = {'shield': false,
-                     'triple': false};
+                     'triple': false,
+                     'bounce': false};
 let projectileTypes = ['default', 'triple'];
 let currentProjectile = 'default';
 
@@ -154,6 +155,7 @@ class MainScene extends Phaser.Scene {
         this.load.image('particle', 'assets/particle3.png');
         this.load.image('powerup-triple', 'assets/powerup-fire-triple.png');
         this.load.image('powerup-shield', 'assets/powerup-aid-shield.png');
+        this.load.image('powerup-bounce', 'assets/powerup-fire-bounce.png');
         this.cameras.main.setBackgroundColor('#000000');
     }
 
@@ -336,7 +338,7 @@ class MainScene extends Phaser.Scene {
             powerupCanAppear = false;
             this.time.delayedCall(10000, () => {powerupCanAppear = true}, [], this);
             let possibleEffects = [];
-            for (let effect of ['shield', 'triple']) {
+            for (let effect of ['shield', 'triple', 'bounce']) {
                 if (!activeEffects[effect]) {
                     possibleEffects.push('powerup-' + effect);
                 }
@@ -557,7 +559,14 @@ class Asteroid {
                         if (projectileSpeed > 7) {
                             damageMultiplier = 1.2 + 0.2 * (projectileSpeed - 7);
                         }
-                        eventData.gameObjectB.parentObject.alive = false;
+                        if (!activeEffects['bounce']) {
+                            eventData.gameObjectB.parentObject.alive = false;
+                        } else {
+                            eventData.gameObjectB.parentObject.nBounces -= 1;
+                            if (eventData.gameObjectB.parentObject.nBounces < 0) {
+                                eventData.gameObjectB.parentObject.alive = false;
+                            }
+                        }
                         eventData.gameObjectA.parentObject.health -=
                             projectileSpeed * damageMultiplier;
                     }
@@ -697,7 +706,8 @@ function addPolar(r1, t1, r2, t2) {
 
 let powerupCategories = {
     'powerup-shield': 'aid',
-    'powerup-triple': 'fire'};
+    'powerup-triple': 'fire',
+    'powerup-bounce': 'fire'};
 
 class Powerup {
     constructor(x, y, type, scene) {
@@ -746,6 +756,7 @@ class Powerup {
             addShield();
         } else if (this.type === 'powerup-triple') {
             activeEffects['triple'] = true;
+            activeEffects['bounce'] = true;
             setProjectile('triple');
         }
     }
@@ -781,6 +792,8 @@ class Powerup {
 class Projectile {
     constructor(x, y, scene) {
         this.scene = scene;
+
+        this.nBounces = 3;
 
         this.age = 0;
         this.scale = 0.16;
