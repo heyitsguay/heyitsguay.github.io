@@ -756,8 +756,9 @@ class Powerup {
             addShield();
         } else if (this.type === 'powerup-triple') {
             activeEffects['triple'] = true;
-            activeEffects['bounce'] = true;
             setProjectile('triple');
+        } else if (this.type === 'powerup-bounce') {
+            activeEffects['bounce'] = true;
         }
     }
 
