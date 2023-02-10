@@ -563,6 +563,7 @@ class Asteroid {
                             eventData.gameObjectB.parentObject.alive = false;
                         } else {
                             eventData.gameObjectB.parentObject.nBounces -= 1;
+                            eventData.gameObjectB.body.speed *= 1.5;
                             if (eventData.gameObjectB.parentObject.nBounces < 0) {
                                 eventData.gameObjectB.parentObject.alive = false;
                             }
