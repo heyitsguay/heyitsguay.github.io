@@ -1,0 +1,5 @@
+- Fix star spawning to be inside the whole view frustum
+x Start organizing guiparams into folders
+x Separate video masking and coloring into separate uniforms + guiparams
+x Add guiparams + uniforms for hue and saturation max
+x Logarithmic scaling on starSpeed
