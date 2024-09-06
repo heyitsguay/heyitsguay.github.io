@@ -21,7 +21,7 @@ float cos1(float x) {
     return 0.5 * (cos(x) + 1.);
 }
 
-void main() {
 
-    gl_FragColor = vec4(vColor, 1.);
+void main() {
+    gl_FragColor = vec4(vColor, 1.0);
 }
