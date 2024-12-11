@@ -44,7 +44,7 @@ body::before {
     font-weight: 400;
     font-style: normal;
     text-align: center;
-    margin: 10px 0;
+    margin: 5px 0;
 }
 
 /* Basic layout */
@@ -97,7 +97,7 @@ main {
 
 /* Thermometer styling */
 .thermometer-wrapper {
-    margin: 20px;
+    margin: 5px;
 }
 .thermometer {
     width: 100%;
