@@ -1,16 +1,42 @@
-/*.jolly-lodger-regular {*/
-/*    font-family: "Jolly Lodger", system-ui;*/
-/*    font-weight: 400;*/
-/*    font-style: normal;*/
-/*}*/
+:root {
+    --pulse-speed: 0;    /* seconds */
+    --pulse-intensity: 0;/* 0 to 1 (blend factor) */
+    --shake-speed: 0;    /* seconds */
+    --shake-distance: 0; /* px */
+}
 
-
-body {
+html {
     background: url("../assets/media/background.jpg") repeat;
+}
+
+html, body {
+    height: 100%;
     margin: 0;
     padding: 0;
+}
+
+body {
     font-family: sans-serif;
     color: #f0f0fa;
+    text-shadow: 1px 1px 3px black;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    background-color: hsl(336, 80%, 47%);
+    opacity: 0;
+    animation: pulseOverlay var(--pulse-speed) infinite alternate ease-in-out;
+    color: #f0f0fa;
+    text-shadow: 1px 1px 2px black;
+    z-index: -1;
+}
+
+@keyframes pulseOverlay {
+    from { opacity: 0; }
+    to { opacity: var(--pulse-intensity); } /* Adjust this for more or less intensity */
 }
 
 .title {
@@ -18,8 +44,7 @@ body {
     font-weight: 400;
     font-style: normal;
     text-align: center;
-    font-size: 10em;
-    margin: 20px 0;
+    margin: 10px 0;
 }
 
 /* Basic layout */
@@ -32,15 +57,22 @@ main {
 /* Portrait mode: thermometer on top, checkboxes below */
 @media (orientation: portrait) {
     main {
-        height: 80%;
+        height: 80vh;
+        width: auto;
+        justify-content: center;
     }
+
+    .title {
+        font-size: 10vh;
+    }
+
     .thermometer-container {
         order: 1;
-        /*height: 80%*/
+        height: 40vh;
     }
     .checkboxes-container {
         order: 2;
-        /*height: 80%*/
+        height: 30vh;
     }
 }
 
@@ -49,11 +81,17 @@ main {
     main {
         flex-direction: row;
         justify-content: center;
-        width: 80%;
+        width: 80vw;
+        height: auto;
     }
+
+    .title {
+        font-size: 15vh;
+    }
+
     .thermometer-container, .checkboxes-container {
         flex: 1;
-        /*width: 80%;*/
+        width: 40vw;
     }
 }
 
@@ -63,8 +101,18 @@ main {
 }
 .thermometer {
     width: 100%;
-    height: auto;
+    height: 100%;
+    animation: shake var(--shake-speed) infinite ease-in-out;
 }
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(var(--shake-distance)); }
+    50% { transform: translateX(calc(var(--shake-distance) * -1)); }
+    75% { transform: translateX(var(--shake-distance)); }
+    100% { transform: translateX(0); }
+}
+
 .fill {
     fill:#FF4846;
     transform-origin: bottom center;
@@ -76,7 +124,7 @@ main {
 .checkboxes-container label {
     display: block;
     margin: 5px 0;
-    font-size: 2em;
+    font-size: 1.5em;
     font-weight: bold;
 }
 
