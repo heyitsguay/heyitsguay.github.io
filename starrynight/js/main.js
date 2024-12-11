@@ -14,12 +14,8 @@ let starfieldUniforms = {
     uT: {value: null},
     uScale: {value: null},
     uMVP: {value: null},
-    uVideo: {value: null},
-    uVidMaskStrength: {value: null},
-    uVidColorStrength: {value: null},
     uStarZMin: {value: null},
     uStarZInverse: {value: null},
-    uVidBrightBoost: {value: null},
     uScreenInverse: {value: null}
 };
 
@@ -35,7 +31,7 @@ let starfieldMaterial;
 let initialized = false;
 
 
-let gui, fStars, fStarPositions, fStarColors, fStarGlimmer, fVideo;
+let gui, fStars, fStarPositions, fStarColors, fStarGlimmer;
 let guiParams = {
     starSpeed: -3.,
     starSize: 0.13,
@@ -56,22 +52,11 @@ let guiParams = {
     glimmerFreqMax: 10,
     glimmerPhaseMin: 0,
     glimmerPhaseMax: 2 * Math.PI,
-    vidMaskStrength: 0.,
-    vidColorStrength: 0.,
-    vidBrightBoost: 2.,
     resetScene: function() {
+        resetGUI();
         initStars();
     }
 };
-    // hueMax: 0.5,
-    // satMax: 0.5
-// };
-
-let video, videoTexture;
-let cap, frame, fgmask, fgbg;
-
-
-// ----------------------------
 
 
 $(document).ready(function() {
@@ -109,7 +94,7 @@ function init() {
     // scene = new THREE.Scene();
     // scene.background = new THREE.Color(0x0f061f);
 
-    initStream();
+    // initStream();
 
     initStarfield();
 
@@ -133,30 +118,30 @@ function init() {
 }
 
 
-function initStream() {
-    video = document.getElementById('video');
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        let constraints = {video: {
-            width: Math.floor(document.innerWidth / 10),
-            height: Math.floor(document.innerHeight / 10),
-            facingMode: 'user'}};
-
-        navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
-            video.srcObject = stream;
-            video.play();
-        }).catch(function(error) {
-            console.error('Unable to access the camera.', error);
-        });
-    } else {
-        console.error('MediaDevices interface not available.');
-    }
-    videoTexture = new THREE.VideoTexture(video);
-
-    // cap = new cv.VideoCapture(video);
-    // frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-    // fgmask = new cv.Mat(video.height, video.width, cv.CV_8UC1);
-    // fgbg = new cv.BackgroundSubtractorMOG2(500, 16, true);
-}
+// function initStream() {
+//     video = document.getElementById('video');
+//     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+//         let constraints = {video: {
+//             width: Math.floor(document.innerWidth / 10),
+//             height: Math.floor(document.innerHeight / 10),
+//             facingMode: 'user'}};
+//
+//         navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+//             video.srcObject = stream;
+//             video.play();
+//         }).catch(function(error) {
+//             console.error('Unable to access the camera.', error);
+//         });
+//     } else {
+//         console.error('MediaDevices interface not available.');
+//     }
+//     videoTexture = new THREE.VideoTexture(video);
+//
+//     // cap = new cv.VideoCapture(video);
+//     // frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+//     // fgmask = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+//     // fgbg = new cv.BackgroundSubtractorMOG2(500, 16, true);
+// }
 
 
 function initStarfield() {
@@ -236,22 +221,9 @@ function initGUI() {
     fStarGlimmer.add(guiParams, 'glimmerPhaseMin').min(0).max(2 * Math.PI).step(0.01);
     fStarGlimmer.add(guiParams, 'glimmerPhaseMax').min(0).max(2 * Math.PI).step(0.01);
 
-    fVideo = gui.addFolder('Video Stream');
-    fVideo.add(guiParams, 'vidMaskStrength').min(0.).max(1.).step(0.01).onChange(function(v) {
-        starfieldUniforms.uVidMaskStrength.value = v;
-    });
-    fVideo.add(guiParams, 'vidColorStrength').min(0.).max(1.).step(0.01).onChange(function(v) {
-        starfieldUniforms.uVidColorStrength.value = v;
-    });
-    fVideo.add(guiParams, 'vidBrightBoost').min(1.).max(10.).step(0.01).onChange(function(v) {
-        starfieldUniforms.uVidBrightBoost.value = v;
-    });
-
     gui.add(guiParams, 'resetScene');
-
-    for (let f of [fStars, fVideo]) {
-        f.open();
-    }
+    
+    fStars.open();
 
 }
 
@@ -281,10 +253,6 @@ function initStarfieldUniforms() {
     starfieldUniforms.uT.value = 0.;
     starfieldUniforms.uScale.value = guiParams.starSize;
     starfieldUniforms.uMVP.value = camera.projectionMatrix;
-    starfieldUniforms.uVideo.value = videoTexture;
-    starfieldUniforms.uVidMaskStrength.value = guiParams.vidMaskStrength;
-    starfieldUniforms.uVidColorStrength.value = guiParams.vidColorStrength;
-    starfieldUniforms.uVidBrightBoost.value = guiParams.vidBrightBoost;
     starfieldUniforms.uStarZMin.value = guiParams.starZMin;
     starfieldUniforms.uStarZInverse.value = 1. / (guiParams.starZMax - guiParams.starZMin);
     starfieldUniforms.uScreenInverse.value = new THREE.Vector2(1. / window.innerWidth, 1. / window.innerHeight);
@@ -292,7 +260,6 @@ function initStarfieldUniforms() {
 
 
 function initStars() {
-
     for (let i = 0; i < guiParams.numStars; i++) {
         resetStar(i, true);
     }
@@ -319,6 +286,10 @@ function initStarfieldAttributes() {
     instancedStarGeometry.setAttribute(
         'aPhase',
         starfieldAttributes['phase']);
+}
+
+function resetGUI() {
+    for (const f in gui.__folders) {gui.__folders[f].__controllers.forEach(c => c.setValue(c.initialValue))}
 }
 
 

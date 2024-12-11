@@ -2,10 +2,6 @@ precision highp float;
 precision highp int;
 
 uniform float uT;
-uniform sampler2D uVideo;
-uniform float uVidMaskStrength;
-uniform float uVidColorStrength;
-uniform float uVidBrightBoost;
 uniform vec2 uScreenInverse;
 
 varying vec3 vColor;
@@ -26,14 +22,6 @@ float cos1(float x) {
 }
 
 void main() {
-//    vec3 hsv = vec3(vColor.x, vColor.y, cos1(uT) * vColor.z);
-//    vec3 hsv = vec3(cos1(uT), 1, vColor.z);
 
-    vec2 xy = gl_FragCoord.xy * uScreenInverse;
-    vec2 xyFlipped = vec2(1. - xy.x, xy.y);
-    vec3 camColor = texture2D(uVideo, xyFlipped).rgb;
-    float camB = min(1., uVidBrightBoost * dot(camColor, avg));
-    float shadeFactor = uVidMaskStrength * camB + (1. - uVidMaskStrength);
-//    gl_FragColor = vec4(hsv2rgb(hsv), 1.0);
-    gl_FragColor = vec4(mix(shadeFactor * vColor, camColor, uVidColorStrength), 1.);
+    gl_FragColor = vec4(vColor, 1.);
 }

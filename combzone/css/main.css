@@ -1,0 +1,77 @@
+@font-face {
+    font-family: 'JollyLodger';
+    src: url('assets/fonts/JollyLodger-Regular.ttf') format('truetype');
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+.title {
+    font-family: 'JollyLodger', sans-serif;
+    text-align: center;
+    font-size: 2em;
+    margin: 20px 0;
+}
+
+/* Basic layout */
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Portrait mode: thermometer on top, checkboxes below */
+@media (orientation: portrait) {
+    main {
+        height: 80%;
+    }
+    .thermometer-container {
+        order: 1;
+        /*height: 80%*/
+    }
+    .checkboxes-container {
+        order: 2;
+        /*height: 80%*/
+    }
+}
+
+/* Landscape mode: thermometer on left, checkboxes on right */
+@media (orientation: landscape) {
+    main {
+        flex-direction: row;
+        justify-content: center;
+        width: 80%;
+    }
+    .thermometer-container, .checkboxes-container {
+        flex: 1;
+        /*width: 80%;*/
+    }
+}
+
+/* Thermometer styling */
+.thermometer-wrapper {
+    margin: 20px;
+}
+.thermometer {
+    width: 100%;
+    height: auto;
+}
+.fill {
+    fill:#FF4846;
+    transform-origin: bottom center;
+    transform: scaleY(0);
+    transition: transform 0.25s ease; /* animate fill level changes */
+}
+
+/* Checkboxes styling */
+.checkboxes-container label {
+    display: block;
+    margin: 5px 0;
+}
+
+.science {
+    font-family: 'JollyLodger', 'sans-serif';
+}
