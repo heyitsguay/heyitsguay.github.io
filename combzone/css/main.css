@@ -52,7 +52,7 @@ body::before {
     white-space: nowrap;  /* Forces single line */
     overflow: hidden;     /* Hides any overflow */
     text-overflow: ellipsis; /* Adds ... if text is too long */
-    margin-bottom: 5px;
+    margin: 0;
 }
 
 /* Basic layout */
@@ -132,12 +132,12 @@ main {
 .checkboxes-container label {
     display: block;
     margin: 5px 0;
-    font-size: 1.5em;
+    font-size: 1.2em;
     font-weight: bold;
 }
 
 .science {
     font-family: 'Jolly Lodger', 'sans-serif';
-    font-size: 4em;
+    font-size: 3.5em;
 
 }
