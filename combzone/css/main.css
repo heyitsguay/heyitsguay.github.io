@@ -44,7 +44,9 @@ body::before {
     font-weight: 400;
     font-style: normal;
     text-align: center;
-    margin: 5px 0;
+    white-space: nowrap;  /* Forces single line */
+    overflow: hidden;     /* Hides any overflow */
+    text-overflow: ellipsis; /* Adds ... if text is too long */
 }
 
 /* Basic layout */
@@ -63,7 +65,7 @@ main {
     }
 
     .title {
-        font-size: 10vh;
+        font-size: 15vh;
     }
 
     .thermometer-container {

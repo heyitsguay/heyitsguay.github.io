@@ -1,3 +1,24 @@
+function fitTextToContainer() {
+    const title = document.querySelector('.title');
+    const container = title.parentElement;
+    const maxWidth = container.clientWidth;
+
+    // Start with your preferred size (match your CSS)
+    let fontSize = window.innerHeight * 0.15; // 15vh equivalent
+    title.style.fontSize = `${fontSize}px`;
+
+    // While text is too wide, reduce font size
+    while (title.scrollWidth > maxWidth && fontSize > 0) {
+        fontSize -= 1;
+        title.style.fontSize = `${fontSize}px`;
+    }
+}
+
+// Run on load and resize
+window.addEventListener('load', fitTextToContainer);
+window.addEventListener('resize', fitTextToContainer);
+
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('checkboxForm');
     const fillRect = document.querySelector('.thermometer .fill');
