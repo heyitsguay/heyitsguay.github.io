@@ -52,7 +52,7 @@ body::before {
     white-space: nowrap;  /* Forces single line */
     overflow: hidden;     /* Hides any overflow */
     text-overflow: ellipsis; /* Adds ... if text is too long */
-    margin: 5px;
+    margin-bottom: 5px;
 }
 
 /* Basic layout */
