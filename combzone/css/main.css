@@ -9,6 +9,11 @@ html {
     background: url("../assets/media/background.jpg") repeat;
 }
 
+/*header {*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*}*/
+
 html, body {
     height: 100%;
     margin: 0;
@@ -47,6 +52,7 @@ body::before {
     white-space: nowrap;  /* Forces single line */
     overflow: hidden;     /* Hides any overflow */
     text-overflow: ellipsis; /* Adds ... if text is too long */
+    margin: 5px;
 }
 
 /* Basic layout */
@@ -59,9 +65,8 @@ main {
 /* Portrait mode: thermometer on top, checkboxes below */
 @media (orientation: portrait) {
     main {
-        height: 80vh;
+        height: 90vh;
         width: auto;
-        justify-content: center;
     }
 
     .title {
@@ -70,11 +75,12 @@ main {
 
     .thermometer-container {
         order: 1;
-        height: 40vh;
+        margin-bottom: 15px;
+        /*height: 40vh;*/
     }
     .checkboxes-container {
         order: 2;
-        height: 30vh;
+        /*height: 30vh;*/
     }
 }
 
@@ -82,8 +88,8 @@ main {
 @media (orientation: landscape) {
     main {
         flex-direction: row;
-        justify-content: center;
-        width: 80vw;
+        align-items: center;
+        width: 90vw;
         height: auto;
     }
 
@@ -93,7 +99,7 @@ main {
 
     .thermometer-container, .checkboxes-container {
         flex: 1;
-        width: 40vw;
+        /*width: 40vw;*/
     }
 }
 
