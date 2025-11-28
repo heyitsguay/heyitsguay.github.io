@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unfolding Notes</title>
+    <style>
+        :root {
+            /* Paper Colors */
+            --paper-front: #fcf6e3;    /* The writing side (Light) */
+            --paper-back: #e6dec1;     /* The outer side (Darker/Creased) */
+            
+            --bg-color: #4a5568;
+            --text-color: #2d3748;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(#566275 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1500px;
+        }
+
+        #canvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* The Note Container (The Center Square) */
+        .paper-container {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            pointer-events: auto;
+            cursor: pointer;
+            z-index: 10;
+            
+            /* The container handles the random rotation and position */
+            transform-style: preserve-3d;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--paper-front);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Shadow for the center square */
+        }
+
+        /* The Word */
+        .text {
+            opacity: 0;
+            font-size: 18px; 
+            font-weight: bold;
+            color: var(--text-color);
+            transform: scale(0.5);
+            transition: opacity 0.3s ease 0.2s, transform 0.4s ease 0.2s;
+            pointer-events: none;
+            user-select: none;
+            text-align: center;
+            z-index: 5;
+        }
+
+        /* --- Flaps Common --- */
+        .flap {
+            position: absolute;
+            /* width/height/position specific to each side */
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+
+        .flap-face {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+        }
+
+        /* FRONT: Visible when Unfolded (0deg) - Matches inner paper */
+        .flap-front {
+            background-color: var(--paper-front);
+            transform: rotateX(0deg); /* Default */
+        }
+
+        /* BACK: Visible when Folded (180deg) - Outer creased shell */
+        .flap-back {
+            background-color: var(--paper-back);
+            background-image: linear-gradient(135deg, rgba(0,0,0,0.05) 0%, transparent 100%);
+            /* We rotate the back face so it shows correctly when the parent flap is flipped 180 */
+            transform: rotateX(180deg);
+        }
+
+        /* --- Individual Flap Geometries --- */
+        /* Note: Flaps are attached to the OUTSIDE of the center square */
+
+        /* TOP FLAP */
+        .flap.top {
+            bottom: 100%; /* Sits on top edge */
+            left: 0;
+            width: 100%; 
+            height: 50%; /* 30px high */
+            transform-origin: bottom center;
+            /* Triangle pointing UP */
+            clip-path: polygon(0 100%, 50% 0, 100% 100%);
+        }
+        /* Top flap initial state: Folded DOWN over center */
+        .flap.top { transform: rotateX(180deg); }
+
+        /* RIGHT FLAP */
+        .flap.right {
+            top: 0;
+            left: 100%; /* Sits on right edge */
+            width: 50%; 
+            height: 100%;
+            transform-origin: center left;
+            /* Triangle pointing RIGHT */
+            clip-path: polygon(0 0, 100% 50%, 0 100%);
+        }
+        /* Right flap initial state: Folded LEFT over center */
+        .flap.right { transform: rotateY(-180deg); }
+
+        /* BOTTOM FLAP */
+        .flap.bottom {
+            top: 100%; /* Sits on bottom edge */
+            left: 0;
+            width: 100%; 
+            height: 50%;
+            transform-origin: top center;
+            /* Triangle pointing DOWN */
+            clip-path: polygon(0 0, 50% 100%, 100% 0);
+        }
+        /* Bottom flap initial state: Folded UP over center */
+        .flap.bottom { transform: rotateX(-180deg); }
+
+        /* LEFT FLAP */
+        .flap.left {
+            top: 0;
+            right: 100%; /* Sits on left edge */
+            width: 50%; 
+            height: 100%;
+            transform-origin: center right;
+            /* Triangle pointing LEFT */
+            clip-path: polygon(100% 0, 0 50%, 100% 100%);
+        }
+        /* Left flap initial state: Folded RIGHT over center */
+        .flap.left { transform: rotateY(180deg); }
+
+
+        /* --- Unfolded State --- */
+
+        .paper-container.unfolded {
+            z-index: 1000 !important;
+            /* 1. Lift up Z
+               2. Rotate to flat (0deg) - this rotates the whole Diamond to be straight
+               3. Scale up
+            */
+            transform: translateZ(50px) rotate(0deg) scale(2.5) !important;
+        }
+
+        /* Open the flaps to flat (0deg) */
+        .paper-container.unfolded .flap {
+            transform: rotate3d(0,0,0,0deg) !important; 
+        }
+
+        /* Reveal text */
+        .paper-container.unfolded .text {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            .paper-container.unfolded {
+                transform: translateZ(50px) rotate(0deg) scale(2.0) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="canvas"></div>
+
+<script>
+    const words = ["did", "u", "ever", "know", "that", "ur", "my", "eelro"];
+    const canvas = document.getElementById('canvas');
+    const activeTimeouts = new Map();
+
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function createFlap(type) {
+        const flap = document.createElement('div');
+        flap.classList.add('flap', type);
+        
+        const front = document.createElement('div');
+        front.classList.add('flap-face', 'flap-front');
+        
+        const back = document.createElement('div');
+        back.classList.add('flap-face', 'flap-back');
+        
+        // Note: Different rotation axes for different flaps to handle the "Back" face correctly
+        // We handle this via generic CSS rotateX(180) on .flap-back, 
+        // but for Left/Right flaps we might need to adjust the texture orientation if it matters.
+        // For solid colors, it's fine.
+        
+        flap.appendChild(front);
+        flap.appendChild(back);
+        return flap;
+    }
+
+    function init() {
+        const margin = 80;
+        const width = window.innerWidth - (margin * 2);
+        const height = window.innerHeight - (margin * 2);
+
+        // 1. Generate random positions for all notes first
+        let positions = [];
+        for (let i = 0; i < words.length; i++) {
+            const randomX = getRandomInt(margin, width);
+            const randomY = getRandomInt(margin, height);
+            const randomRot = getRandomInt(-45, 45);
+            positions.push({ x: randomX, y: randomY, rot: randomRot });
+        }
+
+        // 2. Sort positions by X coordinate (ascending) so words appear Left-to-Right
+        positions.sort((a, b) => a.x - b.x);
+
+        // 3. Create DOM elements assigning words to the sorted positions
+        positions.forEach((pos, index) => {
+            const word = words[index];
+            const container = document.createElement('div');
+            container.classList.add('paper-container');
+            container.id = `paper-${index}`;
+
+            // Apply the sorted position
+            container.style.left = `${pos.x}px`;
+            container.style.top = `${pos.y}px`;
+            container.style.transform = `rotate(${pos.rot}deg)`;
+
+            // Center Text
+            const textSpan = document.createElement('span');
+            textSpan.classList.add('text');
+            textSpan.textContent = word;
+            container.appendChild(textSpan);
+
+            // Flaps
+            const sides = ['top', 'right', 'bottom', 'left'];
+            sides.forEach(side => {
+                container.appendChild(createFlap(side));
+            });
+
+            // Interaction
+            container.addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePaper(container, index, pos.rot);
+            });
+
+            canvas.appendChild(container);
+        });
+    }
+
+    function togglePaper(element, id, originalRotation) {
+        if (element.classList.contains('unfolded')) return;
+
+        if (activeTimeouts.has(id)) {
+            clearTimeout(activeTimeouts.get(id));
+        }
+
+        element.classList.add('unfolded');
+
+        // Auto fold back
+        const timeoutId = setTimeout(() => {
+            element.classList.remove('unfolded');
+            element.style.transform = `rotate(${originalRotation}deg)`;
+            activeTimeouts.delete(id);
+        }, 2000); 
+
+        activeTimeouts.set(id, timeoutId);
+    }
+
+    window.onload = init;
+    window.onresize = () => {
+        canvas.innerHTML = '';
+        init();
+    };
+
+</script>
+
+</body>
+</html>
