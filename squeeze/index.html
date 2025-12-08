@@ -3,30 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQUEEZE THE EEL</title>
+    <title>SQUEEZE THE EEL: MAXIMUM JUICE</title>
     <style>
+        /* --- GLOBAL RESET & UTILITIES --- */
+        * {
+            box-sizing: border-box;
+            /* FIX 2: Removes the dark tap highlight on mobile/touch */
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         /* --- 90s LISA FRANK AESTHETICS --- */
         body {
             margin: 0;
-            overflow: hidden; /* No scrollbars for the bouncing */
-            background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+            overflow: hidden;
+            
+            /* TWEAK 1: Idle state (Slower, Dimmer, Desaturated) */
+            background: linear-gradient(45deg, #aa00aa, #00aaaa, #aaaa00, #aa00aa);
             background-size: 400% 400%;
-            animation: rainbowScroll 3s ease infinite;
+            animation: rainbowScroll 32s ease infinite;
+            transition: filter 1s ease; /* We handle background swap in keyframes/classes */
+            
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
             cursor: crosshair;
         }
 
-        /* The loud animated background */
+        /* TWEAK 1: Active State */
+        body.active {
+            background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+            /* CRITICAL FIX: Re-declare size, otherwise shorthand 'background' resets it to auto */
+            background-size: 400% 400%; 
+            animation: rainbowScroll 3s ease infinite; /* Full speed */
+        }
+
         @keyframes rainbowScroll {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
+        /* --- ELECTRIC RAINBOW BORDER --- */
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 99;
+            /* Inset shadow creates a border inside the viewport */
+            box-shadow: inset 0 0 20px 10px rgba(255, 255, 255, 0.5);
+            border: 10px solid transparent;
+            border-image: linear-gradient(to bottom right, #b827fc 0%, #2c90fc 25%, #b8fd33 50%, #fec837 75%, #fd1892 100%);
+            border-image-slice: 1;
+            animation: borderFlash 0.5s infinite alternate;
+        }
+
+        @keyframes borderFlash {
+            from { filter: hue-rotate(0deg) brightness(1); }
+            to { filter: hue-rotate(90deg) brightness(1.5); }
+        }
+
+        /* --- DECORATIVE CORNER BLOBS --- */
+        .blob {
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.6;
+            z-index: 1;
+            animation: pulseBlob 4s infinite ease-in-out;
+            pointer-events: none;
+        }
+        .blob-tl { top: -50px; left: -50px; background: #00ffff; }
+        .blob-tr { top: -50px; right: -50px; background: #ff00ff; animation-delay: 1s; }
+        .blob-bl { bottom: -50px; left: -50px; background: #ffff00; animation-delay: 2s; }
+        .blob-br { bottom: -50px; right: -50px; background: #ff00ff; animation-delay: 3s; }
+
+        @keyframes pulseBlob {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+        }
+
         #game-area {
             position: relative;
             width: 100vw;
             height: 100vh;
+            z-index: 10;
+        }
+
+        /* Canvas for Particles (Eel Trail, Fire, Twinkles, Emojis) */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5; 
+        }
+
+        /* The Counter */
+        #loop-counter {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            font-weight: 900;
+            color: white;
+            z-index: 20;
+            -webkit-text-stroke: 2px black; 
+            text-shadow: 3px 3px 0 #000;
+            pointer-events: none;
+            display: none;
         }
 
         /* The Bouncing Word Style */
@@ -36,44 +126,29 @@
             font-weight: 900;
             color: #fff;
             text-transform: uppercase;
-            user-select: none; /* Can't highlight text */
             cursor: pointer;
             white-space: nowrap;
-            
-            /* Garish text effects */
+            /* Text styles */
             text-shadow: 
                 3px 3px 0px #ff00ff, 
                 -3px -3px 0px #00ffff,
                 3px -3px 0px #ffff00;
             -webkit-text-stroke: 2px black;
-            
             transition: transform 0.1s;
         }
-
-        .bouncer:active {
-            transform: scale(0.9);
-        }
+        .bouncer:active { transform: scale(0.9); }
 
         /* --- SPECIAL EEL EFFECTS --- */
         .eel-mode {
-            font-size: 6rem; /* Bigger! */
-            color: #00ff00;  /* Radioactive Green */
-            animation: wobble 0.5s infinite linear;
+            font-size: 6rem;
+            color: #00ff00;
             text-shadow: 
                 5px 5px 0px #000, 
                 0 0 20px #fff, 
                 0 0 40px #ff00de;
         }
 
-        @keyframes wobble {
-            0% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(-10deg) scale(1.1); }
-            50% { transform: rotate(0deg) scale(1); }
-            75% { transform: rotate(10deg) scale(1.1); }
-            100% { transform: rotate(0deg) scale(1); }
-        }
-
-        /* --- CLICK EXPLOSION PARTICLES --- */
+        /* --- CLICK EXPLOSION PARTICLES (DOM) --- */
         .sparkle {
             position: absolute;
             pointer-events: none;
@@ -82,8 +157,8 @@
             background: yellow;
             border: 1px solid black;
             animation: fall 1s forwards;
+            z-index: 15;
         }
-
         @keyframes fall {
             to {
                 transform: translate(var(--tx), var(--ty)) rotate(360deg);
@@ -91,7 +166,6 @@
             }
         }
         
-        /* Footer instructions */
         .marquee {
             position: absolute;
             bottom: 0;
@@ -102,10 +176,19 @@
             padding: 5px;
             font-size: 1.2rem;
             border-top: 3px solid white;
+            z-index: 20;
         }
     </style>
 </head>
 <body>
+
+    <div class="blob blob-tl"></div>
+    <div class="blob blob-tr"></div>
+    <div class="blob blob-bl"></div>
+    <div class="blob blob-br"></div>
+
+    <canvas id="particle-canvas"></canvas>
+    <div id="loop-counter">0</div>
 
     <div id="game-area">
         <div id="word-target" class="bouncer">START</div>
@@ -116,39 +199,104 @@
     </div>
 
     <script>
+        let mouseX = -1000;
+        let mouseY = -1000;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
         // --- CONFIGURATION ---
         const words = [
             "SOMETIMES", "U", "GOT", "2", 
             "SQUEEZE", "A", "EEL", 
-            "TO", "PLEASE", "A", "EEL", "!!!!!!"
+            "TO", "PLEASE", "A", "EEL", "!!!!!!!!!"
         ];
+        
+        const floatingEmojis = ['🦄', '🦋', '🐬', '💖', '🌈', '✨', '🐍', '🌊'];
+        const emojiMinSize = 20;
+        const emojiMaxSize = 60;
+        const emojiMaxBlur = 6;
 
         let currentIndex = 0;
+        let gameStarted = false;
+        let loopCount = 0;
         
         const el = document.getElementById('word-target');
         const gameArea = document.getElementById('game-area');
+        const counterEl = document.getElementById('loop-counter');
+        const body = document.body;
 
-        // Physics State
+        // --- CANVAS SETUP ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let cw, ch;
+
+        function resizeCanvas() {
+            cw = window.innerWidth;
+            ch = window.innerHeight;
+            canvas.width = cw;
+            canvas.height = ch;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Single array for all canvas entities to simplify loop
+        // Types: 'eel', 'fire', 'twinkle', 'emoji'
+        let particles = [];
+
+        // Physics State for Word
         let x = Math.random() * (window.innerWidth - 200);
         let y = Math.random() * (window.innerHeight - 100);
-        
-        // Random velocity between -6 and 6
         let dx = (Math.random() - 0.5) * 12;
         let dy = (Math.random() - 0.5) * 12;
-
-        // Ensure we never get a velocity of 0
         if (dx === 0) dx = 3;
         if (dy === 0) dy = 3;
 
         // --- GAME LOOP ---
         function update() {
+            ctx.clearRect(0, 0, cw, ch);
+
+            // --- 1. AMBIENT SPAWNERS ---
+            if (gameStarted) {
+            // A. Twinkles (Background sparkles)
+                // Spawn probability
+                if (Math.random() < 0.2) { 
+                    particles.push({
+                        x: Math.random() * cw,
+                        y: Math.random() * ch,
+                        life: 0, 
+                        maxLife: 100 + Math.random() * 50,
+                        state: 'growing', // growing -> shrinking
+                        type: 'twinkle',
+                        size: Math.random() * 15 + 5
+                    });
+                }
+
+                // B. Floating Emojis
+                // Spawn probability (rare-ish)
+                if (Math.random() < 0.02) {
+                    const char = floatingEmojis[Math.floor(Math.random() * floatingEmojis.length)];
+                    particles.push({
+                        x: Math.random() * cw,
+                        y: ch + 50, // Start below screen
+                        vy: -(Math.random() * 2 + 1), // Float up
+                        type: 'emoji',
+                        char: char,
+                        size: Math.random() * (emojiMaxSize - emojiMinSize) + emojiMinSize
+                    });
+                }
+            }
+
+            // --- 2. BOUNCER LOGIC ---
             const rect = el.getBoundingClientRect();
             const parentRect = gameArea.getBoundingClientRect();
 
             // Bounce X
             if (x + rect.width >= parentRect.width || x <= 0) {
                 dx = -dx;
-                changeColor(); // Fun effect on bounce
+                changeColor(); 
             }
             // Bounce Y
             if (y + rect.height >= parentRect.height || y <= 0) {
@@ -156,45 +304,176 @@
                 changeColor();
             }
 
-            // Apply movement
             x += dx;
             y += dy;
-
-            // Keep inside bounds (safety clamp)
             x = Math.max(0, Math.min(x, parentRect.width - rect.width));
             y = Math.max(0, Math.min(y, parentRect.height - rect.height));
 
             el.style.left = x + 'px';
             el.style.top = y + 'px';
 
+            // --- 3. GAMEPLAY SPAWNERS ---
+
+            // Eel Trails
+            if (el.classList.contains('eel-mode')) {
+                const cx = x + rect.width / 2;
+                const cy = y + rect.height / 2;
+                for(let i=0; i<3; i++) {
+                    particles.push({
+                        x: cx + (Math.random()-0.5)*40,
+                        y: cy + (Math.random()-0.5)*40,
+                        vx: (Math.random()-0.5)*1,
+                        vy: (Math.random()-0.5)*1,
+                        life: 1.0,
+                        type: 'eel',
+                        size: Math.random() * 8 + 4
+                    });
+                }
+            }
+
+            // Fire (Counter)
+            if (gameStarted && loopCount > 0) {
+                const cx = cw / 2;
+                const cy = 60; 
+                const intensity = Math.min(loopCount, 20);
+                for(let i=0; i < Math.ceil(intensity/2); i++) {
+                    if (Math.random() > 0.5) {
+                        particles.push({
+                            x: cx + (Math.random()-0.5) * 60,
+                            y: cy,
+                            vx: (Math.random()-0.5) * 2,
+                            vy: -(Math.random() * 3 + 2),
+                            life: 1.0,
+                            type: 'fire',
+                            size: Math.random() * 10 + 5
+                        });
+                    }
+                }
+                const shake = loopCount * 1.5;
+                const sx = (Math.random() - 0.5) * shake;
+                const sy = (Math.random() - 0.5) * shake;
+                counterEl.style.transform = `translate(calc(-50% + ${sx}px), ${sy}px)`;
+            }
+
+            // --- 4. RENDER PARTICLES ---
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+
+                ctx.save();
+
+                if (p.type === 'twinkle') {
+                    // Life cycle: 0 -> max -> 0
+                    if (p.state === 'growing') {
+                        p.life += 2;
+                        if (p.life >= p.maxLife) p.state = 'shrinking';
+                    } else {
+                        p.life -= 2;
+                    }
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                        ctx.restore();
+                        continue;
+                    }
+                    
+                    // Soft diffuse white blob
+                    const opacity = (p.life / p.maxLife) * 0.8;
+                    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+                    grad.addColorStop(0, `rgba(255, 255, 255, ${opacity})`);
+                    grad.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.fill();
+
+                } else if (p.type === 'emoji') {
+                    let blurRatio = 1 - ((p.size - emojiMinSize) / (emojiMaxSize - emojiMinSize));
+                    // Safety clamp to ensure ratio stays between 0 and 1 just in case
+                    blurRatio = Math.max(0, Math.min(1, 1.1 * blurRatio - 0.1));
+                    // Apply the blur filter to the context
+                    ctx.filter = `blur(${blurRatio * emojiMaxBlur}px)`;
+
+                    p.y += p.vy;
+                    // Wiggle
+                    p.x += Math.sin(Date.now() / 500) * 0.3;
+                    let cdistx = mouseX - p.x;
+                    let cdisty = mouseY - p.y;
+                    let d2 = cdisty * cdisty + cdistx * cdistx;
+                    p.x += (1.2 - blurRatio) * Math.sign(cdistx) / (1 + 0.0001 * d2);
+                    p.y += (1.2 - blurRatio) * Math.sign(cdisty) / (1 + 0.0001 * d2);
+
+                    
+                    ctx.font = `${p.size}px serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(p.char, p.x, p.y);
+
+                    if (p.y < -50) {
+                        particles.splice(i, 1);
+                    }
+
+                } else if (p.type === 'eel') {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.02;
+                    if (p.life <= 0) { particles.splice(i, 1); ctx.restore(); continue; }
+                    
+                    const sat = (1 - p.life) * 100; 
+                    const light = 100 - ((1 - p.life) * 20);
+                    ctx.fillStyle = `hsl(200, ${sat}%, ${light}%)`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.fill();
+
+                } else if (p.type === 'fire') {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.02;
+                    if (p.life <= 0) { particles.splice(i, 1); ctx.restore(); continue; }
+
+                    const hue = p.life * 60; 
+                    ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+
             requestAnimationFrame(update);
         }
 
         // --- INTERACTION ---
         el.addEventListener('mousedown', (e) => {
-            // 1. Create explosion effect
-            createSparkles(e.clientX, e.clientY);
-
-            // 2. Set next word
-            el.innerText = words[currentIndex];
-            
-            // 3. Check for EEL special mode
-            if (words[currentIndex] === "EEL") {
-                el.classList.add('eel-mode');
-                // Speed up for chaos when it's an eel
-                dx *= 1.5; 
-                dy *= 1.5;
-            } else {
-                el.classList.remove('eel-mode');
-                // Normalize speed slightly
-                dx = (dx > 0 ? 1 : -1) * (Math.random() * 5 + 3);
-                dy = (dy > 0 ? 1 : -1) * (Math.random() * 5 + 3);
+            if (!gameStarted) {
+                gameStarted = true;
+                body.classList.add('active');
+                counterEl.style.display = 'block';
+                el.innerText = words[currentIndex];
             }
 
-            // 4. Increment index for next click
-            currentIndex = (currentIndex + 1) % words.length;
+            if (gameStarted) {
+                createSparkles(e.clientX, e.clientY);
+            }
+            el.innerText = words[currentIndex];
+            
+            if (words[currentIndex] === "EEL") {
+                el.classList.add('eel-mode');
+                dx = (dx > 0 ? 1 : -1) * (Math.random() * 5 + 2 + currentIndex / 2);
+                dy = (dy > 0 ? 1 : -1) * (Math.random() * 5 + 2 + currentIndex / 2);
+            } else {
+                el.classList.remove('eel-mode');
+                dx = (dx > 0 ? 1 : -1) * (Math.random() * 4 + 1 + currentIndex / 2);
+                dy = (dy > 0 ? 1 : -1) * (Math.random() * 4 + 1 + currentIndex / 2);
+            }
 
-            // 5. Teleport to random spot (keeping away from edges)
+            currentIndex++;
+
+            if (currentIndex >= words.length) {
+                currentIndex = 0;
+                loopCount++;
+                counterEl.innerText = loopCount;
+            }
+
             const rect = el.getBoundingClientRect();
             x = Math.random() * (window.innerWidth - rect.width);
             y = Math.random() * (window.innerHeight - rect.height);
@@ -202,7 +481,6 @@
 
         // --- UTILITIES ---
         function changeColor() {
-            // Random text color on bounce for extra headache visuals
             const colors = ['#fff', '#ffff00', '#00ffff', '#ff00ff'];
             if (!el.classList.contains('eel-mode')) {
                 el.style.color = colors[Math.floor(Math.random() * colors.length)];
@@ -216,17 +494,13 @@
                 s.style.left = cx + 'px';
                 s.style.top = cy + 'px';
                 s.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
-                
-                // Random destination variables for CSS
                 s.style.setProperty('--tx', (Math.random() - 0.5) * 200 + 'px');
                 s.style.setProperty('--ty', (Math.random() - 0.5) * 200 + 'px');
-                
                 document.body.appendChild(s);
                 setTimeout(() => s.remove(), 1000);
             }
         }
 
-        // Initial Start
         update();
 
     </script>
