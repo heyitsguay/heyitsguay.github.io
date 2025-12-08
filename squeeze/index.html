@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQUEEZE THE EEL</title>
+    <style>
+        /* --- 90s LISA FRANK AESTHETICS --- */
+        body {
+            margin: 0;
+            overflow: hidden; /* No scrollbars for the bouncing */
+            background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+            background-size: 400% 400%;
+            animation: rainbowScroll 3s ease infinite;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+            cursor: crosshair;
+        }
+
+        /* The loud animated background */
+        @keyframes rainbowScroll {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #game-area {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* The Bouncing Word Style */
+        .bouncer {
+            position: absolute;
+            font-size: 4rem;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            user-select: none; /* Can't highlight text */
+            cursor: pointer;
+            white-space: nowrap;
+            
+            /* Garish text effects */
+            text-shadow: 
+                3px 3px 0px #ff00ff, 
+                -3px -3px 0px #00ffff,
+                3px -3px 0px #ffff00;
+            -webkit-text-stroke: 2px black;
+            
+            transition: transform 0.1s;
+        }
+
+        .bouncer:active {
+            transform: scale(0.9);
+        }
+
+        /* --- SPECIAL EEL EFFECTS --- */
+        .eel-mode {
+            font-size: 6rem; /* Bigger! */
+            color: #00ff00;  /* Radioactive Green */
+            animation: wobble 0.5s infinite linear;
+            text-shadow: 
+                5px 5px 0px #000, 
+                0 0 20px #fff, 
+                0 0 40px #ff00de;
+        }
+
+        @keyframes wobble {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-10deg) scale(1.1); }
+            50% { transform: rotate(0deg) scale(1); }
+            75% { transform: rotate(10deg) scale(1.1); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        /* --- CLICK EXPLOSION PARTICLES --- */
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            width: 10px;
+            height: 10px;
+            background: yellow;
+            border: 1px solid black;
+            animation: fall 1s forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translate(var(--tx), var(--ty)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Footer instructions */
+        .marquee {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: black;
+            color: lime;
+            font-family: monospace;
+            padding: 5px;
+            font-size: 1.2rem;
+            border-top: 3px solid white;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-area">
+        <div id="word-target" class="bouncer">START</div>
+    </div>
+
+    <div class="marquee">
+        <marquee scrollamount="15">★ CLICK THE WORD TO EXPLODE IT ★ KEEP CLICKING ★ WELCOME TO THE ZONE ★</marquee>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const words = [
+            "SOMETIMES", "U", "GOT", "2", 
+            "SQUEEZE", "A", "EEL", 
+            "TO", "PLEASE", "A", "EEL", "!!!!!!"
+        ];
+
+        let currentIndex = 0;
+        
+        const el = document.getElementById('word-target');
+        const gameArea = document.getElementById('game-area');
+
+        // Physics State
+        let x = Math.random() * (window.innerWidth - 200);
+        let y = Math.random() * (window.innerHeight - 100);
+        
+        // Random velocity between -6 and 6
+        let dx = (Math.random() - 0.5) * 12;
+        let dy = (Math.random() - 0.5) * 12;
+
+        // Ensure we never get a velocity of 0
+        if (dx === 0) dx = 3;
+        if (dy === 0) dy = 3;
+
+        // --- GAME LOOP ---
+        function update() {
+            const rect = el.getBoundingClientRect();
+            const parentRect = gameArea.getBoundingClientRect();
+
+            // Bounce X
+            if (x + rect.width >= parentRect.width || x <= 0) {
+                dx = -dx;
+                changeColor(); // Fun effect on bounce
+            }
+            // Bounce Y
+            if (y + rect.height >= parentRect.height || y <= 0) {
+                dy = -dy;
+                changeColor();
+            }
+
+            // Apply movement
+            x += dx;
+            y += dy;
+
+            // Keep inside bounds (safety clamp)
+            x = Math.max(0, Math.min(x, parentRect.width - rect.width));
+            y = Math.max(0, Math.min(y, parentRect.height - rect.height));
+
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+
+            requestAnimationFrame(update);
+        }
+
+        // --- INTERACTION ---
+        el.addEventListener('mousedown', (e) => {
+            // 1. Create explosion effect
+            createSparkles(e.clientX, e.clientY);
+
+            // 2. Set next word
+            el.innerText = words[currentIndex];
+            
+            // 3. Check for EEL special mode
+            if (words[currentIndex] === "EEL") {
+                el.classList.add('eel-mode');
+                // Speed up for chaos when it's an eel
+                dx *= 1.5; 
+                dy *= 1.5;
+            } else {
+                el.classList.remove('eel-mode');
+                // Normalize speed slightly
+                dx = (dx > 0 ? 1 : -1) * (Math.random() * 5 + 3);
+                dy = (dy > 0 ? 1 : -1) * (Math.random() * 5 + 3);
+            }
+
+            // 4. Increment index for next click
+            currentIndex = (currentIndex + 1) % words.length;
+
+            // 5. Teleport to random spot (keeping away from edges)
+            const rect = el.getBoundingClientRect();
+            x = Math.random() * (window.innerWidth - rect.width);
+            y = Math.random() * (window.innerHeight - rect.height);
+        });
+
+        // --- UTILITIES ---
+        function changeColor() {
+            // Random text color on bounce for extra headache visuals
+            const colors = ['#fff', '#ffff00', '#00ffff', '#ff00ff'];
+            if (!el.classList.contains('eel-mode')) {
+                el.style.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+        }
+
+        function createSparkles(cx, cy) {
+            for(let i=0; i<15; i++) {
+                const s = document.createElement('div');
+                s.className = 'sparkle';
+                s.style.left = cx + 'px';
+                s.style.top = cy + 'px';
+                s.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+                
+                // Random destination variables for CSS
+                s.style.setProperty('--tx', (Math.random() - 0.5) * 200 + 'px');
+                s.style.setProperty('--ty', (Math.random() - 0.5) * 200 + 'px');
+                
+                document.body.appendChild(s);
+                setTimeout(() => s.remove(), 1000);
+            }
+        }
+
+        // Initial Start
+        update();
+
+    </script>
+</body>
+</html>
