@@ -17,16 +17,22 @@
         }
 
         /* --- 90s LISA FRANK AESTHETICS --- */
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
             margin: 0;
-            overflow: hidden;
-            
-            /* TWEAK 1: Idle state (Slower, Dimmer, Desaturated) */
+            padding: 0;
+            overflow: hidden; /* Kill scrollbars */
+            position: fixed;  /* Kill mobile "bounce" scroll */
+            touch-action: none; /* Disable default touch gestures */
+        }
+
+        body {
+            /* Keep your existing aesthetic styles here */
             background: linear-gradient(45deg, #aa00aa, #00aaaa, #aaaa00, #aa00aa);
             background-size: 400% 400%;
             animation: rainbowScroll 32s ease infinite;
-            transition: filter 1s ease; /* We handle background swap in keyframes/classes */
-            
+            transition: filter 1s ease;
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
             cursor: crosshair;
         }
@@ -106,19 +112,26 @@
         }
 
         /* The Counter */
-        #loop-counter {
+        #counter-wrapper {
             position: fixed;
             top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 0;
+            width: 100%; /* Spans full width */
+            display: flex;
+            justify-content: center; /* Flexbox calculates center perfectly */
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* UPDATED COUNTER: Handles the look & shake */
+        #loop-counter {
             font-size: 3rem;
             font-weight: 900;
             color: white;
-            z-index: 20;
             -webkit-text-stroke: 2px black; 
             text-shadow: 3px 3px 0 #000;
-            pointer-events: none;
-            display: none;
+            display: none; /* Hidden until start */
+            /* No transforms needed here initially */
         }
 
         /* The Bouncing Word Style */
@@ -190,7 +203,9 @@
     <div class="blob blob-br"></div>
 
     <canvas id="particle-canvas"></canvas>
-    <div id="loop-counter">0</div>
+    <div id="counter-wrapper">
+        <div id="loop-counter">0</div>
+    </div>
 
     <div id="game-area">
         <div id="word-target" class="bouncer">START</div>
@@ -278,7 +293,7 @@
 
                 // B. Floating Emojis
                 // Spawn probability (rare-ish)
-                if (Math.random() < 0.02) {
+                if (Math.random() < 0.03) {
                     const char = floatingEmojis[Math.floor(Math.random() * floatingEmojis.length)];
                     particles.push({
                         x: Math.random() * cw,
@@ -354,7 +369,7 @@
                 const shake = loopCount * 1.5;
                 const sx = (Math.random() - 0.5) * shake;
                 const sy = (Math.random() - 0.5) * shake;
-                counterEl.style.transform = `translate(calc(-50% + ${sx}px), ${sy}px)`;
+                counterEl.style.transform = `translate(${sx}px, ${sy}px)`;            
             }
 
             // --- 4. RENDER PARTICLES ---
