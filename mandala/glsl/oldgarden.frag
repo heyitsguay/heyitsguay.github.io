@@ -9,10 +9,15 @@ uniform float time;
 uniform vec2 resolution;
 uniform float startSeed;
 uniform vec2 touch;
+uniform vec2 center;
 uniform float viewScale;
 uniform vec2 selectedCenter;
-uniform float selectedTime;
 uniform float baseTime;
+uniform int vizMode;
+uniform int minOctave;
+uniform int numOctaves;
+uniform int minOctaveOld;
+uniform float minOctaveTransition;
 
 #define PI  3.141592654
 #define TAU (2.0*PI)
@@ -20,6 +25,10 @@ uniform float baseTime;
 const float loopTime = 20.0;
 const float halfLoopTime = loopTime * 0.5;
 const float halfLoopFrac = 1. / halfLoopTime;
+
+float getLocalTime() {
+    return baseTime + mod(time, loopTime) + halfLoopTime;
+}
 
 float hash21(vec2 t) {
   vec3 p = vec3(t.x, t.y, startSeed);
@@ -115,14 +124,12 @@ float circle(vec2 p, float r) {
   return length(p) - r;
 }
 
-
-
-float mandala_df(float localTime, float t0, vec2 p, vec2 c) {
+float mandala_df(float localTime, vec2 p, vec2 c, int minO) {
   vec4 hc = hash24(c);
   vec4 hc2 = hash24(c + 12.53);
-  rot(p, .05 * sin(3. * hc.x) * localTime); // add a t0 in the sin to make the whole thing rotate
+  rot(p, .05 * sin(3. * hc.x) * localTime);
   vec2 pp = toPolar(p);
-//  float a = TAU/(64.*(.12+1.4*hc.x*hc.x));
+//    vec2 pp = toSmith(p);
   float nsyms = 2. * round(3. + 37.*hc.x*hc.x);
   float a = TAU / nsyms;
   float np = pp.y/a;
@@ -133,13 +140,14 @@ float mandala_df(float localTime, float t0, vec2 p, vec2 c) {
   }
   pp.y += 7. * cos(localTime * .002 * (hc.x + hc.w) - 10.*hc.y);
   p = toRect(pp);
+//    p = fromSmith(pp);
   p = abs(p);
   p -= vec2(0.5);
 
 
   float d = 10000.0;
 
-  for (int i = 0; i < 1 + int(3.*hc.z); ++i) {
+  for (int i = 0; i < minO + int(float(numOctaves)*hc.z); ++i) {
     mod2(p, vec2(1.0));
     float da = hsin(.02*localTime + 7. * sin(hc.x + hc.y));
     rot(p, .1*(hc.x + hc.z)*localTime);
@@ -181,95 +189,104 @@ vec3 mandala_postProcess(float localTime, vec3 col, vec2 uv, vec2 c)
   return clamp(col, 0.0, 1.0);
 }
 
-vec3 mandala_sample(float localTime, float t0, vec2 p)
+vec3 mandala_sample(float localTime, vec2 p)
 {
 
   vec2 uv = p;
   uv *= viewScale;
-
-  float st = selectedTime + 5. * sin(0.2 * (localTime - selectedTime));
-  float stLocal = st + 30.;
-
-  vec2 c = selectedCenter.xy;//modMirror2(uv, vec2(4.5));
+    vec2 c;
+    if (vizMode == 1) {
+        c = selectedCenter.xy;
+    } else if (vizMode == 0) {
+        uv += center;
+        c = modMirror2(uv, vec2(4.5));
+  }
   vec4 hc = hash24(c - 8.675309);
 
-  float d = mandala_df(localTime, t0, uv , c);
+    float d;
+    if (minOctaveTransition == 0.0) {
+        d = mandala_df(localTime, uv, c, minOctaveOld);
+    } else if (minOctaveTransition == 1.0) {
+        d = mandala_df(localTime, uv, c, minOctave);
+    } else {
+        d = (1.0 - minOctaveTransition) * mandala_df(localTime, uv, c, minOctaveOld) +
+            minOctaveTransition * mandala_df(localTime, uv, c, minOctave);
+    }
 
   vec3 col = vec3(0.);
 
-
-  float r = 0.5*(.1+hsin(.05*st - hc.x * hc.x));
+  float r = 0.5*(.1+hsin(.1 * (hc.z + hc.w) *localTime - hc.x * hc.x));
 
   float nd = d / r;
   float md = mod(d, r);
 
 
   if (abs(md) < 0.05*(.25 + 15.*(hc.x * hc.y))) {
-    col = (d > 0.0 ? vec3(0.25,0.25,0.65) : vec3(0.65, 0.25, 0.25 + .5*hsin(.08*st - 7. * hc.z)))/abs(nd*(.5+hsin((0.05 * (hc.x + hc.w))*st - 7.* hc.x - 4. * hc.y)));
+    col = (d > 0.0 ? vec3(0.25,0.25,0.65) : vec3(0.65, 0.25, 0.25 + .5*hsin(.08*localTime - 7. * hc.z)))/abs(nd*(.5+hsin((0.05 * (hc.x + hc.w))*localTime - 7.* hc.x - 4. * hc.y)));
   }
 
   float whiteMultiplier = hc.x + hc.y + hc.z;
   float whiteScale = 0.05 * pow(2., -(0.01 + 2.5 * hc.w));
-  if (abs(d) < whiteScale*(1. + 0. * hsin(.11*st - 7. * hc.y))) {
+  if (abs(d) < whiteScale*(1. + 0. * hsin(.11*localTime - 7. * hc.y))) {
     col = vec3(1.0);
   }
 
-  col = mandala_postProcess(stLocal, col, uv, c);;
+  //col = vec3(d,0,0);
 
+  //col *= pow(nf, 1.);
+
+  col = mandala_postProcess(localTime, col, uv, c);;
+
+  //col += 1.0 - pow(nf, 1.0);
   return saturate(col);
 }
 
-// time is a uniform that tracks the elapsed time input from JS (increments 1/60 seconds each tick for 1200 ticks)
-
-//vec3 mandala_linear(vec2 p) {
-//    float localTime1 = mod(time, loopTime) + halfLoopTime;
-//    float localTime0 = localTime1 - loopTime;
-//    float tWeight0 = max(0.0, localTime0 * halfLoopFrac);
-//    float tWeight1 = 1.0 - tWeight0;
-//    vec3 s0 = mandala_sample(localTime0, p);
-//    vec3 s1 = mandala_sample(localTime1, p);
-//    vec3 s2 = mandala_sample(localTime1 + loopTime, p);
-//    vec3 col = tWeight1 * max(s1, s2) + tWeight0 * max(s0, s1);
-//    return col;
-//}
-
-vec3 mandala_max_linear(vec2 p) {
-    float localTime1 = mod(time, loopTime) + halfLoopTime;
+vec3 mandala_linear(vec2 p) {
+    float localTime1 = getLocalTime();
     float localTime0 = localTime1 - loopTime;
     float tWeight0 = max(0.0, localTime0 * halfLoopFrac);
     float tWeight1 = 1.0 - tWeight0;
-    float t0 = tWeight1 * localTime1 + tWeight0 * localTime0;
-    vec3 s0 = mandala_sample(localTime0, t0, p);
-    vec3 s1 = mandala_sample(localTime1, t0, p);
-    vec3 s2 = mandala_sample(localTime1 + loopTime, t0, p);
-    vec3 col = max(tWeight1 * max(s1, s2), tWeight0 * max(s0, s1)) / max(tWeight0, tWeight1);
+    vec3 s0 = mandala_sample(localTime0, p);
+    vec3 s1 = mandala_sample(localTime1, p);
+    vec3 s2 = mandala_sample(localTime1 + loopTime, p);
+    vec3 col = tWeight1 * max(s1, s2) + tWeight0 * max(s0, s1);
     return col;
 }
 
+vec3 mandala_max_linear(vec2 p) {
+  float localTime1 = getLocalTime();
+  float localTime0 = localTime1 - loopTime;
+  float tWeight0 = max(0.0, localTime0 * halfLoopFrac);
+  float tWeight1 = 1.0 - tWeight0;
+  vec3 s0 = mandala_sample(localTime0, p);
+  vec3 s1 = mandala_sample(localTime1, p);
+  vec3 s2 = mandala_sample(localTime1 + loopTime, p);
+  vec3 col = max(tWeight1 * max(s1, s2), tWeight0 * max(s0, s1)) / max(tWeight0, tWeight1);
+  return col;
+}
+
 vec3 mandala_smoothstep(vec2 p) {
-    float localTime1 = mod(time, loopTime) + halfLoopTime;
+    float localTime1 = getLocalTime();
     float localTime0 = localTime1 - loopTime;
 
     // Use smoothstep instead of linear interpolation
-    float blend = max(0.0, localTime0 * halfLoopFrac);
+    float blend = max(0.0, (localTime0 - baseTime) * halfLoopFrac);
     float smoothBlend = smoothstep(0.0, 1.0, blend);
 
-    float t0 = mix(localTime1, localTime0, smoothBlend);
-
-    vec3 col0 = mandala_sample(localTime0, t0, p);
-    vec3 col1 = mandala_sample(localTime1, t0, p);
-    vec3 col2 = mandala_sample(localTime1 + loopTime, t0, p);
+    vec3 col0 = mandala_sample(localTime0, p);
+    vec3 col1 = mandala_sample(localTime1, p);
+    vec3 col2 = mandala_sample(localTime1 + loopTime, p);
 
     return mix(max(col1, col2), max(col0, col1), smoothBlend);
 }
 
-//vec3 mandala_v2(vec2 p) {
-//    return mandala_sample(time, p);
-//}
+vec3 mandala_v2(vec2 p) {
+    return mandala_sample(time, p);
+}
 
 vec3 mandala_main(vec2 p) {
-    //    return mandala_linear(p);
-    //    return mandala_max_linear(p);
+//    return mandala_linear(p);
+//    return mandala_max_linear(p);
     return mandala_smoothstep(p);
 }
 

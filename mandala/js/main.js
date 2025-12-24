@@ -18,6 +18,18 @@ let guiParams = {
 }
 
 let labMode = false;
+// 0: garden, 1: lab
+const nModes = 2;
+let currentMode = 0;
+
+let zoomDelta = 0.005;
+
+// Multiscale mandala detail octaves
+let minOctave = 1;
+let numOctaves = 1;
+let minOctaveOld = 1;
+let octaveTransitionSeconds = 4;
+let minOctaveTransition = 1;
 
 let center = new THREE.Vector2(0, 0);
 let baseMovementSpeed = 0.12;
@@ -52,8 +64,16 @@ let mainUniforms = {
   center: {value: center},
   viewScale: {value: viewScale},
   selectedCenter: {value: new THREE.Vector2(0, 0)},
-  selectedTime: {value: 0}
+  selectedTime: {value: 0},
+  baseTime: {value: 0},
+  vizMode: {value: 0},
+  minOctave: {value: minOctave},
+  numOctaves: {value: numOctaves},
+  minOctaveOld: {value: minOctaveOld},
+  minOctaveTransition: {value: minOctaveTransition},
 };
+
+
 
 
 let stats;
@@ -84,7 +104,6 @@ function loadFile(fileName) {
   });
 }
 
-
 function main() {
   devicePixelRatio = window.devicePixelRatio;
   canvas = document.getElementById('canvas');
@@ -102,7 +121,7 @@ function main() {
   initStats();
 
   let now = new Date().getTime();
-  mainUniforms.startSeed.value = (now / 1000000) % 10;
+  mainUniforms.startSeed.value = 2; // (now / 1000000) % 10;
   toggleHide();
   restart();
 }
@@ -115,7 +134,7 @@ function checkForCenterQuery() {
     center = new THREE.Vector2(cx * 4.5, cy * 4.5);
     selectedCenter = new THREE.Vector2(cx, cy);
     mainUniforms.selectedCenter.value = selectedCenter;
-    toggleMeshes();
+    toggleVizMode();
   }
 }
 
@@ -129,6 +148,7 @@ function handleDoubleTap(e) {
   let y = e.changedTouches[0].clientY;
   let screenPosition = new THREE.Vector2(x, window.innerHeight - y);
   handleSelect(screenPosition);
+  toggleVizMode();
 }
 
 function handleSelect(pos) {
@@ -148,14 +168,22 @@ function getCenter(p, size) {
   return c;
 }
 
-let lastTouchStartTime;
+let lastTouchStartTime = 0;
+const tapTimeout = 300;
 
 function handleTouchStart(e) {
   e.preventDefault();
   if (!divCleared) {
     clearDiv();
   }
-  lastTouchStartTime = new Date().getTime();
+  const currentTime = new Date().getTime();
+  const timeSinceLastTap = currentTime - lastTouchStartTime;
+  if (timeSinceLastTap < tapTimeout && e.targetTouches.length === 1) {
+    lastTouchStartTime = 0;
+    handleDoubleTap(e);
+    return;
+  }
+  lastTouchStartTime = currentTime;
   switch(e.targetTouches.length) {
     case 1: handleSingleTouchStart(e); break;
     case 2: handleDoubleTouchStart(e); break;
@@ -234,7 +262,7 @@ function handleTouchCancel(e) {
 
 pressed = {}
 
-let contKeys = ['w', 'a', 's', 'd', 'Shift', 'r', 'f'];
+let contKeys = ['w', 'a', 's', 'd', 'Shift', 'r', 'f', 'u', 'i', 'o', 't', '1', '2', 'z', 'x'];
 
 function handleKeyUp(e) {
   if (contKeys.includes(e.key)) {
@@ -242,7 +270,7 @@ function handleKeyUp(e) {
   }
 }
 
-let lastViewScale = 4;
+let lastViewScale = 4.2;
 function handleKeyDown(e) {
   if (!divCleared) {
     clearDiv();
@@ -253,8 +281,48 @@ function handleKeyDown(e) {
 
   switch (e.key) {
     case ' ':
-      // toggleHide();
+      toggleHide();
       break;
+
+    case '1': {
+      if (minOctaveTransition === 1.0) {
+        minOctaveOld = minOctave
+        minOctave = Math.max(1, minOctave - 1);
+        if (minOctaveOld !== minOctave) {
+          minOctaveTransition = 0;
+          mainUniforms.minOctave.value = minOctave;
+          mainUniforms.minOctaveOld.value = minOctaveOld;
+          mainUniforms.minOctaveTransition.value = minOctaveTransition;
+        }
+      }
+      break;
+    }
+
+    case '2': {
+      if (minOctaveTransition === 1.0) {
+        minOctaveOld = minOctave;
+        minOctave += 1;
+        if (minOctaveOld !== minOctave) {
+          minOctaveTransition = 0;
+          mainUniforms.minOctave.value = minOctave;
+          mainUniforms.minOctaveOld.value = minOctaveOld;
+          mainUniforms.minOctaveTransition.value = minOctaveTransition;
+        }
+      }
+      break;
+    }
+
+    case 'z': {
+      numOctaves = Math.max(1, numOctaves - 1);
+      mainUniforms.numOctaves.value = numOctaves;
+      break;
+    }
+
+    case 'x': {
+      numOctaves += 1;
+      mainUniforms.numOctaves.value = numOctaves;
+      break;
+    }
 
     case 'q': {
       selectedCenter = new THREE.Vector2(0,0);
@@ -268,23 +336,35 @@ function handleKeyDown(e) {
     }
 
     case 'l': {
-      // toggleMeshes();
+      toggleVizMode();
       break;
     }
 
+    case '0': {
+      isRecording = !isRecording;
+      // sketchIdxBase = sketchIdx;
+      break;
+    }
+
+    case '9': {
+      isRecording9 = !isRecording9;
+      if (isRecording9) {
+        sketchIdxBase = sketchIdx;
+      }
+      break;
+    }
   }
+
 }
 
 
-function toggleMeshes() {
-  labMode = !labMode;
-  let tmp = viewScale;
-  selectedViewScale = lastViewScale;
-  lastViewScale = tmp;
-  labMesh.visible = !labMesh.visible;
-  mainMesh.visible = !mainMesh.visible;
-  let thisTime = new Date().getTime();
-  mainUniforms.selectedTime.value = (thisTime - startTime) * 0.001;
+let vizModeScales = [8.5, 4.5];
+function toggleVizMode() {
+    vizModeScales[currentMode] = viewScale;
+    currentMode = (currentMode + 1) % nModes;
+    viewScale = vizModeScales[currentMode];
+    mainUniforms.vizMode.value = currentMode;
+
 }
 
 
@@ -347,7 +427,7 @@ function initGUI() {
   gui = new dat.GUI();
   let fTitle = gui.addFolder('To hide: press space or double tap');
   fPerf = gui.addFolder('Performance');
-  fPerf.add(guiParams, 'quality', {'100%+AA': 2, '100%': 1, '75%': 0.75, '50%': 0.5, '30%': 0.3}).onChange(resize).listen();
+  fPerf.add(guiParams, 'quality', {'100%+2xAA': 2, '100%': 1, '75%': 0.75, '50%': 0.5, '30%': 0.3}).onChange(resize).listen();
   fPerf.open();
   gui.add(guiParams, 'resetOptions');
 }
@@ -417,30 +497,68 @@ function animate() {
   render();
 }
 
-let minViewScale = 0.5;
-let maxViewScale = 500;
+let minViewScale = 0.05;
+let maxViewScale = 5000;
 
 function updateViewScale(factor) {
   viewScale = Math.min(maxViewScale, Math.max(minViewScale, factor * viewScale));
 }
 
+function saveScreenshot(filename) {
+    // Convert canvas to data URL and force download
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
 
+let lastTimeSign = 1;
+let timeMomentum = 0;
+let tmWeight = 0.005;
+let tmWeightShift = 25;
 let startTime = new Date().getTime();
 let thisTime;
 let elapsedTime;
 let lastTouchVector = new THREE.Vector2(0, 0);
 let touchScrollSpeed = 24;
 let scrollMomentum = 0.9;
+let sketchIdx = 0;
+let sketchIdxBase = 0;
+function updateTimeMomentum(timeMomentum, keyPressed) {
+  let weight = tmWeight;
+  if (pressed['Shift']) {
+    weight *= tmWeightShift;
+  }
+
+  if (keyPressed) {
+    timeMomentum = Math.max(0.01, timeMomentum)
+    timeMomentum *= 1 + weight;
+  } else {
+    timeMomentum *= 1 - weight;
+  }
+  return timeMomentum;
+}
+
+function getScaledTimeMomentum(timeMomentum) {
+  return 0.1 * Math.log(1 + timeMomentum);
+}
+
+
 function update() {
   thisTime = new Date().getTime();
-  elapsedTime = (thisTime - startTime) * 0.001;
+  // elapsedTime = (thisTime - startTime) * 0.001;
+  elapsedTime = (sketchIdx - sketchIdxBase) / 60;
+  sketchIdx++;
 
   if (startTouchPoint != null) {
     let touchVector = latestTouchPoint.clone();
     touchVector.sub(startTouchPoint);
     touchVector.multiply(new THREE.Vector2(-1, 1));
     touchVector.multiplyScalar(viewScale / 12  * touchScrollSpeed);
-    console.log(touchVector.length());
     center.add(touchVector);
     lastTouchVector = touchVector;
     startTouchPoint = latestTouchPoint.clone();
@@ -487,16 +605,27 @@ function update() {
   }
 
   if (pressed['r']) {
-    updateViewScale(1.025);
+    let finalZoomDelta = zoomDelta;
+    if (pressed['Shift']) {
+        finalZoomDelta *= 10;
+    }
+    updateViewScale(1 + finalZoomDelta);
     selectedViewScale = null;
   }
   if (pressed['f']) {
-    updateViewScale(0.975);
+    let finalZoomDelta = zoomDelta;
+    if (pressed['Shift']) {
+      finalZoomDelta *= 10;
+    }
+    updateViewScale(1 - finalZoomDelta);
     selectedViewScale = null;
   }
 
   // let movementSpeed = pressed['Shift'] ? 4. * baseMovementSpeed : baseMovementSpeed;
-  let movementSpeed = viewScale / 12 * baseMovementSpeed;
+  let movementSpeed = viewScale / 15 * baseMovementSpeed;
+  if (pressed['Shift']) {
+    movementSpeed *= 10;
+  }
 
   if (pressed['a']) {
     center.x -= movementSpeed;
@@ -514,17 +643,131 @@ function update() {
     center.y -= movementSpeed;
     selectedCenter = null;
   }
-
+  if (pressed['u']) {
+    lastTimeSign = -1;
+    timeMomentum = updateTimeMomentum(timeMomentum, true);
+    mainUniforms.baseTime.value += lastTimeSign * getScaledTimeMomentum(timeMomentum);
+  } else if (pressed['i']) {
+    lastTimeSign = 1;
+    timeMomentum = updateTimeMomentum(timeMomentum, true);
+    mainUniforms.baseTime.value += lastTimeSign * getScaledTimeMomentum(timeMomentum);
+  } else if (pressed["o"]) {
+    mainUniforms.baseTime.value *= 0.75;
+    timeMomentum = 0.9 * updateTimeMomentum(timeMomentum, false);
+  } else {
+    if (!isRecording9) {
+      timeMomentum = updateTimeMomentum(timeMomentum, false);
+      mainUniforms.baseTime.value += lastTimeSign * getScaledTimeMomentum(timeMomentum);
+    }
+  }
 
   mainUniforms.time.value = elapsedTime;
   mainUniforms.center.value = center;
   mainUniforms.viewScale.value = viewScale;
+  if (minOctaveTransition < 1) {
+    minOctaveTransition = Math.min(minOctaveTransition + 1/(60 * octaveTransitionSeconds), 1);
+    mainUniforms.minOctaveTransition.value = minOctaveTransition;
+  }
+  console.log(minOctaveTransition);
 
 }
 
+function bump(t, b, T, c) {
+  if (t > T / 2) {
+    t = T - t;
+  }
+  let z = (t - b) / T;
+  return 1 / (1 + Math.exp(-c * z))
+}
+
+// Original 20 second recording
+let isRecording = false;
+let frameIdx = 0;
+const frameFPS = 60;
+const batchSize = 60;
+const recordSeconds = 40;
+const recordFrames = recordSeconds * frameFPS;
+let frames = [];
+
+// Map them by the numbe rkey they use
+let isRecording9 = false;
+const recordSeconds9 = 20;
+const recordFrames9 = recordSeconds9 * frameFPS;
 
 function render() {
   renderer.setSize(cWidth, cHeight);
   renderer.render(mainScene, mainCamera);
+  if (isRecording) {
+    if (frameIdx < recordFrames) {
+      frames.push(renderer.domElement.toDataURL('image/png'));
+      frameIdx++;
+
+      if (frames.length >= batchSize || frameIdx === recordFrames) {
+        downloadFrameBatch(frameIdx - frames.length);
+        frames = []; // Clear the array after downloading
+      }
+    } else {
+      frameIdx = 0;
+      isRecording = false;
+    }
+
+  } else if (isRecording9) {
+    if (frameIdx < recordFrames9) {
+      frames.push(renderer.domElement.toDataURL('image/png'));
+      frameIdx++;
+
+      // timeMomentum = 75 * Math.pow(bump(frameIdx / frameFPS, 5, recordSeconds9, 25), 2);
+      timeMomentum = Math.max(0.01, 1.01 * timeMomentum);
+      mainUniforms.baseTime.value = timeMomentum;
+
+      // If we have enough frames for a batch or reached the end
+      if (frames.length >= batchSize || frameIdx === recordFrames9) {
+        downloadFrameBatch(frameIdx - frames.length);
+        frames = []; // Clear the array after downloading
+      }
+    } else {
+      frameIdx = 0;
+      isRecording9 = false;
+    }
+  }
   stats.update();
 }
+
+function downloadFrameBatch(startIndex) {
+  const zip = new JSZip();
+  frames.forEach((dataURL, index) => {
+    const frameIndex = startIndex + index;
+    const data = dataURL.split(',')[1];
+    zip.file(`frame_${frameIndex.toString().padStart(5, '0')}.png`, data, {base64: true});
+  });
+
+  zip.generateAsync({type: 'blob'}).then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `frames_${startIndex.toString().padStart(5, '0')}.zip`;
+    a.click();
+    // Clean up
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+}
+
+
+function downloadFrames() {
+  // Create a zip file containing all frames
+  const zip = new JSZip();
+  frames.forEach((dataURL, index) => {
+    // Convert data URL to blob
+    const data = dataURL.split(',')[1];
+    zip.file(`frame_${index.toString().padStart(5, '0')}.png`, data, {base64: true});
+  });
+
+  zip.generateAsync({type: 'blob'}).then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'frames.zip';
+    a.click();
+  });
+}
+
