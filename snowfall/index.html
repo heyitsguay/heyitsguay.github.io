@@ -3,23 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Snow Window (Fixed)</title>
+    <title>Snow Window</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #050510; font-family: monospace; }
-        canvas { display: block; width: 100vw; height: 100vh; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #050510; 
+            font-family: 'Courier New', Courier, monospace; 
+        }
+        canvas { 
+            display: block; 
+            width: 100vw; 
+            height: 100vh; 
+        }
         #overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.8); z-index: 10; flex-direction: column;
+            background: rgba(0,0,0,0.85); z-index: 10; flex-direction: column;
+            color: #eee; text-align: center;
         }
         #debug {
             position: absolute; top: 10px; left: 10px; color: lime; 
             pointer-events: none; white-space: pre; z-index: 5;
-            text-shadow: 1px 1px 0 #000;
+            font-size: 10px; text-shadow: 1px 1px 0 #000;
         }
         button {
-            padding: 15px 30px; font-size: 1.2rem; color: white; background: #4488ff;
-            border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;
+            padding: 15px 40px; font-size: 1.2rem; color: white; background: #2266dd;
+            border: 1px solid #4488ff; border-radius: 4px; cursor: pointer; margin-top: 20px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .note {
+            margin-top: 15px; font-size: 0.8rem; color: #888; max-width: 80%;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
@@ -30,101 +44,145 @@
 <div id="debug">Waiting for sensor...</div>
 
 <div id="overlay">
-    <button id="startBtn">Enable Sensors & Start</button>
-    <div style="color:#888; margin-top:10px; font-size:0.8rem">Requires HTTPS (or localhost)</div>
+    <h1>SNOW WINDOW</h1>
+    <button id="startBtn">Enter Simulation</button>
+    <div class="note">Requires HTTPS or Localhost for Sensors</div>
 </div>
 <canvas id="glcanvas"></canvas>
 
 <script>
 /**
- * CONFIGURATION
+ * ------------------------------------------------------------------
+ * CONFIGURATION & DEFAULTS
+ * ------------------------------------------------------------------
  */
 const CONFIG = {
-    particleCount: 10000,
-    gravity: 0.35,
-    windStrength: 0.0,
-    brownianStdDev: 0.02,
-    baseSize: 40.0,
-    boxSize: 20.0,
-    fadeDist: 15.0
+    particleCount: 15000,
+    gravity: 0.33,
+    windStrength: 0.2,
+    windFreq: 0.5,
+    brownianStdDev: 0.015,
+    
+    // Rendering
+    baseSize: 45.0,
+    fadeDist: 18.0,
+    
+    // Simulation Space
+    boxWidth: 20.0,
+    boxHeight: 25.0,
+    boxDepth: 20.0,
+    
+    // Neck Model (Fake Translation)
+    armLength: 0.4 // Meters from neck pivot to phone
 };
 
 // Global State
-let particles = null;
+let particles = null; // Float32Array
 let gl, program, positionBuffer;
 let projectionMatrix = mat4.create();
 let viewMatrix = mat4.create();
+
+// Sensor State
 let sensorQ = quat.create(); 
+let targetQ = quat.create();
+let cameraPosition = vec3.create();
+let initialOffsetQ = null;
+
 let time = 0;
 let isRunning = false;
-
-// Buffers for sensor smoothing
-let targetQ = quat.create();
+let gui;
 
 /**
+ * ------------------------------------------------------------------
  * SHADERS
+ * ------------------------------------------------------------------
  */
 const vsSource = `
     attribute vec3 a_position;
+    
     uniform mat4 u_view;
     uniform mat4 u_projection;
     uniform float u_baseSize;
+
     varying float v_depth;
 
     void main() {
+        // Transform to View Space
         vec4 viewPos = u_view * vec4(a_position, 1.0);
-        gl_Position = u_projection * viewPos;
-        v_depth = -viewPos.z;
         
-        // Size attenuation
-        gl_PointSize = u_baseSize * (1.0 / length(viewPos.xyz));
+        gl_Position = u_projection * viewPos;
+
+        // Depth is negative Z in View Space
+        v_depth = -viewPos.z;
+
+        // Size attenuation (Standard 1/z)
+        // Clamp minimum distance to avoid singularity/giant particles
+        float dist = max(length(viewPos.xyz), 0.1);
+        gl_PointSize = u_baseSize * (1.0 / dist);
     }
 `;
 
 const fsSource = `
     precision mediump float;
+    
     uniform float u_fadeDist;
     varying float v_depth;
 
     void main() {
+        // Draw Soft Circle
         vec2 coord = gl_PointCoord - vec2(0.5);
         float dist = length(coord);
+        
         if (dist > 0.5) discard;
 
-        float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
-        
-        // Distance fading
-        float depthAlpha = 1.0 - smoothstep(0.0, u_fadeDist, v_depth);
-        float closeAlpha = smoothstep(0.5, 2.0, v_depth); 
+        // Radial Alpha Gradient
+        float alpha = 1.0 - smoothstep(0.1, 0.5, dist);
 
-        gl_FragColor = vec4(1.0, 1.0, 1.0, alpha * depthAlpha * closeAlpha);
+        // Depth Fading (Fog)
+        // 1. Far Fade: Fade to 0 at u_fadeDist
+        float farFade = 1.0 - smoothstep(u_fadeDist * 0.5, u_fadeDist, v_depth);
+        
+        // 2. Near Fade: Fade in when very close to prevent "popping"
+        float nearFade = smoothstep(0.2, 1.0, v_depth);
+
+        gl_FragColor = vec4(1.0, 1.0, 1.0, alpha * farFade * nearFade);
     }
 `;
 
 /**
- * CORE FUNCTIONS
+ * ------------------------------------------------------------------
+ * INITIALIZATION
+ * ------------------------------------------------------------------
  */
 function init() {
     const canvas = document.getElementById('glcanvas');
-    gl = canvas.getContext('webgl');
-    if (!gl) return alert("WebGL not supported");
+    gl = canvas.getContext('webgl', { alpha: false, antialias: false });
+
+    if (!gl) { alert("WebGL not supported"); return; }
 
     resize();
     window.addEventListener('resize', resize);
 
-    // Setup Program
+    // Compile Shaders
     const vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
     const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
     program = createProgram(gl, vs, fs);
 
+    // Buffers
     positionBuffer = gl.createBuffer();
-
+    
+    // Initial Particle Spawn
     initParticles();
     
-    // GL State
+    // Attributes
+    const loc = gl.getAttribLocation(program, 'a_position');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0); // Bound to positionBuffer
+
+    // GL Config
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.clearColor(0.02, 0.02, 0.05, 1.0);
+    gl.clearColor(0.01, 0.01, 0.03, 1.0); // Deep Night Blue
 
     setupGUI();
     
@@ -135,67 +193,92 @@ function init() {
 }
 
 function initParticles() {
-    // Re-allocate array
     particles = new Float32Array(CONFIG.particleCount * 3);
     for (let i = 0; i < CONFIG.particleCount; i++) {
-        particles[i*3+0] = (Math.random() - 0.5) * CONFIG.boxSize;
-        particles[i*3+1] = (Math.random() - 0.5) * CONFIG.boxSize;
-        particles[i*3+2] = (Math.random() - 0.5) * CONFIG.boxSize;
+        spawnRandomly(i);
     }
-
-    // Update GL Buffer
+    // Upload initial data
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, particles, gl.DYNAMIC_DRAW);
-    
-    const loc = gl.getAttribLocation(program, 'a_position');
-    gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0);
 }
 
+function spawnRandomly(i) {
+    const idx = i * 3;
+    particles[idx] = (Math.random() - 0.5) * CONFIG.boxWidth;
+    particles[idx+1] = (Math.random() - 0.5) * CONFIG.boxHeight;
+    particles[idx+2] = (Math.random() - 0.5) * CONFIG.boxDepth;
+}
+
+/**
+ * ------------------------------------------------------------------
+ * RENDER LOOP
+ * ------------------------------------------------------------------
+ */
 function render(now) {
-    const dt = 0.016;
+    const dt = 0.016; // Fixed timestep for simplicity
     time += dt;
 
-    // --- 1. Physics (CPU) ---
-    const gustX = Math.sin(time * 0.5) * CONFIG.windStrength;
-    const gustZ = Math.cos(time * 0.3) * CONFIG.windStrength;
-    const limit = CONFIG.boxSize / 2;
+    // --- 1. PHYSICS UPDATE (CPU) ---
+    const gustX = Math.sin(time * CONFIG.windFreq) * CONFIG.windStrength;
+    const gustZ = Math.cos(time * (CONFIG.windFreq * 0.7)) * CONFIG.windStrength * 0.5;
+    
+    const floor = -CONFIG.boxHeight / 2;
+    const ceiling = CONFIG.boxHeight / 2;
 
     for (let i = 0; i < CONFIG.particleCount; i++) {
         const idx = i * 3;
-        
+
         // Gravity
         particles[idx + 1] -= CONFIG.gravity * dt;
-        
-        // Wind & Brownian
-        particles[idx] += (gustX + (Math.random()-0.5)*CONFIG.brownianStdDev) * dt;
-        particles[idx + 2] += (gustZ + (Math.random()-0.5)*CONFIG.brownianStdDev) * dt;
 
-        // Wrap Logic (Box)
-        if (particles[idx+1] < -limit) {
-            particles[idx+1] = limit;
-            particles[idx] = (Math.random() - 0.5) * CONFIG.boxSize;
-            particles[idx+2] = (Math.random() - 0.5) * CONFIG.boxSize;
+        // Wind
+        particles[idx] += gustX * dt;
+        particles[idx + 2] += gustZ * dt;
+
+        // Brownian Noise
+        if (CONFIG.brownianStdDev > 0) {
+            particles[idx]     += (Math.random() - 0.5) * CONFIG.brownianStdDev;
+            particles[idx + 1] += (Math.random() - 0.5) * CONFIG.brownianStdDev;
+            particles[idx + 2] += (Math.random() - 0.5) * CONFIG.brownianStdDev;
+        }
+
+        // Boundary Check (Respawn at top)
+        if (particles[idx + 1] < floor) {
+            particles[idx + 1] = ceiling + (Math.random() * 0.5); // Slight Y Jitter
+            particles[idx] = (Math.random() - 0.5) * CONFIG.boxWidth;
+            particles[idx + 2] = (Math.random() - 0.5) * CONFIG.boxDepth;
         }
     }
 
-    // --- 2. Update GPU ---
+    // Update GPU Buffer
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, particles);
 
-    // --- 3. View Matrix ---
-    // Smoothly interpolate current sensor Q towards target Q
-    quat.slerp(sensorQ, sensorQ, targetQ, 0.1);
-    
-    let rotationMat = mat4.create();
-    mat4.fromQuat(rotationMat, sensorQ);
-    mat4.invert(viewMatrix, rotationMat);
 
-    // --- 4. Draw ---
+    // --- 2. CAMERA UPDATE (SENSOR FUSION) ---
+    // Smoothly interpolate current Q to target Q to remove sensor jitter
+    quat.slerp(sensorQ, sensorQ, targetQ, 0.15);
+
+    // NECK MODEL TRANSLATION
+    // We assume the phone rotates around a neck/wrist pivot, not its own center.
+    // CamPos = Rotation * (0,0,ArmLength)
+    const neckOffset = vec3.fromValues(0, 0, CONFIG.armLength);
+    vec3.transformQuat(cameraPosition, neckOffset, sensorQ);
+
+    // View Matrix construction
+    // We create a matrix representing the Camera's Transform (Pos + Rot)
+    // Then Invert it to get the View Matrix
+    let cameraMat = mat4.create();
+    mat4.fromRotationTranslation(cameraMat, sensorQ, cameraPosition);
+    mat4.invert(viewMatrix, cameraMat);
+
+
+    // --- 3. DRAW ---
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
+
     gl.useProgram(program);
-    
+
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_projection"), false, projectionMatrix);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_view"), false, viewMatrix);
     gl.uniform1f(gl.getUniformLocation(program, "u_baseSize"), CONFIG.baseSize);
@@ -207,72 +290,93 @@ function render(now) {
 }
 
 /**
- * ORIENTATION HANDLER (ROBUST)
+ * ------------------------------------------------------------------
+ * SENSOR HANDLING
+ * ------------------------------------------------------------------
  */
 function handleOrientation(event) {
     const debug = document.getElementById('debug');
     
-    // Check if sensors are dead
-    if (event.alpha === null && event.beta === null) {
-        debug.innerText = "Sensor Error: Null Data.\nAre you using HTTPS?";
+    if (event.alpha === null) {
+        debug.innerText = "Error: Sensor data is null. (HTTPS required?)";
         return;
     }
 
-    // Raw Euler Angles
     const alpha = event.alpha ? event.alpha * (Math.PI / 180) : 0;
     const beta  = event.beta  ? event.beta  * (Math.PI / 180) : 0;
     const gamma = event.gamma ? event.gamma * (Math.PI / 180) : 0;
-    
-    // Screen Orientation (Landscape vs Portrait)
-    const screenAngle = window.screen.orientation ? window.screen.orientation.angle * (Math.PI / 180) : 0;
+    const orient = window.screen.orientation ? window.screen.orientation.angle * (Math.PI / 180) : 0;
 
-    debug.innerText = `A:${event.alpha.toFixed(1)}\nB:${event.beta.toFixed(1)}\nG:${event.gamma.toFixed(1)}`;
+    debug.innerText = `A:${event.alpha.toFixed(0)} B:${event.beta.toFixed(0)} G:${event.gamma.toFixed(0)}`;
 
-    // Create quaternions for each axis (Standard Intrinsic Rotation Z-X-Y)
-    const qAlpha = quat.create(); 
-    quat.setAxisAngle(qAlpha, [0, 0, 1], alpha); 
-    
-    const qBeta = quat.create(); 
-    quat.setAxisAngle(qBeta, [1, 0, 0], beta);
-    
-    const qGamma = quat.create(); 
-    quat.setAxisAngle(qGamma, [0, 1, 0], gamma);
+    // 1. Construct Quaternions for Device Axes
+    // Standard Order: Z(Alpha) -> X(Beta) -> Y(Gamma)
+    const qZ = quat.create(); quat.setAxisAngle(qZ, [0, 0, 1], alpha); 
+    const qX = quat.create(); quat.setAxisAngle(qX, [1, 0, 0], beta);
+    const qY = quat.create(); quat.setAxisAngle(qY, [0, 1, 0], gamma);
 
-    // Combine: q = Alpha * Beta * Gamma
-    const qOrient = quat.create();
-    quat.multiply(qOrient, qAlpha, qBeta);
-    quat.multiply(qOrient, qOrient, qGamma);
+    // 2. Combine Rotations
+    const qRaw = quat.create();
+    quat.multiply(qRaw, qZ, qX);
+    quat.multiply(qRaw, qRaw, qY);
 
-    // Adjust for Screen Rotation (minus screenAngle along Z)
+    // 3. Compensate for Screen Orientation (Portrait/Landscape)
     const qScreen = quat.create();
-    quat.setAxisAngle(qScreen, [0, 0, 1], -screenAngle);
-    quat.multiply(qOrient, qOrient, qScreen);
+    quat.setAxisAngle(qScreen, [0, 0, 1], -orient);
+    quat.multiply(qRaw, qRaw, qScreen);
 
-    // Final Adjustment: Align "Phone Flat" to "Camera Down"
-    // By default, identity quaternion looks -Z.
-    // We rotate -90 around X so that "Identity" means looking at Horizon, 
-    // and "Looking Down" aligns with -Y.
+    // 4. Align Coordinate System
+    // Device identity (0,0,0) is Phone Flat on Table, top pointing North.
+    // WebGL Camera identity is looking -Z, Up is +Y.
+    // We need to rotate the device frame -90deg on X to match the camera frame.
     const qOffset = quat.create();
     quat.setAxisAngle(qOffset, [1, 0, 0], -Math.PI / 2);
     
-    quat.multiply(targetQ, qOrient, qOffset);
+    // Final Target Calculation
+    quat.multiply(targetQ, qRaw, qOffset);
 }
 
 /**
- * UTILS & BOILERPLATE
+ * ------------------------------------------------------------------
+ * UTILS
+ * ------------------------------------------------------------------
  */
+function setupGUI() {
+    if (gui) gui.destroy();
+    gui = new lil.GUI({ title: 'Simulation Config' });
+    
+    const folderSim = gui.addFolder('Physics');
+    folderSim.add(CONFIG, 'particleCount', 10000, 1000000, 10000).name('Count').onFinishChange(initParticles);
+    folderSim.add(CONFIG, 'gravity', 0.01, 1.0).name('Gravity');
+    folderSim.add(CONFIG, 'windStrength', 0.0, 2.0).name('Wind');
+    folderSim.add(CONFIG, 'windFreq', 0.1, 2.0).name('Wind Speed');
+    folderSim.add(CONFIG, 'brownianStdDev', 0.0, 0.1).name('Chaos');
+
+    const folderView = gui.addFolder('View & Space');
+    folderView.add(CONFIG, 'armLength', 0.0, 2.0).name('Neck Radius');
+    folderView.add(CONFIG, 'baseSize', 10.0, 100.0).name('Snow Size');
+    folderView.add(CONFIG, 'fadeDist', 5.0, 50.0).name('Fade Dist');
+    folderView.add(CONFIG, 'boxWidth', 10, 50).name('Box W').onFinishChange(initParticles);
+    folderView.add(CONFIG, 'boxHeight', 10, 50).name('Box H').onFinishChange(initParticles);
+
+    gui.close(); // Start closed to see the snow
+}
+
 function resize() {
     const c = document.getElementById('glcanvas');
     c.width = window.innerWidth;
     c.height = window.innerHeight;
-    mat4.perspective(projectionMatrix, Math.PI / 4, c.width / c.height, 0.1, 100.0);
+    mat4.perspective(projectionMatrix, Math.PI / 3, c.width / c.height, 0.1, 100.0);
 }
 
-function createShader(gl, type, src) {
+function createShader(gl, type, source) {
     const s = gl.createShader(type);
-    gl.shaderSource(s, src);
+    gl.shaderSource(s, source);
     gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error("Shader Error:", gl.getShaderInfoLog(s));
+        return null;
+    }
     return s;
 }
 
@@ -284,27 +388,21 @@ function createProgram(gl, vs, fs) {
     return p;
 }
 
-function setupGUI() {
-    const gui = new lil.GUI();
-    // Particle Count Trigger: Re-runs initParticles on change
-    gui.add(CONFIG, 'particleCount', 5000, 250000, 5000)
-        .name("Count")
-        .onFinishChange(initParticles);
-        
-    gui.add(CONFIG, 'gravity', 0.01, 1).name("Gravity");
-    gui.add(CONFIG, 'windStrength', 0.0, 10.0).name("Wind");
-    gui.add(CONFIG, 'baseSize', 10.0, 100.0).name("Size");
-}
-
+/**
+ * ------------------------------------------------------------------
+ * EVENT LISTENERS
+ * ------------------------------------------------------------------
+ */
 document.getElementById('startBtn').addEventListener('click', async () => {
     document.getElementById('overlay').style.display = 'none';
     init();
 
-    // iOS Request
+    // iOS 13+ requires explicit permission request
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
         try {
             const r = await DeviceOrientationEvent.requestPermission();
             if (r === 'granted') window.addEventListener('deviceorientation', handleOrientation);
+            else alert("Sensor permission denied");
         } catch (e) { console.error(e); }
     } else {
         // Android / Desktop
