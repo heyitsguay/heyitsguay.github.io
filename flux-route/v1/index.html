@@ -1,0 +1,1504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FLUX ROUTE</title>
+<style>
+  :root {
+    --page: #0a0c11; --frame: #1c2230; --frame-hi: #3a4763; --frame-lo: #0d1019;
+    --ink: #aeb9d0; --dim: #5d6982; --amber: #ffb13d; --teal: #46e0c0; --red: #ff5d5d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--page);
+    background-image: radial-gradient(ellipse at 50% -10%, #141a28 0%, var(--page) 60%);
+    color: var(--ink);
+    font: 13px/1.45 "Courier New", ui-monospace, monospace;
+    display: flex; align-items: center; justify-content: center;
+    padding: 18px;
+  }
+  #frame {
+    width: 1318px; max-width: 100%;
+    background: var(--frame);
+    border: 3px solid;
+    border-color: var(--frame-hi) var(--frame-lo) var(--frame-lo) var(--frame-hi);
+    box-shadow: 0 0 0 1px #000, 0 18px 60px rgba(0,0,0,.6);
+    padding: 8px 8px 10px;
+  }
+  #titlebar {
+    display: flex; align-items: baseline; gap: 14px;
+    padding: 6px 10px 9px;
+  }
+  #titlebar .logo {
+    font-size: 21px; font-weight: bold; letter-spacing: 5px; color: var(--teal);
+    text-shadow: 0 0 12px rgba(70,224,192,.55), 2px 2px 0 #000;
+  }
+  #titlebar .sub { color: var(--dim); letter-spacing: 1px; }
+  #titlebar .ver { margin-left: auto; color: var(--dim); }
+  #stage {
+    position: relative; line-height: 0;
+    border: 2px solid; border-color: var(--frame-lo) var(--frame-hi) var(--frame-hi) var(--frame-lo);
+    background: #000;
+  }
+  #gl { width: 100%; height: auto; display: block; cursor: crosshair; }
+  .overlay {
+    position: absolute; inset: 0; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(5,7,12,.72); line-height: 1.5; text-align: center;
+  }
+  .overlay h2 { color: var(--amber); letter-spacing: 4px; font-size: 26px;
+    text-shadow: 0 0 16px rgba(255,177,61,.5); margin-bottom: 10px; }
+  .overlay .hint { color: var(--dim); margin-top: 8px; }
+  #hud {
+    display: flex; align-items: center; gap: 14px;
+    padding: 9px 10px 4px; line-height: 1;
+  }
+  #lvname { color: var(--amber); letter-spacing: 1px; min-width: 150px; }
+  .badge { padding: 3px 8px; border: 1px solid var(--dim); letter-spacing: 2px; font-size: 11px; }
+  .badge.edit { color: var(--teal); border-color: var(--teal); }
+  .badge.run  { color: var(--amber); border-color: var(--amber); }
+  .badge.win  { color: #7dff9e; border-color: #7dff9e; }
+  #scorewrap {
+    flex: 1; height: 14px; position: relative;
+    background: #0c0f16;
+    border: 1px solid; border-color: var(--frame-lo) var(--frame-hi) var(--frame-hi) var(--frame-lo);
+  }
+  #scorebar {
+    height: 100%; width: 0%;
+    background: repeating-linear-gradient(45deg, var(--teal) 0 6px, #2ba88f 6px 12px);
+    box-shadow: 0 0 10px rgba(70,224,192,.45);
+    transition: width .12s linear;
+  }
+  #scoretxt { min-width: 210px; text-align: right; color: var(--ink); }
+  #fans { color: var(--amber); }
+  #stats { color: var(--dim); min-width: 170px; text-align: right; }
+  #keys { padding: 6px 10px 2px; color: var(--dim); letter-spacing: .4px; }
+  #keys b { color: var(--ink); font-weight: normal; }
+  #panel {
+    display: none; position: fixed; top: 14px; right: 14px; width: 280px;
+    background: var(--frame); border: 2px solid;
+    border-color: var(--frame-hi) var(--frame-lo) var(--frame-lo) var(--frame-hi);
+    padding: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.6); z-index: 10;
+  }
+  #panel::before { content: "TUNING (T to close)"; display: block; color: var(--amber);
+    letter-spacing: 2px; font-size: 11px; margin-bottom: 8px; }
+  .prow { display: flex; align-items: center; gap: 6px; margin: 3px 0; font-size: 11px; }
+  .prow label { width: 84px; color: var(--ink); }
+  .prow input { flex: 1; accent-color: var(--teal); }
+  .prow span { width: 52px; text-align: right; color: var(--dim); }
+  #fatal div { max-width: 480px; line-height: 1.6; }
+  #fatal h2 { color: var(--red); }
+</style>
+</head>
+<body>
+  <div id="frame">
+    <div id="titlebar">
+      <span class="logo">FLUX ROUTE</span>
+      <span class="sub">route the current · the fluid is the world</span>
+      <span class="ver">v0.1 · webgl2</span>
+    </div>
+    <div id="stage">
+      <canvas id="gl" width="1280" height="720"></canvas>
+      <div id="win" class="overlay"><div>
+        <h2>FLOW DELIVERED</h2>
+        <p id="winstats"></p>
+        <p class="hint">N — next level · R — replay this one</p>
+      </div></div>
+      <div id="fatal" class="overlay"><div><h2>CANNOT START</h2><p></p></div></div>
+    </div>
+    <div id="hud">
+      <span id="lvname"></span>
+      <span id="statebadge" class="badge edit">EDIT</span>
+      <div id="scorewrap"><div id="scorebar"></div></div>
+      <span id="scoretxt"></span>
+      <span id="fans"></span>
+      <span id="stats"></span>
+    </div>
+    <div id="keys">
+      <b>WASD</b> steer circle · <b>click</b> place fan (<b>Q/E</b>/wheel rotate, <b>right-click</b> remove)
+      · <b>F</b> drop fan at circle · <b>SPACE</b> pour · <b>R</b> reset · <b>TAB</b> debug views
+      · <b>T</b> tuning · <b>1–5</b> levels
+    </div>
+  </div>
+  <div id="panel"></div>
+  <script>
+"use strict";
+/* FLUX ROUTE — all GLSL sources.
+ * Composition rules follow the implementation plan:
+ *  - FRAG_HEADER is shared by fullscreen fragment shaders.
+ *  - SOLID (solid.glsl) is prepended to every shader that needs solidAt():
+ *    divergence, jacobi, gradient-subtract, dye-post.
+ * Units (plan §4): field velocity = sim texels/sec; actor velocity = UV/sec;
+ * SDF = sim texels; positions = UV. Conversion points are marked (!!).
+ */
+const GLSL = (function () {
+
+const VS_FULLSCREEN = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 aPosition;
+out vec2 vUv;
+void main(){ vUv = aPosition*0.5+0.5; gl_Position = vec4(aPosition,0.0,1.0); }
+`;
+
+const FRAG_HEADER = `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 fragColor;
+`;
+
+const SOLID = `uniform sampler2D uLevel;
+uniform sampler2D uDynMask;
+struct Solid { bool isSolid; vec2 vel; };
+Solid solidAt(vec2 uv){
+  Solid s; s.isSolid=false; s.vel=vec2(0.0);
+  if(uv.x<=0.0||uv.x>=1.0||uv.y<=0.0||uv.y>=1.0){ s.isSolid=true; return s; }
+  if(texture(uLevel,uv).r<=0.0){ s.isSolid=true; return s; }
+  vec4 m = texture(uDynMask,uv);
+  if(m.a>0.5){ s.isSolid=true; s.vel = m.rg/max(m.a,1e-4); }
+  return s;
+}
+`;
+
+const copyFS = FRAG_HEADER + `uniform sampler2D uSrc;
+uniform float uMul;
+void main(){ fragColor = texture(uSrc,vUv)*uMul; }
+`;
+
+const advectFS = FRAG_HEADER + `uniform sampler2D uVelocity;
+uniform sampler2D uSource;
+uniform vec2  uSimTexel;
+uniform float uDt;
+uniform float uDissipation;
+void main(){
+  vec2 vel = texture(uVelocity,vUv).xy;
+  vec2 coord = vUv - uDt*vel*uSimTexel;
+  fragColor = texture(uSource,coord) * exp(-uDissipation*uDt);
+}
+`;
+
+const curlFS = FRAG_HEADER + `uniform sampler2D uVelocity;
+uniform vec2 uSimTexel;
+void main(){
+  float L = texture(uVelocity, vUv-vec2(uSimTexel.x,0.0)).y;
+  float R = texture(uVelocity, vUv+vec2(uSimTexel.x,0.0)).y;
+  float B = texture(uVelocity, vUv-vec2(0.0,uSimTexel.y)).x;
+  float T = texture(uVelocity, vUv+vec2(0.0,uSimTexel.y)).x;
+  fragColor = vec4(R-L-T+B, 0.0, 0.0, 1.0);
+}
+`;
+
+const vorticityFS = FRAG_HEADER + `uniform sampler2D uVelocity;
+uniform sampler2D uCurl;
+uniform vec2  uSimTexel;
+uniform float uCurlStrength;
+uniform float uDt;
+void main(){
+  float L = texture(uCurl, vUv-vec2(uSimTexel.x,0.0)).x;
+  float R = texture(uCurl, vUv+vec2(uSimTexel.x,0.0)).x;
+  float B = texture(uCurl, vUv-vec2(0.0,uSimTexel.y)).x;
+  float T = texture(uCurl, vUv+vec2(0.0,uSimTexel.y)).x;
+  float C = texture(uCurl, vUv).x;
+  vec2 force = 0.5*vec2(abs(T)-abs(B), abs(R)-abs(L));
+  force /= length(force)+1e-4;
+  force *= uCurlStrength*C;
+  force.y *= -1.0;
+  vec2 vel = texture(uVelocity,vUv).xy + force*uDt;
+  fragColor = vec4(clamp(vel, vec2(-1000.0), vec2(1000.0)), 0.0, 1.0);
+}
+`;
+
+const divergenceFS = FRAG_HEADER + SOLID + `uniform sampler2D uVelocity;
+uniform vec2 uSimTexel;
+void main(){
+  vec2 uvL=vUv-vec2(uSimTexel.x,0.0), uvR=vUv+vec2(uSimTexel.x,0.0);
+  vec2 uvB=vUv-vec2(0.0,uSimTexel.y), uvT=vUv+vec2(0.0,uSimTexel.y);
+  vec2 vL=texture(uVelocity,uvL).xy;
+  vec2 vR=texture(uVelocity,uvR).xy;
+  vec2 vB=texture(uVelocity,uvB).xy;
+  vec2 vT=texture(uVelocity,uvT).xy;
+  Solid sL=solidAt(uvL); if(sL.isSolid) vL=sL.vel;
+  Solid sR=solidAt(uvR); if(sR.isSolid) vR=sR.vel;
+  Solid sB=solidAt(uvB); if(sB.isSolid) vB=sB.vel;
+  Solid sT=solidAt(uvT); if(sT.isSolid) vT=sT.vel;
+  fragColor = vec4(0.5*((vR.x-vL.x)+(vT.y-vB.y)), 0.0, 0.0, 1.0);
+}
+`;
+
+const jacobiFS = FRAG_HEADER + SOLID + `uniform sampler2D uPressure;
+uniform sampler2D uDivergence;
+uniform vec2 uSimTexel;
+void main(){
+  vec2 uvL=vUv-vec2(uSimTexel.x,0.0), uvR=vUv+vec2(uSimTexel.x,0.0);
+  vec2 uvB=vUv-vec2(0.0,uSimTexel.y), uvT=vUv+vec2(0.0,uSimTexel.y);
+  float pC = texture(uPressure,vUv).x;
+  float pL = solidAt(uvL).isSolid ? pC : texture(uPressure,uvL).x;
+  float pR = solidAt(uvR).isSolid ? pC : texture(uPressure,uvR).x;
+  float pB = solidAt(uvB).isSolid ? pC : texture(uPressure,uvB).x;
+  float pT = solidAt(uvT).isSolid ? pC : texture(uPressure,uvT).x;
+  float div = texture(uDivergence,vUv).x;
+  fragColor = vec4((pL+pR+pB+pT-div)*0.25, 0.0, 0.0, 1.0);
+}
+`;
+
+const gradientSubtractFS = FRAG_HEADER + SOLID + `uniform sampler2D uPressure;
+uniform sampler2D uVelocity;
+uniform vec2 uSimTexel;
+void main(){
+  Solid sC = solidAt(vUv);
+  if(sC.isSolid){ fragColor = vec4(sC.vel, 0.0, 1.0); return; }
+  vec2 uvL=vUv-vec2(uSimTexel.x,0.0), uvR=vUv+vec2(uSimTexel.x,0.0);
+  vec2 uvB=vUv-vec2(0.0,uSimTexel.y), uvT=vUv+vec2(0.0,uSimTexel.y);
+  float pC = texture(uPressure,vUv).x;
+  float pL = solidAt(uvL).isSolid ? pC : texture(uPressure,uvL).x;
+  float pR = solidAt(uvR).isSolid ? pC : texture(uPressure,uvR).x;
+  float pB = solidAt(uvB).isSolid ? pC : texture(uPressure,uvB).x;
+  float pT = solidAt(uvT).isSolid ? pC : texture(uPressure,uvT).x;
+  vec2 vel = texture(uVelocity,vUv).xy - 0.5*vec2(pR-pL, pT-pB);
+  fragColor = vec4(vel, 0.0, 1.0);
+}
+`;
+
+const dyePostFS = FRAG_HEADER + SOLID + `uniform sampler2D uDye;
+uniform sampler2D uRegions;
+uniform float uAbsorbRate;
+uniform float uSolidDecay;
+uniform float uDt;
+void main(){
+  vec4 dye = texture(uDye,vUv);
+  float sink = texture(uRegions,vUv).r;
+  float k = 1.0 - exp(-uAbsorbRate*sink*uDt);
+  dye.rgb -= dye.rgb*k;
+  if(solidAt(vUv).isSolid) dye.rgb *= exp(-uSolidDecay*uDt);
+  fragColor = dye;
+}
+`;
+
+const scoreAccumFS = FRAG_HEADER + `uniform sampler2D uScoreAcc;
+uniform sampler2D uDye;
+uniform sampler2D uRegions;
+uniform float uAbsorbRate;
+uniform float uDt;
+uniform float uActive;
+void main(){
+  vec4 acc = texture(uScoreAcc,vUv);
+  float sink = texture(uRegions,vUv).r;
+  float k = 1.0 - exp(-uAbsorbRate*sink*uDt);
+  acc.rgb += texture(uDye,vUv).rgb * k * uActive;
+  fragColor = acc;
+}
+`;
+
+const reduceFS = FRAG_HEADER + `uniform sampler2D uSrc;
+uniform ivec2 uSrcSize;
+void main(){
+  ivec2 base = ivec2(gl_FragCoord.xy)*2;
+  vec4 s = vec4(0.0);
+  for(int dy=0;dy<2;dy++)
+  for(int dx=0;dx<2;dx++){
+    ivec2 c = base+ivec2(dx,dy);
+    if(c.x<uSrcSize.x && c.y<uSrcSize.y) s += texelFetch(uSrc,c,0);
+  }
+  fragColor = s;
+}
+`;
+
+const telemetryFS = FRAG_HEADER + `uniform sampler2D uReduced;
+uniform sampler2D uActors;
+void main(){
+  int x = int(gl_FragCoord.x);
+  if(x==0)      fragColor = texelFetch(uReduced, ivec2(0,0), 0);
+  else if(x==1) fragColor = vec4(0.0);
+  else          fragColor = texelFetch(uActors, ivec2(x-2,0), 0);
+}
+`;
+
+/* --- JFA SDF generation (plan §8.2; distance metric corrected to texel
+ *     space — UV-space distances are anisotropic on a 320x180 grid). --- */
+
+const jfaSeedFS = FRAG_HEADER + `uniform sampler2D uLevelPng;
+uniform float uInvert;
+void main(){
+  float solid = step(0.5, texture(uLevelPng,vUv).r);
+  float isSeed = mix(solid, 1.0-solid, uInvert);
+  fragColor = isSeed>0.5 ? vec4(vUv,1.0,1.0) : vec4(-1.0,-1.0,0.0,1.0);
+}
+`;
+
+const jfaStepFS = FRAG_HEADER + `uniform sampler2D uSeeds;
+uniform vec2 uSimTexel;
+uniform vec2 uSimSize;
+uniform float uStep;
+void main(){
+  vec4 best = texture(uSeeds,vUv);
+  float bestD = best.z>0.5 ? length((vUv-best.xy)*uSimSize) : 1e8;
+  for(int dy=-1;dy<=1;dy++)
+  for(int dx=-1;dx<=1;dx++){
+    vec2 nUv = clamp(vUv+vec2(float(dx),float(dy))*uStep*uSimTexel, vec2(0.0), vec2(1.0));
+    vec4 cand = texture(uSeeds,nUv);
+    if(cand.z>0.5){
+      float d = length((vUv-cand.xy)*uSimSize);
+      if(d<bestD){ bestD=d; best=cand; }
+    }
+  }
+  fragColor = best;
+}
+`;
+
+const jfaCombineFS = FRAG_HEADER + `uniform sampler2D uLevelPng;
+uniform sampler2D uSolidSeeds;
+uniform sampler2D uEmptySeeds;
+uniform vec2 uSimSize;
+void main(){
+  float solid = step(0.5, texture(uLevelPng,vUv).r);
+  vec4 ss = texture(uSolidSeeds,vUv);
+  vec4 es = texture(uEmptySeeds,vUv);
+  float dOut = ss.z>0.5 ? length((vUv-ss.xy)*uSimSize) : 1e4;
+  float dIn  = es.z>0.5 ? length((vUv-es.xy)*uSimSize) : 1e4;
+  fragColor = vec4(mix(dOut,-dIn,solid), 0.0, 0.0, 1.0);
+}
+`;
+
+const jfaGradFS = FRAG_HEADER + `uniform sampler2D uDist;
+uniform vec2 uSimTexel;
+void main(){
+  float dC = texture(uDist,vUv).r;
+  float dL = texture(uDist,vUv-vec2(uSimTexel.x,0.0)).r;
+  float dR = texture(uDist,vUv+vec2(uSimTexel.x,0.0)).r;
+  float dB = texture(uDist,vUv-vec2(0.0,uSimTexel.y)).r;
+  float dT = texture(uDist,vUv+vec2(0.0,uSimTexel.y)).r;
+  vec2 g = vec2(dR-dL, dT-dB);
+  float len = length(g);
+  g = len<1e-5 ? vec2(0.0,1.0) : g/len;
+  fragColor = vec4(dC, g, 0.0);
+}
+`;
+
+/* --- Actor system (plan §9) --- */
+
+const actorUpdateFS = `#version 300 es
+precision highp float;
+out vec4 fragColor;
+uniform sampler2D uActors;
+uniform sampler2D uVelocity;
+uniform sampler2D uLevel;
+uniform vec2  uSimTexel;
+uniform float uDt;
+uniform vec4  uInput;
+uniform float uThrust;
+uniform float uDragK;
+uniform float uLinDamp;
+uniform vec4  uSpawn;
+uniform vec4  uSpawnParams;
+void main(){
+  int slot = int(gl_FragCoord.x);
+  int row  = int(gl_FragCoord.y);
+  vec4 r0 = texelFetch(uActors, ivec2(slot,0), 0);
+  vec4 r1 = texelFetch(uActors, ivec2(slot,1), 0);
+  vec4 r2 = texelFetch(uActors, ivec2(slot,2), 0);
+  vec4 r3 = texelFetch(uActors, ivec2(slot,3), 0);
+  int type = int(r1.x);
+
+  if(uSpawn.x>=0.0 && slot==int(uSpawn.x)){
+    vec4 player = texelFetch(uActors, ivec2(0,0), 0);
+    r0 = vec4(player.xy + uSpawn.zw, 0.0, 0.0);
+    r1 = vec4(uSpawn.y, uSpawnParams.xyz);
+    r2 = vec4(uSpawnParams.w, 0.0, 1.0, 1.0);
+    r3 = vec4(1.0, 0.0, 0.0, 0.0);
+    type = int(uSpawn.y);
+  }
+
+  if(type==1){
+    vec2 pos = r0.xy, vel = r0.zw;
+    vec2 fluidUv = texture(uVelocity,pos).xy * uSimTexel;     /* texels/s -> UV/s (!!) */
+    vel += (uInput.xy*uThrust + uDragK*(fluidUv-vel)) * uDt;
+    vel *= exp(-uLinDamp*uDt);
+    pos += vel*uDt;
+    vec4 lv = texture(uLevel,pos);
+    float pen = lv.r - r1.y;
+    if(pen<0.0){
+      vec2 n = lv.gb;
+      pos += -pen*n*uSimTexel;                                /* texels -> UV, per axis */
+      vec2 velTex = vel/uSimTexel;                            /* dot in isotropic texel space */
+      float vn = dot(velTex,n);
+      if(vn<0.0) velTex -= vn*n;
+      vel = velTex*uSimTexel;
+    }
+    vec2 rUv = vec2(r1.y)*uSimTexel;
+    pos = clamp(pos, rUv, vec2(1.0)-rUv);
+    r0 = vec4(pos,vel);
+  }
+
+  if(type!=0 && r2.x>=0.0){
+    r2.x -= uDt;
+    if(r2.x<=0.0){ r1.x = 0.0; }
+  }
+  fragColor = (row==0)?r0 : (row==1)?r1 : (row==2)?r2 : r3;
+}
+`;
+
+const splatVS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 aCorner;
+uniform sampler2D uActors;
+uniform int   uTarget;
+uniform vec2  uSimTexel;
+uniform float uExtentMul;
+uniform float uEmittersOn;
+flat out vec4 vR0; flat out vec4 vR1; flat out vec4 vR2; flat out vec4 vR3;
+out vec2 vLocal;
+bool writesTarget(int type,int target){
+  if(type==3 && uEmittersOn<0.5) return false;
+  if(target==0) return type==2 || type==3;
+  if(target==1) return type==3;
+  if(target==2) return type==1;
+  return false;
+}
+void main(){
+  int slot = gl_InstanceID;
+  vR0 = texelFetch(uActors, ivec2(slot,0), 0);
+  vR1 = texelFetch(uActors, ivec2(slot,1), 0);
+  vR2 = texelFetch(uActors, ivec2(slot,2), 0);
+  vR3 = texelFetch(uActors, ivec2(slot,3), 0);
+  vLocal = aCorner;
+  if(!writesTarget(int(vR1.x), uTarget)){ gl_Position = vec4(-2.0,-2.0,0.0,1.0); return; }
+  vec2 extent = vR1.y*uExtentMul*uSimTexel;
+  vec2 pos = vR0.xy + aCorner*extent;
+  gl_Position = vec4(pos*2.0-1.0, 0.0, 1.0);
+}
+`;
+
+const SPLAT_FRAG_IN = `#version 300 es
+precision highp float;
+in vec2 vLocal;
+flat in vec4 vR0; flat in vec4 vR1; flat in vec4 vR2; flat in vec4 vR3;
+out vec4 fragColor;
+`;
+
+const splatForceFS = SPLAT_FRAG_IN + `uniform float uDt;
+void main(){
+  float g = exp(-dot(vLocal,vLocal)*4.5);
+  vec2 dir = vec2(cos(vR1.w), sin(vR1.w));
+  fragColor = vec4(dir*vR1.z*g*uDt, 0.0, 0.0);
+}
+`;
+
+const splatDyeFS = SPLAT_FRAG_IN + `uniform float uDt;
+uniform float uEmitScale;
+void main(){
+  float g = exp(-dot(vLocal,vLocal)*4.5);
+  fragColor = vec4(vec3(vR2.z,vR2.w,vR3.x)*vR1.z*uEmitScale*g*uDt, 0.0);
+}
+`;
+
+const splatMaskFS = SPLAT_FRAG_IN + `uniform vec2 uSimTexel;
+void main(){
+  float rTex = vR1.y;
+  float dTex = length(vLocal)*rTex*1.1;
+  float cov = 1.0 - smoothstep(rTex-1.0, rTex, dTex);
+  vec2 velTexels = vR0.zw/uSimTexel;                          /* UV/s -> texels/s, per axis (!!) */
+  fragColor = vec4(velTexels*cov, 0.0, cov);
+}
+`;
+
+/* --- Presentation --- */
+
+const glyphVS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 aCorner;
+uniform sampler2D uActors;
+uniform vec2  uSimTexel;
+uniform float uExtentMul;
+flat out vec4 vR0; flat out vec4 vR1; flat out vec4 vR2; flat out vec4 vR3;
+out vec2 vLocal;
+void main(){
+  int slot = gl_InstanceID;
+  vR0 = texelFetch(uActors, ivec2(slot,0), 0);
+  vR1 = texelFetch(uActors, ivec2(slot,1), 0);
+  vR2 = texelFetch(uActors, ivec2(slot,2), 0);
+  vR3 = texelFetch(uActors, ivec2(slot,3), 0);
+  vLocal = aCorner;
+  if(int(vR1.x)==0){ gl_Position = vec4(-2.0,-2.0,0.0,1.0); return; }
+  vec2 extent = vR1.y*uExtentMul*uSimTexel;
+  gl_Position = vec4((vR0.xy + aCorner*extent)*2.0-1.0, 0.0, 1.0);
+}
+`;
+
+const ghostVS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 aCorner;
+uniform vec2  uGhostPos;
+uniform float uGhostRadius;
+uniform float uGhostAngle;
+uniform vec2  uSimTexel;
+uniform float uExtentMul;
+flat out vec4 vR0; flat out vec4 vR1; flat out vec4 vR2; flat out vec4 vR3;
+out vec2 vLocal;
+void main(){
+  vR0 = vec4(uGhostPos, 0.0, 0.0);
+  vR1 = vec4(2.0, uGhostRadius, 0.0, uGhostAngle);
+  vR2 = vec4(-1.0, 0.0, 1.0, 1.0);
+  vR3 = vec4(1.0, 0.0, 0.0, 0.0);
+  vLocal = aCorner;
+  vec2 extent = uGhostRadius*uExtentMul*uSimTexel;
+  gl_Position = vec4((uGhostPos + aCorner*extent)*2.0-1.0, 0.0, 1.0);
+}
+`;
+
+const glyphFS = SPLAT_FRAG_IN + `uniform float uGhost;
+uniform float uGhostValid;
+vec2 rot(vec2 p, float a){ float c=cos(a), s=sin(a); return vec2(c*p.x+s*p.y, -s*p.x+c*p.y); }
+void main(){
+  int type = int(vR1.x);
+  float len = length(vLocal);
+  vec4 col = vec4(0.0);
+  if(type==1){
+    float fill = 1.0-smoothstep(0.52,0.58,len);
+    float ring = smoothstep(0.46,0.52,len)*(1.0-smoothstep(0.58,0.64,len));
+    vec2 v = vR0.zw; float sp = length(v);
+    float tick = 0.0;
+    if(sp>0.01){
+      vec2 d = v/sp;
+      float along = dot(vLocal,d);
+      float across = abs(dot(vLocal, vec2(-d.y,d.x)));
+      tick = (along>0.18 && along<0.85 && across<0.10) ? 1.0 : 0.0;
+    }
+    vec3 c = mix(vec3(0.92,0.95,1.0), vec3(1.0,0.85,0.4), tick);
+    col = vec4(c, max(fill*0.25+ring*0.9, tick*0.95));
+  } else if(type==2){
+    float ring = smoothstep(0.40,0.46,len)*(1.0-smoothstep(0.52,0.58,len));
+    vec2 p = rot(vLocal, vR1.w);
+    float shaft = (p.x>-0.05 && p.x<0.30 && abs(p.y)<0.07) ? 1.0 : 0.0;
+    float head  = (p.x>=0.25 && p.x<0.52 && abs(p.y)<(0.52-p.x)*0.7) ? 1.0 : 0.0;
+    float locked = mod(floor(vR2.y), 2.0);
+    vec3 c = mix(vec3(0.45,0.95,1.0), vec3(0.55,0.60,0.70), locked);
+    col = vec4(c, max(ring*0.9, max(shaft,head)*0.95));
+  } else if(type==3){
+    float fill = 1.0-smoothstep(0.30,0.36,len);
+    float ring = smoothstep(0.42,0.48,len)*(1.0-smoothstep(0.52,0.58,len));
+    vec3 dye = vec3(vR2.z,vR2.w,vR3.x);
+    col = vec4(normalize(dye+vec3(1e-4))*1.1, max(fill*0.9, ring*0.7));
+  }
+  if(uGhost>0.5){
+    col.rgb = mix(vec3(1.0,0.35,0.30), vec3(0.5,1.0,0.6), uGhostValid);
+    col.a *= 0.55;
+  }
+  fragColor = col;
+}
+`;
+
+const brightFS = FRAG_HEADER + `uniform sampler2D uDye;
+uniform float uThreshold;
+void main(){
+  vec3 c = texture(uDye,vUv).rgb;
+  fragColor = vec4(max(c-vec3(uThreshold), vec3(0.0)), 1.0);
+}
+`;
+
+const blurFS = FRAG_HEADER + `uniform sampler2D uSrc;
+uniform vec2 uDir;
+void main(){
+  vec3 s = texture(uSrc,vUv).rgb*0.227027;
+  s += texture(uSrc, vUv+uDir*1.3846).rgb*0.3162162;
+  s += texture(uSrc, vUv-uDir*1.3846).rgb*0.3162162;
+  s += texture(uSrc, vUv+uDir*3.2308).rgb*0.0702703;
+  s += texture(uSrc, vUv-uDir*3.2308).rgb*0.0702703;
+  fragColor = vec4(s, 1.0);
+}
+`;
+
+const compositeFS = FRAG_HEADER + `uniform sampler2D uDye;
+uniform sampler2D uLevel;
+uniform sampler2D uRegions;
+uniform sampler2D uBloom;
+uniform sampler2D uVelocity;
+uniform sampler2D uPressure;
+uniform sampler2D uDivergence;
+uniform sampler2D uCurl;
+uniform sampler2D uDynMask;
+uniform sampler2D uScoreAcc;
+uniform int   uDebugMode;
+uniform float uTime;
+uniform float uTonemapK;
+uniform float uBloomStrength;
+vec3 hsv2rgb(vec3 c){
+  vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+  vec3 p = abs(fract(c.xxx+K.xyz)*6.0-K.www);
+  return c.z*mix(K.xxx, clamp(p-K.xxx,0.0,1.0), c.y);
+}
+void main(){
+  if(uDebugMode==1){
+    vec2 v = texture(uVelocity,vUv).xy; float m = length(v);
+    fragColor = vec4(hsv2rgb(vec3(atan(v.y,v.x)/6.2832+0.5, 0.85, clamp(m*0.012,0.0,1.0))),1.0); return;
+  }
+  if(uDebugMode==2){ fragColor = vec4(vec3(0.5+texture(uPressure,vUv).r*0.06),1.0); return; }
+  if(uDebugMode==3){ float d=texture(uDivergence,vUv).r; fragColor = vec4(vec3(0.5)+vec3(d*2.0,-d*2.0,0.0),1.0); return; }
+  if(uDebugMode==4){ float c=texture(uCurl,vUv).r; fragColor = vec4(vec3(0.5)+vec3(c,-c,0.0)*0.08,1.0); return; }
+  if(uDebugMode==5){
+    float d = texture(uLevel,vUv).r;
+    vec3 c = d<0.0 ? vec3(0.85,0.30,0.20) : vec3(0.20,0.50,0.90);
+    fragColor = vec4(c*(0.35+0.65*abs(sin(d*0.7))),1.0); return;
+  }
+  if(uDebugMode==6){ vec4 m=texture(uDynMask,vUv); fragColor = vec4(m.a, 0.5+m.r*0.01, 0.5+m.g*0.01, 1.0); return; }
+  if(uDebugMode==7){
+    vec4 s = texture(uScoreAcc,vUv);
+    fragColor = vec4(vec3(1.0,0.6,0.2)*clamp((s.r+s.g+s.b)*0.05,0.0,1.0),1.0); return;
+  }
+  vec3 dye = texture(uDye,vUv).rgb;
+  vec3 col = vec3(1.0) - exp(-dye*uTonemapK);
+  col += texture(uBloom,vUv).rgb*uBloomStrength;
+  float sink = texture(uRegions,vUv).r;
+  if(sink>0.01){
+    float stripe = step(0.55, fract((vUv.x+vUv.y)*40.0 - uTime*0.35));
+    col += vec3(0.05,0.30,0.22)*sink*(0.35+0.25*stripe)*(0.7+0.3*sin(uTime*2.2));
+  }
+  float d = texture(uLevel,vUv).r;
+  float solidA = 1.0 - smoothstep(0.0, 1.2, d);
+  col = mix(col, vec3(0.10,0.12,0.17), solidA);
+  col += vec3(0.35,0.55,0.95)*(1.0-smoothstep(0.0,2.2,abs(d)))*0.18;
+  vec2 q = vUv-0.5;
+  col *= 1.0 - 0.25*dot(q,q);
+  fragColor = vec4(col, 1.0);
+}
+`;
+
+return {
+  vs: { fullscreen: VS_FULLSCREEN, splat: splatVS, glyph: glyphVS, ghost: ghostVS },
+  fs: {
+    copy: copyFS, advect: advectFS, curl: curlFS, vorticity: vorticityFS,
+    divergence: divergenceFS, jacobi: jacobiFS, gradientSubtract: gradientSubtractFS,
+    dyePost: dyePostFS, scoreAccum: scoreAccumFS, reduce: reduceFS, telemetry: telemetryFS,
+    jfaSeed: jfaSeedFS, jfaStep: jfaStepFS, jfaCombine: jfaCombineFS, jfaGrad: jfaGradFS,
+    actorUpdate: actorUpdateFS, splatForce: splatForceFS, splatDye: splatDyeFS,
+    splatMask: splatMaskFS, glyph: glyphFS, bright: brightFS, blur: blurFS,
+    composite: compositeFS
+  }
+};
+})();
+if (typeof module !== "undefined" && module.exports) module.exports = GLSL;
+
+</script>
+<script>
+"use strict";
+/* FLUX ROUTE — game engine. Companion to shaders.js (global GLSL). */
+(function () {
+
+const SIM_W = 320, SIM_H = 180, DYE_W = 1280, DYE_H = 720;
+const N_ACTORS = 64, ACTOR_ROWS = 4;
+const DT = 1 / 120, MAX_SUBSTEPS = 4, PRESSURE_ITERS = 30;
+const SIM_TEXEL = [1 / SIM_W, 1 / SIM_H];
+const TELEM_W = 2 + N_ACTORS;
+
+const params = {
+  curl: 25, velDiss: 0.10, dyeDiss: 0.15, absorb: 6, solidDecay: 8,
+  fanStrength: 600, emitScale: 0.02, thrust: 0.55, dragK: 1.2, linDamp: 2.5,
+  warmStart: 0.8, tonemapK: 0.30, bloomStr: 0.35, bloomThr: 1.5, winScale: 1.0
+};
+
+/* ---------- context ---------- */
+const canvas = document.getElementById("gl");
+const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, preserveDrawingBuffer: false });
+function fatal(msg) {
+  const el = document.getElementById("fatal");
+  el.style.display = "flex"; el.querySelector("p").textContent = msg;
+  throw new Error(msg);
+}
+if (!gl) fatal("This game needs WebGL2, which your browser did not provide.");
+const extCBF = gl.getExtension("EXT_color_buffer_float");
+let HALF_FALLBACK = false;
+if (!extCBF) {
+  if (gl.getExtension("EXT_color_buffer_half_float")) {
+    HALF_FALLBACK = true;
+    console.warn("EXT_color_buffer_float missing; running half-float fallback (reduced precision).");
+  } else fatal("This game needs float render targets (EXT_color_buffer_float), which your GPU/browser did not provide.");
+}
+
+/* ---------- GL helpers ---------- */
+const F32 = HALF_FALLBACK
+  ? { internal: gl.RGBA16F, type: gl.HALF_FLOAT }
+  : { internal: gl.RGBA32F, type: gl.FLOAT };
+const SCORE_SCALE = HALF_FALLBACK ? 1 / 64 : 1.0;   // keep accumulator in 16F range
+
+function makeTex(w, h, internal, format, type, filter) {
+  const t = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, format, type, null);
+  return t;
+}
+function makeRT(w, h, internal, format, type, filter) {
+  const tex = makeTex(w, h, internal, format, type, filter);
+  const fbo = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  const st = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+  if (st !== gl.FRAMEBUFFER_COMPLETE) fatal("Framebuffer incomplete (0x" + st.toString(16) + ") for " + w + "x" + h);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  return { tex, fbo, w, h };
+}
+function makePP(w, h, internal, format, type, filter) {
+  const a = makeRT(w, h, internal, format, type, filter);
+  const b = makeRT(w, h, internal, format, type, filter);
+  return { a, b, get read() { return this.a; }, get write() { return this.b; },
+           swap() { const t = this.a; this.a = this.b; this.b = t; } };
+}
+function compile(name, vsSrc, fsSrc) {
+  function sh(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      const log = gl.getShaderInfoLog(s);
+      const numbered = src.split("\n").map((l, i) => (i + 1) + ": " + l).join("\n");
+      console.error(name, log, "\n" + numbered);
+      fatal("Shader compile failed: " + name);
+    }
+    return s;
+  }
+  const p = gl.createProgram();
+  gl.attachShader(p, sh(gl.VERTEX_SHADER, vsSrc));
+  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) fatal("Link failed: " + name + " " + gl.getProgramInfoLog(p));
+  p._uni = {};
+  return p;
+}
+function U(p, n) {
+  if (!(n in p._uni)) p._uni[n] = gl.getUniformLocation(p, n);
+  return p._uni[n];
+}
+let currentTargetTex = null;
+function drawTo(rt) {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, rt ? rt.fbo : null);
+  gl.viewport(0, 0, rt ? rt.w : DYE_W, rt ? rt.h : DYE_H);
+  currentTargetTex = rt ? rt.tex : null;
+}
+function bindTex(p, name, tex, unit) {
+  if (tex === currentTargetTex) fatal("Feedback loop: sampling render target in " + name);
+  gl.activeTexture(gl.TEXTURE0 + unit);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.uniform1i(U(p, name), unit);
+}
+function clearRT(rt, r, g, b, a) {
+  drawTo(rt); gl.clearColor(r || 0, g || 0, b || 0, a || 0); gl.clear(gl.COLOR_BUFFER_BIT);
+}
+
+/* geometry */
+const triVAO = gl.createVertexArray();
+gl.bindVertexArray(triVAO);
+let buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+const quadVAO = gl.createVertexArray();
+gl.bindVertexArray(quadVAO);
+buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+gl.bindVertexArray(null);
+function fullscreen() { gl.bindVertexArray(triVAO); gl.drawArrays(gl.TRIANGLES, 0, 3); gl.bindVertexArray(null); }
+
+/* ---------- resources ---------- */
+const velocity  = makePP(SIM_W, SIM_H, gl.RG16F, gl.RG, gl.HALF_FLOAT, gl.LINEAR);
+const pressure  = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const divergence = makeRT(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const curlTex   = makeRT(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const dye       = makePP(DYE_W, DYE_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const dynMask   = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const level     = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const distRT    = makeRT(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const seeds     = makePP(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
+const seedSolid = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
+const seedEmpty = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
+const actors    = makePP(N_ACTORS, ACTOR_ROWS, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
+const scoreAcc  = makePP(SIM_W, SIM_H, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
+const telemetry = makeRT(TELEM_W, 1, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
+const bloomA    = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const bloomB    = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const regionsTex = makeTex(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.LINEAR);
+const levelPngTex = makeTex(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.NEAREST);
+
+/* reduction chain from scoreAcc size down to 1x1 */
+const reduceChain = [];
+{
+  let w = SIM_W, h = SIM_H;
+  while (w > 1 || h > 1) {
+    w = Math.max(1, Math.ceil(w / 2)); h = Math.max(1, Math.ceil(h / 2));
+    reduceChain.push(makeRT(w, h, F32.internal, gl.RGBA, F32.type, gl.NEAREST));
+  }
+}
+
+/* ---------- programs ---------- */
+const P = {};
+for (const [n, src] of Object.entries(GLSL.fs)) {
+  if (n === "actorUpdate") P[n] = compile(n, GLSL.vs.fullscreen, src);
+  else if (n === "splatForce" || n === "splatDye" || n === "splatMask")
+    P[n] = compile(n, GLSL.vs.splat, src);
+  else if (n === "glyph") { /* compiled twice below */ }
+  else P[n] = compile(n, GLSL.vs.fullscreen, src);
+}
+P.glyph = compile("glyph", GLSL.vs.glyph, GLSL.fs.glyph);
+P.ghost = compile("ghost", GLSL.vs.ghost, GLSL.fs.glyph);
+
+/* ---------- levels ---------- */
+/* Painted into a SIM_W x SIM_H canvas using the plan's PNG channel format:
+ * R = solid, G = sink, B = reserved. Helpers take UV coords with v UP
+ * (matching game space); the canvas is y-down and uploads with FLIP_Y. */
+const lvCanvas = document.createElement("canvas");
+lvCanvas.width = SIM_W; lvCanvas.height = SIM_H;
+const lvCtx = lvCanvas.getContext("2d", { willReadFrequently: true });
+function pxRect(style, u0, v0, u1, v1) {
+  lvCtx.fillStyle = style;
+  lvCtx.fillRect(Math.round(u0 * SIM_W), Math.round((1 - v1) * SIM_H),
+    Math.round((u1 - u0) * SIM_W), Math.round((v1 - v0) * SIM_H));
+}
+const SOLID_C = "#ff0000", SINK_C = "#00ff00";
+function border() {
+  pxRect(SOLID_C, 0, 0, 1, 3 / SIM_H); pxRect(SOLID_C, 0, 1 - 3 / SIM_H, 1, 1);
+  pxRect(SOLID_C, 0, 0, 3 / SIM_W, 1); pxRect(SOLID_C, 1 - 3 / SIM_W, 0, 1, 1);
+}
+function base() { lvCtx.fillStyle = "#000000"; lvCtx.fillRect(0, 0, SIM_W, SIM_H); border(); }
+
+const LEVELS = [
+  {
+    name: "1 · First pour", winFraction: 0.16, fanBudget: 2, allowNudge: true,
+    playerStart: [0.30, 0.72],
+    actors: [{ type: 3, pos: [0.08, 0.50], angle: 0, r: 5, strength: 400, dye: [1.0, 0.30, 0.08] }],
+    paint() { base(); pxRect(SINK_C, 0.90, 0.36, 0.975, 0.64); }
+  },
+  {
+    name: "2 · Corner turn", winFraction: 0.13, fanBudget: 2, allowNudge: true,
+    playerStart: [0.25, 0.25],
+    actors: [{ type: 3, pos: [0.08, 0.30], angle: 0, r: 5, strength: 420, dye: [0.15, 0.65, 1.0] }],
+    paint() {
+      base();
+      pxRect(SOLID_C, 0.52, 0.34, 0.56, 1.0);          // wall from top, gap at bottom
+      pxRect(SINK_C, 0.74, 0.86, 0.92, 0.965);          // sink top-right
+    }
+  },
+  {
+    name: "3 · The leak", winFraction: 0.18, fanBudget: 1, allowNudge: true,
+    playerStart: [0.50, 0.30],
+    actors: [
+      { type: 3, pos: [0.07, 0.62], angle: 0, r: 5, strength: 430, dye: [1.0, 0.78, 0.10] },
+      { type: 2, pos: [0.34, 0.62], angle: 0, r: 6, strength: 600, locked: true }
+    ],
+    paint() {
+      base();
+      pxRect(SOLID_C, 0.10, 0.70, 0.86, 0.74);          // duct top wall
+      pxRect(SOLID_C, 0.10, 0.50, 0.42, 0.54);          // duct bottom, segment 1
+      pxRect(SOLID_C, 0.56, 0.50, 0.86, 0.54);          // segment 2 — the gap leaks
+      pxRect(SINK_C, 0.88, 0.50, 0.965, 0.74);
+    }
+  },
+  {
+    name: "4 · Split flow", winFraction: 0.16, fanBudget: 2, allowNudge: true,
+    playerStart: [0.50, 0.50],
+    actors: [{ type: 3, pos: [0.07, 0.50], angle: 0, r: 6, strength: 450, dye: [0.85, 0.20, 0.95] }],
+    paint() {
+      base();
+      pxRect(SOLID_C, 0.40, 0.46, 0.72, 0.54);          // splitter bar
+      pxRect(SINK_C, 0.88, 0.70, 0.965, 0.94);
+      pxRect(SINK_C, 0.88, 0.06, 0.965, 0.30);
+    }
+  },
+  {
+    name: "5 · Hands off", winFraction: 0.11, fanBudget: 4, allowNudge: false,
+    playerStart: [0.20, 0.80],
+    actors: [{ type: 3, pos: [0.07, 0.80], angle: 0, r: 5, strength: 430, dye: [0.20, 1.0, 0.55] }],
+    paint() {
+      base();
+      pxRect(SOLID_C, 0.24, 0.34, 0.28, 1.0);           // baffle from top
+      pxRect(SOLID_C, 0.48, 0.0, 0.52, 0.66);           // baffle from bottom
+      pxRect(SOLID_C, 0.70, 0.34, 0.74, 1.0);           // baffle from top
+      pxRect(SINK_C, 0.88, 0.06, 0.965, 0.34);
+    }
+  }
+];
+
+/* ---------- JFA SDF (plan §8.2) ---------- */
+function runFS(prog, rt, setup) {
+  drawTo(rt); gl.useProgram(prog); setup(prog); fullscreen();
+}
+function runJFA() {
+  const simSize = [SIM_W, SIM_H];
+  for (let pass = 0; pass < 2; pass++) {
+    runFS(P.jfaSeed, seeds.write, p => {
+      bindTex(p, "uLevelPng", levelPngTex, 0);
+      gl.uniform1f(U(p, "uInvert"), pass);
+    });
+    seeds.swap();
+    let step = 1 << Math.ceil(Math.log2(Math.max(SIM_W, SIM_H)));
+    const stepsList = [];
+    while (step >= 1) { stepsList.push(step); step >>= 1; }
+    stepsList.push(1); // JFA+1 refinement
+    for (const s of stepsList) {
+      runFS(P.jfaStep, seeds.write, p => {
+        bindTex(p, "uSeeds", seeds.read.tex, 0);
+        gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+        gl.uniform2f(U(p, "uSimSize"), simSize[0], simSize[1]);
+        gl.uniform1f(U(p, "uStep"), s);
+      });
+      seeds.swap();
+    }
+    runFS(P.copy, pass === 0 ? seedSolid : seedEmpty, p => {
+      bindTex(p, "uSrc", seeds.read.tex, 0);
+      gl.uniform1f(U(p, "uMul"), 1.0);
+    });
+  }
+  runFS(P.jfaCombine, distRT, p => {
+    bindTex(p, "uLevelPng", levelPngTex, 0);
+    bindTex(p, "uSolidSeeds", seedSolid.tex, 1);
+    bindTex(p, "uEmptySeeds", seedEmpty.tex, 2);
+    gl.uniform2f(U(p, "uSimSize"), simSize[0], simSize[1]);
+  });
+  runFS(P.jfaGrad, level, p => {
+    bindTex(p, "uDist", distRT.tex, 0);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+  });
+}
+
+/* ---------- actor table (CPU side mirror + GPU writes) ---------- */
+const cpuActors = new Array(N_ACTORS).fill(null);  // {type,r,strength,angle,locked,dye,pos?}
+let freeSlots = [];
+let levelData = null;            // Uint8ClampedArray of the level canvas (y-down)
+function writeActor(slot, rows16 /* Float32Array(16) */) {
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  let data = rows16;
+  if (HALF_FALLBACK) { /* HALF_FLOAT upload path: convert */ data = f32ToF16Arr(rows16); }
+  for (const rt of [actors.a, actors.b]) {
+    gl.bindTexture(gl.TEXTURE_2D, rt.tex);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, slot, 0, 1, ACTOR_ROWS, gl.RGBA, F32.type, data);
+  }
+}
+function f32ToF16Arr(f32) {
+  const out = new Uint16Array(f32.length);
+  const fv = new Float32Array(1), iv = new Int32Array(fv.buffer);
+  for (let i = 0; i < f32.length; i++) {
+    fv[0] = f32[i]; const x = iv[0];
+    const sign = (x >>> 16) & 0x8000;
+    let exp = ((x >>> 23) & 0xff) - 127 + 15, man = (x >>> 13) & 0x3ff;
+    if (exp <= 0) { exp = 0; man = 0; } else if (exp >= 31) { exp = 31; man = 0; }
+    out[i] = sign | (exp << 10) | man;
+  }
+  return out;
+}
+function actorRecord(a) {
+  const f = new Float32Array(16);
+  f[0] = a.pos[0]; f[1] = a.pos[1]; f[2] = 0; f[3] = 0;                       // row 0
+  f[4] = a.type; f[5] = a.r; f[6] = a.strength || 0; f[7] = a.angle || 0;     // row 1
+  f[8] = -1; f[9] = a.locked ? 1 : 0;                                          // row 2: ttl, flags
+  const d = a.dye || [1, 1, 1];
+  f[10] = d[0]; f[11] = d[1]; f[12] = a.dye ? d[2] : 0;                        // dyeR,dyeG | row3: dyeB
+  f[13] = 0; f[14] = 0; f[15] = 0;
+  return f;
+}
+function clearActorSlot(slot) { writeActor(slot, new Float32Array(16)); }
+
+/* ---------- level loading ---------- */
+let levelIdx = 0, state = "EDIT", budget = 0, emitted = 0, winHold = 0;
+let ghostAngle = 0, ghostPos = [0.5, 0.5], mouseInCanvas = false;
+let pendingSpawn = null, debugMode = 0, lastSubsteps = 0, fps = 60;
+let lastTelem = new Float32Array(TELEM_W * 4);
+
+function loadLevel(idx) {
+  levelIdx = Math.max(0, Math.min(LEVELS.length - 1, idx));
+  const L = LEVELS[levelIdx];
+  L.paint();
+  const img = lvCtx.getImageData(0, 0, SIM_W, SIM_H);
+  levelData = img.data;
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.bindTexture(gl.TEXTURE_2D, levelPngTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, SIM_W, SIM_H, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+    new Uint8Array(img.data.buffer.slice(0)));
+  const n = SIM_W * SIM_H, reg = new Uint8Array(n * 4);
+  for (let i = 0; i < n; i++) {
+    reg[i * 4] = img.data[i * 4 + 1];      // sink  <- PNG G
+    reg[i * 4 + 1] = img.data[i * 4 + 2];  // hazard <- PNG B
+    reg[i * 4 + 3] = 255;
+  }
+  gl.bindTexture(gl.TEXTURE_2D, regionsTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, SIM_W, SIM_H, 0, gl.RGBA, gl.UNSIGNED_BYTE, reg);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  runJFA();
+  for (const rt of [velocity.a, velocity.b, pressure.a, pressure.b, dye.a, dye.b,
+                    scoreAcc.a, scoreAcc.b, dynMask, divergence, curlTex, actors.a, actors.b])
+    clearRT(rt);
+  cpuActors.fill(null);
+  freeSlots = [];
+  for (let s = N_ACTORS - 1; s >= 1; s--) freeSlots.push(s);
+  writeActor(0, actorRecord({ type: 1, pos: L.playerStart, r: 5 }));
+  cpuActors[0] = { type: 1, r: 5 };
+  for (const a of L.actors) {
+    const slot = freeSlots.pop();
+    writeActor(slot, actorRecord(a));
+    cpuActors[slot] = Object.assign({}, a);
+  }
+  budget = L.fanBudget; state = "EDIT"; emitted = 0; winHold = 0;
+  pendingSpawn = null;
+  document.getElementById("win").style.display = "none";
+  updateHUDStatic();
+}
+
+function emitRatePerSec() {
+  let r = 0;
+  for (const a of cpuActors)
+    if (a && a.type === 3) r += a.strength * params.emitScale * 6.25 * a.r * a.r;
+  return r;
+}
+
+/* ---------- input state (read by substep) ---------- */
+const keys = new Set();
+let inputVec = [0, 0];
+function readInput() {
+  let x = 0, y = 0;
+  if (keys.has("a") || keys.has("arrowleft")) x -= 1;
+  if (keys.has("d") || keys.has("arrowright")) x += 1;
+  if (keys.has("s") || keys.has("arrowdown")) y -= 1;
+  if (keys.has("w") || keys.has("arrowup")) y += 1;
+  const l = Math.hypot(x, y);
+  inputVec = l > 0 ? [x / l, y / l] : [0, 0];
+}
+
+/* ---------- the substep (plan §3 frame graph) ---------- */
+function splat(prog, target, rt, extentMul) {
+  drawTo(rt);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
+  gl.useProgram(prog);
+  bindTex(prog, "uActors", actors.read.tex, 0);
+  gl.uniform1i(U(prog, "uTarget"), target);
+  gl.uniform2f(U(prog, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+  gl.uniform1f(U(prog, "uExtentMul"), extentMul);
+  gl.uniform1f(U(prog, "uEmittersOn"), state === "RUN" ? 1 : 0);
+  gl.uniform1f(U(prog, "uDt"), DT);
+  if (prog === P.splatDye) gl.uniform1f(U(prog, "uEmitScale"), params.emitScale);
+  gl.bindVertexArray(quadVAO);
+  gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, N_ACTORS);
+  gl.bindVertexArray(null);
+  gl.disable(gl.BLEND);
+}
+
+let emitRate = 0;
+function substep() {
+  // 1. actor update
+  runFS(P.actorUpdate, actors.write, p => {
+    bindTex(p, "uActors", actors.read.tex, 0);
+    bindTex(p, "uVelocity", velocity.read.tex, 1);
+    bindTex(p, "uLevel", level.tex, 2);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform1f(U(p, "uDt"), DT);
+    gl.uniform4f(U(p, "uInput"), inputVec[0], inputVec[1], 0, 0);
+    gl.uniform1f(U(p, "uThrust"), params.thrust);
+    gl.uniform1f(U(p, "uDragK"), params.dragK);
+    gl.uniform1f(U(p, "uLinDamp"), params.linDamp);
+    if (pendingSpawn) {
+      gl.uniform4f(U(p, "uSpawn"), pendingSpawn.slot, pendingSpawn.type,
+        pendingSpawn.offset[0], pendingSpawn.offset[1]);
+      gl.uniform4f(U(p, "uSpawnParams"), pendingSpawn.params[0], pendingSpawn.params[1],
+        pendingSpawn.params[2], pendingSpawn.params[3]);
+    } else {
+      gl.uniform4f(U(p, "uSpawn"), -1, 0, 0, 0);
+      gl.uniform4f(U(p, "uSpawnParams"), 0, 0, 0, 0);
+    }
+  });
+  actors.swap();
+  pendingSpawn = null;
+
+  // 2. dynamic rebuild
+  clearRT(dynMask);
+  splat(P.splatMask, 2, dynMask, 1.1);
+  splat(P.splatForce, 0, velocity.read, 3.0);
+  if (state === "RUN") splat(P.splatDye, 1, dye.read, 3.0);
+
+  // 3. advect velocity
+  runFS(P.advect, velocity.write, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    bindTex(p, "uSource", velocity.read.tex, 1);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform1f(U(p, "uDt"), DT);
+    gl.uniform1f(U(p, "uDissipation"), params.velDiss);
+  });
+  velocity.swap();
+
+  // 4. curl  5. vorticity
+  runFS(P.curl, curlTex, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+  });
+  runFS(P.vorticity, velocity.write, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    bindTex(p, "uCurl", curlTex.tex, 1);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform1f(U(p, "uCurlStrength"), params.curl);
+    gl.uniform1f(U(p, "uDt"), DT);
+  });
+  velocity.swap();
+
+  // 6. divergence
+  runFS(P.divergence, divergence, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    bindTex(p, "uLevel", level.tex, 1);
+    bindTex(p, "uDynMask", dynMask.tex, 2);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+  });
+
+  // 7. pressure: warm start + Jacobi
+  runFS(P.copy, pressure.write, p => {
+    bindTex(p, "uSrc", pressure.read.tex, 0);
+    gl.uniform1f(U(p, "uMul"), params.warmStart);
+  });
+  pressure.swap();
+  for (let i = 0; i < PRESSURE_ITERS; i++) {
+    runFS(P.jacobi, pressure.write, p => {
+      bindTex(p, "uPressure", pressure.read.tex, 0);
+      bindTex(p, "uDivergence", divergence.tex, 1);
+      bindTex(p, "uLevel", level.tex, 2);
+      bindTex(p, "uDynMask", dynMask.tex, 3);
+      gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    });
+    pressure.swap();
+  }
+
+  // 8. gradient subtract (stamps boundary velocity into solids)
+  runFS(P.gradientSubtract, velocity.write, p => {
+    bindTex(p, "uPressure", pressure.read.tex, 0);
+    bindTex(p, "uVelocity", velocity.read.tex, 1);
+    bindTex(p, "uLevel", level.tex, 2);
+    bindTex(p, "uDynMask", dynMask.tex, 3);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+  });
+  velocity.swap();
+
+  // 9. advect dye (dye res; note SIM texel for unit conversion)
+  runFS(P.advect, dye.write, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    bindTex(p, "uSource", dye.read.tex, 1);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform1f(U(p, "uDt"), DT);
+    gl.uniform1f(U(p, "uDissipation"), params.dyeDiss);
+  });
+  dye.swap();   // dye.read is now PRE-absorption
+
+  // 10. dye post (absorb + solid decay) -> dye.write (no swap yet)
+  runFS(P.dyePost, dye.write, p => {
+    bindTex(p, "uDye", dye.read.tex, 0);
+    bindTex(p, "uRegions", regionsTex, 1);
+    bindTex(p, "uLevel", level.tex, 2);
+    bindTex(p, "uDynMask", dynMask.tex, 3);
+    gl.uniform1f(U(p, "uAbsorbRate"), params.absorb);
+    gl.uniform1f(U(p, "uSolidDecay"), params.solidDecay);
+    gl.uniform1f(U(p, "uDt"), DT);
+  });
+
+  // 11. score accumulation reads the same pre-absorption dye
+  runFS(P.scoreAccum, scoreAcc.write, p => {
+    bindTex(p, "uScoreAcc", scoreAcc.read.tex, 0);
+    bindTex(p, "uDye", dye.read.tex, 1);
+    bindTex(p, "uRegions", regionsTex, 2);
+    gl.uniform1f(U(p, "uAbsorbRate"), params.absorb);
+    gl.uniform1f(U(p, "uDt"), DT);
+    gl.uniform1f(U(p, "uActive"), state === "RUN" ? SCORE_SCALE : 0);
+  });
+  scoreAcc.swap();
+  dye.swap();   // dye.read is now post-absorption
+
+  if (state === "RUN") emitted += emitRate * DT;
+}
+
+/* ---------- readback (plan §10.2 — the ONLY GPU->CPU path) ---------- */
+class ReadbackChannel {
+  constructor() {
+    this.slots = [];
+    for (let i = 0; i < 3; i++) {
+      const pbo = gl.createBuffer();
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
+      gl.bufferData(gl.PIXEL_PACK_BUFFER, TELEM_W * 4 * 4, gl.STREAM_READ);
+      this.slots.push({ pbo, fence: null });
+    }
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+    this.cursor = 0;
+    this.latest = lastTelem;
+    this.ageFrames = 0;
+  }
+  kick(fbo) {
+    const s = this.slots[this.cursor];
+    if (s.fence) return;   // ring full; skip
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo);
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, s.pbo);
+    gl.readPixels(0, 0, TELEM_W, 1, gl.RGBA, gl.FLOAT, 0);
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+    s.fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+    this.cursor = (this.cursor + 1) % this.slots.length;
+  }
+  poll() {
+    this.ageFrames++;
+    for (const s of this.slots) {
+      if (!s.fence) continue;
+      if (gl.getSyncParameter(s.fence, gl.SYNC_STATUS) === gl.SIGNALED) {
+        gl.deleteSync(s.fence); s.fence = null;
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, s.pbo);
+        gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, this.latest);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+        this.ageFrames = 0;
+      }
+    }
+    return this.latest;
+  }
+}
+const readback = new ReadbackChannel();
+
+/* ---------- render ---------- */
+function renderFrame(now) {
+  let srcTex = scoreAcc.read.tex, sw = SIM_W, sh = SIM_H;
+  for (const rt of reduceChain) {
+    runFS(P.reduce, rt, p => {
+      bindTex(p, "uSrc", srcTex, 0);
+      gl.uniform2i(U(p, "uSrcSize"), sw, sh);
+    });
+    srcTex = rt.tex; sw = rt.w; sh = rt.h;
+  }
+  runFS(P.telemetry, telemetry, p => {
+    bindTex(p, "uReduced", reduceChain[reduceChain.length - 1].tex, 0);
+    bindTex(p, "uActors", actors.read.tex, 1);
+  });
+  readback.kick(telemetry.fbo);
+  const t = readback.poll();
+
+  runFS(P.bright, bloomA, p => {
+    bindTex(p, "uDye", dye.read.tex, 0);
+    gl.uniform1f(U(p, "uThreshold"), params.bloomThr);
+  });
+  let bsrc = bloomA, bdst = bloomB;
+  for (let i = 0; i < 4; i++) {
+    const dir = i % 2 === 0 ? [SIM_TEXEL[0], 0] : [0, SIM_TEXEL[1]];
+    runFS(P.blur, bdst, p => {
+      bindTex(p, "uSrc", bsrc.tex, 0);
+      gl.uniform2f(U(p, "uDir"), dir[0], dir[1]);
+    });
+    const tmp = bsrc; bsrc = bdst; bdst = tmp;
+  }
+
+  drawTo(null);
+  const C = P.composite;
+  gl.useProgram(C);
+  bindTex(C, "uDye", dye.read.tex, 0);
+  bindTex(C, "uLevel", level.tex, 1);
+  bindTex(C, "uRegions", regionsTex, 2);
+  bindTex(C, "uBloom", bsrc.tex, 3);
+  bindTex(C, "uVelocity", velocity.read.tex, 4);
+  bindTex(C, "uPressure", pressure.read.tex, 5);
+  bindTex(C, "uDivergence", divergence.tex, 6);
+  bindTex(C, "uCurl", curlTex.tex, 7);
+  bindTex(C, "uDynMask", dynMask.tex, 8);
+  bindTex(C, "uScoreAcc", scoreAcc.read.tex, 9);
+  gl.uniform1i(U(C, "uDebugMode"), debugMode);
+  gl.uniform1f(U(C, "uTime"), now / 1000);
+  gl.uniform1f(U(C, "uTonemapK"), params.tonemapK);
+  gl.uniform1f(U(C, "uBloomStrength"), params.bloomStr);
+  fullscreen();
+
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(P.glyph);
+  bindTex(P.glyph, "uActors", actors.read.tex, 0);
+  gl.uniform2f(U(P.glyph, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+  gl.uniform1f(U(P.glyph, "uExtentMul"), 1.8);
+  gl.uniform1f(U(P.glyph, "uGhost"), 0);
+  gl.uniform1f(U(P.glyph, "uGhostValid"), 0);
+  gl.bindVertexArray(quadVAO);
+  gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, N_ACTORS);
+  if (state === "EDIT" && mouseInCanvas) {
+    gl.useProgram(P.ghost);
+    gl.uniform2f(U(P.ghost, "uGhostPos"), ghostPos[0], ghostPos[1]);
+    gl.uniform1f(U(P.ghost, "uGhostRadius"), 6);
+    gl.uniform1f(U(P.ghost, "uGhostAngle"), ghostAngle);
+    gl.uniform2f(U(P.ghost, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform1f(U(P.ghost, "uExtentMul"), 1.8);
+    gl.uniform1f(U(P.ghost, "uGhost"), 1);
+    gl.uniform1f(U(P.ghost, "uGhostValid"), placementValid(ghostPos) ? 1 : 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  gl.bindVertexArray(null);
+  gl.disable(gl.BLEND);
+
+  updateHUD(t);
+}
+
+/* ---------- placement / game actions ---------- */
+function solidAtCpu(uv) {
+  const px = Math.max(0, Math.min(SIM_W - 1, Math.floor(uv[0] * SIM_W)));
+  const py = Math.max(0, Math.min(SIM_H - 1, Math.floor((1 - uv[1]) * SIM_H)));
+  return levelData[(py * SIM_W + px) * 4] > 127;
+}
+function placementValid(uv) {
+  return state === "EDIT" && budget > 0 && levelData && !solidAtCpu(uv);
+}
+function placeFan(uv) {
+  if (!placementValid(uv)) return;
+  const slot = freeSlots.pop();
+  if (slot === undefined) return;
+  writeActor(slot, actorRecord({
+    type: 2, pos: uv.slice(), r: 6, strength: params.fanStrength, angle: ghostAngle
+  }));
+  cpuActors[slot] = { type: 2, r: 6, strength: params.fanStrength, angle: ghostAngle, pos: uv.slice() };
+  budget--; updateHUDStatic();
+}
+function spawnAtPlayer() {
+  if (budget <= 0 || !cpuActors[0] || pendingSpawn) return;
+  const slot = freeSlots.pop();
+  if (slot === undefined) return;
+  pendingSpawn = { slot, type: 2, offset: [0, 0], params: [6, params.fanStrength, ghostAngle, -1] };
+  cpuActors[slot] = { type: 2, r: 6, strength: params.fanStrength, angle: ghostAngle, fromSpawn: true };
+  budget--; updateHUDStatic();
+}
+function deleteNearestFan(uv) {
+  if (state !== "EDIT") return;
+  let best = -1, bestD = 0.06;
+  for (let s = 1; s < N_ACTORS; s++) {
+    const a = cpuActors[s];
+    if (!a || a.type !== 2 || a.locked) continue;
+    const px = lastTelem[(2 + s) * 4], py = lastTelem[(2 + s) * 4 + 1];
+    const pos = a.pos || [px, py];
+    const d = Math.hypot(uv[0] - pos[0], uv[1] - pos[1]);
+    if (d < bestD) { bestD = d; best = s; }
+  }
+  if (best < 0) return;
+  clearActorSlot(best);
+  cpuActors[best] = null; freeSlots.push(best);
+  budget++; updateHUDStatic();
+}
+function startRun() {
+  if (state !== "EDIT") return;
+  state = "RUN"; emitted = 0; winHold = 0;
+  clearRT(scoreAcc.a); clearRT(scoreAcc.b);
+  if (!LEVELS[levelIdx].allowNudge && cpuActors[0]) {
+    clearActorSlot(0); cpuActors[0] = null;
+  }
+  updateHUDStatic();
+}
+function doWin(t) {
+  state = "WIN";
+  const L = LEVELS[levelIdx];
+  const fansUsed = L.fanBudget - budget;
+  document.getElementById("winstats").textContent =
+    "Level " + (levelIdx + 1) + " cleared · fans used: " + fansUsed + " / " + L.fanBudget;
+  document.getElementById("win").style.display = "flex";
+  updateHUDStatic();
+}
+
+/* ---------- HUD ---------- */
+const DEBUG_NAMES = ["game", "velocity", "pressure", "divergence", "curl", "sdf", "dynmask", "delivered"];
+function updateHUDStatic() {
+  const L = LEVELS[levelIdx];
+  document.getElementById("lvname").textContent = L.name;
+  document.getElementById("fans").textContent = "fans ×" + budget;
+  const b = document.getElementById("statebadge");
+  b.textContent = state;
+  b.className = "badge " + state.toLowerCase();
+}
+function updateHUD(t) {
+  lastTelem = t;
+  const L = LEVELS[levelIdx];
+  const delivered = (t[0] + t[1] + t[2]) / Math.max(SCORE_SCALE, 1e-9);
+  const frac = delivered / Math.max(emitted, 1e-6);
+  const need = L.winFraction * params.winScale;
+  const pct = Math.max(0, Math.min(1, frac / need));
+  document.getElementById("scorebar").style.width = (pct * 100).toFixed(1) + "%";
+  document.getElementById("scoretxt").textContent =
+    state === "EDIT" ? "press SPACE to pour"
+      : (frac * 100).toFixed(1) + "% of " + (need * 100).toFixed(0) + "% delivered";
+  document.getElementById("stats").textContent =
+    fps.toFixed(0) + "fps · sub " + lastSubsteps + " · rb " + readback.ageFrames + "f" +
+    (debugMode ? " · [" + DEBUG_NAMES[debugMode] + "]" : "");
+  if (state === "RUN") {
+    if (frac >= need && emitted > 0) winHold++; else winHold = 0;
+    if (winHold >= 30) doWin(t);
+  }
+}
+
+/* ---------- input wiring ---------- */
+window.addEventListener("keydown", e => {
+  const k = e.key.toLowerCase();
+  if (e.key === "Tab") { e.preventDefault(); if (!e.repeat) debugMode = (debugMode + 1) % 8; return; }
+  if (e.repeat) { keys.add(k); return; }
+  keys.add(k);
+  if (e.key === " ") { e.preventDefault(); startRun(); }
+  else if (k === "r") loadLevel(levelIdx);
+  else if (k === "n" && state === "WIN") loadLevel(levelIdx + 1);
+  else if (k === "t") togglePanel();
+  else if (k === "f") spawnAtPlayer();
+  else if (k === "q") ghostAngle += Math.PI / 8;
+  else if (k === "e") ghostAngle -= Math.PI / 8;
+  else if (/^[1-5]$/.test(k)) loadLevel(parseInt(k, 10) - 1);
+});
+window.addEventListener("keyup", e => keys.delete(e.key.toLowerCase()));
+canvas.addEventListener("mousemove", e => {
+  const r = canvas.getBoundingClientRect();
+  ghostPos = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height];
+  mouseInCanvas = true;
+});
+canvas.addEventListener("mouseleave", () => { mouseInCanvas = false; });
+canvas.addEventListener("mousedown", e => { if (e.button === 0) placeFan(ghostPos); });
+canvas.addEventListener("contextmenu", e => { e.preventDefault(); deleteNearestFan(ghostPos); });
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  ghostAngle -= Math.sign(e.deltaY) * Math.PI / 12;
+}, { passive: false });
+
+/* ---------- tuning panel ---------- */
+const SLIDERS = [
+  ["curl", 0, 60], ["velDiss", 0, 1], ["dyeDiss", 0, 1], ["absorb", 0, 20],
+  ["solidDecay", 0, 20], ["fanStrength", 0, 2000], ["emitScale", 0, 0.1],
+  ["thrust", 0, 2], ["dragK", 0, 8], ["linDamp", 0, 8], ["tonemapK", 0.05, 1],
+  ["bloomStr", 0, 1], ["bloomThr", 0, 4], ["warmStart", 0, 1], ["winScale", 0.2, 3]
+];
+function buildPanel() {
+  const panel = document.getElementById("panel");
+  for (const [name, mn, mx] of SLIDERS) {
+    const row = document.createElement("div"); row.className = "prow";
+    const lab = document.createElement("label"); lab.textContent = name;
+    const inp = document.createElement("input");
+    inp.type = "range"; inp.min = mn; inp.max = mx; inp.step = (mx - mn) / 200;
+    inp.value = params[name];
+    const val = document.createElement("span"); val.textContent = (+params[name]).toFixed(3);
+    inp.addEventListener("input", () => {
+      params[name] = parseFloat(inp.value);
+      val.textContent = params[name].toFixed(3);
+    });
+    row.appendChild(lab); row.appendChild(inp); row.appendChild(val);
+    panel.appendChild(row);
+  }
+}
+function togglePanel() {
+  const p = document.getElementById("panel");
+  p.style.display = p.style.display === "block" ? "none" : "block";
+}
+
+/* ---------- frame loop ---------- */
+let last = performance.now(), acc = 0;
+function frame(now) {
+  const dtW = Math.min((now - last) / 1000, 0.1); last = now;
+  fps = fps * 0.95 + (1 / Math.max(dtW, 1e-4)) * 0.05;
+  acc += dtW;
+  readInput();
+  emitRate = emitRatePerSec();
+  let steps = 0;
+  while (acc >= DT && steps < MAX_SUBSTEPS) { substep(); acc -= DT; steps++; }
+  if (steps === MAX_SUBSTEPS) acc = 0;   // slow machine: drop remainder, never spiral
+  lastSubsteps = steps;
+  renderFrame(now);
+  requestAnimationFrame(frame);
+}
+
+buildPanel();
+loadLevel(0);
+requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
