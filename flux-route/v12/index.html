@@ -1,0 +1,3279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FLUX ROUTE v0.3</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0c11;overflow:hidden;touch-action:none;
+    font-family:"SF Mono",Consolas,Menlo,monospace;color:#cfd6e4;}
+  *{user-select:none;-webkit-user-select:none;}
+  input,textarea,select{user-select:text;-webkit-user-select:text;}
+  #gl{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;}
+  body.portrait #gl{inset:auto;width:100vh;height:100vw;left:50%;top:50%;
+    transform:translate(-50%,-50%) rotate(90deg);}
+  #ovc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;}
+  body.portrait #ovc{inset:auto;width:100vh;height:100vw;left:50%;top:50%;
+    transform:translate(-50%,-50%) rotate(90deg);}
+  #callouts{position:fixed;inset:0;pointer-events:none;z-index:6;}
+  #callouts .co{position:absolute;transform:translate(-50%,-120%);max-width:260px;
+    background:#0d1019d9;border:1px solid #273048;color:#bcd0ea;padding:7px 11px;
+    font-size:13px;letter-spacing:0.04em;line-height:1.5;}
+  #callouts .co.banner{left:50% !important;top:auto !important;bottom:22%;
+    transform:translateX(-50%);text-align:center;}
+  #toolbar{display:none;position:absolute;left:10px;bottom:34px;z-index:7;gap:6px;
+    flex-wrap:wrap;max-width:70vw;}
+  #toolbar button{font:inherit;font-size:13px;padding:9px 13px;background:#0d1019d9;
+    color:#9fb0cc;border:1px solid #273048;letter-spacing:0.08em;}
+  #toolbar button.act{border-color:#3fae8c;color:#bfffe8;}
+  .ov{position:absolute;z-index:5;pointer-events:none;white-space:pre-wrap;
+    text-shadow:0 1px 3px #000a;font-size:12px;line-height:1.5;}
+  #hud{max-width:72vw;}
+  #keys{max-width:44vw;}
+  #hud{top:10px;left:12px;color:#9fe8ff;}
+  #stats{bottom:8px;left:12px;color:#5a6478;font-size:11px;}
+  #keys{bottom:8px;right:12px;color:#5a6478;font-size:11px;text-align:right;}
+  #win{display:none;position:absolute;inset:0;z-index:8;align-items:center;justify-content:center;
+    background:#06080dbb;pointer-events:none;}
+  #win div{font-size:26px;color:#ffd87a;letter-spacing:0.15em;text-shadow:0 0 24px #ff9a3a88;
+    border:1px solid #ffd87a44;padding:18px 34px;background:#0a0c11ee;}
+  #fatal{display:none;position:absolute;inset:0;z-index:20;align-items:center;justify-content:center;
+    background:#0a0c11;}
+  #fatal p{max-width:34em;color:#ff7b6b;font-size:14px;}
+  #panel{display:none;position:absolute;top:0;right:0;bottom:0;z-index:30;width:340px;
+    overflow-y:auto;background:#0d1019f2;border-left:1px solid #1d2433;padding:10px 14px 24px;
+    font-size:11px;}
+  #panel .ph{color:#ffb454;font-size:12px;letter-spacing:0.12em;margin:4px 0 10px;}
+  #panel .ph2{color:#7fd4a8;letter-spacing:0.10em;margin:14px 0 6px;border-top:1px solid #1d2433;padding-top:10px;}
+  #panel .prow{display:flex;align-items:center;margin:3px 0;gap:6px;}
+  #panel label{width:110px;color:#8b93a7;flex:none;}
+  #panel input[type=range]{flex:1;accent-color:#3fae8c;height:14px;}
+  #panel .pv{width:52px;text-align:right;color:#cfd6e4;flex:none;}
+  #panel select,#panel button,#panel input[type=number]{background:#141927;color:#cfd6e4;
+    border:1px solid #273048;font:inherit;padding:2px 6px;}
+  #panel button{cursor:pointer;} #panel button:hover{border-color:#3fae8c;}
+  #panel textarea{width:100%;box-sizing:border-box;background:#0a0d15;color:#9fb0cc;
+    border:1px solid #273048;font:inherit;font-size:10px;margin:4px 0;}
+  #panel .dim{color:#5a6478;}
+  .lil-gui.flux-gui{position:fixed;top:0;right:0;z-index:30;max-height:100vh;overflow-y:auto;
+    --background-color:#0d1019;--title-background-color:#141927;--widget-color:#1d2433;
+    --hover-color:#273048;--focus-color:#2e3a55;--font-family:"SF Mono",Consolas,Menlo,monospace;
+    --font-size:11px;}
+  #msg{position:absolute;left:0;right:0;bottom:14%;z-index:6;text-align:center;
+    pointer-events:none;font-size:17px;color:#e8eefc;text-shadow:0 2px 10px #000d;
+    opacity:0;transition:opacity 0.6s;padding:0 18%;}
+  #toast{position:absolute;left:0;right:0;top:18%;z-index:6;text-align:center;
+    pointer-events:none;font-size:14px;color:#ffd87a;text-shadow:0 2px 8px #000d;
+    opacity:0;transition:opacity 0.4s;letter-spacing:0.08em;}
+  #menu{display:none;position:absolute;inset:0;z-index:12;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;background:transparent;
+    pointer-events:none;}
+  #menu h1{font-size:54px;letter-spacing:0.30em;color:#9fe8ff;margin:0 0 2px;
+    text-shadow:0 0 4px #2f384faa,0 0 12px #2f384f66;font-weight:400;}
+  #menu .sub{color:#bac4d8;letter-spacing:0.22em;font-size:12px;margin-bottom:26px;}
+  .mbtn{pointer-events:auto;font:inherit;font-size:15px;letter-spacing:0.25em;color:#cfe7ff;cursor:pointer;
+    background:#0d1019cc;border:1px solid #2a3a55;
+    padding:10px 46px;min-width:200px;text-align:center;}
+  .mbtn:hover{border-color:#9fe8ff;color:#ffffff;box-shadow:0 0 18px #2fa8ff33;}
+  #options{display:none;position:absolute;inset:0;z-index:14;align-items:center;
+    justify-content:center;background:#06080dcc;}
+  #options .card{background:#0d1019f6;border:1px solid #1d2433;padding:22px 30px;
+    min-width:300px;font-size:12px;}
+  #options h2{color:#ffb454;font-weight:400;letter-spacing:0.18em;font-size:14px;margin:0 0 16px;}
+  #options .orow{display:flex;align-items:center;gap:10px;margin:10px 0;}
+  #options label{width:90px;color:#8b93a7;}
+  #options select,#options button{background:#141927;color:#cfd6e4;border:1px solid #273048;
+    font:inherit;padding:4px 10px;cursor:pointer;}
+  #options button:hover{border-color:#3fae8c;}
+</style>
+</head>
+<body>
+<canvas id="gl" width="1920" height="1080"></canvas>
+<canvas id="ovc"></canvas>
+<div id="callouts"></div>
+<div id="hud" class="ov"></div>
+<div id="stats" class="ov"></div>
+<div id="keys" class="ov">WASD move &#183; Q/E spin &#183; 1/2/3 tool &#183; 4/5 walls &#183; 0 none &#183; hold Shift to aim &#183; Shift+Click place/paint
+Shift+RClick delete hovered &#183; [ ] rotate hovered &#183; X destabilize &#183; , . level &#183; R reset &#183; Space pause &#183; Tab debug &#183; T tuning &#183; ESC menu</div>
+<div id="msg" class=""></div>
+<div id="toast"></div>
+<div id="win"><div>FLOW SUSTAINED</div></div>
+<div id="menu">
+  <h1>FLUX ROUTE</h1>
+  <div class="sub">a frustrating plumbing simulator</div>
+  <button class="mbtn" id="btnPlay">PLAY</button>
+  <button class="mbtn" id="btnOptions">OPTIONS</button>
+</div>
+<div id="options">
+  <div class="card">
+    <h2>OPTIONS</h2>
+    <div class="orow"><label>quality</label><select id="optQual"></select><span style="color:#5a6478">(reloads)</span></div>
+    <div class="orow"><label>advanced</label><button id="optTune">open tuning panel</button></div>
+    <div class="orow" style="justify-content:flex-end;margin-top:18px"><button id="optClose">close</button></div>
+  </div>
+</div>
+<div id="fatal"><p></p></div>
+<div id="toolbar"></div>
+<div id="panel"></div>
+<script>
+/**
+ * lil-gui
+ * https://lil-gui.georgealways.com
+ * @version 0.21.0
+ * @author George Michael Brower
+ * @license MIT
+ */
+!function(t,i){"object"==typeof exports&&"undefined"!=typeof module?i(exports):"function"==typeof define&&define.amd?define(["exports"],i):i((t="undefined"!=typeof globalThis?globalThis:t||self).lil={})}(this,(function(t){"use strict";class i{constructor(t,e,l,s,n="div"){this.parent=t,this.object=e,this.property=l,this._disabled=!1,this._hidden=!1,this.initialValue=this.getValue(),this.domElement=document.createElement(n),this.domElement.classList.add("lil-controller"),this.domElement.classList.add(s),this.$name=document.createElement("div"),this.$name.classList.add("lil-name"),i.nextNameID=i.nextNameID||0,this.$name.id="lil-gui-name-"+ ++i.nextNameID,this.$widget=document.createElement("div"),this.$widget.classList.add("lil-widget"),this.$disable=this.$widget,this.domElement.appendChild(this.$name),this.domElement.appendChild(this.$widget),this.domElement.addEventListener("keydown",(t=>t.stopPropagation())),this.domElement.addEventListener("keyup",(t=>t.stopPropagation())),this.parent.children.push(this),this.parent.controllers.push(this),this.parent.$children.appendChild(this.domElement),this._listenCallback=this._listenCallback.bind(this),this.name(l)}name(t){return this._name=t,this.$name.textContent=t,this}onChange(t){return this._onChange=t,this}_callOnChange(){this.parent._callOnChange(this),void 0!==this._onChange&&this._onChange.call(this,this.getValue()),this._changed=!0}onFinishChange(t){return this._onFinishChange=t,this}_callOnFinishChange(){this._changed&&(this.parent._callOnFinishChange(this),void 0!==this._onFinishChange&&this._onFinishChange.call(this,this.getValue())),this._changed=!1}reset(){return this.setValue(this.initialValue),this._callOnFinishChange(),this}enable(t=!0){return this.disable(!t)}disable(t=!0){return t===this._disabled||(this._disabled=t,this.domElement.classList.toggle("lil-disabled",t),this.$disable.toggleAttribute("disabled",t)),this}show(t=!0){return this._hidden=!t,this.domElement.style.display=this._hidden?"none":"",this}hide(){return this.show(!1)}options(t){const i=this.parent.add(this.object,this.property,t);return i.name(this._name),this.destroy(),i}min(t){return this}max(t){return this}step(t){return this}decimals(t){return this}listen(t=!0){return this._listening=t,void 0!==this._listenCallbackID&&(cancelAnimationFrame(this._listenCallbackID),this._listenCallbackID=void 0),this._listening&&this._listenCallback(),this}_listenCallback(){this._listenCallbackID=requestAnimationFrame(this._listenCallback);const t=this.save();t!==this._listenPrevValue&&this.updateDisplay(),this._listenPrevValue=t}getValue(){return this.object[this.property]}setValue(t){return this.getValue()!==t&&(this.object[this.property]=t,this._callOnChange(),this.updateDisplay()),this}updateDisplay(){return this}load(t){return this.setValue(t),this._callOnFinishChange(),this}save(){return this.getValue()}destroy(){this.listen(!1),this.parent.children.splice(this.parent.children.indexOf(this),1),this.parent.controllers.splice(this.parent.controllers.indexOf(this),1),this.parent.$children.removeChild(this.domElement)}}class e extends i{constructor(t,i,e){super(t,i,e,"lil-boolean","label"),this.$input=document.createElement("input"),this.$input.setAttribute("type","checkbox"),this.$input.setAttribute("aria-labelledby",this.$name.id),this.$widget.appendChild(this.$input),this.$input.addEventListener("change",(()=>{this.setValue(this.$input.checked),this._callOnFinishChange()})),this.$disable=this.$input,this.updateDisplay()}updateDisplay(){return this.$input.checked=this.getValue(),this}}function l(t){let i,e;return(i=t.match(/(#|0x)?([a-f0-9]{6})/i))?e=i[2]:(i=t.match(/rgb\(\s*(\d*)\s*,\s*(\d*)\s*,\s*(\d*)\s*\)/))?e=parseInt(i[1]).toString(16).padStart(2,0)+parseInt(i[2]).toString(16).padStart(2,0)+parseInt(i[3]).toString(16).padStart(2,0):(i=t.match(/^#?([a-f0-9])([a-f0-9])([a-f0-9])$/i))&&(e=i[1]+i[1]+i[2]+i[2]+i[3]+i[3]),!!e&&"#"+e}const s={isPrimitive:!0,match:t=>"string"==typeof t,fromHexString:l,toHexString:l},n={isPrimitive:!0,match:t=>"number"==typeof t,fromHexString:t=>parseInt(t.substring(1),16),toHexString:t=>"#"+t.toString(16).padStart(6,0)},r={isPrimitive:!1,match:t=>Array.isArray(t)||ArrayBuffer.isView(t),fromHexString(t,i,e=1){const l=n.fromHexString(t);i[0]=(l>>16&255)/255*e,i[1]=(l>>8&255)/255*e,i[2]=(255&l)/255*e},toHexString:([t,i,e],l=1)=>n.toHexString(t*(l=255/l)<<16^i*l<<8^e*l)},o={isPrimitive:!1,match:t=>Object(t)===t,fromHexString(t,i,e=1){const l=n.fromHexString(t);i.r=(l>>16&255)/255*e,i.g=(l>>8&255)/255*e,i.b=(255&l)/255*e},toHexString:({r:t,g:i,b:e},l=1)=>n.toHexString(t*(l=255/l)<<16^i*l<<8^e*l)},a=[s,n,r,o];class h extends i{constructor(t,i,e,s){var n;super(t,i,e,"lil-color"),this.$input=document.createElement("input"),this.$input.setAttribute("type","color"),this.$input.setAttribute("tabindex",-1),this.$input.setAttribute("aria-labelledby",this.$name.id),this.$text=document.createElement("input"),this.$text.setAttribute("type","text"),this.$text.setAttribute("spellcheck","false"),this.$text.setAttribute("aria-labelledby",this.$name.id),this.$display=document.createElement("div"),this.$display.classList.add("lil-display"),this.$display.appendChild(this.$input),this.$widget.appendChild(this.$display),this.$widget.appendChild(this.$text),this._format=(n=this.initialValue,a.find((t=>t.match(n)))),this._rgbScale=s,this._initialValueHexString=this.save(),this._textFocused=!1,this.$input.addEventListener("input",(()=>{this._setValueFromHexString(this.$input.value)})),this.$input.addEventListener("blur",(()=>{this._callOnFinishChange()})),this.$text.addEventListener("input",(()=>{const t=l(this.$text.value);t&&this._setValueFromHexString(t)})),this.$text.addEventListener("focus",(()=>{this._textFocused=!0,this.$text.select()})),this.$text.addEventListener("blur",(()=>{this._textFocused=!1,this.updateDisplay(),this._callOnFinishChange()})),this.$disable=this.$text,this.updateDisplay()}reset(){return this._setValueFromHexString(this._initialValueHexString),this}_setValueFromHexString(t){if(this._format.isPrimitive){const i=this._format.fromHexString(t);this.setValue(i)}else this._format.fromHexString(t,this.getValue(),this._rgbScale),this._callOnChange(),this.updateDisplay()}save(){return this._format.toHexString(this.getValue(),this._rgbScale)}load(t){return this._setValueFromHexString(t),this._callOnFinishChange(),this}updateDisplay(){return this.$input.value=this._format.toHexString(this.getValue(),this._rgbScale),this._textFocused||(this.$text.value=this.$input.value.substring(1)),this.$display.style.backgroundColor=this.$input.value,this}}class d extends i{constructor(t,i,e){super(t,i,e,"lil-function"),this.$button=document.createElement("button"),this.$button.appendChild(this.$name),this.$widget.appendChild(this.$button),this.$button.addEventListener("click",(t=>{t.preventDefault(),this.getValue().call(this.object),this._callOnChange()})),this.$button.addEventListener("touchstart",(()=>{}),{passive:!0}),this.$disable=this.$button}}class c extends i{constructor(t,i,e,l,s,n){super(t,i,e,"lil-number"),this._initInput(),this.min(l),this.max(s);const r=void 0!==n;this.step(r?n:this._getImplicitStep(),r),this.updateDisplay()}decimals(t){return this._decimals=t,this.updateDisplay(),this}min(t){return this._min=t,this._onUpdateMinMax(),this}max(t){return this._max=t,this._onUpdateMinMax(),this}step(t,i=!0){return this._step=t,this._stepExplicit=i,this}updateDisplay(){const t=this.getValue();if(this._hasSlider){let i=(t-this._min)/(this._max-this._min);i=Math.max(0,Math.min(i,1)),this.$fill.style.width=100*i+"%"}return this._inputFocused||(this.$input.value=void 0===this._decimals?t:t.toFixed(this._decimals)),this}_initInput(){this.$input=document.createElement("input"),this.$input.setAttribute("type","text"),this.$input.setAttribute("aria-labelledby",this.$name.id);window.matchMedia("(pointer: coarse)").matches&&(this.$input.setAttribute("type","number"),this.$input.setAttribute("step","any")),this.$widget.appendChild(this.$input),this.$disable=this.$input;const t=t=>{const i=parseFloat(this.$input.value);isNaN(i)||(this._snapClampSetValue(i+t),this.$input.value=this.getValue())};let i,e,l,s,n,r=!1;const o=t=>{if(r){const l=t.clientX-i,s=t.clientY-e;Math.abs(s)>5?(t.preventDefault(),this.$input.blur(),r=!1,this._setDraggingStyle(!0,"vertical")):Math.abs(l)>5&&a()}if(!r){const i=t.clientY-l;n-=i*this._step*this._arrowKeyMultiplier(t),s+n>this._max?n=this._max-s:s+n<this._min&&(n=this._min-s),this._snapClampSetValue(s+n)}l=t.clientY},a=()=>{this._setDraggingStyle(!1,"vertical"),this._callOnFinishChange(),window.removeEventListener("mousemove",o),window.removeEventListener("mouseup",a)};this.$input.addEventListener("input",(()=>{let t=parseFloat(this.$input.value);isNaN(t)||(this._stepExplicit&&(t=this._snap(t)),this.setValue(this._clamp(t)))})),this.$input.addEventListener("keydown",(i=>{"Enter"===i.key&&this.$input.blur(),"ArrowUp"===i.code&&(i.preventDefault(),t(this._step*this._arrowKeyMultiplier(i))),"ArrowDown"===i.code&&(i.preventDefault(),t(this._step*this._arrowKeyMultiplier(i)*-1))})),this.$input.addEventListener("wheel",(i=>{this._inputFocused&&(i.preventDefault(),t(this._step*this._normalizeMouseWheel(i)))}),{passive:!1}),this.$input.addEventListener("mousedown",(t=>{i=t.clientX,e=l=t.clientY,r=!0,s=this.getValue(),n=0,window.addEventListener("mousemove",o),window.addEventListener("mouseup",a)})),this.$input.addEventListener("focus",(()=>{this._inputFocused=!0})),this.$input.addEventListener("blur",(()=>{this._inputFocused=!1,this.updateDisplay(),this._callOnFinishChange()}))}_initSlider(){this._hasSlider=!0,this.$slider=document.createElement("div"),this.$slider.classList.add("lil-slider"),this.$fill=document.createElement("div"),this.$fill.classList.add("lil-fill"),this.$slider.appendChild(this.$fill),this.$widget.insertBefore(this.$slider,this.$input),this.domElement.classList.add("lil-has-slider");const t=t=>{const i=this.$slider.getBoundingClientRect();let e=(l=t,s=i.left,n=i.right,r=this._min,o=this._max,(l-s)/(n-s)*(o-r)+r);var l,s,n,r,o;this._snapClampSetValue(e)},i=i=>{t(i.clientX)},e=()=>{this._callOnFinishChange(),this._setDraggingStyle(!1),window.removeEventListener("mousemove",i),window.removeEventListener("mouseup",e)};let l,s,n=!1;const r=i=>{i.preventDefault(),this._setDraggingStyle(!0),t(i.touches[0].clientX),n=!1},o=i=>{if(n){const t=i.touches[0].clientX-l,e=i.touches[0].clientY-s;Math.abs(t)>Math.abs(e)?r(i):(window.removeEventListener("touchmove",o),window.removeEventListener("touchend",a))}else i.preventDefault(),t(i.touches[0].clientX)},a=()=>{this._callOnFinishChange(),this._setDraggingStyle(!1),window.removeEventListener("touchmove",o),window.removeEventListener("touchend",a)},h=this._callOnFinishChange.bind(this);let d;this.$slider.addEventListener("mousedown",(l=>{this._setDraggingStyle(!0),t(l.clientX),window.addEventListener("mousemove",i),window.addEventListener("mouseup",e)})),this.$slider.addEventListener("touchstart",(t=>{t.touches.length>1||(this._hasScrollBar?(l=t.touches[0].clientX,s=t.touches[0].clientY,n=!0):r(t),window.addEventListener("touchmove",o,{passive:!1}),window.addEventListener("touchend",a))}),{passive:!1}),this.$slider.addEventListener("wheel",(t=>{if(Math.abs(t.deltaX)<Math.abs(t.deltaY)&&this._hasScrollBar)return;t.preventDefault();const i=this._normalizeMouseWheel(t)*this._step;this._snapClampSetValue(this.getValue()+i),this.$input.value=this.getValue(),clearTimeout(d),d=setTimeout(h,400)}),{passive:!1})}_setDraggingStyle(t,i="horizontal"){this.$slider&&this.$slider.classList.toggle("lil-active",t),document.body.classList.toggle("lil-dragging",t),document.body.classList.toggle(`lil-${i}`,t)}_getImplicitStep(){return this._hasMin&&this._hasMax?(this._max-this._min)/1e3:.1}_onUpdateMinMax(){!this._hasSlider&&this._hasMin&&this._hasMax&&(this._stepExplicit||this.step(this._getImplicitStep(),!1),this._initSlider(),this.updateDisplay())}_normalizeMouseWheel(t){let{deltaX:i,deltaY:e}=t;Math.floor(t.deltaY)!==t.deltaY&&t.wheelDelta&&(i=0,e=-t.wheelDelta/120,e*=this._stepExplicit?1:10);return i+-e}_arrowKeyMultiplier(t){let i=this._stepExplicit?1:10;return t.shiftKey?i*=10:t.altKey&&(i/=10),i}_snap(t){let i=0;return this._hasMin?i=this._min:this._hasMax&&(i=this._max),t-=i,t=Math.round(t/this._step)*this._step,t+=i,t=parseFloat(t.toPrecision(15))}_clamp(t){return t<this._min&&(t=this._min),t>this._max&&(t=this._max),t}_snapClampSetValue(t){this.setValue(this._clamp(this._snap(t)))}get _hasScrollBar(){const t=this.parent.root.$children;return t.scrollHeight>t.clientHeight}get _hasMin(){return void 0!==this._min}get _hasMax(){return void 0!==this._max}}class u extends i{constructor(t,i,e,l){super(t,i,e,"lil-option"),this.$select=document.createElement("select"),this.$select.setAttribute("aria-labelledby",this.$name.id),this.$display=document.createElement("div"),this.$display.classList.add("lil-display"),this.$select.addEventListener("change",(()=>{this.setValue(this._values[this.$select.selectedIndex]),this._callOnFinishChange()})),this.$select.addEventListener("focus",(()=>{this.$display.classList.add("lil-focus")})),this.$select.addEventListener("blur",(()=>{this.$display.classList.remove("lil-focus")})),this.$widget.appendChild(this.$select),this.$widget.appendChild(this.$display),this.$disable=this.$select,this.options(l)}options(t){return this._values=Array.isArray(t)?t:Object.values(t),this._names=Array.isArray(t)?t:Object.keys(t),this.$select.replaceChildren(),this._names.forEach((t=>{const i=document.createElement("option");i.textContent=t,this.$select.appendChild(i)})),this.updateDisplay(),this}updateDisplay(){const t=this.getValue(),i=this._values.indexOf(t);return this.$select.selectedIndex=i,this.$display.textContent=-1===i?t:this._names[i],this}}class p extends i{constructor(t,i,e){super(t,i,e,"lil-string"),this.$input=document.createElement("input"),this.$input.setAttribute("type","text"),this.$input.setAttribute("spellcheck","false"),this.$input.setAttribute("aria-labelledby",this.$name.id),this.$input.addEventListener("input",(()=>{this.setValue(this.$input.value)})),this.$input.addEventListener("keydown",(t=>{"Enter"===t.code&&this.$input.blur()})),this.$input.addEventListener("blur",(()=>{this._callOnFinishChange()})),this.$widget.appendChild(this.$input),this.$disable=this.$input,this.updateDisplay()}updateDisplay(){return this.$input.value=this.getValue(),this}}let g=!1;class m{constructor({parent:t,autoPlace:i=void 0===t,container:e,width:l,title:s="Controls",closeFolders:n=!1,injectStyles:r=!0,touchStyles:o=!0}={}){if(this.parent=t,this.root=t?t.root:this,this.children=[],this.controllers=[],this.folders=[],this._closed=!1,this._hidden=!1,this.domElement=document.createElement("div"),this.domElement.classList.add("lil-gui"),this.$title=document.createElement("button"),this.$title.classList.add("lil-title"),this.$title.setAttribute("aria-expanded",!0),this.$title.addEventListener("click",(()=>this.openAnimated(this._closed))),this.$title.addEventListener("touchstart",(()=>{}),{passive:!0}),this.$children=document.createElement("div"),this.$children.classList.add("lil-children"),this.domElement.appendChild(this.$title),this.domElement.appendChild(this.$children),this.title(s),this.parent)return this.parent.children.push(this),this.parent.folders.push(this),void this.parent.$children.appendChild(this.domElement);this.domElement.classList.add("lil-root"),o&&this.domElement.classList.add("lil-allow-touch-styles"),!g&&r&&(!function(t){const i=document.createElement("style");i.innerHTML=t;const e=document.querySelector("head link[rel=stylesheet], head style");e?document.head.insertBefore(i,e):document.head.appendChild(i)}('.lil-gui{--background-color:#1f1f1f;--text-color:#ebebeb;--title-background-color:#111;--title-text-color:#ebebeb;--widget-color:#424242;--hover-color:#4f4f4f;--focus-color:#595959;--number-color:#2cc9ff;--string-color:#a2db3c;--font-size:11px;--input-font-size:11px;--font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;--font-family-mono:Menlo,Monaco,Consolas,"Droid Sans Mono",monospace;--padding:4px;--spacing:4px;--widget-height:20px;--title-height:calc(var(--widget-height) + var(--spacing)*1.25);--name-width:45%;--slider-knob-width:2px;--slider-input-width:27%;--color-input-width:27%;--slider-input-min-width:45px;--color-input-min-width:45px;--folder-indent:7px;--widget-padding:0 0 0 3px;--widget-border-radius:2px;--checkbox-size:calc(var(--widget-height)*0.75);--scrollbar-width:5px;color:var(--text-color);font-family:var(--font-family);font-size:var(--font-size);font-style:normal;font-weight:400;line-height:1;text-align:left;touch-action:manipulation;user-select:none;-webkit-user-select:none}.lil-gui,.lil-gui *{box-sizing:border-box;margin:0;padding:0}.lil-gui.lil-root{background:var(--background-color);display:flex;flex-direction:column;width:var(--width,245px)}.lil-gui.lil-root>.lil-title{background:var(--title-background-color);color:var(--title-text-color)}.lil-gui.lil-root>.lil-children{overflow-x:hidden;overflow-y:auto}.lil-gui.lil-root>.lil-children::-webkit-scrollbar{background:var(--background-color);height:var(--scrollbar-width);width:var(--scrollbar-width)}.lil-gui.lil-root>.lil-children::-webkit-scrollbar-thumb{background:var(--focus-color);border-radius:var(--scrollbar-width)}.lil-gui.lil-force-touch-styles,.lil-gui.lil-force-touch-styles .lil-gui{--widget-height:28px;--padding:6px;--spacing:6px;--font-size:13px;--input-font-size:16px;--folder-indent:10px;--scrollbar-width:7px;--slider-input-min-width:50px;--color-input-min-width:65px}.lil-gui.autoPlace,.lil-gui.lil-auto-place{max-height:100%;position:fixed;right:15px;top:0;z-index:1001}.lil-controller{align-items:center;display:flex;margin:var(--spacing) 0;padding:0 var(--padding)}.lil-controller.lil-disabled{opacity:.5}.lil-controller.lil-disabled,.lil-controller.lil-disabled *{pointer-events:none!important}.lil-controller>.lil-name{flex-shrink:0;line-height:var(--widget-height);min-width:var(--name-width);padding-right:var(--spacing);white-space:pre}.lil-controller .lil-widget{align-items:center;display:flex;min-height:var(--widget-height);position:relative;width:100%}.lil-controller.lil-string input{color:var(--string-color)}.lil-controller.lil-boolean{cursor:pointer}.lil-controller.lil-color .lil-display{border-radius:var(--widget-border-radius);height:var(--widget-height);position:relative;width:100%}.lil-controller.lil-color input[type=color]{cursor:pointer;height:100%;opacity:0;width:100%}.lil-controller.lil-color input[type=text]{flex-shrink:0;font-family:var(--font-family-mono);margin-left:var(--spacing);min-width:var(--color-input-min-width);width:var(--color-input-width)}.lil-controller.lil-option select{max-width:100%;opacity:0;position:absolute;width:100%}.lil-controller.lil-option .lil-display{background:var(--widget-color);border-radius:var(--widget-border-radius);height:var(--widget-height);line-height:var(--widget-height);max-width:100%;overflow:hidden;padding-left:.55em;padding-right:1.75em;pointer-events:none;position:relative;word-break:break-all}.lil-controller.lil-option .lil-display.lil-active{background:var(--focus-color)}.lil-controller.lil-option .lil-display:after{bottom:0;content:"↕";font-family:lil-gui;padding-right:.375em;position:absolute;right:0;top:0}.lil-controller.lil-option .lil-widget,.lil-controller.lil-option select{cursor:pointer}.lil-controller.lil-number input{color:var(--number-color)}.lil-controller.lil-number.lil-has-slider input{flex-shrink:0;margin-left:var(--spacing);min-width:var(--slider-input-min-width);width:var(--slider-input-width)}.lil-controller.lil-number .lil-slider{background:var(--widget-color);border-radius:var(--widget-border-radius);cursor:ew-resize;height:var(--widget-height);overflow:hidden;padding-right:var(--slider-knob-width);touch-action:pan-y;width:100%}.lil-controller.lil-number .lil-slider.lil-active{background:var(--focus-color)}.lil-controller.lil-number .lil-slider.lil-active .lil-fill{opacity:.95}.lil-controller.lil-number .lil-fill{border-right:var(--slider-knob-width) solid var(--number-color);box-sizing:content-box;height:100%}.lil-dragging .lil-gui{--hover-color:var(--widget-color)}.lil-dragging *{cursor:ew-resize!important}.lil-dragging.lil-vertical *{cursor:ns-resize!important}.lil-gui .lil-title{text-decoration-skip:objects;background:none;font-weight:600;height:var(--title-height);padding:0 var(--padding);text-align:left;width:100%}.lil-gui .lil-title:before{content:"▾";display:inline-block;font-family:lil-gui;padding-right:2px}.lil-gui .lil-title:active{background:var(--title-background-color);opacity:.75}.lil-gui.lil-root>.lil-title:focus{text-decoration:none!important}.lil-gui.lil-closed>.lil-title:before{content:"▸"}.lil-gui.lil-closed>.lil-children{opacity:0;transform:translateY(-7px)}.lil-gui.lil-closed:not(.lil-transition)>.lil-children{display:none}.lil-gui.lil-transition>.lil-children{overflow:hidden;pointer-events:none;transition-duration:.3s;transition-property:height,opacity,transform;transition-timing-function:cubic-bezier(.2,.6,.35,1)}.lil-gui .lil-children:empty:before{content:"Empty";display:block;font-style:italic;height:var(--widget-height);line-height:var(--widget-height);margin:var(--spacing) 0;opacity:.5;padding:0 var(--padding)}.lil-gui.lil-root>.lil-children>.lil-gui>.lil-title{border-width:0;border-bottom:1px solid var(--widget-color);border-left:0 solid var(--widget-color);border-right:0 solid var(--widget-color);border-top:1px solid var(--widget-color);transition:border-color .3s}.lil-gui.lil-root>.lil-children>.lil-gui.lil-closed>.lil-title{border-bottom-color:transparent}.lil-gui+.lil-controller{border-top:1px solid var(--widget-color);margin-top:0;padding-top:var(--spacing)}.lil-gui .lil-gui .lil-gui>.lil-title{border:none}.lil-gui .lil-gui .lil-gui>.lil-children{border:none;border-left:2px solid var(--widget-color);margin-left:var(--folder-indent)}.lil-gui .lil-gui .lil-controller{border:none}.lil-gui button,.lil-gui input,.lil-gui label{-webkit-tap-highlight-color:transparent}.lil-gui input{background:var(--widget-color);border:0;border-radius:var(--widget-border-radius);color:var(--text-color);font-family:var(--font-family);font-size:var(--input-font-size);height:var(--widget-height);outline:none;width:100%}.lil-gui input:disabled{opacity:1}.lil-gui input[type=number],.lil-gui input[type=text]{-moz-appearance:textfield;padding:var(--widget-padding)}.lil-gui input[type=number]:focus,.lil-gui input[type=text]:focus{background:var(--focus-color)}.lil-gui input[type=checkbox]{appearance:none;border-radius:var(--widget-border-radius);cursor:pointer;height:var(--checkbox-size);text-align:center;width:var(--checkbox-size)}.lil-gui input[type=checkbox]:checked:before{content:"✓";font-family:lil-gui;font-size:var(--checkbox-size);line-height:var(--checkbox-size)}.lil-gui button{border:none;color:var(--text-color);cursor:pointer;font-family:var(--font-family);font-size:var(--font-size);outline:none;width:100%}.lil-gui .lil-controller button{background:var(--widget-color);border-radius:var(--widget-border-radius);height:var(--widget-height);text-transform:none}.lil-gui .lil-controller button:active{background:var(--focus-color)}@font-face{font-family:lil-gui;src:url("data:application/font-woff2;charset=utf-8;base64,d09GMgABAAAAAALkAAsAAAAABtQAAAKVAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHFQGYACDMgqBBIEbATYCJAMUCwwABCAFhAoHgQQbHAbIDiUFEYVARAAAYQTVWNmz9MxhEgodq49wYRUFKE8GWNiUBxI2LBRaVnc51U83Gmhs0Q7JXWMiz5eteLwrKwuxHO8VFxUX9UpZBs6pa5ABRwHA+t3UxUnH20EvVknRerzQgX6xC/GH6ZUvTcAjAv122dF28OTqCXrPuyaDER30YBA1xnkVutDDo4oCi71Ca7rrV9xS8dZHbPHefsuwIyCpmT7j+MnjAH5X3984UZoFFuJ0yiZ4XEJFxjagEBeqs+e1iyK8Xf/nOuwF+vVK0ur765+vf7txotUi0m3N0m/84RGSrBCNrh8Ee5GjODjF4gnWP+dJrH/Lk9k4oT6d+gr6g/wssA2j64JJGP6cmx554vUZnpZfn6ZfX2bMwPPrlANsB86/DiHjhl0OP+c87+gaJo/gY084s3HoYL/ZkWHTRfBXvvoHnnkHvngKun4KBE/ede7tvq3/vQOxDXB1/fdNz6XbPdcr0Vhpojj9dG+owuSKFsslCi1tgEjirjXdwMiov2EioadxmqTHUCIwo8NgQaeIasAi0fTYSPTbSmwbMOFduyh9wvBrESGY0MtgRjtgQR8Q1bRPohn2UoCRZf9wyYANMXFeJTysqAe0I4mrherOekFdKMrYvJjLvOIUM9SuwYB5DVZUwwVjJJOaUnZCmcEkIZZrKqNvRGRMvmFZsmhP4VMKCSXBhSqUBxgMS7h0cZvEd71AWkEhGWaeMFcNnpqyJkyXgYL7PQ1MoSq0wDAkRtJIijkZSmqYTiSImfLiSWXIZwhRh3Rug2X0kk1Dgj+Iu43u5p98ghopcpSo0Uyc8SnjlYX59WUeaMoDqmVD2TOWD9a4pCRAzf2ECgwGcrHjPOWY9bNxq/OL3I/QjwEAAAA=") format("woff2")}@media (pointer:coarse){.lil-gui.lil-allow-touch-styles,.lil-gui.lil-allow-touch-styles .lil-gui{--widget-height:28px;--padding:6px;--spacing:6px;--font-size:13px;--input-font-size:16px;--folder-indent:10px;--scrollbar-width:7px;--slider-input-min-width:50px;--color-input-min-width:65px}}@media (hover:hover){.lil-controller.lil-color .lil-display:hover:before{border:1px solid #fff9;border-radius:var(--widget-border-radius);bottom:0;content:" ";display:block;left:0;position:absolute;right:0;top:0}.lil-controller.lil-option .lil-display.lil-focus{background:var(--focus-color)}.lil-controller.lil-number .lil-slider:hover,.lil-controller.lil-option .lil-widget:hover .lil-display{background:var(--hover-color)}body:not(.lil-dragging) .lil-gui .lil-title:hover{background:var(--title-background-color);opacity:.85}.lil-gui .lil-title:focus{text-decoration:underline var(--focus-color)}.lil-gui input:hover{background:var(--hover-color)}.lil-gui input:active{background:var(--focus-color)}.lil-gui input[type=checkbox]:focus{box-shadow:inset 0 0 0 1px var(--focus-color)}.lil-gui .lil-controller button:hover{background:var(--hover-color)}.lil-gui .lil-controller button:focus{box-shadow:inset 0 0 0 1px var(--focus-color)}}'),g=!0),e?e.appendChild(this.domElement):i&&(this.domElement.classList.add("lil-auto-place","autoPlace"),document.body.appendChild(this.domElement)),l&&this.domElement.style.setProperty("--width",l+"px"),this._closeFolders=n}add(t,i,l,s,n){if(Object(l)===l)return new u(this,t,i,l);const r=t[i];switch(typeof r){case"number":return new c(this,t,i,l,s,n);case"boolean":return new e(this,t,i);case"string":return new p(this,t,i);case"function":return new d(this,t,i)}console.error("gui.add failed\n\tproperty:",i,"\n\tobject:",t,"\n\tvalue:",r)}addColor(t,i,e=1){return new h(this,t,i,e)}addFolder(t){const i=new m({parent:this,title:t});return this.root._closeFolders&&i.close(),i}load(t,i=!0){return t.controllers&&this.controllers.forEach((i=>{i instanceof d||i._name in t.controllers&&i.load(t.controllers[i._name])})),i&&t.folders&&this.folders.forEach((i=>{i._title in t.folders&&i.load(t.folders[i._title])})),this}save(t=!0){const i={controllers:{},folders:{}};return this.controllers.forEach((t=>{if(!(t instanceof d)){if(t._name in i.controllers)throw new Error(`Cannot save GUI with duplicate property "${t._name}"`);i.controllers[t._name]=t.save()}})),t&&this.folders.forEach((t=>{if(t._title in i.folders)throw new Error(`Cannot save GUI with duplicate folder "${t._title}"`);i.folders[t._title]=t.save()})),i}open(t=!0){return this._setClosed(!t),this.$title.setAttribute("aria-expanded",!this._closed),this.domElement.classList.toggle("lil-closed",this._closed),this}close(){return this.open(!1)}_setClosed(t){this._closed!==t&&(this._closed=t,this._callOnOpenClose(this))}show(t=!0){return this._hidden=!t,this.domElement.style.display=this._hidden?"none":"",this}hide(){return this.show(!1)}openAnimated(t=!0){return this._setClosed(!t),this.$title.setAttribute("aria-expanded",!this._closed),requestAnimationFrame((()=>{const i=this.$children.clientHeight;this.$children.style.height=i+"px",this.domElement.classList.add("lil-transition");const e=t=>{t.target===this.$children&&(this.$children.style.height="",this.domElement.classList.remove("lil-transition"),this.$children.removeEventListener("transitionend",e))};this.$children.addEventListener("transitionend",e);const l=t?this.$children.scrollHeight:0;this.domElement.classList.toggle("lil-closed",!t),requestAnimationFrame((()=>{this.$children.style.height=l+"px"}))})),this}title(t){return this._title=t,this.$title.textContent=t,this}reset(t=!0){return(t?this.controllersRecursive():this.controllers).forEach((t=>t.reset())),this}onChange(t){return this._onChange=t,this}_callOnChange(t){this.parent&&this.parent._callOnChange(t),void 0!==this._onChange&&this._onChange.call(this,{object:t.object,property:t.property,value:t.getValue(),controller:t})}onFinishChange(t){return this._onFinishChange=t,this}_callOnFinishChange(t){this.parent&&this.parent._callOnFinishChange(t),void 0!==this._onFinishChange&&this._onFinishChange.call(this,{object:t.object,property:t.property,value:t.getValue(),controller:t})}onOpenClose(t){return this._onOpenClose=t,this}_callOnOpenClose(t){this.parent&&this.parent._callOnOpenClose(t),void 0!==this._onOpenClose&&this._onOpenClose.call(this,t)}destroy(){this.parent&&(this.parent.children.splice(this.parent.children.indexOf(this),1),this.parent.folders.splice(this.parent.folders.indexOf(this),1)),this.domElement.parentElement&&this.domElement.parentElement.removeChild(this.domElement),Array.from(this.children).forEach((t=>t.destroy()))}controllersRecursive(){let t=Array.from(this.controllers);return this.folders.forEach((i=>{t=t.concat(i.controllersRecursive())})),t}foldersRecursive(){let t=Array.from(this.folders);return this.folders.forEach((i=>{t=t.concat(i.foldersRecursive())})),t}}t.BooleanController=e,t.ColorController=h,t.Controller=i,t.FunctionController=d,t.GUI=m,t.NumberController=c,t.OptionController=u,t.StringController=p,t.default=m,Object.defineProperty(t,"__esModule",{value:!0})}));
+
+</script>
+<script>
+"use strict";
+/* FLUX ROUTE v0.3 — all GLSL sources.
+ * Units: field velocity = sim texels/sec; actor velocity = UV/sec; SDF = sim
+ * texels; positions = UV. Conversions marked (!!).
+ * DYE CHEMISTRY: R = cargo (the only scored species, fixed level emitters),
+ * B = builder (R+B precipitates gel), G = reagent (R+G reacts exothermically:
+ * consumes both, repulsive force ~ grad(R*G)). B+G: inert, reserved (TODO).
+ * Zones (regions tex): r=sink g=drain b=trigger a=sensor.
+ * Actors: 0 empty, 1 player, 2 fan, 3 emitter, 5 piston, 6 predator, 7 nest.
+ * Obstacle field (composed per substep): rg=boundary vel (texels/s),
+ * b=solid flag, a=porous gel drag.
+ */
+const GLSL = (function () {
+
+const VS_FULLSCREEN = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 aPosition;
+out vec2 vUv;
+void main(){ vUv = aPosition*0.5+0.5; gl_Position = vec4(aPosition,0.0,1.0); }
+`;
+
+const FRAG_HEADER = `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 fragColor;
+`;
+
+/* solidAt against the composed obstacle field: ONE fetch (plan §19) */
+const OBST = `uniform sampler2D uObstacle;
+struct Solid { bool isSolid; vec2 vel; };
+Solid solidAt(vec2 uv){
+  Solid s; s.isSolid=false; s.vel=vec2(0.0);
+  if(uv.x<=0.0||uv.x>=1.0||uv.y<=0.0||uv.y>=1.0){ s.isSolid=true; return s; }
+  vec4 o = texture(uObstacle,uv);
+  s.isSolid = o.b>0.5; s.vel = o.rg;
+  return s;
+}
+`;
+
+/* shared zone-removal math: dyePost and scoreAccum MUST agree exactly */
+const ZONES = `uniform sampler2D uRegions;
+uniform float uAbsorbRate;
+uniform float uDrainRate;
+uniform float uDt;
+vec3 zoneRemoval(vec3 dye, vec2 uv, out float wSink, out float wTrig){
+  vec3 z = texture(uRegions, uv).rgb;
+  vec3 rates = vec3(uAbsorbRate*z.r, uDrainRate*z.g, uAbsorbRate*z.b);
+  float R = rates.x + rates.y + rates.z;
+  wSink = R>1e-6 ? rates.x/R : 0.0;
+  wTrig = R>1e-6 ? rates.z/R : 0.0;
+  return dye*(1.0 - exp(-R*uDt));
+}
+`;
+
+/* species (texture channels) -> display colors. Chemistry lives in pure
+ * channel space; aesthetics live here and ONLY here. */
+const SPECIES = `const vec3 SPEC_R = vec3(1.00,0.22,0.06);
+const vec3 SPEC_G = vec3(0.10,1.00,0.20);
+const vec3 SPEC_B = vec3(0.10,0.25,1.00);
+vec3 speciesToDisplay(vec3 s){ return s.r*SPEC_R + s.g*SPEC_G + s.b*SPEC_B; }
+`;
+
+/* species-dependent physics (plan section 37): per-species coefficient vec3
+ * (channel order r=cargo, g=reagent, b=builder) blended toward neutral 1.0
+ * by total concentration. The ONLY sanctioned way physics depends on "color". */
+const SPECIES_PHYS = `float speciesMix(vec3 d, vec3 coeff){
+  float tot = d.r+d.g+d.b;
+  if(tot < 1e-4) return 1.0;
+  return mix(1.0, dot(d/tot, coeff), clamp(tot*2.0, 0.0, 1.0));
+}
+`;
+
+const copyFS = FRAG_HEADER + `uniform sampler2D uSrc;
+uniform float uMul;
+void main(){ fragColor = texture(uSrc,vUv)*uMul; }
+`;
+
+const advectFS = FRAG_HEADER + SPECIES_PHYS + `uniform sampler2D uVelocity;
+uniform sampler2D uSource;
+uniform sampler2D uMedia;      /* r=curl mul, g=velDiss mul, b=dyeDiss mul */
+uniform sampler2D uWake;       /* predator dissipation wake (velocity only) */
+uniform sampler2D uDye;
+uniform vec3  uViscMul;        /* per-species viscosity: blue thin, green syrup */
+uniform float uWakeDiss;
+uniform float uMediaChan;      /* 0=none 1=g 2=b */
+uniform vec2  uSimTexel;
+uniform float uDt;
+uniform float uDissipation;
+void main(){
+  vec2 vel = texture(uVelocity,vUv).xy;
+  vec2 coord = vUv - uDt*vel*uSimTexel;
+  vec4 m = texture(uMedia,vUv);
+  float mul = uMediaChan<0.5 ? 1.0 : (uMediaChan<1.5 ? m.g : m.b);
+  bool velChan = uMediaChan>0.5 && uMediaChan<1.5;
+  float wk = velChan ? texture(uWake,vUv).r : 0.0;
+  float visc = velChan ? speciesMix(texture(uDye,vUv).rgb, uViscMul) : 1.0;
+  fragColor = texture(uSource,coord) * exp(-(uDissipation*mul*visc + uWakeDiss*wk)*uDt);
+}
+`;
+
+const curlFS = FRAG_HEADER + `uniform sampler2D uVelocity;
+uniform vec2 uSimTexel;
+void main(){
+  float L = texture(uVelocity, vUv-vec2(uSimTexel.x,0.0)).y;
+  float R = texture(uVelocity, vUv+vec2(uSimTexel.x,0.0)).y;
+  float B = texture(uVelocity, vUv-vec2(0.0,uSimTexel.y)).x;
+  float T = texture(uVelocity, vUv+vec2(0.0,uSimTexel.y)).x;
+  fragColor = vec4(R-L-T+B, 0.0, 0.0, 1.0);
+}
+`;
+
+const vorticityFS = FRAG_HEADER + SPECIES_PHYS + `uniform sampler2D uVelocity;
+uniform sampler2D uCurl;
+uniform sampler2D uMedia;
+uniform sampler2D uDye;
+uniform sampler2D uWake;
+uniform vec3  uCurlMul;        /* per-species swirliness */
+uniform float uWakeCurl;       /* wake churns: haunted dead water */
+uniform vec2  uSimTexel;
+uniform float uCurlStrength;
+uniform float uDt;
+void main(){
+  float L = texture(uCurl, vUv-vec2(uSimTexel.x,0.0)).x;
+  float R = texture(uCurl, vUv+vec2(uSimTexel.x,0.0)).x;
+  float B = texture(uCurl, vUv-vec2(0.0,uSimTexel.y)).x;
+  float T = texture(uCurl, vUv+vec2(0.0,uSimTexel.y)).x;
+  float C = texture(uCurl, vUv).x;
+  vec2 force = 0.5*vec2(abs(T)-abs(B), abs(R)-abs(L));
+  force /= length(force)+1e-4;
+  float sp = speciesMix(texture(uDye,vUv).rgb, uCurlMul);
+  float churn = 1.0 + uWakeCurl*texture(uWake,vUv).r;
+  force *= uCurlStrength * texture(uMedia,vUv).r * sp * churn * C;
+  force.y *= -1.0;
+  vec2 vel = texture(uVelocity,vUv).xy + force*uDt;
+  fragColor = vec4(clamp(vel, vec2(-1000.0), vec2(1000.0)), 0.0, 1.0);
+}
+`;
+
+/* exothermic R+G repulsion + dye-driven amp jets (red-powered) */
+const reactForceFS = FRAG_HEADER + `uniform sampler2D uVelocity;
+uniform sampler2D uDye;
+uniform sampler2D uAmp;        /* rg = jet dir*gain, texels/s^2 per unit red */
+uniform vec2  uSimTexel;
+uniform float uExoForce;
+uniform float uExoKnee;        /* curve curvature: steep onset, log saturation */
+uniform float uStagBoost;      /* reaction multiplier as flow stagnates */
+uniform float uStagSpeed;      /* texels/s scale of "stagnant" */
+uniform float uBeadBoost;
+uniform float uDt;
+float exoAt(vec2 uv){
+  vec4 d = texture(uDye,uv);
+  float spd = length(texture(uVelocity,uv).xy);
+  float stag = 1.0 + uStagBoost*exp(-(spd*spd)/max(uStagSpeed*uStagSpeed,1e-3));
+  float P = d.r*d.g*(1.0 + uBeadBoost*d.b*d.b)*stag;  /* beads detonate hard */
+  return log(1.0 + uExoKnee*P)/max(uExoKnee,1e-3);    /* mix, slow, then BAM */
+}
+void main(){
+  vec2 vel = texture(uVelocity,vUv).xy;
+  float eR = exoAt(vUv+vec2(uSimTexel.x,0.0));
+  float eL = exoAt(vUv-vec2(uSimTexel.x,0.0));
+  float eT = exoAt(vUv+vec2(0.0,uSimTexel.y));
+  float eB = exoAt(vUv-vec2(0.0,uSimTexel.y));
+  vec2 grad = 0.5*vec2(eR-eL, eT-eB);
+  vel += -grad*uExoForce*uDt;                       /* blast away from reaction */
+  float red = texture(uDye,vUv).r;
+  vel += texture(uAmp,vUv).rg * min(red,4.0) * uDt; /* red powers the machines */
+  fragColor = vec4(clamp(vel,vec2(-1000.0),vec2(1000.0)), 0.0, 1.0);
+}
+`;
+
+const divergenceFS = FRAG_HEADER + OBST + `uniform sampler2D uVelocity;
+uniform vec2 uSimTexel;
+void main(){
+  vec2 uvL=vUv-vec2(uSimTexel.x,0.0), uvR=vUv+vec2(uSimTexel.x,0.0);
+  vec2 uvB=vUv-vec2(0.0,uSimTexel.y), uvT=vUv+vec2(0.0,uSimTexel.y);
+  vec2 vL=texture(uVelocity,uvL).xy;
+  vec2 vR=texture(uVelocity,uvR).xy;
+  vec2 vB=texture(uVelocity,uvB).xy;
+  vec2 vT=texture(uVelocity,uvT).xy;
+  Solid sL=solidAt(uvL); if(sL.isSolid) vL=sL.vel;
+  Solid sR=solidAt(uvR); if(sR.isSolid) vR=sR.vel;
+  Solid sB=solidAt(uvB); if(sB.isSolid) vB=sB.vel;
+  Solid sT=solidAt(uvT); if(sT.isSolid) vT=sT.vel;
+  fragColor = vec4(0.5*((vR.x-vL.x)+(vT.y-vB.y)), 0.0, 0.0, 1.0);
+}
+`;
+
+const jacobiFS = FRAG_HEADER + OBST + `uniform sampler2D uPressure;
+uniform sampler2D uDivergence;
+uniform vec2 uSimTexel;
+void main(){
+  vec2 uvL=vUv-vec2(uSimTexel.x,0.0), uvR=vUv+vec2(uSimTexel.x,0.0);
+  vec2 uvB=vUv-vec2(0.0,uSimTexel.y), uvT=vUv+vec2(0.0,uSimTexel.y);
+  float pC = texture(uPressure,vUv).x;
+  float pL = solidAt(uvL).isSolid ? pC : texture(uPressure,uvL).x;
+  float pR = solidAt(uvR).isSolid ? pC : texture(uPressure,uvR).x;
+  float pB = solidAt(uvB).isSolid ? pC : texture(uPressure,uvB).x;
+  float pT = solidAt(uvT).isSolid ? pC : texture(uPressure,uvT).x;
+  float div = texture(uDivergence,vUv).x;
+  fragColor = vec4((pL+pR+pB+pT-div)*0.25, 0.0, 0.0, 1.0);
+}
+`;
+
+const gradientSubtractFS = FRAG_HEADER + OBST + `uniform sampler2D uPressure;
+uniform sampler2D uVelocity;
+uniform vec2 uSimTexel;
+uniform float uGelDrag;
+uniform float uDt;
+void main(){
+  Solid sC = solidAt(vUv);
+  if(sC.isSolid){ fragColor = vec4(sC.vel, 0.0, 1.0); return; }
+  vec2 uvL=vUv-vec2(uSimTexel.x,0.0), uvR=vUv+vec2(uSimTexel.x,0.0);
+  vec2 uvB=vUv-vec2(0.0,uSimTexel.y), uvT=vUv+vec2(0.0,uSimTexel.y);
+  float pC = texture(uPressure,vUv).x;
+  float pL = solidAt(uvL).isSolid ? pC : texture(uPressure,uvL).x;
+  float pR = solidAt(uvR).isSolid ? pC : texture(uPressure,uvR).x;
+  float pB = solidAt(uvB).isSolid ? pC : texture(uPressure,uvB).x;
+  float pT = solidAt(uvT).isSolid ? pC : texture(uPressure,uvT).x;
+  vec2 vel = texture(uVelocity,vUv).xy - 0.5*vec2(pR-pL, pT-pB);
+  vel *= exp(-uGelDrag*texture(uObstacle,vUv).a*uDt);   /* porous gel */
+  fragColor = vec4(vel, 0.0, 1.0);
+}
+`;
+
+/* predator dissipation wake: plateau, then fast fade (knee-gated decay) */
+const wakeUpdateFS = FRAG_HEADER + `uniform sampler2D uWake;
+uniform float uWakeSlow;
+uniform float uWakeFast;
+uniform float uWakeKnee;
+uniform float uDt;
+void main(){
+  float w = texture(uWake,vUv).r;
+  float hi = smoothstep(uWakeKnee-0.1, uWakeKnee+0.1, w);
+  w -= (hi*uWakeSlow + (1.0-hi)*uWakeFast*w)*uDt;
+  fragColor = vec4(clamp(w,0.0,1.2), 0.0, 0.0, 1.0);
+}
+`;
+
+const gelUpdateFS = FRAG_HEADER + `uniform sampler2D uGel;
+uniform sampler2D uDye;
+uniform sampler2D uVelocity;
+uniform float uGelReact;
+uniform float uGelDissolve;
+uniform float uGelErode;
+uniform float uDt;
+void main(){
+  float gel = texture(uGel,vUv).r;
+  vec3  d   = texture(uDye,vUv).rgb;
+  float spd = length(texture(uVelocity,vUv).xy);
+  gel += uGelReact*d.r*d.b*uDt;                 /* R + B precipitate */
+  gel -= gel*(uGelDissolve + uGelErode*spd)*uDt;
+  fragColor = vec4(clamp(gel,0.0,2.0), 0.0, 0.0, 1.0);
+}
+`;
+
+/* player wall painting (plan section 38) */
+const wallPaintFS = FRAG_HEADER + `uniform sampler2D uWalls;
+uniform vec2  uSimTexel;
+uniform vec2  uPaintPos;
+uniform float uPaintR;        /* texels */
+uniform float uPaintMode;     /* 1 add, 0 erase */
+void main(){
+  float w = texture(uWalls,vUv).r;
+  float d = length((vUv-uPaintPos)/uSimTexel);
+  float brush = 1.0 - smoothstep(uPaintR-1.0, uPaintR, d);
+  w = uPaintMode>0.5 ? max(w, step(0.35,brush)) : w*(1.0-step(0.35,brush));
+  fragColor = vec4(w, 0.0, 0.0, 1.0);
+}
+`;
+
+/* switches (plan section 3): one fragment per switch slot. State texture:
+ * r=bank (volume), g=hold timer (flow), b=latched, a=instant flux. */
+const switchSenseFS = FRAG_HEADER + `uniform sampler2D uDye;
+uniform sampler2D uState;
+uniform int   uSwCount;
+uniform vec4  uSwRect[8];   /* x0,y0,x1,y1 in UV */
+uniform vec4  uSwMask[8];   /* rgb dye mask; w: 0=volume 1=flow */
+uniform vec4  uSwCfg[8];    /* threshold, holdSec, staticLatch, _ */
+uniform float uDtF;
+void main(){
+  int i = int(gl_FragCoord.x);
+  vec4 st = texelFetch(uState, ivec2(i,0), 0);
+  if(i >= uSwCount){ fragColor = vec4(0.0); return; }
+  vec4 R = uSwRect[i];
+  float acc = 0.0;
+  for(int gy=0; gy<8; gy++)
+    for(int gx=0; gx<12; gx++){
+      vec2 uv = mix(R.xy, R.zw, vec2((float(gx)+0.5)/12.0, (float(gy)+0.5)/8.0));
+      acc += dot(texture(uDye, uv).rgb, uSwMask[i].rgb);
+    }
+  float flux = acc/96.0;
+  float thr = uSwCfg[i].x, holdS = max(uSwCfg[i].y, 1e-3);
+  if(uSwMask[i].w < 0.5){
+    st.x += flux*uDtF;                       /* volume: tank fills, latches */
+    if(st.x >= thr) st.z = 1.0;
+  } else {
+    if(flux >= thr) st.y = min(st.y + uDtF, holdS*2.0);
+    else if(flux < thr*0.8) st.y = max(0.0, st.y - 2.0*uDtF);
+    if(uSwCfg[i].z > 0.5 && st.y >= holdS) st.z = 1.0;     /* static latch */
+  }
+  st.w = flux;
+  fragColor = st;
+}
+`;
+
+const obstacleComposeFS = FRAG_HEADER + `uniform sampler2D uLevel;
+uniform sampler2D uWalls;
+uniform sampler2D uDynMask;
+uniform sampler2D uGel;
+uniform float uGelSolid;
+void main(){
+  vec2 vel = vec2(0.0); float solid = 0.0;
+  if(texture(uLevel,vUv).r <= 0.0) solid = 1.0;
+  if(texture(uWalls,vUv).r > 0.5) solid = 1.0;
+  vec4 m = texture(uDynMask,vUv);
+  if(m.a > 0.5){ solid = 1.0; vel = m.rg/max(m.a,1e-4); }
+  float gel = texture(uGel,vUv).r;
+  if(gel >= uGelSolid){ solid = 1.0; vel = vec2(0.0); }
+  float drag = clamp(gel/max(uGelSolid,1e-3), 0.0, 1.0)*(1.0-solid);
+  fragColor = vec4(vel, solid, drag);
+}
+`;
+
+const dyePostFS = FRAG_HEADER + OBST + ZONES + `uniform sampler2D uDye;
+uniform sampler2D uVelocity;
+uniform float uSolidDecay;
+uniform float uExoConsume;
+uniform float uGelConsume;
+uniform float uStagBoost2;
+uniform float uStagSpeed2;
+uniform float uBeadCompact;   /* texels/s: B+G self-compaction into beads */
+uniform float uBeadBoost;     /* blue super-charges the red+green burn */
+uniform vec2  uSimTexel;
+void main(){
+  vec4 dye = texture(uDye,vUv);
+  float wS, wT;
+  dye.rgb -= zoneRemoval(dye.rgb, vUv, wS, wT);
+  /* beads: advect B and G up the gradient of their co-location. Dye fluxes
+   * are not divergence-bound, so glomming survives where a body force
+   * could not (the predator-suction lesson). Flux-limited for stability. */
+  if(uBeadCompact > 0.01){
+    vec2 h2 = uSimTexel;
+    vec4 dL2 = texture(uDye, vUv-vec2(h2.x,0.0)), dR2 = texture(uDye, vUv+vec2(h2.x,0.0));
+    vec4 dB2 = texture(uDye, vUv-vec2(0.0,h2.y)), dT2 = texture(uDye, vUv+vec2(0.0,h2.y));
+    vec2 gP = vec2(min(dR2.g,dR2.b)-min(dL2.g,dL2.b), min(dT2.g,dT2.b)-min(dB2.g,dB2.b))*0.5;
+    float gm = length(gP);
+    if(gm > 1e-5){
+      float pC = max(min(dye.g,dye.b), max(min(dR2.g,dR2.b), min(dT2.g,dT2.b)));
+      float gate = smoothstep(0.03, 0.20, pC);
+      vec2 off = (gP/gm) * min(uBeadCompact*uDt, 0.75) * gate * uSimTexel;
+      dye.gb = texture(uDye, vUv - off).gb;
+    }
+  }
+  float spd2 = length(texture(uVelocity,vUv).xy);
+  float stag2 = 1.0 + uStagBoost2*exp(-(spd2*spd2)/max(uStagSpeed2*uStagSpeed2,1e-3));
+  float bf = 1.0 + uBeadBoost*dye.b*dye.b;   /* bead-mine factor */
+  float rxExo = dye.r*dye.g*bf*stag2;
+  float rxGel = dye.r*dye.b;
+  dye.r -= (uExoConsume*rxExo + uGelConsume*rxGel)*uDt;
+  dye.g -= uExoConsume*rxExo*uDt;
+  dye.b -= (uGelConsume*rxGel + uExoConsume*rxExo*(1.0 - 1.0/bf))*uDt;
+  if(solidAt(vUv).isSolid) dye.rgb *= exp(-uSolidDecay*uDt);
+  dye.rgb = max(dye.rgb, vec3(0.0));        /* required: predators splat negative */
+  fragColor = dye;
+}
+`;
+
+/* only RED is scored: delivery and trigger banking count dye.r alone */
+const scoreAccumFS = FRAG_HEADER + ZONES + `uniform sampler2D uScoreAcc;
+uniform sampler2D uDye;
+uniform float uActive;
+void main(){
+  vec4 acc = texture(uScoreAcc,vUv);
+  float wS, wT;
+  vec3 removed = zoneRemoval(texture(uDye,vUv).rgb, vUv, wS, wT);
+  acc.r += removed.r*wS*uActive;
+  acc.a += removed.r*wT*uActive;
+  fragColor = acc;
+}
+`;
+
+const sensorFS = FRAG_HEADER + `uniform sampler2D uDye;
+uniform sampler2D uVelocity;
+uniform sampler2D uRegions;
+void main(){
+  float sensor = texture(uRegions,vUv).a;
+  float red = texture(uDye,vUv).r;
+  float spd = length(texture(uVelocity,vUv).xy);
+  fragColor = vec4(sensor*red*spd, 0.0, 0.0, 1.0);
+}
+`;
+
+const reduceFS = FRAG_HEADER + `uniform sampler2D uSrc;
+uniform ivec2 uSrcSize;
+void main(){
+  ivec2 base = ivec2(gl_FragCoord.xy)*2;
+  vec4 s = vec4(0.0);
+  for(int dy=0;dy<2;dy++)
+  for(int dx=0;dx<2;dx++){
+    ivec2 c = base+ivec2(dx,dy);
+    if(c.x<uSrcSize.x && c.y<uSrcSize.y) s += texelFetch(uSrc,c,0);
+  }
+  fragColor = s;
+}
+`;
+
+const telemetryFS = FRAG_HEADER + `uniform sampler2D uScoreOne;
+uniform sampler2D uSensorReduced;
+uniform sampler2D uActors;
+void main(){
+  int x = int(gl_FragCoord.x);
+  if(x==0)      fragColor = texelFetch(uScoreOne, ivec2(0,0), 0);
+  else if(x==1) fragColor = vec4(texelFetch(uSensorReduced, ivec2(0,0), 0).r, 0.0, 0.0, 0.0);
+  else          fragColor = texelFetch(uActors, ivec2(x-2,0), 0);
+}
+`;
+
+const jfaSeedFS = FRAG_HEADER + `uniform sampler2D uLevelPng;
+uniform float uInvert;
+void main(){
+  float solid = step(0.5, texture(uLevelPng,vUv).r);
+  float isSeed = mix(solid, 1.0-solid, uInvert);
+  fragColor = isSeed>0.5 ? vec4(vUv,1.0,1.0) : vec4(-1.0,-1.0,0.0,1.0);
+}
+`;
+
+const jfaStepFS = FRAG_HEADER + `uniform sampler2D uSeeds;
+uniform vec2 uSimTexel;
+uniform vec2 uSimSize;
+uniform float uStep;
+void main(){
+  vec4 best = texture(uSeeds,vUv);
+  float bestD = best.z>0.5 ? length((vUv-best.xy)*uSimSize) : 1e8;
+  for(int dy=-1;dy<=1;dy++)
+  for(int dx=-1;dx<=1;dx++){
+    vec2 nUv = clamp(vUv+vec2(float(dx),float(dy))*uStep*uSimTexel, vec2(0.0), vec2(1.0));
+    vec4 cand = texture(uSeeds,nUv);
+    if(cand.z>0.5){
+      float d = length((vUv-cand.xy)*uSimSize);
+      if(d<bestD){ bestD=d; best=cand; }
+    }
+  }
+  fragColor = best;
+}
+`;
+
+const jfaCombineFS = FRAG_HEADER + `uniform sampler2D uLevelPng;
+uniform sampler2D uSolidSeeds;
+uniform sampler2D uEmptySeeds;
+uniform vec2 uSimSize;
+void main(){
+  float solid = step(0.5, texture(uLevelPng,vUv).r);
+  vec4 ss = texture(uSolidSeeds,vUv);
+  vec4 es = texture(uEmptySeeds,vUv);
+  float dOut = ss.z>0.5 ? length((vUv-ss.xy)*uSimSize) : 1e4;
+  float dIn  = es.z>0.5 ? length((vUv-es.xy)*uSimSize) : 1e4;
+  fragColor = vec4(mix(dOut,-dIn,solid), 0.0, 0.0, 1.0);
+}
+`;
+
+const jfaGradFS = FRAG_HEADER + `uniform sampler2D uDist;
+uniform vec2 uSimTexel;
+void main(){
+  float dC = texture(uDist,vUv).r;
+  float dL = texture(uDist,vUv-vec2(uSimTexel.x,0.0)).r;
+  float dR = texture(uDist,vUv+vec2(uSimTexel.x,0.0)).r;
+  float dB = texture(uDist,vUv-vec2(0.0,uSimTexel.y)).r;
+  float dT = texture(uDist,vUv+vec2(0.0,uSimTexel.y)).r;
+  vec2 g = vec2(dR-dL, dT-dB);
+  float len = length(g);
+  g = len<1e-5 ? vec2(0.0,1.0) : g/len;
+  fragColor = vec4(dC, g, 0.0);
+}
+`;
+
+const actorUpdateFS = `#version 300 es
+precision highp float;
+out vec4 fragColor;
+uniform sampler2D uActors;
+uniform sampler2D uVelocity;
+uniform sampler2D uLevel;
+uniform sampler2D uDye;
+uniform vec2  uSimTexel;
+uniform float uDt;
+uniform float uTime;
+uniform vec4  uInput;          /* xy = thrust dir, z = spin input -1/0/1 */
+uniform float uThrust;
+uniform float uDragK;
+uniform float uLinDamp;
+uniform float uSpinAccel;
+uniform float uSpinDamp;
+uniform float uSpinKick;
+uniform float uEntityScale;
+uniform float uMassPlayer;
+uniform float uMassPred;
+uniform float uMassPiston;
+uniform float uRestitution;
+uniform float uPistonSpring;
+uniform float uPistonDamp;
+uniform float uFlowPush;
+uniform float uBounceFloor;    /* min separation speed after contact, texels/s */
+uniform sampler2D uWalls;
+uniform sampler2D uGel;
+uniform float uGelSolid;
+uniform float uPredSense;
+uniform float uPredGreed;
+uniform float uGelDrag;
+uniform vec4  uSpawn;
+uniform vec4  uSpawnParams;
+uniform vec4  uSpawnDye;
+void resolveWalls(inout vec2 pos, inout vec2 vel, float radius){
+  vec4 lv = texture(uLevel,pos);
+  float pen = lv.r - radius;
+  if(pen<0.0){
+    vec2 n = lv.gb;
+    pos += -pen*n*uSimTexel;
+    vec2 vT = vel/uSimTexel;
+    float vn = dot(vT,n);
+    if(vn<0.0) vT -= vn*n;
+    vel = vT*uSimTexel;
+  }
+  vec2 rUv = vec2(radius)*uSimTexel;
+  pos = clamp(pos, rUv, vec2(1.0)-rUv);
+}
+/* dynamic solids: player walls + solid gel. Deliberately simple: 4-probe
+ * normal estimate, push-out, restitution bounce (plan section 38). */
+float hardAt(vec2 uv){
+  float w = texture(uWalls,uv).r;
+  float g = texture(uGel,uv).r/max(uGelSolid,1e-3);
+  return max(w, step(0.55, g));    /* dense gel is a wall for bodies */
+}
+void resolveDynamic(inout vec2 pos, inout vec2 vel, float rTex){
+  for(int it=0; it<2; it++){
+    vec2 ro = rTex*uSimTexel;
+    float C  = hardAt(pos);
+    float pL = hardAt(pos-vec2(ro.x,0.0)), pR = hardAt(pos+vec2(ro.x,0.0));
+    float pB = hardAt(pos-vec2(0.0,ro.y)), pT = hardAt(pos+vec2(0.0,ro.y));
+    if(C<0.5 && max(max(pL,pR),max(pB,pT))<0.5) return;
+    /* normal from SHORT probes: thin gel sheets are invisible to wide ones */
+    vec2 hh = 2.0*uSimTexel;
+    vec2 n = vec2(hardAt(pos-vec2(hh.x,0.0))-hardAt(pos+vec2(hh.x,0.0)),
+                  hardAt(pos-vec2(0.0,hh.y))-hardAt(pos+vec2(0.0,hh.y)));
+    n += vec2(pL-pR, pB-pT);
+    float nl = length(n);
+    if(nl>1e-4) n /= nl;
+    else { float vl = length(vel); n = vl>1e-6 ? -vel/vl : vec2(0.0,1.0); }
+    pos += n*(C>0.5 ? 2.5 : 1.0)*uSimTexel;
+    vec2 vT = vel/uSimTexel;
+    float vn = dot(vT,n);
+    if(vn<0.0) vT -= 1.45*vn*n;
+    vel = vT*uSimTexel;
+  }
+}
+/* fluid velocity sampled on a ring OUTSIDE the body's own no-slip stamp —
+ * at the center the field equals the body's own velocity (zero net force) */
+vec2 fluidRing(vec2 pos, float rTex){
+  vec2 o = rTex*1.7*uSimTexel;
+  vec2 sum = texture(uVelocity,pos+vec2(o.x,0.0)).xy + texture(uVelocity,pos-vec2(o.x,0.0)).xy
+           + texture(uVelocity,pos+vec2(0.0,o.y)).xy + texture(uVelocity,pos-vec2(0.0,o.y)).xy;
+  return 0.25*sum*uSimTexel;   /* UV/s */
+}
+float massOf(int t){
+  if(t==1) return max(uMassPlayer,0.05);
+  if(t==5) return max(uMassPiston,0.05);
+  if(t==6) return max(uMassPred,0.05);
+  return 1e5;                       /* fans/emitters: immovable */
+}
+/* symmetric body collisions: every dynamic actor resolves against the same
+ * pre-update table, so both parties compute identical contacts and impulses */
+void collideBodies(int slot, inout vec2 pos, inout vec2 vel, float radius, float mass){
+  for(int o=0;o<64;o++){
+    if(o==slot) continue;
+    vec4 or1 = texelFetch(uActors, ivec2(o,1), 0);
+    int ot = int(or1.x);
+    if(ot!=1 && ot!=2 && ot!=3 && ot!=5 && ot!=6) continue;
+    vec4 or0 = texelFetch(uActors, ivec2(o,0), 0);
+    vec2 dT = (pos-or0.xy)/uSimTexel;
+    float rr = radius + or1.y*uEntityScale;
+    float dist = length(dT);
+    if(dist>=rr || dist<1e-4) continue;
+    vec2 nn = dT/dist;
+    float mO = massOf(ot);
+    pos += nn*(rr-dist)*0.75*(mO/(mass+mO))*uSimTexel;
+    vec2 vT = vel/uSimTexel;
+    vec2 ovT = or0.zw/uSimTexel;
+    float rel = dot(vT-ovT, nn);
+    if(rel<0.0){
+      float j = -(1.0+clamp(uRestitution,0.0,1.0))*rel/(1.0/mass+1.0/mO);
+      vT += (j/mass)*nn;
+    }
+    float relA = dot(vT-ovT, nn);          /* bounce floor: never grind to a halt */
+    if(relA < uBounceFloor) vT += (uBounceFloor-relA)*(mO/(mass+mO))*nn;
+    vel = vT*uSimTexel;
+  }
+}
+void main(){
+  int slot = int(gl_FragCoord.x);
+  int row  = int(gl_FragCoord.y);
+  vec4 r0 = texelFetch(uActors, ivec2(slot,0), 0);
+  vec4 r1 = texelFetch(uActors, ivec2(slot,1), 0);
+  vec4 r2 = texelFetch(uActors, ivec2(slot,2), 0);
+  vec4 r3 = texelFetch(uActors, ivec2(slot,3), 0);
+  int type = int(r1.x);
+
+  if(uSpawn.x>=0.0 && slot==int(uSpawn.x)){
+    vec4 player = texelFetch(uActors, ivec2(0,0), 0);
+    r0 = vec4(player.xy + uSpawn.zw, 0.0, 0.0);
+    r1 = vec4(uSpawn.y, uSpawnParams.xyz);
+    r2 = vec4(uSpawnParams.w, 0.0, uSpawnDye.x, uSpawnDye.y);
+    r3 = vec4(uSpawnDye.z, 0.0, 0.0, 0.0);
+    type = int(uSpawn.y);
+  }
+
+  if(type==5){    /* spring piston: a body chasing its oscillating target */
+    vec2 axis = vec2(cos(r1.w), sin(r1.w));
+    vec2 target = r3.yz + axis*r1.z*sin(uTime*r2.z + r2.w);
+    vec2 pos = r0.xy, vel = r0.zw;
+    vel += uPistonSpring*(target-pos)*uDt;
+    vel *= exp(-uPistonDamp*uDt);
+    collideBodies(slot, pos, vel, r1.y*uEntityScale, uMassPiston);
+    pos += vel*uDt;
+    resolveWalls(pos, vel, r1.y*uEntityScale);
+    resolveDynamic(pos, vel, r1.y*uEntityScale);
+    r0 = vec4(pos,vel);
+  }
+
+  if(type==6){    /* predator: swims up the red-dye gradient, winds down */
+    vec2 pos = r0.xy, vel = r0.zw;
+    float life = clamp(r2.x / max(r3.w,1e-3), 0.0, 1.0);
+    vec2 h = uPredSense*uSimTexel;               /* WIDE stencil: smell past vortex noise */
+    float dR = texture(uDye,pos+vec2(h.x,0.0)).r;
+    float dL = texture(uDye,pos-vec2(h.x,0.0)).r;
+    float dT = texture(uDye,pos+vec2(0.0,h.y)).r;
+    float dB = texture(uDye,pos-vec2(0.0,h.y)).r;
+    vec2 g = vec2(dR-dL, dT-dB);
+    float rnd = fract(sin(dot(vec2(uTime, float(slot)), vec2(12.9898,78.233)))*43758.5453);
+    r2.w += (rnd*2.0-1.0)*4.0*uDt;               /* drifting random heading */
+    vec2 wDir = vec2(cos(r2.w), sin(r2.w));
+    float gl2 = length(g);
+    float bias = clamp(gl2*uPredGreed, 0.0, 0.85); /* scent strength takes the wheel */
+    vec2 dir = normalize(mix(wDir, g/max(gl2,1e-5), bias) + vec2(1e-5));
+    /* wall repulsion with hysteresis: steer away AND drag the wander heading
+       along, so an escaping predator stays committed outbound for a while */
+    vec4 lvP = texture(uLevel, pos);
+    float danger = 1.0 - smoothstep(r1.y*uEntityScale*1.5, r1.y*uEntityScale*5.0, lvP.r);
+    if(danger > 0.001){
+      vec2 away = lvP.gb;
+      dir = normalize(mix(dir, away, min(danger*1.6, 1.0)));
+      float tA = atan(away.y, away.x);
+      float dA = mod(tA - r2.w + 3.14159265, 6.2831853) - 3.14159265;
+      r2.w += dA * min(danger*5.0*uDt, 1.0);
+    }
+    vec2 fluidUv = fluidRing(pos, r1.y*uEntityScale);
+    vel += (dir*r1.z*life + uDragK*(fluidUv-vel))*uDt;
+    vel *= exp(-uLinDamp*uDt);
+    collideBodies(slot, pos, vel, r1.y*uEntityScale, uMassPred);
+    pos += vel*uDt;
+    resolveWalls(pos, vel, r1.y*uEntityScale);
+    vel *= exp(-uGelDrag*0.8*clamp(texture(uGel,pos).r/max(uGelSolid,1e-3),0.0,1.5)*uDt);
+    resolveDynamic(pos, vel, r1.y*uEntityScale);
+    r0 = vec4(pos,vel);
+  }
+
+  if(type==1){    /* player */
+    vec2 pos = r0.xy, vel = r0.zw;
+    r2.z += uInput.z*uSpinAccel*uDt;                /* spin omega */
+    r2.z *= exp(-uSpinDamp*uDt);
+    r2.w += r2.z*uDt;                               /* spin angle, for the glyph */
+    vec2 fluidUv = fluidRing(pos, r1.y*uEntityScale)*uFlowPush;   /* feel the current */
+    vel += (uInput.xy*uThrust + uDragK*(fluidUv-vel)) * uDt;
+    vel *= exp(-uLinDamp*uDt);
+    pos += vel*uDt;
+    resolveWalls(pos, vel, r1.y*uEntityScale);
+    vel *= exp(-uGelDrag*0.8*clamp(texture(uGel,pos).r/max(uGelSolid,1e-3),0.0,1.5)*uDt);
+    resolveDynamic(pos, vel, r1.y*uEntityScale);
+    for(int o=1;o<64;o++){
+      vec4 or1 = texelFetch(uActors, ivec2(o,1), 0);
+      int ot = int(or1.x);
+      if(ot!=2 && ot!=3 && ot!=5 && ot!=6) continue;
+      vec4 or0 = texelFetch(uActors, ivec2(o,0), 0);
+      vec2 dT2 = (pos-or0.xy)/uSimTexel;
+      float rr = (r1.y + or1.y)*uEntityScale;
+      float dist = length(dT2);
+      if(dist<rr && dist>1e-4){
+        vec2 nn = dT2/dist;
+        float mO = massOf(ot);
+        float mP = max(uMassPlayer,0.05);
+        pos += nn*(rr-dist)*0.75*(mO/(mP+mO))*uSimTexel;
+        vec2 vT = vel/uSimTexel;
+        vec2 ovT = or0.zw/uSimTexel;
+        float rel = dot(vT-ovT, nn);
+        if(rel<0.0){
+          float j = -(1.0+clamp(uRestitution,0.0,1.0))*rel/(1.0/mP+1.0/mO);
+          vT += (j/mP)*nn;
+          vT += uSpinKick*r2.z*rr*vec2(-nn.y,nn.x); /* spin-biased deflection */
+          r2.z *= 0.8;
+        }
+        float relA = dot(vT-ovT, nn);      /* bounce floor: always a visible pop */
+        if(relA < uBounceFloor) vT += (uBounceFloor-relA)*(mO/(mP+mO))*nn;
+        vel = vT*uSimTexel;
+      }
+    }
+    vec2 rUv = vec2(r1.y*uEntityScale)*uSimTexel;
+    pos = clamp(pos, rUv, vec2(1.0)-rUv);
+    r0 = vec4(pos,vel);
+  }
+
+  if(type!=0 && r2.x>=0.0){
+    r2.x -= uDt;
+    if(r2.x<=0.0){ r1.x = 0.0; }
+  }
+  fragColor = (row==0)?r0 : (row==1)?r1 : (row==2)?r2 : r3;
+}
+`;
+
+const splatVS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 aCorner;
+uniform sampler2D uActors;
+uniform int   uTarget;
+uniform vec2  uSimTexel;
+uniform float uExtentMul;
+uniform float uEntityScale;
+flat out vec4 vR0; flat out vec4 vR1; flat out vec4 vR2; flat out vec4 vR3;
+out vec2 vLocal;
+bool writesTarget(int type,int target){
+  if(target==0) return type==2 || type==3 || type==6;  /* predators suck */
+  if(target==1) return type==3 || type==6;            /* predators eat (negative) */
+  if(target==2) return type==1 || type==5 || type==6; /* boundaries */
+  if(target==3) return type==6;                       /* dissipation wake */
+  return false;
+}
+void main(){
+  int slot = gl_InstanceID;
+  vR0 = texelFetch(uActors, ivec2(slot,0), 0);
+  vR1 = texelFetch(uActors, ivec2(slot,1), 0);
+  vR2 = texelFetch(uActors, ivec2(slot,2), 0);
+  vR3 = texelFetch(uActors, ivec2(slot,3), 0);
+  vLocal = aCorner;
+  if(!writesTarget(int(vR1.x), uTarget)){ gl_Position = vec4(-2.0,-2.0,0.0,1.0); return; }
+  vec2 extent = vR1.y*uEntityScale*uExtentMul*uSimTexel;
+  gl_Position = vec4((vR0.xy + aCorner*extent)*2.0-1.0, 0.0, 1.0);
+}
+`;
+
+const SPLAT_FRAG_IN = `#version 300 es
+precision highp float;
+in vec2 vLocal;
+flat in vec4 vR0; flat in vec4 vR1; flat in vec4 vR2; flat in vec4 vR3;
+out vec4 fragColor;
+`;
+
+const splatForceFS = SPLAT_FRAG_IN + `uniform float uDt;
+uniform float uPredSuck;
+uniform float uResScale;       /* SIM_H / 270: tunables are defined at the reference grid */
+void main(){
+  float g = exp(-dot(vLocal,vLocal)*4.5);
+  int t = int(vR1.x);
+  if(t==6){
+    /* spiral mouth: a pure radial sink is irrotational and the pressure
+     * projection deletes it. The tangential part is divergence-free and
+     * SURVIVES the solve — predators are hungry vortices. Spin sign: r3.x. */
+    float life = clamp(vR2.x/max(vR3.w,1e-3), 0.0, 1.0);
+    float l = length(vLocal);
+    vec2 toC = l>1e-3 ? -vLocal/l : vec2(0.0);
+    vec2 tang = vec2(-toC.y, toC.x) * (vR3.x>=0.0 ? 1.0 : -1.0);
+    vec2 f = (tang + toC*0.5) * uPredSuck * uResScale * life * g;
+    fragColor = vec4(f*uDt, 0.0, 0.0);
+  } else {
+    vec2 dir = vec2(cos(vR1.w), sin(vR1.w));
+    fragColor = vec4(dir*vR1.z*uResScale*g*uDt, 0.0, 0.0);
+  }
+}
+`;
+
+const splatDyeFS = SPLAT_FRAG_IN + `uniform float uDt;
+uniform float uEmitScale;
+uniform float uEatRate;
+void main(){
+  float g = exp(-dot(vLocal,vLocal)*4.5);
+  int t = int(vR1.x);
+  if(t==6){
+    float life = clamp(vR2.x/max(vR3.w,1e-3), 0.0, 1.0);
+    fragColor = vec4(vec3(-uEatRate*g*uDt*life), 0.0);
+  } else {
+    fragColor = vec4(vec3(vR2.z,vR2.w,vR3.x)*vR1.z*uEmitScale*g*uDt, 0.0);
+  }
+}
+`;
+
+const splatWakeFS = SPLAT_FRAG_IN + `uniform float uDt;
+uniform float uWakeDeposit;
+void main(){
+  float g = exp(-dot(vLocal,vLocal)*4.5);
+  float life = clamp(vR2.x/max(vR3.w,1e-3), 0.0, 1.0);
+  fragColor = vec4(uWakeDeposit*g*life*uDt, 0.0, 0.0, 0.0);
+}
+`;
+
+const splatMaskFS = SPLAT_FRAG_IN + `uniform vec2 uSimTexel;
+uniform float uEntityScale;
+void main(){
+  float rTex = vR1.y*uEntityScale;
+  float dTex = length(vLocal)*rTex*1.1;
+  float cov = 1.0 - smoothstep(rTex-1.0, rTex, dTex);
+  vec2 velTexels = vR0.zw/uSimTexel;                          /* (!!) per axis */
+  float spin = (int(vR1.x)==1) ? vR2.z : 0.0;                 /* player only */
+  vec2 tang = length(vLocal)>1e-3 ? vec2(-vLocal.y,vLocal.x)/length(vLocal) : vec2(0.0);
+  vec2 spinTex = tang * spin * dTex;        /* rim velocity: Magnus emerges in the solve */
+  fragColor = vec4((velTexels+spinTex)*cov, 0.0, cov);
+}
+`;
+
+const glyphVS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 aCorner;
+uniform sampler2D uActors;
+uniform vec2  uSimTexel;
+uniform float uExtentMul;
+uniform float uEntityScale;
+flat out vec4 vR0; flat out vec4 vR1; flat out vec4 vR2; flat out vec4 vR3;
+flat out float vSlot;
+out vec2 vLocal;
+void main(){
+  int slot = gl_InstanceID;
+  vR0 = texelFetch(uActors, ivec2(slot,0), 0);
+  vR1 = texelFetch(uActors, ivec2(slot,1), 0);
+  vR2 = texelFetch(uActors, ivec2(slot,2), 0);
+  vR3 = texelFetch(uActors, ivec2(slot,3), 0);
+  vSlot = float(slot);
+  vLocal = aCorner;
+  if(int(vR1.x)==0){ gl_Position = vec4(-2.0,-2.0,0.0,1.0); return; }
+  vec2 extent = vR1.y*uEntityScale*uExtentMul*uSimTexel;
+  gl_Position = vec4((vR0.xy + aCorner*extent)*2.0-1.0, 0.0, 1.0);
+}
+`;
+
+const ghostVS = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 aCorner;
+uniform vec2  uGhostPos;
+uniform float uGhostRadius;
+uniform float uGhostAngle;
+uniform float uGhostType;
+uniform vec4  uGhostDye;
+uniform vec2  uSimTexel;
+uniform float uExtentMul;
+uniform float uEntityScale;
+flat out vec4 vR0; flat out vec4 vR1; flat out vec4 vR2; flat out vec4 vR3;
+flat out float vSlot;
+out vec2 vLocal;
+void main(){
+  vR0 = vec4(uGhostPos, 0.0, 0.0);
+  vR1 = vec4(uGhostType, uGhostRadius, 0.0, uGhostAngle);
+  vR2 = vec4(-1.0, 0.0, uGhostDye.x, uGhostDye.y);
+  vR3 = vec4(uGhostDye.z, 0.0, 0.0, 0.0);
+  vSlot = -1.0;
+  vLocal = aCorner;
+  vec2 extent = uGhostRadius*uEntityScale*uExtentMul*uSimTexel;
+  gl_Position = vec4((uGhostPos + aCorner*extent)*2.0-1.0, 0.0, 1.0);
+}
+`;
+
+const glyphFS = SPLAT_FRAG_IN + SPECIES + `flat in float vSlot;
+uniform float uGhost;
+uniform float uGhostValid;
+uniform int   uSelected;
+uniform float uPaintGlow;   /* 0 off, 1 fabricating (purple), 2 dissolving (yellow) */
+uniform float uTime;
+vec2 rot(vec2 p, float a){ float c=cos(a), s=sin(a); return vec2(c*p.x+s*p.y, -s*p.x+c*p.y); }
+void main(){
+  int type = int(vR1.x);
+  float len = length(vLocal);
+  vec4 col = vec4(0.0);
+  if(type==1){
+    float fill = 1.0-smoothstep(0.52,0.58,len);
+    float ring = smoothstep(0.46,0.52,len)*(1.0-smoothstep(0.58,0.64,len));
+    vec2 p = rot(vLocal, vR2.w);                    /* spin angle */
+    float a = atan(p.y,p.x);
+    float ticks = step(0.7,abs(sin(a*1.5)))*step(0.30,len)*(1.0-smoothstep(0.46,0.52,len));
+    vec3 c = mix(vec3(0.92,0.95,1.0), vec3(1.0,0.85,0.4), ticks);
+    col = vec4(c, max(fill*0.25+ring*0.9, ticks*(0.5+0.4*min(abs(vR2.z)*0.15,1.0))));
+    if(uPaintGlow>0.5){       /* wall action LIVE: subtle pulsing halo */
+      vec3 gc = uPaintGlow>1.5 ? vec3(1.0,0.85,0.25) : vec3(0.72,0.42,1.0);
+      float pulse = 0.55+0.45*sin(uTime*6.0);
+      float halo = smoothstep(0.55,0.78,len)*(1.0-smoothstep(0.82,1.0,len));
+      col = vec4(mix(col.rgb, gc, min(halo*pulse,1.0)), max(col.a, halo*0.5*pulse));
+    }
+  } else if(type==2){
+    float ring = smoothstep(0.40,0.46,len)*(1.0-smoothstep(0.52,0.58,len));
+    vec2 p = rot(vLocal, vR1.w);
+    float shaft = (p.x>-0.05 && p.x<0.30 && abs(p.y)<0.07) ? 1.0 : 0.0;
+    float head  = (p.x>=0.25 && p.x<0.52 && abs(p.y)<(0.52-p.x)*0.7) ? 1.0 : 0.0;
+    float locked = mod(floor(vR2.y), 2.0);
+    vec3 c = mix(vec3(0.45,0.95,1.0), vec3(0.55,0.60,0.70), locked);
+    col = vec4(c, max(ring*0.9, max(shaft,head)*0.95));
+  } else if(type==3){
+    float fill = 1.0-smoothstep(0.30,0.36,len);
+    float ring = smoothstep(0.42,0.48,len)*(1.0-smoothstep(0.52,0.58,len));
+    vec2 p = rot(vLocal, vR1.w);
+    float spout = (p.x>0.3 && p.x<0.62 && abs(p.y)<0.10) ? 1.0 : 0.0;
+    vec3 dye = vec3(vR2.z,vR2.w,vR3.x);
+    vec3 c = normalize(speciesToDisplay(max(dye,vec3(0.0)))+vec3(1e-4))*1.15;
+    col = vec4(c, max(max(fill*0.9, ring*0.7), spout*0.85));
+  } else if(type==5){
+    float fill = 1.0-smoothstep(0.52,0.58,len);
+    float ring = smoothstep(0.58,0.62,len)*(1.0-smoothstep(0.66,0.72,len));
+    col = vec4(mix(vec3(0.22,0.24,0.30), vec3(1.0,0.72,0.25), ring),
+               max(fill*0.9, ring*0.85));
+  } else if(type==6){
+    float life = clamp(vR2.x/max(vR3.w,1e-3), 0.0, 1.0);
+    vec2 p = rot(vLocal, vR2.w*2.5);
+    float a = atan(p.y,p.x);
+    float blades = smoothstep(0.2,0.6,sin(a*3.0))*(1.0-smoothstep(0.30,0.55,len))*step(0.10,len);
+    float ring = smoothstep(0.50,0.56,len)*(1.0-smoothstep(0.60,0.66,len));
+    vec3 c = mix(vec3(0.55,0.20,0.75), vec3(1.0,0.40,0.50), life);
+    col = vec4(c, max(blades*0.9, ring*0.8)*(0.35+0.65*life));
+  } else if(type==7){
+    float fr = clamp(vR2.w, 0.0, 1.0);
+    float rad = 0.22 + 0.34*fr;
+    float iris = smoothstep(rad,rad+0.05,len)*(1.0-smoothstep(rad+0.10,rad+0.16,len));
+    float outer = smoothstep(0.60,0.66,len)*(1.0-smoothstep(0.70,0.76,len));
+    col = vec4(vec3(0.85,0.35,0.90), max(iris*0.85, outer*0.6));
+  } else if(type==9){
+    float ring = smoothstep(0.74,0.80,len)*(1.0-smoothstep(0.90,0.96,len));
+    float dash = step(0.45, fract(atan(vLocal.y,vLocal.x)*1.9099 + vR1.w));
+    vec3 c = vec3(vR2.z,vR2.w,vR3.x);
+    col = vec4(c, ring*max(dash,0.3)*0.9);
+  } else if(type==8){
+    vec2 p = rot(vLocal, 0.7854);
+    float dm = abs(p.x)+abs(p.y);
+    float core = 1.0-smoothstep(0.24,0.32,dm);
+    float ring = smoothstep(0.52,0.58,len)*(1.0-smoothstep(0.64,0.70,len));
+    vec3 c = normalize(speciesToDisplay(max(vec3(vR2.z,vR2.w,vR3.x),vec3(0.0)))+vec3(1e-4))*1.25;
+    col = vec4(c, max(core*0.95, ring*0.55));
+  }
+  if(uGhost>0.5){
+    col.rgb = mix(vec3(1.0,0.35,0.30), col.rgb*0.6+vec3(0.2,0.5,0.25), uGhostValid);
+    col.a *= 0.55;
+  } else if(uSelected>0 && int(vSlot)==uSelected){
+    col.rgb = col.rgb*1.4 + vec3(0.15);
+    col.a = min(col.a*1.25 + 0.12*(1.0-smoothstep(0.85,1.0,len)), 1.0);
+  }
+  fragColor = col;
+}
+`;
+
+const brightFS = FRAG_HEADER + SPECIES + `uniform sampler2D uDye;
+uniform float uThreshold;
+uniform vec3  uBloomW;        /* per-species: red blooms like an ember */
+void main(){
+  vec3 c = max(texture(uDye,vUv).rgb*uBloomW - vec3(uThreshold), vec3(0.0));
+  fragColor = vec4(speciesToDisplay(c), 1.0);
+}
+`;
+
+const blurFS = FRAG_HEADER + `uniform sampler2D uSrc;
+uniform vec2 uDir;
+void main(){
+  vec3 s = texture(uSrc,vUv).rgb*0.227027;
+  s += texture(uSrc, vUv+uDir*1.3846).rgb*0.3162162;
+  s += texture(uSrc, vUv-uDir*1.3846).rgb*0.3162162;
+  s += texture(uSrc, vUv+uDir*3.2308).rgb*0.0702703;
+  s += texture(uSrc, vUv-uDir*3.2308).rgb*0.0702703;
+  fragColor = vec4(s, 1.0);
+}
+`;
+
+const compositeFS = FRAG_HEADER + SPECIES + `uniform sampler2D uDye;
+uniform sampler2D uLevel;
+uniform sampler2D uRegions;
+uniform sampler2D uBloom;
+uniform sampler2D uVelocity;
+uniform sampler2D uPressure;
+uniform sampler2D uDivergence;
+uniform sampler2D uCurl;
+uniform sampler2D uObstacle;
+uniform sampler2D uScoreAcc;
+uniform sampler2D uGel;
+uniform sampler2D uMedia;
+uniform sampler2D uAmp;
+uniform sampler2D uWake;
+uniform sampler2D uWalls;
+uniform vec2  uSimTexel;
+uniform int   uDebugMode;
+uniform float uTime;
+uniform float uTonemapK;
+uniform float uBloomStrength;
+uniform float uSinkHeat;
+uniform float uTriggerHeat;
+uniform float uPulsePhase;
+uniform float uPulseAmp;
+uniform float uHueShift;
+uniform float uFlowGlow;
+uniform float uStreak;
+uniform float uCurlTint;
+uniform float uSchlieren;
+uniform float uSpeciesFx;
+uniform float uGelGlow;
+uniform float uResScale;
+vec3 hsv2rgb(vec3 c){
+  vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+  vec3 p = abs(fract(c.xxx+K.xyz)*6.0-K.www);
+  return c.z*mix(K.xxx, clamp(p-K.xxx,0.0,1.0), c.y);
+}
+vec3 hueRotate(vec3 col, float a){
+  vec3 k = vec3(0.57735026);
+  float c = cos(a), s = sin(a);
+  return col*c + cross(k,col)*s + k*dot(k,col)*(1.0-c);
+}
+vec3 heatRamp(float h){
+  vec3 c = mix(vec3(0.30,0.05,0.04), vec3(0.95,0.40,0.05), smoothstep(0.0,0.35,h));
+  c = mix(c, vec3(1.00,0.85,0.25), smoothstep(0.35,0.70,h));
+  c = mix(c, vec3(1.05,1.08,1.35), smoothstep(0.70,1.00,h));
+  return c;
+}
+void main(){
+  if(uDebugMode==1){
+    vec2 dv = texture(uVelocity,vUv).xy; float m = length(dv);
+    fragColor = vec4(hsv2rgb(vec3(atan(dv.y,dv.x)/6.2832+0.5, 0.85, clamp(m*0.012,0.0,1.0))),1.0); return;
+  }
+  if(uDebugMode==2){ fragColor = vec4(vec3(0.5+texture(uPressure,vUv).r*0.06),1.0); return; }
+  if(uDebugMode==3){ float d=texture(uDivergence,vUv).r; fragColor = vec4(vec3(0.5)+vec3(d*2.0,-d*2.0,0.0),1.0); return; }
+  if(uDebugMode==4){ float c=texture(uCurl,vUv).r; fragColor = vec4(vec3(0.5)+vec3(c,-c,0.0)*0.08,1.0); return; }
+  if(uDebugMode==5){
+    float d = texture(uLevel,vUv).r;
+    vec3 c = d<0.0 ? vec3(0.85,0.30,0.20) : vec3(0.20,0.50,0.90);
+    fragColor = vec4(c*(0.35+0.65*abs(sin(d*0.7))),1.0); return;
+  }
+  if(uDebugMode==6){ vec4 o=texture(uObstacle,vUv); fragColor = vec4(o.b, 0.5+o.r*0.01, 0.5+o.g*0.01, 1.0); return; }
+  if(uDebugMode==7){
+    vec4 s = texture(uScoreAcc,vUv);
+    fragColor = vec4(vec3(1.0,0.6,0.2)*clamp(s.r*0.05,0.0,1.0) + vec3(0.1,0.5,0.7)*clamp(s.a*0.05,0.0,1.0),1.0); return;
+  }
+  if(uDebugMode==8){ float g=texture(uGel,vUv).r; fragColor = vec4(vec3(0.4,0.8,0.9)*clamp(g,0.0,1.0),1.0); return; }
+  if(uDebugMode==9){ float w9=texture(uWake,vUv).r; fragColor = vec4(vec3(0.9,0.5,0.2)*w9,1.0); return; }
+
+  vec2 v = texture(uVelocity,vUv).xy;
+  float spd = length(v)/uResScale;            /* normalized to reference-grid texels/s */
+  vec3 d = texture(uDye,vUv).rgb;             /* SPECIES space: r=cargo g=reagent b=builder */
+  if(uStreak>0.001 && spd>0.5){
+    vec2 off = (v/spd)*uSimTexel*(uStreak*min(spd*0.02,1.0));
+    d.r = texture(uDye,vUv-off*0.7).r;        /* cargo: tight, ember-like */
+    d.b = texture(uDye,vUv+off*1.8).b;        /* builder: glassy, smeared */
+  }
+  d.g *= 1.0 + 0.16*uSpeciesFx*sin(uTime*7.0 + dot(vUv,vec2(53.0,91.0)));  /* reagent scintillates */
+  d = max(d, vec3(0.0));
+  vec3 disp = speciesToDisplay(d);            /* aesthetics enter ONLY here */
+  disp *= 1.0 + uFlowGlow*min(spd*0.012,1.0);
+  float Lr = 1.0 - exp(-dot(d,vec3(0.5))*uTonemapK*2.0);   /* dye presence, 0..1 */
+  float cr = texture(uCurl,vUv).r;
+  if(abs(uHueShift)>0.001) disp = hueRotate(disp,uHueShift);
+  vec3 col = vec3(1.0) - exp(-disp*uTonemapK);
+  vec3 blm = texture(uBloom,vUv).rgb;
+  if(abs(uHueShift)>0.001) blm = hueRotate(blm,uHueShift);
+  col += blm*uBloomStrength;
+  /* curl tint: overall strength = uCurlTint; saturation ~ dye concentration^2 */
+  float w = Lr*Lr;
+  vec3 tint = cr>0.0 ? vec3(0.85,0.35,1.00) : vec3(0.25,1.00,0.85);
+  col += tint*abs(cr)*0.05*uCurlTint*w;
+  /* ambient schlieren: ONLY where dye is absent; arriving dye develops it away
+     into the curl tint above (the two crossfade on Lr) */
+  float s = cr*(1.0 - smoothstep(0.0,0.30,Lr));
+  col += mix(vec3(0.16,0.12,0.10), vec3(0.10,0.13,0.18), step(0.0,s))*abs(s)*uSchlieren*0.05;
+  /* media + amp field legibility */
+  vec3 m = texture(uMedia,vUv).rgb;
+  float dev = clamp(length(m-vec3(1.0)),0.0,1.5);
+  float hatch = 0.6+0.4*step(0.5,fract((vUv.x-vUv.y*0.5)*80.0));
+  col += vec3(0.06,0.04,0.10)*dev*hatch*0.5;
+  vec2 av = texture(uAmp,vUv).rg;
+  float aa = clamp(length(av)*0.008,0.0,0.6);
+  float chev = step(0.5,fract(dot(vUv,normalize(av+vec2(1e-5)))*60.0-uTime*0.8));
+  col += vec3(0.05,0.10,0.06)*aa*(0.5+0.5*chev);
+  /* gel membrane: icy panes with a live rim */
+  float gel = texture(uGel,vUv).r;
+  float gR = texture(uGel,vUv+vec2(uSimTexel.x,0.0)).r;
+  float gT = texture(uGel,vUv+vec2(0.0,uSimTexel.y)).r;
+  float gEdge = clamp((abs(gel-gR)+abs(gel-gT))*6.0, 0.0, 1.0);
+  float mem = smoothstep(0.06,0.45,gel);
+  vec3 gcol = mix(vec3(0.45,0.62,0.78), vec3(0.78,0.92,1.05), smoothstep(0.4,1.1,gel));
+  col = mix(col, gcol*(0.5+0.4*min(gel,1.3)), mem*0.62*clamp(uGelGlow,0.0,2.0));
+  col += vec3(0.45,0.75,1.0)*gEdge*mem*uGelGlow*(0.30+0.18*sin(uTime*2.2+(vUv.x+vUv.y)*34.0));
+  /* predator wake: dead, murky water */
+  float wkm = texture(uWake,vUv).r;
+  col = mix(col, col*vec3(0.50,0.56,0.66), wkm*0.4);
+  /* zones */
+  vec4 z = texture(uRegions,vUv);
+  if(z.r>0.01){
+    float pulse = 0.55 + uPulseAmp*sin(uPulsePhase + (vUv.x+vUv.y)*9.0);
+    col = mix(col, heatRamp(uSinkHeat)*pulse, z.r*0.55);
+  }
+  if(z.g>0.01){
+    float st = step(0.5, fract((vUv.x-vUv.y)*40.0 + uTime*0.5));
+    col = mix(col, vec3(0.45,0.05,0.07)*(0.55+0.35*st), z.g*0.55);
+  }
+  if(z.b>0.01){
+    vec3 tc = mix(vec3(0.08,0.22,0.28), vec3(0.75,1.05,1.15), uTriggerHeat);
+    float p2 = 0.6 + 0.25*sin(uTime*2.0 + vUv.y*14.0);
+    col = mix(col, tc*p2, z.b*0.50);
+  }
+  if(z.a>0.01){
+    float st = 0.5+0.3*sin(uTime*3.0 + vUv.x*30.0);
+    col = mix(col, vec3(0.55,0.15,0.60)*st, z.a*0.45);
+  }
+  /* removable walls: panelled slate with a cyan seam (vs immutable dark) */
+  float wallv = texture(uWalls,vUv).r;
+  if(wallv>0.05){
+    float hat = 0.85 + 0.15*step(0.5, fract((vUv.x+vUv.y)*120.0));
+    float wl=texture(uWalls,vUv-vec2(uSimTexel.x,0.0)).r, wr2=texture(uWalls,vUv+vec2(uSimTexel.x,0.0)).r;
+    float wb=texture(uWalls,vUv-vec2(0.0,uSimTexel.y)).r, wt=texture(uWalls,vUv+vec2(0.0,uSimTexel.y)).r;
+    float wedge = clamp(abs(wr2-wl)+abs(wt-wb), 0.0, 1.0);
+    col = mix(col, vec3(0.16,0.19,0.26)*hat, smoothstep(0.35,0.6,wallv));
+    col += vec3(0.20,0.50,0.75)*wedge*0.55;
+  }
+  /* walls */
+  float dd = texture(uLevel,vUv).r;
+  float solidA = 1.0 - smoothstep(0.0, 1.2, dd);
+  col = mix(col, vec3(0.10,0.12,0.17), solidA);
+  col += vec3(0.35,0.55,0.95)*(1.0-smoothstep(0.0,2.2,abs(dd)))*0.18;
+  vec2 q = vUv-0.5;
+  col *= 1.0 - 0.25*dot(q,q);
+  fragColor = vec4(col, 1.0);
+}
+`;
+
+return {
+  vs: { fullscreen: VS_FULLSCREEN, splat: splatVS, glyph: glyphVS, ghost: ghostVS },
+  fs: {
+    copy: copyFS, advect: advectFS, curl: curlFS, vorticity: vorticityFS,
+    reactForce: reactForceFS, divergence: divergenceFS, jacobi: jacobiFS,
+    gradientSubtract: gradientSubtractFS, gelUpdate: gelUpdateFS,
+    obstacleCompose: obstacleComposeFS, dyePost: dyePostFS, scoreAccum: scoreAccumFS,
+    sensor: sensorFS, reduce: reduceFS, telemetry: telemetryFS,
+    jfaSeed: jfaSeedFS, jfaStep: jfaStepFS, jfaCombine: jfaCombineFS, jfaGrad: jfaGradFS,
+    actorUpdate: actorUpdateFS, splatForce: splatForceFS, splatDye: splatDyeFS, splatWake: splatWakeFS, wakeUpdate: wakeUpdateFS, wallPaint: wallPaintFS, switchSense: switchSenseFS,
+    splatMask: splatMaskFS, glyph: glyphFS, bright: brightFS, blur: blurFS,
+    composite: compositeFS
+  }
+};
+})();
+if (typeof module !== "undefined" && module.exports) module.exports = GLSL;
+
+</script>
+<script>
+"use strict";
+/* FLUX ROUTE v0.3 — game engine. Companion to shaders.js (global GLSL). */
+(function () {
+
+/* ---------- quality presets (changing quality reloads the page) ---------- */
+const QUALITY_PRESETS = {
+  low:    { simW: 320, simH: 180, dyeW: 960,  dyeH: 540,  iters: 20, blur: 2, gel: false },
+  medium: { simW: 480, simH: 270, dyeW: 1440, dyeH: 810,  iters: 24, blur: 4, gel: true },
+  high:   { simW: 480, simH: 270, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true },
+  ultra:  { simW: 640, simH: 360, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true }
+};
+let qualityName = "high";
+try { qualityName = localStorage.getItem("fluxroute.quality") || "high"; } catch (e) {}
+if (!QUALITY_PRESETS[qualityName]) qualityName = "high";
+const Q = QUALITY_PRESETS[qualityName];
+
+const SIM_W = Q.simW, SIM_H = Q.simH, DYE_W = Q.dyeW, DYE_H = Q.dyeH;
+const N_ACTORS = 64, ACTOR_ROWS = 4;
+const DT = 1 / 120, MAX_SUBSTEPS = 4, PRESSURE_ITERS = Q.iters, BLUR_PASSES = Q.blur;
+const GEL_ON = Q.gel;
+const SIM_TEXEL = [1 / SIM_W, 1 / SIM_H];
+/* normalized length scale: every tunable is defined at the reference grid
+ * (480x270). RES_SCALE converts to the active grid so all quality presets
+ * exhibit IDENTICAL physics — entity sizes, jet reach, traversal times. */
+const RES_SCALE = SIM_H / 270;
+const TELEM_W = 2 + N_ACTORS;
+// emission constant: gaussian integral 0.694 * (3r·ratio)² dye texels / ratio² downsample = 6.25r²
+const EMIT_K = 6.25;
+
+const DEFAULT_PARAMS = {
+  curl: 4.5, velDiss: 0.04, dyeDiss: 0.03, absorb: 6, solidDecay: 8, drainRate: 15.8,
+  viscRed: 1.0, viscGreen: 10.0, viscBlue: 0.1,
+  curlRed: 1.0, curlGreen: 0.1, curlBlue: 4.0,
+  fanStrength: 600, emitScale: 0.051, blueEmitStrength: 350, greenEmitStrength: 350,
+  entityScale: 1.0,
+  thrust: 1.08, dragK: 1.2, flowPush: 0.65, linDamp: 2.5,
+  spinAccel: 18.5, spinDamp: 0.05, spinKick: 0.05, spinBudget: 45,
+  playerMass: 1.0, predMass: 1.6, pistonMass: 8, restitution: 0.65, bounceFloor: 30,
+  pistonSpring: 90, pistonDamp: 5, predSuck: 1200, predSense: 12, predGreed: 30, predTtl: 14,
+  wakeDeposit: 12.0, wakeDiss: 20.0, wakeCurl: 8.0, wakeSlow: 0.07, wakeFast: 1.6, wakeKnee: 0.5,
+  gelReact: 6, gelDissolve: 0.02, gelErode: 0.01, gelDrag: 12.9, gelSolid: 1.09, gelConsume: 1.0,
+  exoForce: 13800, exoKnee: 0.15, stagBoost: 32.9, stagSpeed: 1, exoConsume: 0.5, eatRate: 12.0,
+  beadCompact: 25, beadBoost: 14,
+  wallBrush: 7,
+  warmStart: 0.8, tonemapK: 0.42, bloomStr: 0.57, bloomThr: 2.1,
+  hueShift: 0.01, flowGlow: 1.42, streak: 2.62, curlTint: 0.63, schlieren: 1.14, speciesFx: 0.24,
+  gelGlow: 1.2,
+  winScale: 1.0
+};
+let params = Object.assign({}, DEFAULT_PARAMS);
+/* parameter pulses: event-driven temporary overrides (auto-restoring).
+ * pulseParam("exoConsume", 0.15, 2.5) -> spectacular R+G explosions for 2.5 s.
+ * Levels/gates can call pulseParam; also on window.fluxPulse for console play. */
+const pulses = {};
+function pulseParam(key, value, durSec) { pulses[key] = { value, until: simTimeRef() + durSec }; }
+function PV(k) { const p = pulses[k]; return (p && simTimeRef() < p.until) ? p.value : params[k]; }
+function anyPulseActive() {
+  for (const k in pulses) if (simTimeRef() < pulses[k].until) return true;
+  return false;
+}
+try { window.fluxPulse = pulseParam; } catch (e) {}
+function effScale() { return params.entityScale * RES_SCALE; }
+const dirtyKeys = new Set();   // slider keys the user touched this session
+
+/* ---------- context ---------- */
+const canvas = document.getElementById("gl");
+const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, preserveDrawingBuffer: false });
+function fatal(msg) {
+  const el = document.getElementById("fatal");
+  el.style.display = "flex"; el.querySelector("p").textContent = msg;
+  throw new Error(msg);
+}
+if (!gl) fatal("This game needs WebGL2, which your browser did not provide.");
+canvas.width = DYE_W; canvas.height = DYE_H;   // buffer matches render res; CSS letterboxes
+const extCBF = gl.getExtension("EXT_color_buffer_float");
+let HALF_FALLBACK = false;
+if (!extCBF) {
+  if (gl.getExtension("EXT_color_buffer_half_float")) {
+    HALF_FALLBACK = true;
+    console.warn("EXT_color_buffer_float missing; half-float fallback (reduced precision).");
+  } else fatal("This game needs float render targets (EXT_color_buffer_float).");
+}
+
+const F32 = HALF_FALLBACK
+  ? { internal: gl.RGBA16F, type: gl.HALF_FLOAT }
+  : { internal: gl.RGBA32F, type: gl.FLOAT };
+const SCORE_SCALE = HALF_FALLBACK ? 1 / 64 : 1.0;
+
+function makeTex(w, h, internal, format, type, filter) {
+  const t = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, format, type, null);
+  return t;
+}
+function makeRT(w, h, internal, format, type, filter) {
+  const tex = makeTex(w, h, internal, format, type, filter);
+  const fbo = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  const st = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+  if (st !== gl.FRAMEBUFFER_COMPLETE) fatal("Framebuffer incomplete for " + w + "x" + h);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  return { tex, fbo, w, h };
+}
+function makePP(w, h, internal, format, type, filter) {
+  const a = makeRT(w, h, internal, format, type, filter);
+  const b = makeRT(w, h, internal, format, type, filter);
+  return { a, b, get read() { return this.a; }, get write() { return this.b; },
+           swap() { const t = this.a; this.a = this.b; this.b = t; } };
+}
+function compile(name, vsSrc, fsSrc) {
+  function sh(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      console.error(name, gl.getShaderInfoLog(s), "\n" +
+        src.split("\n").map((l, i) => (i + 1) + ": " + l).join("\n"));
+      fatal("Shader compile failed: " + name);
+    }
+    return s;
+  }
+  const p = gl.createProgram();
+  gl.attachShader(p, sh(gl.VERTEX_SHADER, vsSrc));
+  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) fatal("Link failed: " + name);
+  p._uni = {};
+  return p;
+}
+function U(p, n) {
+  if (!(n in p._uni)) p._uni[n] = gl.getUniformLocation(p, n);
+  return p._uni[n];
+}
+let currentTargetTex = null;
+function drawTo(rt) {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, rt ? rt.fbo : null);
+  gl.viewport(0, 0, rt ? rt.w : DYE_W, rt ? rt.h : DYE_H);
+  currentTargetTex = rt ? rt.tex : null;
+}
+function bindTex(p, name, tex, unit) {
+  if (tex === currentTargetTex) fatal("Feedback loop: " + name);
+  gl.activeTexture(gl.TEXTURE0 + unit);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.uniform1i(U(p, name), unit);
+}
+function clearRT(rt) { drawTo(rt); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
+
+const triVAO = gl.createVertexArray();
+gl.bindVertexArray(triVAO);
+let buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+const quadVAO = gl.createVertexArray();
+gl.bindVertexArray(quadVAO);
+buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+gl.bindVertexArray(null);
+function fullscreen() { gl.bindVertexArray(triVAO); gl.drawArrays(gl.TRIANGLES, 0, 3); gl.bindVertexArray(null); }
+
+/* ---------- resources ---------- */
+const velocity  = makePP(SIM_W, SIM_H, gl.RG16F, gl.RG, gl.HALF_FLOAT, gl.LINEAR);
+const pressure  = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const divergence = makeRT(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const curlTex   = makeRT(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const dye       = makePP(DYE_W, DYE_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const dynMask   = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const obstacle  = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const gel       = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const level     = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const distRT    = makeRT(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const seeds     = makePP(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
+const seedSolid = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
+const seedEmpty = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
+const actors    = makePP(N_ACTORS, ACTOR_ROWS, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
+const scoreAcc  = makePP(SIM_W, SIM_H, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
+const sensorRT  = makeRT(SIM_W, SIM_H, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
+const scoreOne  = makeRT(1, 1, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
+const telemetry = makeRT(TELEM_W, 1, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
+const bloomA    = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const bloomB    = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);
+const regionsTex = makeTex(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.LINEAR);
+const levelPngTex = makeTex(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.NEAREST);
+const mediaTex  = makeTex(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.FLOAT, gl.LINEAR);
+const ampTex    = makeTex(SIM_W, SIM_H, gl.RG16F, gl.RG, gl.FLOAT, gl.LINEAR);
+const wake = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const walls = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const swState = makePP(8, 1, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
+clearRT(gel.a); clearRT(gel.b); clearRT(wake.a); clearRT(wake.b); clearRT(walls.a); clearRT(walls.b); clearRT(swState.a); clearRT(swState.b);
+
+const reduceChain = [];
+{
+  let w = SIM_W, h = SIM_H;
+  while (w > 1 || h > 1) {
+    w = Math.max(1, Math.ceil(w / 2)); h = Math.max(1, Math.ceil(h / 2));
+    reduceChain.push(makeRT(w, h, F32.internal, gl.RGBA, F32.type, gl.NEAREST));
+  }
+}
+
+const P = {};
+for (const [n, src] of Object.entries(GLSL.fs)) {
+  if (n === "splatForce" || n === "splatDye" || n === "splatMask" || n === "splatWake")
+    P[n] = compile(n, GLSL.vs.splat, src);
+  else if (n === "glyph") { /* below */ }
+  else P[n] = compile(n, GLSL.vs.fullscreen, src);
+}
+P.glyph = compile("glyph", GLSL.vs.glyph, GLSL.fs.glyph);
+P.ghost = compile("ghost", GLSL.vs.ghost, GLSL.fs.glyph);
+
+/* ---------- template levels ----------
+ * Paint colors -> zones: solid #ff0000 | sink #00ff00 | drain #0000ff |
+ * trigger #00ffff | sensor #000080 (low-blue, avoids the JFA solid channel).
+ * These are FEATURE TEMPLATES exercising every mechanic; fine design is the
+ * level author's job. budgets = player tool counts {fan, blue, green}. */
+const lvCanvas = document.createElement("canvas");
+lvCanvas.width = SIM_W; lvCanvas.height = SIM_H;
+const lvCtx = lvCanvas.getContext("2d", { willReadFrequently: true });
+function pxRect(style, u0, v0, u1, v1) {
+  lvCtx.fillStyle = style;
+  lvCtx.fillRect(Math.round(u0 * SIM_W), Math.round((1 - v1) * SIM_H),
+    Math.round((u1 - u0) * SIM_W), Math.round((v1 - v0) * SIM_H));
+}
+const SOLID_C = "#ff0000", SINK_C = "#00ff00", DRAIN_C = "#0000ff",
+      TRIG_C = "#00ffff", SENSOR_C = "#000080";
+function border() {
+  pxRect(SOLID_C, 0, 0, 1, 3 / SIM_H); pxRect(SOLID_C, 0, 1 - 3 / SIM_H, 1, 1);
+  pxRect(SOLID_C, 0, 0, 3 / SIM_W, 1); pxRect(SOLID_C, 1 - 3 / SIM_W, 0, 1, 1);
+}
+function base() { lvCtx.fillStyle = "#000000"; lvCtx.fillRect(0, 0, SIM_W, SIM_H); border(); }
+// PURE species vectors — chemistry reads channels as species; display colors
+// live in the shaders (speciesToDisplay). Mixed-channel "colors" here would
+// make red emitters self-react (R*B gel shell entombs the emitter).
+const RED = [1, 0, 0], BLUE = [0, 0, 1], GREEN = [0, 1, 0];
+
+const LEVELS = [
+  {
+    name: "T1 \u00b7 basics", winFraction: 0.25, winHoldSec: 4,
+    messages: [
+      { t: 1, dur: 7, text: "Guide the red flux to the green basin. WASD to swim \u2014 your wake is a tool." },
+      { t: 9, dur: 7, text: "Click places a fan (key 1). Hover + wheel rotates. Hold the capture % to win." }
+    ],
+    budgets: { fan: 3, blue: 0, green: 0, wallAdd: 6, wallErase: 5 }, allowNudge: true,
+    removableWalls: [{ rect: [0.44, 0.55, 0.48, 0.78] }],
+    playerStart: [0.25, 0.78],
+    actors: [{ type: 3, pos: [0.07, 0.60], angle: 0, r: 5, strength: 430, dye: RED, locked: true, rotatable: true }],
+    paint() {
+      base();
+      pxRect(SOLID_C, 0.44, 0.0, 0.48, 0.55);
+      pxRect(DRAIN_C, 0.50, 0.03, 0.80, 0.10);
+      pxRect(SINK_C, 0.88, 0.52, 0.96, 0.78);
+    }
+  },
+  {
+    name: "T2 \u00b7 blue / gel", winFraction: 0.20, winHoldSec: 4,
+    messages: [{ t: 1, dur: 8, text: "Red + blue precipitates GEL. Dam the leaking gap \u2014 but keep blue out of your main stream." }],
+    budgets: { fan: 1, blue: 2, green: 0 }, allowNudge: true,
+    playerStart: [0.50, 0.30],
+    actors: [
+      { type: 3, pos: [0.06, 0.62], angle: 0, r: 5, strength: 440, dye: RED, locked: true, rotatable: true },
+      // fixed blue jet firing ACROSS the red duct gap: red that drifts into it gels
+      { type: 3, pos: [0.48, 0.20], angle: Math.PI / 2, r: 4, strength: 300, dye: BLUE, locked: true }
+    ],
+    paint() {
+      base();
+      pxRect(SOLID_C, 0.08, 0.68, 0.84, 0.72);
+      pxRect(SOLID_C, 0.08, 0.50, 0.40, 0.54);
+      pxRect(SOLID_C, 0.58, 0.50, 0.84, 0.54);          // gap 0.40..0.58: dam it with gel
+      pxRect(DRAIN_C, 0.34, 0.05, 0.64, 0.26);
+      pxRect(SINK_C, 0.87, 0.50, 0.95, 0.72);
+    }
+  },
+  {
+    name: "T3 \u00b7 green / blast", winFraction: 0.20, winHoldSec: 4,
+    budgets: { fan: 1, blue: 0, green: 1 }, allowNudge: true,
+    playerStart: [0.30, 0.30],
+    messages: [
+      { t: 1, dur: 8, text: "Red + green reacts violently, blasting both apart. Throw the red around the corner." },
+      { t: 10, dur: 6, text: "A spare green emitter is cached below \u2014 touch it to collect." }
+    ],
+    actors: [
+      { type: 3, pos: [0.06, 0.70], angle: 0, r: 5, strength: 440, dye: RED, locked: true, rotatable: true },
+      { type: 8, pos: [0.50, 0.85], r: 5, gives: "green", count: 1 }
+    ],
+    paint() {
+      base();
+      pxRect(DRAIN_C, 0.70, 0.62, 0.96, 0.80);          // straight path ends in a drain
+      pxRect(SOLID_C, 0.50, 0.36, 0.54, 0.58);
+      pxRect(SINK_C, 0.86, 0.08, 0.95, 0.34);           // must turn the corner: blast it
+    }
+  },
+  {
+    name: "T4 \u00b7 media + amp", winFraction: 0.25, winHoldSec: 4,
+    budgets: { fan: 2, blue: 0, green: 0 }, allowNudge: true,
+    playerStart: [0.25, 0.30],
+    actors: [{ type: 3, pos: [0.06, 0.55], angle: 0, r: 5, strength: 430, dye: RED, locked: true, rotatable: true }],
+    mediaZones: [
+      { rect: [0.30, 0.35, 0.50, 0.75], curl: 3.5, velDiss: 1, dyeDiss: 1 },   // storm cell
+      { rect: [0.55, 0.10, 0.75, 0.45], curl: 1, velDiss: 1, dyeDiss: 5 }      // fog: dye thins
+    ],
+    ampZones: [
+      { rect: [0.62, 0.52, 0.80, 0.66], angle: 0, gain: 900 }                  // red-powered booster
+    ],
+    paint() { base(); pxRect(SINK_C, 0.88, 0.46, 0.96, 0.70); }
+  },
+  {
+    name: "T5 \u00b7 locks", winFraction: 0.18, winHoldSec: 4,
+    budgets: { fan: 3, blue: 1, green: 0 }, allowNudge: true,
+    playerStart: [0.25, 0.30],
+    actors: [{ type: 3, pos: [0.06, 0.50], angle: 0, r: 5, strength: 450, dye: RED, locked: true, rotatable: true }],
+    switches: [
+      { id: "A", rect: [0.24, 0.72, 0.37, 0.90], kind: "volume", threshold: 0.8,
+        mask: [1, 0, 0], wires: [[[0.34, 0.66], [0.42, 0.50]]] },
+      { id: "B", rect: [0.55, 0.40, 0.60, 0.60], kind: "flow", latch: "dynamic",
+        threshold: 0.06, holdSec: 2, mask: [1, 0, 0], wires: [[[0.66, 0.50], [0.72, 0.50]]] }
+    ],
+    paint(gs) {
+      gs = gs || {};
+      base();
+      pxRect(SOLID_C, 0.40, 0.66, 0.44, 1.0);           // gate-A wall stubs
+      pxRect(SOLID_C, 0.40, 0.0, 0.44, 0.34);
+      if (!gs.A) pxRect(SOLID_C, 0.40, 0.34, 0.44, 0.66); // door A (pay the tank)
+      pxRect(SOLID_C, 0.70, 0.62, 0.74, 1.0);           // gate-B wall stubs
+      pxRect(SOLID_C, 0.70, 0.0, 0.74, 0.38);
+      if (!gs.B) pxRect(SOLID_C, 0.70, 0.38, 0.74, 0.62); // gate B (held open by flux)
+      pxRect(SINK_C, 0.87, 0.38, 0.95, 0.62);
+    }
+  },
+  {
+    name: "T6 \u00b7 predators + spin", winFraction: 0.22, winHoldSec: 5,
+    budgets: { fan: 2, blue: 0, green: 1 }, allowNudge: true,
+    playerStart: [0.50, 0.50],
+    actors: [
+      { type: 3, pos: [0.06, 0.50], angle: 0, r: 5, strength: 450, dye: RED, locked: true, rotatable: true },
+      { type: 7, pos: [0.50, 0.86], period: 9, jitter: 0.3, predTtl: 14, predThrust: 0.45 },
+      { type: 7, pos: [0.50, 0.14], period: 11, jitter: 0.3, predTtl: 14, predThrust: 0.45 }
+    ],
+    paint() { base(); pxRect(SINK_C, 0.88, 0.38, 0.96, 0.62); }
+  },
+  {
+    name: "T7 \u00b7 full kit", winFraction: 0.15, winHoldSec: 5,
+    budgets: { fan: 2, blue: 2, green: 2 }, allowNudge: true,
+    playerStart: [0.20, 0.50],
+    actors: [
+      { type: 3, pos: [0.06, 0.76], angle: 0, r: 5, strength: 450, dye: RED, locked: true, rotatable: true },
+      { type: 3, pos: [0.36, 0.96], angle: -Math.PI / 2, r: 4, strength: 280, dye: BLUE, locked: true },
+      { type: 7, pos: [0.82, 0.84], period: 12, jitter: 0.4, predTtl: 12, predThrust: 0.42 },
+      { type: 5, pos: [0.56, 0.50], angle: Math.PI / 2, r: 7, amp: 0.16, omega: 1.8, phase: 0 }
+    ],
+    switches: [{ id: "S", rect: [0.44, 0.55, 0.49, 0.75], kind: "flow", latch: "dynamic",
+      threshold: 0.05, holdSec: 2, mask: [1, 0, 0],
+      wires: [[[0.60, 0.65], [0.70, 0.41], [0.76, 0.41]]] }],
+    ampZones: [{ rect: [0.66, 0.18, 0.82, 0.30], angle: 0, gain: 800 }],
+    paint(gs) {
+      gs = gs || {};
+      base();
+      pxRect(SOLID_C, 0.30, 0.30, 0.34, 1.0);
+      pxRect(DRAIN_C, 0.36, 0.04, 0.70, 0.12);
+      pxRect(SOLID_C, 0.74, 0.56, 0.78, 1.0);
+      if (!gs.S) pxRect(SOLID_C, 0.74, 0.26, 0.78, 0.56);
+      pxRect(SINK_C, 0.88, 0.24, 0.96, 0.52);
+    }
+  }
+];
+
+/* attract mode: the machine dreaming. No player, no zones, no HUD. */
+const ATTRACT_LEVEL = {
+  name: "", winFraction: 99, winHoldSec: 1e9, spinBudget: 0,
+  budgets: { fan: 0, blue: 0, green: 0 },
+  playerStart: [-1, -1],
+  config: { dyeDiss: 0.06, schlieren: 0.9, curlTint: 0.45 },
+  actors: [
+    { type: 3, pos: [0.16, 0.50], angle: 0, r: 6, strength: 480, dye: RED, locked: true },
+    { type: 3, pos: [0.84, 0.50], angle: Math.PI, r: 6, strength: 480, dye: RED, locked: true },
+    { type: 3, pos: [0.50, 0.10], angle: Math.PI / 2, r: 5, strength: 280, dye: GREEN, locked: true },
+    { type: 3, pos: [0.50, 0.90], angle: -Math.PI / 2, r: 4, strength: 220, dye: BLUE, locked: true },
+    { type: 7, pos: [0.10, 0.12], period: 15, jitter: 0.5, predTtl: 16, predThrust: 0.5 }
+  ],
+  mediaZones: [{ rect: [0.34, 0.28, 0.66, 0.72], curl: 2.5, velDiss: 1, dyeDiss: 1 }],
+  paint() { base(); }
+};
+function curLevel() { return levelIdx < 0 ? ATTRACT_LEVEL : LEVELS[levelIdx]; }
+
+/* ---------- JFA SDF ---------- */
+function runFS(prog, rt, setup) { drawTo(rt); gl.useProgram(prog); setup(prog); fullscreen(); }
+function runJFA() {
+  for (let pass = 0; pass < 2; pass++) {
+    runFS(P.jfaSeed, seeds.write, p => {
+      bindTex(p, "uLevelPng", levelPngTex, 0);
+      gl.uniform1f(U(p, "uInvert"), pass);
+    });
+    seeds.swap();
+    let step = 1 << Math.ceil(Math.log2(Math.max(SIM_W, SIM_H)));
+    const list = [];
+    while (step >= 1) { list.push(step); step >>= 1; }
+    list.push(1);
+    for (const s of list) {
+      runFS(P.jfaStep, seeds.write, p => {
+        bindTex(p, "uSeeds", seeds.read.tex, 0);
+        gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+        gl.uniform2f(U(p, "uSimSize"), SIM_W, SIM_H);
+        gl.uniform1f(U(p, "uStep"), s);
+      });
+      seeds.swap();
+    }
+    runFS(P.copy, pass === 0 ? seedSolid : seedEmpty, p => {
+      bindTex(p, "uSrc", seeds.read.tex, 0);
+      gl.uniform1f(U(p, "uMul"), 1.0);
+    });
+  }
+  runFS(P.jfaCombine, distRT, p => {
+    bindTex(p, "uLevelPng", levelPngTex, 0);
+    bindTex(p, "uSolidSeeds", seedSolid.tex, 1);
+    bindTex(p, "uEmptySeeds", seedEmpty.tex, 2);
+    gl.uniform2f(U(p, "uSimSize"), SIM_W, SIM_H);
+  });
+  runFS(P.jfaGrad, level, p => {
+    bindTex(p, "uDist", distRT.tex, 0);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+  });
+}
+
+/* ---------- actor table ---------- */
+const cpuActors = new Array(N_ACTORS).fill(null);
+let freeSlots = [], levelData = null;
+function writeActor(slot, rows16) {
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  let data = rows16;
+  if (HALF_FALLBACK) data = f32ToF16Arr(rows16);
+  for (const rt of [actors.a, actors.b]) {
+    gl.bindTexture(gl.TEXTURE_2D, rt.tex);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, slot, 0, 1, ACTOR_ROWS, gl.RGBA, F32.type, data);
+  }
+}
+function f32ToF16Arr(f32) {
+  const out = new Uint16Array(f32.length);
+  const fv = new Float32Array(1), iv = new Int32Array(fv.buffer);
+  for (let i = 0; i < f32.length; i++) {
+    fv[0] = f32[i]; const x = iv[0];
+    const sign = (x >>> 16) & 0x8000;
+    let exp = ((x >>> 23) & 0xff) - 127 + 15, man = (x >>> 13) & 0x3ff;
+    if (exp <= 0) { exp = 0; man = 0; } else if (exp >= 31) { exp = 31; man = 0; }
+    out[i] = sign | (exp << 10) | man;
+  }
+  return out;
+}
+function actorRecord(a) {
+  const f = new Float32Array(16);
+  f[0] = a.pos[0]; f[1] = a.pos[1];
+  f[4] = a.type; f[5] = a.r;
+  f[8] = -1;
+  if (a.type === 5) {                 // piston
+    f[6] = a.amp || 0.10; f[7] = a.angle != null ? a.angle : Math.PI / 2;
+    f[9] = 1;
+    f[10] = a.omega || 2.0; f[11] = a.phase || 0;
+    f[13] = a.pos[0]; f[14] = a.pos[1];
+  } else if (a.type === 6) {          // predator
+    f[6] = a.predThrust || 0.45;
+    const ttl = a.predTtl || params.predTtl || 14;
+    f[8] = ttl; f[11] = Math.random() * 6.28;
+    f[12] = Math.random() < 0.5 ? -1 : 1;   // r3.x = vortex spin sign
+    f[15] = ttl;                      // r3.w = ttl0
+  } else if (a.type === 7) {          // nest: r2.w = arm fraction (CPU refreshes)
+    f[9] = 1; f[11] = 1.0;
+  } else if (a.type === 8) {          // pickup: species color drives the glyph
+    f[9] = 1;
+    const sp = a.gives === "blue" ? [0, 0, 1] : a.gives === "green" ? [0, 1, 0]
+      : a.gives === "wallAdd" ? [0.8, 0.5, 0] : a.gives === "wallErase" ? [1, 0.1, 0] : [1, 1, 1];
+    f[10] = sp[0]; f[11] = sp[1]; f[12] = sp[2];
+  } else {
+    f[6] = a.strength || 0; f[7] = a.angle || 0;
+    f[9] = a.locked ? 1 : 0;
+    const d = a.dye || [1, 1, 1];
+    f[10] = d[0]; f[11] = d[1]; f[12] = a.dye ? d[2] : 0;
+  }
+  return f;
+}
+function clearActorSlot(slot) { writeActor(slot, new Float32Array(16)); }
+
+/* ---------- level loading + gates ---------- */
+let levelIdx = 0, state = "PLAY", paused = false;
+function simTimeRef() { return simTime; }
+let budget = { fan: 0, blue: 0, green: 0 };
+const budgetOverrides = {};        // per-level session overrides from the panel
+let emittedRed = 0, gateState = {}, simTime = 0;
+let ghostAngle = 0, ghostPos = [0.5, 0.5], mouseUV = [0.5, 0.5], mouseInCanvas = false;
+let pendingSpawn = null, debugMode = 0, lastSubsteps = 0, fps = 60;
+let lastTelem = new Float32Array((TELEM_W + 8) * 4);   // +8 switch slots
+let selectedSlot = -1, selectedTool = 0;
+const TOOLS = [
+  { key: "fan", label: "FAN", type: 2, r: 6, dye: null, strengthKey: "fanStrength" },
+  { key: "blue", label: "BLU", type: 3, r: 5, dye: BLUE, strengthKey: "blueEmitStrength" },
+  { key: "green", label: "GRN", type: 3, r: 5, dye: GREEN, strengthKey: "greenEmitStrength" },
+  { key: "wallAdd", label: "WAL+", type: 9, r: 7, dye: [1, 0.72, 0.25] },
+  { key: "wallErase", label: "WAL\u2212", type: 9, r: 7, dye: [1, 0.32, 0.28] }
+];
+let prevDelivered = 0, captureEMA = 0, sensorEMA = 0, pulsePhase = 0, pulseAmp = 0.1;
+let sinkHeat = 0, trigHeat = 0, winHoldT = 0, winInhibited = false, lastPulseT = performance.now() / 1000;
+let rng = mulberry32(1);
+function mulberry32(seed) {
+  let s = seed >>> 0;
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function rasterZones(zones, fill, write) {
+  // build directly in GL orientation (v-up); no flip needed
+  for (const z of zones || []) {
+    const [u0, v0, u1, v1] = z.rect;
+    const i0 = Math.max(0, Math.floor(u0 * SIM_W)), i1 = Math.min(SIM_W, Math.ceil(u1 * SIM_W));
+    const j0 = Math.max(0, Math.floor(v0 * SIM_H)), j1 = Math.min(SIM_H, Math.ceil(v1 * SIM_H));
+    for (let j = j0; j < j1; j++)
+      for (let i = i0; i < i1; i++) write(z, (j * SIM_W + i));
+  }
+  return fill;
+}
+function refreshLevelTextures() {
+  const L = curLevel();
+  L.paint(gateState);
+  const img = lvCtx.getImageData(0, 0, SIM_W, SIM_H);
+  levelData = img.data;
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.bindTexture(gl.TEXTURE_2D, levelPngTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, SIM_W, SIM_H, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+    new Uint8Array(img.data.buffer.slice(0)));
+  const n = SIM_W * SIM_H, reg = new Uint8Array(n * 4);
+  for (let i = 0; i < n; i++) {
+    const gv = img.data[i * 4 + 1], bv = img.data[i * 4 + 2];
+    const g = gv > 127, bHigh = bv > 191, bLow = bv > 63 && bv <= 191;
+    reg[i * 4]     = (g && !bHigh) ? 255 : 0;       // sink   (#00ff00)
+    reg[i * 4 + 1] = (bHigh && !g) ? 255 : 0;       // drain  (#0000ff)
+    reg[i * 4 + 2] = (g && bHigh) ? 255 : 0;        // trigger (#00ffff)
+    reg[i * 4 + 3] = (bLow && !g) ? 255 : 0;        // sensor (#000080)
+  }
+  gl.bindTexture(gl.TEXTURE_2D, regionsTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, SIM_W, SIM_H, 0, gl.RGBA, gl.UNSIGNED_BYTE, reg);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  // media + amp fields (data, not art)
+  const med = new Float32Array(n * 4);
+  for (let i = 0; i < n; i++) { med[i * 4] = 1; med[i * 4 + 1] = 1; med[i * 4 + 2] = 1; }
+  rasterZones(L.mediaZones, med, (z, i) => {
+    med[i * 4] = z.curl != null ? z.curl : 1;
+    med[i * 4 + 1] = z.velDiss != null ? z.velDiss : 1;
+    med[i * 4 + 2] = z.dyeDiss != null ? z.dyeDiss : 1;
+  });
+  gl.bindTexture(gl.TEXTURE_2D, mediaTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, SIM_W, SIM_H, 0, gl.RGBA, gl.FLOAT, med);
+  const amp = new Float32Array(n * 2);
+  rasterZones(L.ampZones, amp, (z, i) => {
+    amp[i * 2] = Math.cos(z.angle) * z.gain * RES_SCALE;
+    amp[i * 2 + 1] = Math.sin(z.angle) * z.gain * RES_SCALE;
+  });
+  gl.bindTexture(gl.TEXTURE_2D, ampTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG16F, SIM_W, SIM_H, 0, gl.RG, gl.FLOAT, amp);
+  runJFA();
+}
+
+let spinBudgetLeft = 0;
+function loadLevel(idx) {
+  levelIdx = idx < 0 ? -1 : Math.max(0, Math.min(LEVELS.length - 1, idx));
+  const L = curLevel();
+  gateState = {}; simTime = 0;
+  clearRT(swState.a); clearRT(swState.b);
+  compileEvents();
+  pendingCallouts = (curLevel().callouts || [])
+    .filter(c => c.t != null).map(c => Object.assign({ fired: false }, c));
+  if (calloutBox) { calloutBox.innerHTML = ""; liveCallouts = []; }
+  rng = mulberry32(levelIdx * 1337 + 7);
+  applyParamsForLevel();
+  refreshLevelTextures();
+  for (const rt of [velocity.a, velocity.b, pressure.a, pressure.b, dye.a, dye.b,
+                    scoreAcc.a, scoreAcc.b, dynMask, divergence, curlTex, gel.a, gel.b, wake.a, wake.b,
+                    actors.a, actors.b]) clearRT(rt);
+  cpuActors.fill(null);
+  freeSlots = [];
+  for (let s = N_ACTORS - 1; s >= 1; s--) freeSlots.push(s);
+  if (L.playerStart[0] >= 0) {
+    writeActor(0, actorRecord({ type: 1, pos: L.playerStart, r: 5 }));
+    cpuActors[0] = { type: 1, r: 5 };
+  }
+  for (const a of L.actors) {
+    const slot = freeSlots.pop();
+    writeActor(slot, actorRecord(a));
+    cpuActors[slot] = Object.assign({ timer: a.type === 7 ? a.period : 0, slot }, a);
+  }
+  for (const sw of L.switches || [])
+    for (const tgt of sw.targets || []) setTargetEnabled(tgt, false);
+  const ov = budgetOverrides[levelIdx] || {};
+  budget = Object.assign({ fan: 0, blue: 0, green: 0, wallAdd: 0, wallErase: 0 }, L.budgets, ov);
+  emitRate = redEmitRate();
+  {  /* removable level walls live in the dynamic walls field (survive gate repaints) */
+    const wf = new Float32Array(SIM_W * SIM_H);
+    rasterZones(L.removableWalls, wf, (z, i) => { wf[i] = 1; });
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    for (const rt of [walls.a, walls.b]) {
+      gl.bindTexture(gl.TEXTURE_2D, rt.tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, SIM_W, SIM_H, 0, gl.RED, gl.FLOAT, wf);
+    }
+  }
+  state = levelIdx < 0 ? "ATTRACT" : "PLAY"; paused = false;
+  emittedRed = 0; winHoldT = 0; prevDelivered = 0; captureEMA = 0; sensorEMA = 0;
+  pendingSpawn = null; selectedSlot = -1;
+  spinBudgetLeft = L.spinBudget != null ? L.spinBudget : params.spinBudget;
+  document.getElementById("win").style.display = "none";
+  document.getElementById("menu").style.display = levelIdx < 0 ? "flex" : "none";
+  document.getElementById("options").style.display = "none";
+  if (typeof rotateModeSlot !== "undefined") {
+    rotateModeSlot = -1; aimEngaged = false; touchSteer = null;
+    touchPaint = false; touchSpinG = null; touchSpin = 0;
+  }
+  const inGame = levelIdx >= 0 ? "" : "none";
+  hudEl.style.display = inGame; statsEl.style.display = inGame;
+  document.getElementById("keys").style.display = IS_TOUCH ? "none" : inGame;
+  document.getElementById("toolbar").style.display =
+    (IS_TOUCH && levelIdx >= 0) ? "flex" : "none";
+  syncBudgetInputs();
+  updateHUDStatic();
+}
+
+function redEmitRate() {
+  let r = 0;
+  for (const a of cpuActors)
+    if (a && a.type === 3 && a.dye)
+      r += (a.strength || 0) * params.emitScale * EMIT_K *
+        a.r * a.r * effScale() * effScale() * a.dye[0];
+  return r;
+}
+
+/* ---------- input state ---------- */
+const keys = new Set();
+let inputVec = [0, 0], spinInput = 0;
+function readInput() {
+  let x = 0, y = 0;
+  if (keys.has("a") || keys.has("arrowleft")) x -= 1;
+  if (keys.has("d") || keys.has("arrowright")) x += 1;
+  if (keys.has("s") || keys.has("arrowdown")) y -= 1;
+  if (keys.has("w") || keys.has("arrowup")) y += 1;
+  const l = Math.hypot(x, y);
+  inputVec = l > 0 ? [x / l, y / l] : [0, 0];
+  spinInput = (keys.has("q") ? 1 : 0) - (keys.has("e") ? 1 : 0);
+  if (touchSpin) spinInput = touchSpin;
+  if (spinBudgetLeft <= 0) spinInput = 0;
+  if (touchSteer && rotateModeSlot < 0 && state === "PLAY") {
+    const px = lastTelem[8], py = lastTelem[9];
+    const dxp = (touchSteer[0] - px) * 16, dyp = (touchSteer[1] - py) * 9;
+    const l = Math.hypot(dxp, dyp);
+    inputVec = l > 0.5 ? [dxp / l, dyp / l] : [0, 0];
+  }
+}
+
+/* ---------- substep ---------- */
+function splat(prog, target, rt, extentMul) {
+  drawTo(rt);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
+  gl.useProgram(prog);
+  bindTex(prog, "uActors", actors.read.tex, 0);
+  gl.uniform1i(U(prog, "uTarget"), target);
+  gl.uniform2f(U(prog, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+  gl.uniform1f(U(prog, "uExtentMul"), extentMul);
+  gl.uniform1f(U(prog, "uEntityScale"), effScale());
+  gl.uniform1f(U(prog, "uResScale"), RES_SCALE);
+  gl.uniform1f(U(prog, "uDt"), DT);
+  if (prog === P.splatDye) {
+    gl.uniform1f(U(prog, "uEmitScale"), params.emitScale);
+    gl.uniform1f(U(prog, "uEatRate"), PV("eatRate"));
+  }
+  if (prog === P.splatForce) gl.uniform1f(U(prog, "uPredSuck"), PV("predSuck"));
+  if (prog === P.splatWake) gl.uniform1f(U(prog, "uWakeDeposit"), PV("wakeDeposit"));
+  gl.bindVertexArray(quadVAO);
+  gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, N_ACTORS);
+  gl.bindVertexArray(null);
+  gl.disable(gl.BLEND);
+}
+function simUniforms(p) { gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]); }
+
+function substep() {
+  runFS(P.actorUpdate, actors.write, p => {
+    bindTex(p, "uActors", actors.read.tex, 0);
+    bindTex(p, "uVelocity", velocity.read.tex, 1);
+    bindTex(p, "uLevel", level.tex, 2);
+    bindTex(p, "uDye", dye.read.tex, 3);
+    bindTex(p, "uWalls", walls.read.tex, 4);
+    bindTex(p, "uGel", gel.read.tex, 5);
+    gl.uniform1f(U(p, "uGelSolid"), PV("gelSolid"));
+    gl.uniform1f(U(p, "uPredSense"), params.predSense * RES_SCALE);
+    gl.uniform1f(U(p, "uPredGreed"), PV("predGreed"));
+    gl.uniform1f(U(p, "uGelDrag"), PV("gelDrag"));
+    simUniforms(p);
+    gl.uniform1f(U(p, "uDt"), DT);
+    gl.uniform1f(U(p, "uTime"), simTime);
+    gl.uniform4f(U(p, "uInput"), inputVec[0], inputVec[1], spinInput, 0);
+    gl.uniform1f(U(p, "uThrust"), params.thrust);
+    gl.uniform1f(U(p, "uDragK"), params.dragK);
+    gl.uniform1f(U(p, "uLinDamp"), params.linDamp);
+    gl.uniform1f(U(p, "uSpinAccel"), params.spinAccel);
+    gl.uniform1f(U(p, "uSpinDamp"), params.spinDamp);
+    gl.uniform1f(U(p, "uSpinKick"), params.spinKick);
+    gl.uniform1f(U(p, "uEntityScale"), effScale());
+    gl.uniform1f(U(p, "uMassPlayer"), params.playerMass);
+    gl.uniform1f(U(p, "uMassPred"), params.predMass);
+    gl.uniform1f(U(p, "uMassPiston"), params.pistonMass);
+    gl.uniform1f(U(p, "uRestitution"), params.restitution);
+    gl.uniform1f(U(p, "uPistonSpring"), params.pistonSpring);
+    gl.uniform1f(U(p, "uPistonDamp"), params.pistonDamp);
+    gl.uniform1f(U(p, "uFlowPush"), params.flowPush);
+    gl.uniform1f(U(p, "uBounceFloor"), params.bounceFloor * RES_SCALE);
+    if (pendingSpawn) {
+      gl.uniform4f(U(p, "uSpawn"), pendingSpawn.slot, pendingSpawn.type,
+        pendingSpawn.offset[0], pendingSpawn.offset[1]);
+      gl.uniform4f(U(p, "uSpawnParams"), pendingSpawn.params[0], pendingSpawn.params[1],
+        pendingSpawn.params[2], pendingSpawn.params[3]);
+      gl.uniform4f(U(p, "uSpawnDye"), pendingSpawn.dye[0], pendingSpawn.dye[1], pendingSpawn.dye[2], 0);
+    } else {
+      gl.uniform4f(U(p, "uSpawn"), -1, 0, 0, 0);
+      gl.uniform4f(U(p, "uSpawnParams"), 0, 0, 0, 0);
+      gl.uniform4f(U(p, "uSpawnDye"), 0, 0, 0, 0);
+    }
+  });
+  actors.swap();
+  pendingSpawn = null;
+
+  clearRT(dynMask);
+  splat(P.splatMask, 2, dynMask, 1.1);
+
+  if (GEL_ON) {
+    runFS(P.gelUpdate, gel.write, p => {
+      bindTex(p, "uGel", gel.read.tex, 0);
+      bindTex(p, "uDye", dye.read.tex, 1);
+      bindTex(p, "uVelocity", velocity.read.tex, 2);
+      gl.uniform1f(U(p, "uGelReact"), PV("gelReact"));
+      gl.uniform1f(U(p, "uGelDissolve"), PV("gelDissolve"));
+      gl.uniform1f(U(p, "uGelErode"), PV("gelErode") / RES_SCALE);
+      gl.uniform1f(U(p, "uDt"), DT);
+    });
+    gel.swap();
+  }
+
+  runFS(P.obstacleCompose, obstacle, p => {
+    bindTex(p, "uLevel", level.tex, 0);
+    bindTex(p, "uDynMask", dynMask.tex, 1);
+    bindTex(p, "uGel", gel.read.tex, 2);
+    bindTex(p, "uWalls", walls.read.tex, 3);
+    gl.uniform1f(U(p, "uGelSolid"), PV("gelSolid"));
+  });
+
+  splat(P.splatForce, 0, velocity.read, 3.0);
+  splat(P.splatDye, 1, dye.read, 3.0);
+  splat(P.splatWake, 3, wake.read, 3.0);
+  runFS(P.wakeUpdate, wake.write, p => {
+    bindTex(p, "uWake", wake.read.tex, 0);
+    gl.uniform1f(U(p, "uWakeSlow"), PV("wakeSlow"));
+    gl.uniform1f(U(p, "uWakeFast"), PV("wakeFast"));
+    gl.uniform1f(U(p, "uWakeKnee"), PV("wakeKnee"));
+    gl.uniform1f(U(p, "uDt"), DT);
+  });
+  wake.swap();
+
+  runFS(P.advect, velocity.write, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    bindTex(p, "uSource", velocity.read.tex, 1);
+    bindTex(p, "uMedia", mediaTex, 2);
+    bindTex(p, "uWake", wake.read.tex, 3);
+    bindTex(p, "uDye", dye.read.tex, 4);
+    gl.uniform3f(U(p, "uViscMul"), PV("viscRed"), PV("viscGreen"), PV("viscBlue"));
+    gl.uniform1f(U(p, "uWakeDiss"), PV("wakeDiss"));
+    gl.uniform1f(U(p, "uMediaChan"), 1);
+    simUniforms(p);
+    gl.uniform1f(U(p, "uDt"), DT);
+    gl.uniform1f(U(p, "uDissipation"), params.velDiss);
+  });
+  velocity.swap();
+
+  runFS(P.curl, curlTex, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    simUniforms(p);
+  });
+  runFS(P.vorticity, velocity.write, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    bindTex(p, "uCurl", curlTex.tex, 1);
+    bindTex(p, "uMedia", mediaTex, 2);
+    bindTex(p, "uDye", dye.read.tex, 3);
+    bindTex(p, "uWake", wake.read.tex, 4);
+    gl.uniform3f(U(p, "uCurlMul"), PV("curlRed"), PV("curlGreen"), PV("curlBlue"));
+    gl.uniform1f(U(p, "uWakeCurl"), PV("wakeCurl"));
+    simUniforms(p);
+    gl.uniform1f(U(p, "uCurlStrength"), params.curl);
+    gl.uniform1f(U(p, "uDt"), DT);
+  });
+  velocity.swap();
+
+  runFS(P.reactForce, velocity.write, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    bindTex(p, "uDye", dye.read.tex, 1);
+    bindTex(p, "uAmp", ampTex, 2);
+    simUniforms(p);
+    gl.uniform1f(U(p, "uExoForce"), PV("exoForce") * RES_SCALE);
+    gl.uniform1f(U(p, "uExoKnee"), PV("exoKnee"));
+    gl.uniform1f(U(p, "uStagBoost"), PV("stagBoost"));
+    gl.uniform1f(U(p, "uStagSpeed"), PV("stagSpeed") * RES_SCALE);
+    gl.uniform1f(U(p, "uBeadBoost"), PV("beadBoost"));
+    gl.uniform1f(U(p, "uDt"), DT);
+  });
+  velocity.swap();
+
+  runFS(P.divergence, divergence, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    bindTex(p, "uObstacle", obstacle.tex, 1);
+    simUniforms(p);
+  });
+  runFS(P.copy, pressure.write, p => {
+    bindTex(p, "uSrc", pressure.read.tex, 0);
+    gl.uniform1f(U(p, "uMul"), params.warmStart);
+  });
+  pressure.swap();
+  for (let i = 0; i < PRESSURE_ITERS; i++) {
+    runFS(P.jacobi, pressure.write, p => {
+      bindTex(p, "uPressure", pressure.read.tex, 0);
+      bindTex(p, "uDivergence", divergence.tex, 1);
+      bindTex(p, "uObstacle", obstacle.tex, 2);
+      simUniforms(p);
+    });
+    pressure.swap();
+  }
+  runFS(P.gradientSubtract, velocity.write, p => {
+    bindTex(p, "uPressure", pressure.read.tex, 0);
+    bindTex(p, "uVelocity", velocity.read.tex, 1);
+    bindTex(p, "uObstacle", obstacle.tex, 2);
+    simUniforms(p);
+    gl.uniform1f(U(p, "uGelDrag"), PV("gelDrag"));
+    gl.uniform1f(U(p, "uDt"), DT);
+  });
+  velocity.swap();
+
+  runFS(P.advect, dye.write, p => {
+    bindTex(p, "uVelocity", velocity.read.tex, 0);
+    bindTex(p, "uSource", dye.read.tex, 1);
+    bindTex(p, "uMedia", mediaTex, 2);
+    bindTex(p, "uWake", wake.read.tex, 3);
+    bindTex(p, "uDye", dye.read.tex, 4);
+    gl.uniform3f(U(p, "uViscMul"), PV("viscRed"), PV("viscGreen"), PV("viscBlue"));
+    gl.uniform1f(U(p, "uWakeDiss"), PV("wakeDiss"));
+    gl.uniform1f(U(p, "uMediaChan"), 2);
+    simUniforms(p);
+    gl.uniform1f(U(p, "uDt"), DT);
+    gl.uniform1f(U(p, "uDissipation"), params.dyeDiss);
+  });
+  dye.swap();   // dye.read is PRE-absorption
+
+  runFS(P.dyePost, dye.write, p => {
+    bindTex(p, "uDye", dye.read.tex, 0);
+    bindTex(p, "uRegions", regionsTex, 1);
+    bindTex(p, "uObstacle", obstacle.tex, 2);
+    bindTex(p, "uVelocity", velocity.read.tex, 3);
+    gl.uniform1f(U(p, "uStagBoost2"), PV("stagBoost"));
+    gl.uniform1f(U(p, "uStagSpeed2"), PV("stagSpeed") * RES_SCALE);
+    gl.uniform1f(U(p, "uBeadCompact"), PV("beadCompact") * RES_SCALE);
+    gl.uniform1f(U(p, "uBeadBoost"), PV("beadBoost"));
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform1f(U(p, "uAbsorbRate"), params.absorb);
+    gl.uniform1f(U(p, "uDrainRate"), params.drainRate);
+    gl.uniform1f(U(p, "uSolidDecay"), params.solidDecay);
+    gl.uniform1f(U(p, "uExoConsume"), PV("exoConsume"));
+    gl.uniform1f(U(p, "uGelConsume"), PV("gelConsume"));
+    gl.uniform1f(U(p, "uDt"), DT);
+  });
+  runFS(P.scoreAccum, scoreAcc.write, p => {
+    bindTex(p, "uScoreAcc", scoreAcc.read.tex, 0);
+    bindTex(p, "uDye", dye.read.tex, 1);
+    bindTex(p, "uRegions", regionsTex, 2);
+    gl.uniform1f(U(p, "uAbsorbRate"), params.absorb);
+    gl.uniform1f(U(p, "uDrainRate"), params.drainRate);
+    gl.uniform1f(U(p, "uDt"), DT);
+    gl.uniform1f(U(p, "uActive"), SCORE_SCALE);
+  });
+  scoreAcc.swap();
+  dye.swap();
+
+  emittedRed += emitRate * DT;
+  simTime += DT;
+}
+
+/* ---------- readback ---------- */
+class ReadbackChannel {
+  constructor() {
+    this.slots = [];
+    for (let i = 0; i < 3; i++) {
+      const pbo = gl.createBuffer();
+      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
+      gl.bufferData(gl.PIXEL_PACK_BUFFER, (TELEM_W + 8) * 4 * 4, gl.STREAM_READ);
+      this.slots.push({ pbo, fence: null });
+    }
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+    this.cursor = 0;
+    this.latest = lastTelem;
+    this.ageFrames = 0;
+  }
+  kick(fbo) {
+    const s = this.slots[this.cursor];
+    if (s.fence) return;
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo);
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, s.pbo);
+    gl.readPixels(0, 0, TELEM_W, 1, gl.RGBA, gl.FLOAT, 0);
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, swState.read.fbo);
+    gl.readPixels(0, 0, 8, 1, gl.RGBA, gl.FLOAT, TELEM_W * 16);
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+    s.fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+    this.cursor = (this.cursor + 1) % this.slots.length;
+  }
+  poll() {
+    this.ageFrames++;
+    for (const s of this.slots) {
+      if (!s.fence) continue;
+      if (gl.getSyncParameter(s.fence, gl.SYNC_STATUS) === gl.SIGNALED) {
+        gl.deleteSync(s.fence); s.fence = null;
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, s.pbo);
+        gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, this.latest);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+        this.ageFrames = 0;
+      }
+    }
+    return this.latest;
+  }
+}
+const readback = new ReadbackChannel();
+
+/* ---------- render ---------- */
+function runReduce(srcTex) {
+  let tex = srcTex, sw = SIM_W, sh = SIM_H;
+  for (const rt of reduceChain) {
+    runFS(P.reduce, rt, p => {
+      bindTex(p, "uSrc", tex, 0);
+      gl.uniform2i(U(p, "uSrcSize"), sw, sh);
+    });
+    tex = rt.tex; sw = rt.w; sh = rt.h;
+  }
+  return reduceChain[reduceChain.length - 1];
+}
+function renderFrame(now) {
+  const r1 = runReduce(scoreAcc.read.tex);
+  runFS(P.copy, scoreOne, p => {
+    bindTex(p, "uSrc", r1.tex, 0);
+    gl.uniform1f(U(p, "uMul"), 1.0);
+  });
+  runFS(P.sensor, sensorRT, p => {
+    bindTex(p, "uDye", dye.read.tex, 0);
+    bindTex(p, "uVelocity", velocity.read.tex, 1);
+    bindTex(p, "uRegions", regionsTex, 2);
+  });
+  const r2 = runReduce(sensorRT.tex);
+  runFS(P.telemetry, telemetry, p => {
+    bindTex(p, "uScoreOne", scoreOne.tex, 0);
+    bindTex(p, "uSensorReduced", r2.tex, 1);
+    bindTex(p, "uActors", actors.read.tex, 2);
+  });
+  readback.kick(telemetry.fbo);
+  const t = readback.poll();
+
+  runFS(P.bright, bloomA, p => {
+    bindTex(p, "uDye", dye.read.tex, 0);
+    gl.uniform1f(U(p, "uThreshold"), params.bloomThr);
+    gl.uniform3f(U(p, "uBloomW"), 1.0, 0.5, 0.6);
+  });
+  let bsrc = bloomA, bdst = bloomB;
+  for (let i = 0; i < BLUR_PASSES; i++) {
+    const dir = i % 2 === 0 ? [SIM_TEXEL[0], 0] : [0, SIM_TEXEL[1]];
+    runFS(P.blur, bdst, p => {
+      bindTex(p, "uSrc", bsrc.tex, 0);
+      gl.uniform2f(U(p, "uDir"), dir[0], dir[1]);
+    });
+    const tmp = bsrc; bsrc = bdst; bdst = tmp;
+  }
+
+  drawTo(null);
+  const C = P.composite;
+  gl.useProgram(C);
+  bindTex(C, "uDye", dye.read.tex, 0);
+  bindTex(C, "uLevel", level.tex, 1);
+  bindTex(C, "uRegions", regionsTex, 2);
+  bindTex(C, "uBloom", bsrc.tex, 3);
+  bindTex(C, "uVelocity", velocity.read.tex, 4);
+  bindTex(C, "uPressure", pressure.read.tex, 5);
+  bindTex(C, "uDivergence", divergence.tex, 6);
+  bindTex(C, "uCurl", curlTex.tex, 7);
+  bindTex(C, "uObstacle", obstacle.tex, 8);
+  bindTex(C, "uScoreAcc", scoreAcc.read.tex, 9);
+  bindTex(C, "uGel", gel.read.tex, 10);
+  bindTex(C, "uMedia", mediaTex, 11);
+  bindTex(C, "uAmp", ampTex, 12);
+  bindTex(C, "uWake", wake.read.tex, 13);
+  bindTex(C, "uWalls", walls.read.tex, 14);
+  simUniforms(C);
+  gl.uniform1i(U(C, "uDebugMode"), debugMode);
+  gl.uniform1f(U(C, "uTime"), now / 1000);
+  gl.uniform1f(U(C, "uTonemapK"), params.tonemapK);
+  gl.uniform1f(U(C, "uBloomStrength"), params.bloomStr);
+  gl.uniform1f(U(C, "uSinkHeat"), sinkHeat);
+  gl.uniform1f(U(C, "uTriggerHeat"), trigHeat);
+  gl.uniform1f(U(C, "uPulsePhase"), pulsePhase);
+  gl.uniform1f(U(C, "uPulseAmp"), pulseAmp);
+  gl.uniform1f(U(C, "uHueShift"), params.hueShift);
+  gl.uniform1f(U(C, "uFlowGlow"), params.flowGlow);
+  gl.uniform1f(U(C, "uStreak"), params.streak);
+  gl.uniform1f(U(C, "uCurlTint"), params.curlTint);
+  gl.uniform1f(U(C, "uSchlieren"), params.schlieren);
+  gl.uniform1f(U(C, "uSpeciesFx"), params.speciesFx);
+  gl.uniform1f(U(C, "uResScale"), RES_SCALE);
+  gl.uniform1f(U(C, "uGelGlow"), params.gelGlow);
+  fullscreen();
+
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(P.glyph);
+  bindTex(P.glyph, "uActors", actors.read.tex, 0);
+  gl.uniform2f(U(P.glyph, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+  gl.uniform1f(U(P.glyph, "uExtentMul"), 1.8);
+  gl.uniform1f(U(P.glyph, "uEntityScale"), effScale());
+  gl.uniform1f(U(P.glyph, "uGhost"), 0);
+  gl.uniform1f(U(P.glyph, "uGhostValid"), 0);
+  gl.uniform1i(U(P.glyph, "uSelected"), selectedSlot);
+  gl.uniform1f(U(P.glyph, "uPaintGlow"), wallPaintGlow);
+  gl.uniform1f(U(P.glyph, "uTime"), simTime);
+  gl.bindVertexArray(quadVAO);
+  gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, N_ACTORS);
+  if (selectedTool >= 0 && keys.has("shift") && state !== "ATTRACT" && (lastTelem[8] || lastTelem[9])) {
+    const tool = TOOLS[selectedTool];
+    gl.useProgram(P.ghost);
+    gl.uniform2f(U(P.ghost, "uGhostPos"), ghostPos[0], ghostPos[1]);
+    gl.uniform1f(U(P.ghost, "uGhostRadius"), tool.r);
+    gl.uniform1f(U(P.ghost, "uGhostAngle"), ghostAngle);
+    gl.uniform1f(U(P.ghost, "uGhostType"), tool.type);
+    const d = tool.dye || [1, 1, 1];
+    gl.uniform4f(U(P.ghost, "uGhostDye"), d[0], d[1], d[2], 0);   /* type 9: raw color */
+    gl.uniform2f(U(P.ghost, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform1f(U(P.ghost, "uExtentMul"), 1.8);
+    gl.uniform1f(U(P.ghost, "uEntityScale"), effScale());
+    gl.uniform1f(U(P.ghost, "uGhost"), 1);
+    gl.uniform1f(U(P.ghost, "uGhostValid"), placementValid(ghostPos) ? 1 : 0);
+    gl.uniform1i(U(P.ghost, "uSelected"), -1);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  gl.bindVertexArray(null);
+  gl.disable(gl.BLEND);
+
+  updateHUD(t, now);
+}
+
+/* ---------- placement / tools ---------- */
+let emitRate = 0;
+function placementValid(uv) {
+  if (selectedTool < 0) return false;
+  const tool = TOOLS[selectedTool];
+  if (uv[0] < 0.02 || uv[0] > 0.98 || uv[1] < 0.02 || uv[1] > 0.98) return false;
+  if (tool.type === 9) return (budget[tool.key] || 0) > 0;   /* wall painting: seconds */
+  if ((budget[tool.key] | 0) <= 0) return false;
+  if (!levelData) return false;
+  const px = Math.min(SIM_W - 1, Math.max(0, Math.floor(uv[0] * SIM_W)));
+  const py = Math.min(SIM_H - 1, Math.max(0, Math.floor((1 - uv[1]) * SIM_H)));
+  return levelData[(py * SIM_W + px) * 4] < 128;   // not inside a solid
+}
+function toolRecord(tool, pos, angle) {
+  const strength = params[tool.strengthKey];
+  return tool.type === 2
+    ? { type: 2, pos, angle, r: tool.r, strength, toolKey: tool.key }
+    : { type: 3, pos, angle, r: tool.r, strength, dye: tool.dye, toolKey: tool.key };
+}
+function placeTool(uv) {
+  if (!placementValid(uv) || !freeSlots.length) return;
+  const tool = TOOLS[selectedTool];
+  const slot = freeSlots.pop();
+  const rec = toolRecord(tool, [uv[0], uv[1]], ghostAngle);
+  writeActor(slot, actorRecord(rec));
+  cpuActors[slot] = Object.assign({ slot }, rec);
+  budget[tool.key]--;
+  emitRate = redEmitRate();
+  syncBudgetInputs();
+}
+function spawnAtPlayer() {
+  const tool = TOOLS[selectedTool];
+  if ((budget[tool.key] | 0) <= 0 || !freeSlots.length || pendingSpawn) return;
+  const slot = freeSlots.pop();
+  const strength = params[tool.strengthKey];
+  pendingSpawn = {
+    slot, type: tool.type, offset: [0.06, 0],
+    params: [tool.r, strength, ghostAngle, -1],
+    dye: tool.dye || [0, 0, 0]
+  };
+  cpuActors[slot] = { slot, type: tool.type, r: tool.r, strength, angle: ghostAngle,
+    dye: tool.dye, toolKey: tool.key, pos: null };
+  budget[tool.key]--;
+  emitRate = redEmitRate();
+  syncBudgetInputs();
+}
+function paintWall(uv, add) {
+  runFS(P.wallPaint, walls.write, p => {
+    bindTex(p, "uWalls", walls.read.tex, 0);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform2f(U(p, "uPaintPos"), uv[0], uv[1]);
+    gl.uniform1f(U(p, "uPaintR"), params.wallBrush * RES_SCALE);
+    gl.uniform1f(U(p, "uPaintMode"), add ? 1 : 0);
+  });
+  walls.swap();
+}
+function toolKeyOf(a) {
+  return a.toolKey || (a.type === 2 ? "fan" : (a.dye && a.dye[2] > 0.5 ? "blue" : "green"));
+}
+function deleteSelected() {
+  if (selectedSlot < 1) return;
+  const a = cpuActors[selectedSlot];
+  if (!a || a.locked || (a.type !== 2 && a.type !== 3)) return;
+  clearActorSlot(selectedSlot);
+  cpuActors[selectedSlot] = null;
+  freeSlots.push(selectedSlot);
+  budget[toolKeyOf(a)] = (budget[toolKeyOf(a)] | 0) + 1;
+  selectedSlot = -1;
+  emitRate = redEmitRate();
+  syncBudgetInputs();
+}
+function rotateSelected(dir) {
+  const a = cpuActors[selectedSlot];
+  if (!a || (a.locked && !a.rotatable)) return;
+  a.angle = (a.angle || 0) + dir * Math.PI / 12;
+  const px = lastTelem[(2 + selectedSlot) * 4], py = lastTelem[(2 + selectedSlot) * 4 + 1];
+  if (px || py) a.pos = [px, py];
+  if (!a.pos) return;            // telemetry hasn't reported it yet; try next tick
+  writeActor(selectedSlot, actorRecord(a));
+}
+function updateSelection() {
+  if (rotateModeSlot >= 1) {
+    selectedSlot = cpuActors[rotateModeSlot] ? rotateModeSlot : (rotateModeSlot = -1);
+    if (rotateModeSlot >= 1) return;
+  }
+  selectedSlot = -1;
+  if (!mouseInCanvas || state === "ATTRACT") return;
+  let bestD = 0.05;
+  for (let s = 1; s < N_ACTORS; s++) {
+    const a = cpuActors[s];
+    if (!a || (a.type !== 2 && a.type !== 3)) continue;
+    if (a.locked && !a.rotatable) continue;
+    const px = lastTelem[(2 + s) * 4], py = lastTelem[(2 + s) * 4 + 1];
+    if (!px && !py) continue;
+    const d = Math.hypot(px - mouseUV[0], py - mouseUV[1]);
+    if (d < bestD) { bestD = d; selectedSlot = s; }
+  }
+}
+
+/* ---------- nests (CPU-timed spawning, seeded; GPU never spawns) ---------- */
+function updateNests(steps) {
+  if (!steps) return;
+  for (const a of cpuActors) {
+    if (!a || a.type !== 7 || a.dormant) continue;
+    a.timer -= steps * DT;
+    if (a.timer <= 0) {
+      if (freeSlots.length) {
+        const slot = freeSlots.pop();
+        writeActor(slot, actorRecord({ type: 6, pos: a.pos, r: 6,
+          predThrust: a.predThrust, predTtl: a.predTtl }));
+        cpuActors[slot] = { slot, type: 6, death: simTime + (a.predTtl || params.predTtl || 14) + 0.5 };
+      }
+      a.timer = a.period * (1 + (a.jitter || 0) * (rng() * 2 - 1));
+    }
+    const f = actorRecord(a);
+    f[11] = Math.max(0, Math.min(1, a.timer / a.period));   // iris arm fraction
+    writeActor(a.slot, f);
+  }
+  for (let s = 1; s < N_ACTORS; s++) {
+    const a = cpuActors[s];
+    if (a && a.type === 6 && a.death != null && simTime > a.death) {
+      cpuActors[s] = null; freeSlots.push(s);               // GPU TTL already zeroed it
+    }
+  }
+}
+
+/* ---------- pickups, messages, toasts ---------- */
+const calloutBox = document.getElementById("callouts");
+let liveCallouts = [];
+function uvToScreen(u, v) {
+  const r = canvas.getBoundingClientRect();
+  if (IS_PORTRAIT) {
+    const sc = Math.min(r.width / 9, r.height / 16), w = sc * 9, h = sc * 16;
+    return [r.left + (r.width - w) / 2 + v * w, r.top + (r.height - h) / 2 + u * h];
+  }
+  const sc = Math.min(r.width / 16, r.height / 9), w = sc * 16, h = sc * 9;
+  return [r.left + (r.width - w) / 2 + u * w, r.top + (r.height - h) / 2 + (1 - v) * h];
+}
+function spawnCallout(c) {
+  if (!calloutBox) return;
+  const el = document.createElement("div");
+  el.className = "co" + (c.at ? "" : " banner");
+  el.textContent = (IS_TOUCH && c.textTouch) ? c.textTouch : c.text;
+  if (c.size) el.style.fontSize = (13 * c.size).toFixed(1) + "px";
+  calloutBox.appendChild(el);
+  liveCallouts.push({ el, at: c.at, until: simTime + (c.dur || 5) });
+}
+function updateCallouts() {
+  liveCallouts = liveCallouts.filter(c => {
+    if (simTime > c.until || state === "ATTRACT") { c.el.remove(); return false; }
+    if (c.at) {
+      const p = uvToScreen(c.at[0], c.at[1]);
+      c.el.style.left = p[0] + "px"; c.el.style.top = p[1] + "px";
+    }
+    return true;
+  });
+}
+/* ---------- switch gauges + wires overlay (2D canvas; rotates with #gl) ---------- */
+const ovc = document.getElementById("ovc");
+const octx = ovc ? ovc.getContext("2d") : null;
+function maskTint(m) {
+  if (m[0] && !m[1] && !m[2]) return "#ff6a3a";
+  if (m[1] && !m[0] && !m[2]) return "#3ae07a";
+  if (m[2] && !m[0] && !m[1]) return "#5a86ff";
+  return "#cfd8ea";
+}
+function drawOverlay() {
+  if (!octx) return;
+  const cw = ovc.clientWidth, ch = ovc.clientHeight;
+  if (!cw || !ch) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  if (ovc.width !== (cw * dpr | 0)) { ovc.width = cw * dpr | 0; ovc.height = ch * dpr | 0; }
+  octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  octx.clearRect(0, 0, cw, ch);
+  const sws = curLevel().switches;
+  if (state === "ATTRACT" || !sws || !sws.length) return;
+  const sc = Math.min(cw / 16, ch / 9), W = sc * 16, H = sc * 9;
+  const x0 = (cw - W) / 2, y0 = (ch - H) / 2;
+  const px = (u, v) => [x0 + u * W, y0 + (1 - v) * H];
+  for (const sw of sws) {
+    const on = !!gateState[sw.id];
+    const P0 = px((sw.rect[0] + sw.rect[2]) / 2, (sw.rect[1] + sw.rect[3]) / 2);
+    for (const wire of sw.wires || []) {           /* wires: pure legibility */
+      octx.beginPath(); octx.moveTo(P0[0], P0[1]);
+      for (const pt of wire) { const q = px(pt[0], pt[1]); octx.lineTo(q[0], q[1]); }
+      octx.lineWidth = 2;
+      if (on) {
+        octx.strokeStyle = sw.inhibit ? "#ffb347" : "#5fd8ff";
+        octx.setLineDash([6, 5]); octx.lineDashOffset = -simTime * 30;
+      } else { octx.strokeStyle = "#2a3550"; octx.setLineDash([]); }
+      octx.stroke(); octx.setLineDash([]); octx.lineDashOffset = 0;
+    }
+    const R = Math.max(9, sc * 0.5);
+    octx.lineWidth = 3;
+    octx.beginPath(); octx.arc(P0[0], P0[1], R, 0, 6.2832);
+    octx.strokeStyle = "#1a2236"; octx.stroke();
+    octx.beginPath();                              /* gauge: tank/timer fill */
+    octx.arc(P0[0], P0[1], R, -Math.PI / 2, -Math.PI / 2 + 6.2832 * Math.min(sw._frac || 0, 1));
+    octx.strokeStyle = on ? (sw.inhibit ? "#ffb347" : "#7fe8ff") : maskTint(sw.mask);
+    octx.stroke();
+    octx.beginPath(); octx.arc(P0[0], P0[1], R + 5, 0, 6.2832);
+    octx.lineWidth = 1.6;                          /* dashed = forgets */
+    if (sw.kind === "flow" && sw.latch !== "static") octx.setLineDash([4, 4]);
+    octx.strokeStyle = on ? (sw.inhibit ? "#ffd28a" : "#bdf3ff") : "#3a4663";
+    octx.stroke(); octx.setLineDash([]);
+  }
+}
+const msgEl = document.getElementById("msg");
+const toastEl = document.getElementById("toast");
+let toastUntil = 0;
+function showToast(text) { toastEl.textContent = text; toastUntil = performance.now() / 1000 + 2.6; }
+function updateOverlays(now) {
+  const L = curLevel();
+  let active = null;
+  for (const m of L.messages || [])
+    if (simTime >= m.t && simTime < m.t + m.dur) { active = m; break; }
+  if (active) msgEl.textContent = active.text;
+  msgEl.style.opacity = active ? 1 : 0;
+  toastEl.style.opacity = now / 1000 < toastUntil ? 1 : 0;
+}
+function checkPickups() {
+  if (state === "ATTRACT") return;
+  const px = lastTelem[8], py = lastTelem[9];          // player = telemetry pixel 2
+  if (!px && !py) return;
+  for (let s = 1; s < N_ACTORS; s++) {
+    const a = cpuActors[s];
+    if (!a || a.type !== 8) continue;
+    const reach = (5 + (a.r || 5)) * effScale() * Math.max(SIM_TEXEL[0], SIM_TEXEL[1]);
+    if (Math.hypot(px - a.pos[0], py - a.pos[1]) < reach) {
+      budget[a.gives] = (budget[a.gives] || 0) + (a.count || 1);
+      const LBL = { fan: "FAN", blue: "BLUE EMITTER", green: "GREEN EMITTER",
+        wallAdd: "FABRICATOR SECONDS", wallErase: "DISSOLVER SECONDS" };
+      showToast("+" + (a.count || 1) + " " + (LBL[a.gives] || a.gives.toUpperCase()) + " collected");
+      clearActorSlot(s); cpuActors[s] = null; freeSlots.push(s);
+      syncBudgetInputs();
+    }
+  }
+}
+
+/* ---------- HUD, gates, win ---------- */
+const hudEl = document.getElementById("hud");
+const statsEl = document.getElementById("stats");
+function updateHUDStatic() {
+  hudEl.textContent = curLevel().name;
+}
+function evalSwitches() {
+  const L = curLevel();
+  winInhibited = false;
+  if (!L.switches || !L.switches.length) { trigHeat = 0; return; }
+  let changed = false;
+  L.switches.forEach((sw, i) => {
+    const o = (TELEM_W + i) * 4;
+    const bank = lastTelem[o], timer = lastTelem[o + 1], latched = lastTelem[o + 2] > 0.5;
+    const on = latched || (sw.kind === "volume"
+      ? bank >= sw.threshold : timer >= (sw.holdSec || 1));
+    sw._frac = sw.kind === "volume"
+      ? Math.min(bank / Math.max(sw.threshold, 1e-6), 1)
+      : Math.min(timer / Math.max(sw.holdSec || 1, 1e-3), 1);
+    sw._flux = lastTelem[o + 3];
+    if (sw.inhibit && on) winInhibited = true;
+    if (!!gateState[sw.id] !== on) {
+      gateState[sw.id] = on; changed = true;
+      fireEvent("switch:" + sw.id + ":" + (on ? "on" : "off"));
+      for (const tgt of sw.targets || []) setTargetEnabled(tgt, on);
+    }
+  });
+  if (changed) refreshLevelTextures();
+  trigHeat = L.switches[0] ? L.switches[0]._frac : 0;
+}
+function setTargetEnabled(tgt, on) {
+  const want = tgt.invert ? !on : on;
+  for (const c of cpuActors) {
+    if (!c || c.id !== tgt.id) continue;
+    if (c.type === 7) c.dormant = !want;
+    else if (c.type === 2 || c.type === 3) {
+      if (c._orig == null) c._orig = c.strength;
+      c.strength = want ? c._orig : 0;
+      writeActor(c.slot, actorRecord(c));
+    }
+  }
+}
+/* ---------- events ---------- */
+let levelEvents = [], pendingCallouts = [];
+function compileEvents() {
+  levelEvents = (curLevel().events || []).map(e => Object.assign({ fired: false }, e));
+}
+function fireEvent(tag) {
+  for (const e of levelEvents)
+    if (!(e.fired && e.once !== false) && e.on === tag) runEventActions(e);
+}
+function checkEvents() {
+  for (const e of levelEvents) {
+    if ((e.fired && e.once !== false) || typeof e.on !== "string") continue;
+    let m;
+    if ((m = e.on.match(/^time>=([\d.]+)$/))) { if (simTime >= +m[1]) runEventActions(e); }
+    else if ((m = e.on.match(/^capture>=([\d.]+)$/))) { if (captureEMA >= +m[1]) runEventActions(e); }
+  }
+}
+function runEventActions(e) {
+  e.fired = true;
+  for (const a of e.do || []) {
+    if (a.pulse) pulseParam(a.pulse.key, a.pulse.value, a.pulse.dur || 1);
+    if (a.setParams) { Object.assign(params, a.setParams); emitRate = redEmitRate(); syncSliders(); }
+    if (a.callout) spawnCallout(a.callout);
+  }
+}
+function updateHUD(t, now) {
+  const tNow = now / 1000;
+  const pdt = Math.max(1e-3, Math.min(0.25, tNow - lastPulseT));
+  lastPulseT = tNow;
+  if (state === "ATTRACT") { pulsePhase += pdt * 3; return; }
+  const L = curLevel();
+  const delivered = t[0] / SCORE_SCALE;
+  const sensorRaw = t[4];
+  if (!paused) {
+    const inst = Math.max(0, Math.min(2, (delivered - prevDelivered) / pdt / Math.max(emitRate, 1e-6)));
+    const k = 1 - Math.exp(-pdt / 0.5);
+    captureEMA += k * (inst - captureEMA);
+    const k2 = 1 - Math.exp(-pdt / 0.4);
+    sensorEMA += k2 * (sensorRaw / RES_SCALE / Math.max(emitRate, 1e-6) - sensorEMA);
+    evalSwitches();
+    checkEvents();
+  }
+  prevDelivered = delivered;
+
+  const need = L.winFraction * params.winScale;
+  if (state === "PLAY" && !paused) {
+    if (captureEMA >= need && !winInhibited) {
+      winHoldT += pdt;
+      if (winHoldT >= (L.winHoldSec || 4)) {
+        state = "WIN";
+        document.getElementById("win").style.display = "flex";
+      }
+    } else winHoldT = Math.max(0, winHoldT - pdt * 2);
+  }
+  sinkHeat = Math.min(captureEMA / Math.max(need, 1e-3), 1);
+  pulsePhase += pdt * (2 + 9 * sinkHeat);
+  pulseAmp = 0.10 + 0.55 * sinkHeat;
+
+  const cum = emittedRed > 1e-6 ? delivered / emittedRed : 0;
+  let txt = L.name +
+    "  \u2502  capture " + (captureEMA * 100).toFixed(0) + "% / need " + (need * 100).toFixed(0) + "%" +
+    "  \u2502  hold " + winHoldT.toFixed(1) + "/" + (L.winHoldSec || 4) + "s" +
+    "  \u2502  total " + (cum * 100).toFixed(1) + "%";
+  if (L.gates) {
+    const gtxt = L.gates.map(g => g.id + (gateState[g.id] ? "\u25cf" : "\u25cb")).join(" ");
+    txt += "  \u2502  locks " + gtxt;
+    const fsw = (L.switches || []).find(s => s.kind === "flow");
+    if (fsw) txt += " (flux " + (fsw._flux || 0).toFixed(2) + ")";
+    if (winInhibited) txt += "  \u26a0 FLOW FAULT";
+  }
+  txt += "\nF" + (budget.fan | 0) + " B" + (budget.blue | 0) + " G" + (budget.green | 0) +
+    " W+" + (budget.wallAdd || 0).toFixed(0) + " W\u2212" + (budget.wallErase || 0).toFixed(0) +
+    "  \u2502  spin " + spinBudgetLeft.toFixed(0) + "s" +
+    "  \u2502  tool [" + (selectedTool >= 0 ? TOOLS[selectedTool].label : "none") + "]" +
+    (paused ? "  \u2502  \u23f8 PAUSED" : "") +
+    (anyPulseActive() ? "  \u2502  \u2697 DESTABILIZED" : "") +
+    (state === "WIN" ? "  \u2502  \u2713 SUSTAINED \u2014 " +
+      (IS_TOUCH ? "double-tap for next" : "N for next") : "");
+  hudEl.textContent = txt;
+  statsEl.textContent = fps.toFixed(0) + " fps \u00b7 " + lastSubsteps + " sub \u00b7 telem age " +
+    readback.ageFrames + " \u00b7 emit " + emitRate.toFixed(0) + " \u00b7 dbg " + debugMode;
+}
+
+/* ---------- config management (localStorage: per-origin, GitHub-Pages safe) ---------- */
+let configs = {}, activeName = "";
+try {
+  configs = JSON.parse(localStorage.getItem("fluxroute.configs") || "{}");
+  activeName = localStorage.getItem("fluxroute.active") || "";
+} catch (e) {}
+const dirtyVals = {};
+function persistConfigs() {
+  try {
+    localStorage.setItem("fluxroute.configs", JSON.stringify(configs));
+    localStorage.setItem("fluxroute.active", activeName);
+  } catch (e) { console.warn("localStorage unavailable; configs are session-only"); }
+}
+function applyParamsForLevel() {
+  const base = Object.assign({}, DEFAULT_PARAMS,
+    (configs[activeName] && configs[activeName].params) || {},
+    curLevel().config || {});
+  for (const k of dirtyKeys) base[k] = dirtyVals[k];
+  for (const k of Object.keys(params)) delete params[k];   // mutate in place:
+  Object.assign(params, base);                             // GUI binds this object
+  syncSliders();
+}
+function saveConfigAs(name) {
+  if (!name) return;
+  configs[name] = { name, ver: 1, quality: qualityName, params: Object.assign({}, params) };
+  activeName = name;
+  dirtyKeys.clear();
+  persistConfigs(); rebuildConfigSelect();
+}
+
+/* ---------- tuning panel ---------- */
+/* ---------- tuning GUI (lil-gui; grouped) ---------- */
+const TIPS = {
+  curl: "Vorticity confinement gain: re-sharpens swirls the coarse grid smears out. x media storm zones.",
+  velDiss: "Velocity field decay rate (1/s). Higher = flows die sooner. x media zones.",
+  dyeDiss: "Dye decay rate (1/s). Higher = trails fade faster. x media fog zones.",
+  warmStart: "Fraction of last substep pressure kept as the solver starting guess.",
+  viscRed: "Viscosity (velocity-dissipation multiplier) of flow carrying RED. 1 = baseline water.",
+  viscGreen: "Viscosity of flow carrying GREEN: syrup. High values make green sluggish and blobby.",
+  viscBlue: "Viscosity of flow carrying BLUE: thin and lively.",
+  curlRed: "Swirliness multiplier of flow carrying RED.",
+  curlGreen: "Swirliness of GREEN-laden flow: syrup resists eddies.",
+  curlBlue: "Swirliness of BLUE-laden flow.",
+  absorb: "Removal rate (1/s) of dye inside SINK and TRIGGER zones; also weights scoring between overlapping zones.",
+  drainRate: "Removal rate (1/s) in DRAIN zones; drained dye is voided, never scored.",
+  solidDecay: "Decay rate (1/s) of dye trapped inside walls and solid gel.",
+  winScale: "Multiplies every level capture target: a global difficulty dial.",
+  fanStrength: "Fan jet force (reference-grid texels/s^2).",
+  emitScale: "Dye mass per unit emitter strength. Raises all concentrations; capture % stays normalized.",
+  blueEmitStrength: "Force and dye output of player-placed BLUE (builder) emitters.",
+  greenEmitStrength: "Force and dye output of player-placed GREEN (reagent) emitters.",
+  wallBrush: "Wall fabricator/dissolver brush radius (ref texels).",
+  thrust: "Player swim acceleration (UV/s^2).",
+  dragK: "Coupling rate (1/s) pulling the player toward local fluid velocity.",
+  flowPush: "Fraction of local flow speed the player is dragged toward. Below 1 keeps you in control.",
+  linDamp: "Player and predator velocity damping (1/s).",
+  spinAccel: "Spin-up rate while Q/E held (rad/s^2).",
+  spinDamp: "Spin decay (1/s). Low values keep you spinning long after release.",
+  spinKick: "Tangential kick on bounces proportional to spin: the curveball. Negative flips direction.",
+  spinBudget: "Seconds of Q/E input per level (levels may override).",
+  entityScale: "Global size multiplier for every entity, live.",
+  playerMass: "Player collision mass.",
+  predMass: "Predator collision mass; heavier predators shove harder.",
+  pistonMass: "Piston collision mass.",
+  restitution: "Bounciness of body-vs-body collisions: 0 dead, 1 perfectly elastic.",
+  bounceFloor: "Guaranteed minimum separation speed after any contact (ref texels/s).",
+  pistonSpring: "Spring stiffness pulling pistons toward their oscillating target (1/s^2).",
+  pistonDamp: "Piston velocity damping (1/s); lower = wobblier.",
+  gelReact: "Gel growth per unit red x blue overlap (1/s).",
+  gelDissolve: "Gel passive dissolve rate (1/s).",
+  gelErode: "Extra gel erosion per unit flow speed; fast current carves channels.",
+  gelDrag: "Drag (1/s) inside porous gel: slows both FLOW and BODIES wading through it.",
+  gelSolid: "Gel level at which it becomes a hard, collidable wall.",
+  gelConsume: "Red and blue consumed by the gel reaction; keeps growth self-limiting.",
+  exoForce: "Blast force of the red+green reaction, along the gradient of the saturating curve.",
+  exoKnee: "Curvature of the log force curve: high force at LOW concentration, slow growth above.",
+  stagBoost: "Reaction multiplier as local flow stagnates: mix, slow down, then BAM.",
+  stagSpeed: "Flow speed (ref texels/s) below which the stagnation boost engages.",
+  exoConsume: "Red and green consumed by the reaction. Lower = bigger, longer explosions.",
+  beadCompact: "Blue+green self-compaction speed: co-located B+G gloms into drifting beads.",
+  beadBoost: "How violently blue super-charges the red+green burn. Beads are mines.",
+  predSuck: "Predator suction: spiral inflow force on the FLUID (the tangential part survives the pressure solve).",
+  predSense: "Predator scent-stencil radius (ref texels). Wider = ignores vortex noise, smells distant plumes.",
+  predGreed: "How strongly scent gradients override the random walk. Low = drunkard, high = bloodhound.",
+  predTtl: "Default predator lifetime in seconds (nests may override).",
+  eatRate: "Dye removal rate under a predator.",
+  wakeDeposit: "How fast a predator saturates its dissipation wake (coverage/s).",
+  wakeDiss: "Extra velocity dissipation (1/s) at full wake: dead water where predators fed.",
+  wakeCurl: "Vorticity boost inside the wake: haunted, churning dead water.",
+  wakeSlow: "Wake decay while strong: the plateau phase (1/s).",
+  wakeFast: "Wake decay below the knee (1/s): the fast fade-out.",
+  wakeKnee: "Wake level where decay switches from plateau to fast fade.",
+  tonemapK: "Exposure of the dye tonemap.",
+  bloomStr: "Bloom intensity; the red species blooms hardest by design.",
+  bloomThr: "Brightness threshold before bloom engages.",
+  hueShift: "Global hue rotation (radians).",
+  flowGlow: "Dye brightening with flow speed.",
+  streak: "Motion smear along flow: red stays tight, blue smears glassy.",
+  curlTint: "Swirl tint strength; saturation grows with dye concentration squared.",
+  schlieren: "Ambient shading of invisible currents where dye is absent.",
+  speciesFx: "Green-species scintillation amount.",
+  gelGlow: "Gel membrane and rim-glow intensity."
+};
+const GROUPS = {
+  "flow": [["curl", 0, 60, 0.5], ["velDiss", 0.005, 2, 0, "log"], ["dyeDiss", 0.005, 3, 0, "log"], ["warmStart", 0, 1, 0.01]],
+  "species physics": [["viscRed", 0.01, 40, 0, "log"], ["viscGreen", 0.01, 40, 0, "log"], ["viscBlue", 0.01, 40, 0, "log"],
+    ["curlRed", 0.01, 12, 0, "log"], ["curlGreen", 0.01, 12, 0, "log"], ["curlBlue", 0.01, 12, 0, "log"]],
+  "zones & scoring": [["absorb", 0, 20, 0.1], ["drainRate", 0, 20, 0.1], ["solidDecay", 0, 20, 0.1], ["winScale", 0.2, 3, 0.05]],
+  "emitters & tools": [["fanStrength", 10, 6000, 0, "log"], ["emitScale", 0, 0.1, 0.001],
+    ["blueEmitStrength", 10, 6000, 0, "log"], ["greenEmitStrength", 10, 6000, 0, "log"], ["wallBrush", 2, 24, 0.5]],
+  "player": [["thrust", 0, 2, 0.01], ["dragK", 0, 5, 0.05], ["flowPush", 0, 1, 0.01], ["linDamp", 0, 8, 0.05],
+    ["spinAccel", 0, 40, 0.5], ["spinDamp", 0, 5, 0.05], ["spinKick", -0.2, 0.2, 0.005], ["spinBudget", 0, 120, 1]],
+  "bodies": [["entityScale", 0.3, 3, 0.05], ["playerMass", 0.05, 100, 0, "log"], ["predMass", 0.05, 200, 0, "log"],
+    ["pistonMass", 0.05, 500, 0, "log"], ["restitution", 0, 1, 0.01], ["bounceFloor", 0, 120, 1],
+    ["pistonSpring", 1, 3000, 0, "log"], ["pistonDamp", 0.05, 80, 0, "log"]],
+  "gel": [["gelReact", 0.05, 60, 0, "log"], ["gelDissolve", 0, 1, 0.01], ["gelErode", 0, 0.2, 0.002],
+    ["gelDrag", 0, 20, 0.1], ["gelSolid", 0.1, 1.5, 0.01], ["gelConsume", 0, 5, 0.05]],
+  "exothermics": [["exoForce", 50, 40000, 0, "log"], ["exoKnee", 0.05, 10, 0.05], ["stagBoost", 0, 40, 0.1],
+    ["stagSpeed", 0.2, 150, 0, "log"], ["exoConsume", 0, 5, 0.05],
+    ["beadCompact", 0.5, 200, 0, "log"], ["beadBoost", 0.1, 200, 0, "log"]],
+  "predators & wake": [["predSuck", 10, 10000, 0, "log"], ["eatRate", 0.1, 80, 0, "log"],
+    ["predSense", 2, 80, 1], ["predGreed", 0.5, 500, 0, "log"], ["predTtl", 2, 60, 0.5],
+    ["wakeDeposit", 0.2, 50, 0, "log"], ["wakeDiss", 0.5, 100, 0, "log"], ["wakeCurl", 0.1, 40, 0, "log"],
+    ["wakeSlow", 0, 1, 0.005], ["wakeFast", 0, 5, 0.05], ["wakeKnee", 0, 1, 0.01]],
+  "rendering": [["tonemapK", 0.05, 1, 0.01], ["bloomStr", 0, 1, 0.01], ["bloomThr", 0, 4, 0.05],
+    ["hueShift", -3.14, 3.14, 0.01], ["flowGlow", 0, 2, 0.02], ["streak", 0, 3, 0.02],
+    ["curlTint", 0, 1, 0.01], ["schlieren", 0, 2, 0.02], ["speciesFx", 0, 2, 0.02], ["gelGlow", 0, 3, 0.05]]
+};
+let gui = null, panelOpen = false, cfgCtrl = null;
+const logCtrls = [];
+function logName(key) {
+  const v = params[key];
+  return key + " = " + (v >= 100 ? v.toFixed(0) : v >= 1 ? v.toFixed(2) : v.toPrecision(3));
+}
+const budgetProxy = { fan: 0, blue: 0, green: 0, wallAdd: 0, wallErase: 0 };
+const cfgState = { config: activeName || "(defaults)" };
+function cfgNames() { return ["(defaults)"].concat(Object.keys(configs)); }
+function onCfgChange(v) {
+  activeName = v === "(defaults)" ? "" : v;
+  persistConfigs();
+  dirtyKeys.clear();
+  applyParamsForLevel();
+}
+function rebuildConfigSelect() {
+  cfgState.config = activeName || "(defaults)";
+  if (cfgCtrl) cfgCtrl = cfgCtrl.options(cfgNames()).name("config").onChange(onCfgChange);
+}
+function buildPanel() {
+  gui = new lil.GUI({ title: "FLUX ROUTE \u00b7 tuning", width: 330 });
+  gui.domElement.classList.add("flux-gui");
+  const sys = gui.addFolder("system");
+  const sysState = { quality: qualityName };
+  sys.add(sysState, "quality", Object.keys(QUALITY_PRESETS)).onChange(v => {
+    try { localStorage.setItem("fluxroute.quality", v); } catch (e) {}
+    location.reload();
+  }).domElement.title = "Sim/dye resolution preset. Physics is identical at every preset; this reloads the page.";
+  cfgCtrl = sys.add(cfgState, "config", cfgNames()).onChange(onCfgChange);
+  const acts = {
+    save() { saveConfigAs(activeName || window.prompt("config name:", "my-config")); },
+    "save as"() { saveConfigAs(window.prompt("config name:", activeName || "my-config")); },
+    "delete"() {
+      if (activeName && configs[activeName]) {
+        delete configs[activeName]; activeName = "";
+        persistConfigs(); rebuildConfigSelect(); dirtyKeys.clear(); applyParamsForLevel();
+      }
+    },
+    export() {
+      const j = JSON.stringify(configs[activeName] ||
+        { name: "current", ver: 1, quality: qualityName, params: Object.assign({}, params) });
+      try { navigator.clipboard.writeText(j); } catch (e) {}
+      window.prompt("Config JSON (copied to clipboard):", j);
+    },
+    import() {
+      const t = window.prompt("Paste config JSON:");
+      if (!t) return;
+      try {
+        const c = JSON.parse(t);
+        if (!c || typeof c.params !== "object") throw new Error("no params");
+        const known = {};
+        for (const k in c.params) if (k in DEFAULT_PARAMS) known[k] = c.params[k];
+          else console.warn("import: ignoring unknown key", k);
+        c.params = known;
+        configs[c.name || "imported"] = c; activeName = c.name || "imported";
+        dirtyKeys.clear();
+        persistConfigs(); rebuildConfigSelect(); applyParamsForLevel();
+      } catch (e) { alert("Import failed: " + e.message); }
+    },
+    "revert to level"() { dirtyKeys.clear(); applyParamsForLevel(); }
+  };
+  for (const k of ["save", "save as", "delete", "export", "import", "revert to level"]) sys.add(acts, k);
+  const bud = gui.addFolder("budgets (this level)");
+  for (const k of ["fan", "blue", "green", "wallAdd", "wallErase"]) {
+    const c = bud.add(budgetProxy, k, 0, 60, 1).onChange(v => {
+      budget[k] = Math.max(0, v);
+      budgetOverrides[levelIdx] = Object.assign({}, budgetOverrides[levelIdx], { [k]: budget[k] });
+    });
+    c.domElement.title = k.startsWith("wall")
+      ? "Seconds of wall " + (k === "wallAdd" ? "fabrication" : "dissolving") + " (tool " + (k === "wallAdd" ? 4 : 5) + ", hold F)."
+      : "How many " + k + " tools the player may place on this level.";
+  }
+  for (const [gname, list] of Object.entries(GROUPS)) {
+    const f = gui.addFolder(gname);
+    for (const [k, mn, mx, st, scale] of list) {
+      if (scale === "log") {
+        /* slider tracks the exponent; the label tracks the true value */
+        const pr = { v: Math.log10(Math.max(params[k], 1e-6)) };
+        const c = f.add(pr, "v", Math.log10(mn), Math.log10(mx), 0.005).onChange(v => {
+          params[k] = +Math.pow(10, v).toPrecision(4);
+          dirtyKeys.add(k); dirtyVals[k] = params[k];
+          emitRate = redEmitRate();
+          c.name(logName(k));
+        });
+        c.name(logName(k));
+        c.domElement.title = (TIPS[k] || k) + " [log slider: box shows exponent]";
+        logCtrls.push({ key: k, pr, c });
+      } else {
+        const c = f.add(params, k, mn, mx, st).onChange(v => {
+          dirtyKeys.add(k); dirtyVals[k] = v;
+          emitRate = redEmitRate();
+        });
+        c.domElement.title = TIPS[k] || k;
+      }
+    }
+    f.close();
+  }
+  bud.close();
+  gui.domElement.style.display = "none";
+}
+function syncSliders() {
+  for (const L of logCtrls) {
+    L.pr.v = Math.log10(Math.max(params[L.key], 1e-6));
+    L.c.name(logName(L.key));
+  }
+  if (gui) gui.controllersRecursive().forEach(c => c.updateDisplay());
+}
+function syncBudgetInputs() {
+  Object.assign(budgetProxy, { fan: 0, blue: 0, green: 0, wallAdd: 0, wallErase: 0 }, budget);
+  if (gui) gui.controllersRecursive().forEach(c => { if (c.object === budgetProxy) c.updateDisplay(); });
+}
+function togglePanel() {
+  panelOpen = !panelOpen;
+  if (gui) gui.domElement.style.display = panelOpen ? "" : "none";
+}
+
+/* ---------- events ---------- */
+let IS_PORTRAIT = false;
+function updateOrientation() {
+  IS_PORTRAIT = window.innerHeight > window.innerWidth;
+  document.body.classList.toggle("portrait", IS_PORTRAIT);
+}
+window.addEventListener("resize", updateOrientation);
+window.addEventListener("orientationchange", updateOrientation);
+updateOrientation();
+function canvasUV(e) {
+  const r = canvas.getBoundingClientRect();
+  if (IS_PORTRAIT) {
+    /* canvas is CSS-rotated 90deg CW: game u runs down the screen, v runs right */
+    const sc = Math.min(r.width / 9, r.height / 16);
+    const w = sc * 9, h = sc * 16;
+    const x0 = r.left + (r.width - w) / 2, y0 = r.top + (r.height - h) / 2;
+    return [(e.clientY - y0) / h, (e.clientX - x0) / w];
+  }
+  const sc = Math.min(r.width / 16, r.height / 9);
+  const w = sc * 16, h = sc * 9;
+  const x0 = r.left + (r.width - w) / 2, y0 = r.top + (r.height - h) / 2;
+  return [(e.clientX - x0) / w, 1 - (e.clientY - y0) / h];
+}
+canvas.addEventListener("mousemove", e => {
+  const uv = canvasUV(e);
+  mouseUV = uv;
+  mouseInCanvas = uv[0] >= 0 && uv[0] <= 1 && uv[1] >= 0 && uv[1] <= 1;
+});
+canvas.addEventListener("mouseleave", () => { mouseInCanvas = false; });
+canvas.addEventListener("contextmenu", e => e.preventDefault());
+/* the placement ghost sits AT the cursor, clamped to a disc around the
+ * player; heading aims along player->ghost (physical space, aspect-true) */
+const GHOST_ARM = 2.0;           /* max reach, screen-height units (world 16x9) */
+let paintingMouse = false;
+function updateGhost() {
+  if (selectedTool < 0 || state === "ATTRACT") return;
+  const px = lastTelem[8], py = lastTelem[9];
+  if (!px && !py) return;
+  let dx = (mouseUV[0] - px) * 16, dy = (mouseUV[1] - py) * 9;
+  const l = Math.hypot(dx, dy);
+  if (l > GHOST_ARM) { dx *= GHOST_ARM / l; dy *= GHOST_ARM / l; }
+  ghostPos = [px + dx / 16, py + dy / 9];
+  if (l > 1e-4) ghostAngle = Math.atan2(dy, dx);
+}
+canvas.addEventListener("mousedown", e => {
+  if (!e.shiftKey || state === "ATTRACT") return;
+  if (e.button === 0) {
+    const t = selectedTool >= 0 ? TOOLS[selectedTool] : null;
+    if (t && t.type === 9) paintingMouse = true;
+    else placeTool(ghostPos);
+    e.preventDefault();
+  } else if (e.button === 2) { deleteSelected(); e.preventDefault(); }
+});
+window.addEventListener("mouseup", e => { if (e.button === 0) paintingMouse = false; });
+/* ---------- touch: hold = steer toward finger; double-tap = place item /
+ * enter aim mode on an item (tap to point it, double-tap anywhere exits) */
+let touchSteer = null, rotateModeSlot = -1, aimEngaged = false;
+let touchPaint = false, touchPaintPos = [0.5, 0.5];
+let touchSpinG = null, touchSpin = 0, wallPaintGlow = 0;
+function physPt(uv) { return [uv[0] * 16, uv[1] * 9]; }
+let lastTap = { t: 0, x: 0, y: 0 };
+function clampToReach(uv) {
+  const px = lastTelem[8], py = lastTelem[9];
+  if (!px && !py) return uv;
+  let dx = (uv[0] - px) * 16, dy = (uv[1] - py) * 9;
+  const l = Math.hypot(dx, dy);
+  if (l > GHOST_ARM) { dx *= GHOST_ARM / l; dy *= GHOST_ARM / l; }
+  return [px + dx / 16, py + dy / 9];
+}
+function nearestAdjustable(uv, maxD) {
+  let best = -1, bd = maxD;
+  for (let s = 1; s < N_ACTORS; s++) {
+    const a = cpuActors[s];
+    if (!a || (a.type !== 2 && a.type !== 3)) continue;
+    if (a.locked && !a.rotatable && !a.tunable) continue;
+    const px = lastTelem[(2 + s) * 4], py = lastTelem[(2 + s) * 4 + 1];
+    if (!px && !py) continue;
+    const d = Math.hypot(px - uv[0], py - uv[1]);
+    if (d < bd) { bd = d; best = s; }
+  }
+  return best;
+}
+function aimSlotAt(slot, uv) {
+  const a = cpuActors[slot];
+  if (!a || (a.locked && !a.rotatable && !a.tunable)) return;
+  const sx = lastTelem[(2 + slot) * 4], sy = lastTelem[(2 + slot) * 4 + 1];
+  if (sx || sy) a.pos = [sx, sy];
+  if (!a.pos) return;
+  const dx = (uv[0] - a.pos[0]) * 16, dy = (uv[1] - a.pos[1]) * 9;
+  if (!a.locked || a.rotatable) a.angle = Math.atan2(dy, dx);
+  if (a.tunable) {                       /* finger distance throttles it */
+    const f = Math.min(1, Math.max(0, (Math.hypot(dx, dy) - 0.3) / (GHOST_ARM - 0.3)));
+    a.strength = (a.minStrength || 80) + f * ((a.maxStrength || 1500) - (a.minStrength || 80));
+  }
+  writeActor(slot, actorRecord(a));
+}
+canvas.addEventListener("wheel", e => {            /* desktop throttle */
+  if (selectedSlot < 1) return;
+  const a = cpuActors[selectedSlot];
+  if (!a || !a.tunable) return;
+  e.preventDefault();
+  a.strength = Math.min(a.maxStrength || 1500, Math.max(a.minStrength || 80,
+    a.strength * (e.deltaY < 0 ? 1.08 : 0.926)));
+  writeActor(a.slot, actorRecord(a));
+}, { passive: false });
+function handleDoubleTap(uv) {
+  const tool = selectedTool >= 0 ? TOOLS[selectedTool] : null;
+  /* wall tool selected: double-tap ARMS the brush; the drag paints */
+  if (tool && tool.type === 9 && state === "PLAY") {
+    if ((budget[tool.key] || 0) > 0) {
+      touchPaint = true;
+      touchPaintPos = uv;
+      paintWall(clampToReach(uv), tool.key === "wallAdd");
+    } else {
+      showToast("no " + (tool.key === "wallAdd" ? "fabricator" : "dissolver") + " time left");
+    }
+    return;
+  }
+  const s = nearestAdjustable(uv, 0.06);
+  if (s >= 1) { rotateModeSlot = s; aimEngaged = false; return; }
+  if (!tool || state !== "PLAY") return;
+  const px = lastTelem[8], py = lastTelem[9];
+  if (!px && !py) return;
+  const pos = clampToReach(uv);
+  const dx = (pos[0] - px) * 16, dy = (pos[1] - py) * 9;
+  if (Math.hypot(dx, dy) > 1e-4) ghostAngle = Math.atan2(dy, dx);
+  ghostPos = pos;
+  placeTool(pos);
+}
+canvas.addEventListener("touchstart", e => {
+  e.preventDefault();
+  if (e.touches.length === 2) {            /* two-finger twist = spin */
+    touchSpinG = {
+      id0: e.touches[0].identifier, id1: e.touches[1].identifier,
+      a0: physPt(canvasUV(e.touches[0])), b0: physPt(canvasUV(e.touches[1]))
+    };
+    touchSteer = null; touchPaint = false; touchSpin = 0;
+    lastTap.t = 0;                         /* second finger is not a tap */
+    return;
+  }
+  const uv = canvasUV(e.changedTouches[0]);
+  if (rotateModeSlot >= 1) {               /* press-drag points the item */
+    aimEngaged = true;
+    aimSlotAt(rotateModeSlot, uv);
+    return;
+  }
+  const now = performance.now();
+  const isDouble = (now - lastTap.t < 350) &&
+    Math.hypot(uv[0] - lastTap.x, uv[1] - lastTap.y) < 0.07;
+  lastTap = { t: now, x: uv[0], y: uv[1] };
+  if (state === "WIN") { if (isDouble) loadLevel(levelIdx + 1); return; }
+  if (state === "ATTRACT") return;
+  if (isDouble) { lastTap.t = 0; touchSteer = null; handleDoubleTap(uv); return; }
+  touchSteer = uv;
+}, { passive: false });
+canvas.addEventListener("touchmove", e => {
+  e.preventDefault();
+  if (touchSpinG && e.touches.length >= 2) {
+    let pa = null, pb = null;
+    for (const t of e.touches) {
+      if (t.identifier === touchSpinG.id0) pa = physPt(canvasUV(t));
+      if (t.identifier === touchSpinG.id1) pb = physPt(canvasUV(t));
+    }
+    if (pa && pb) {
+      const v1 = [pa[0] - touchSpinG.a0[0], pa[1] - touchSpinG.a0[1]];
+      const v2 = [pb[0] - touchSpinG.b0[0], pb[1] - touchSpinG.b0[1]];
+      const d = v1[0] * v2[0] + v1[1] * v2[1];
+      if (d < 0) {       /* opposed motion: twist */
+        const m1 = Math.hypot(v1[0], v1[1]), m2 = Math.hypot(v2[0], v2[1]);
+        const c0 = [(touchSpinG.a0[0] + touchSpinG.b0[0]) / 2,
+                    (touchSpinG.a0[1] + touchSpinG.b0[1]) / 2];
+        const cr = (touchSpinG.a0[0] - c0[0]) * v1[1] - (touchSpinG.a0[1] - c0[1]) * v1[0]
+                 + (touchSpinG.b0[0] - c0[0]) * v2[1] - (touchSpinG.b0[1] - c0[1]) * v2[0];
+        touchSpin = Math.sign(cr) * Math.min(1, Math.min(m1, m2) * (-d) * 0.8);
+      } else touchSpin = 0;
+    }
+    return;
+  }
+  if (rotateModeSlot >= 1) {
+    if (aimEngaged) aimSlotAt(rotateModeSlot, canvasUV(e.changedTouches[0]));
+    return;
+  }
+  if (touchPaint) { touchPaintPos = canvasUV(e.changedTouches[0]); return; }
+  touchSteer = canvasUV(e.changedTouches[0]);
+}, { passive: false });
+canvas.addEventListener("touchend", e => {
+  e.preventDefault();
+  if (touchSpinG && e.touches.length < 2) { touchSpinG = null; touchSpin = 0; }
+  if (rotateModeSlot >= 1 && aimEngaged && e.touches.length === 0) {
+    rotateModeSlot = -1; aimEngaged = false;   /* lift = aim done */
+  }
+  if (e.touches.length === 0) { touchSteer = null; touchPaint = false; }
+}, { passive: false });
+/* ---------- touch toolbar ---------- */
+const IS_TOUCH = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
+function refreshToolbar() {
+  document.querySelectorAll("#toolbar button[data-tool]").forEach(b =>
+    b.classList.toggle("act", parseInt(b.dataset.tool) === selectedTool));
+}
+function buildToolbar() {
+  if (!IS_TOUCH) return;
+  const el = document.getElementById("toolbar");
+  const items = [["\u00d7", -1], ["FAN", 0], ["BLU", 1], ["GRN", 2], ["W+", 3], ["W\u2212", 4]];
+  el.innerHTML = items.map(([l, i]) => '<button data-tool="' + i + '">' + l + "</button>").join("") +
+    '<button data-act="pause">\u23f8</button><button data-act="reset">R</button>' +
+    '<button data-act="menu">\u2630</button>';
+  el.querySelectorAll("button").forEach(b => {
+    b.onclick = () => {
+      if (b.dataset.tool !== undefined) selectedTool = parseInt(b.dataset.tool);
+      else if (b.dataset.act === "pause") paused = !paused;
+      else if (b.dataset.act === "reset") loadLevel(levelIdx);
+      else if (b.dataset.act === "menu") loadLevel(-1);
+      refreshToolbar();
+    };
+  });
+  refreshToolbar();
+}
+window.addEventListener("keydown", e => {
+  const tag = (e.target.tagName || "").toUpperCase();
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+  const k = e.key.toLowerCase();
+  keys.add(k);
+  if (k === "escape") { if (levelIdx >= 0) loadLevel(-1); return; }
+  if (levelIdx < 0 && k !== "t" && k !== "tab") return;
+  const digit = e.code && e.code.indexOf("Digit") === 0 ? e.code.slice(5) : null;
+  if (digit === "1") { selectedTool = 0; refreshToolbar(); }
+  else if (digit === "2") { selectedTool = 1; refreshToolbar(); }
+  else if (digit === "3") { selectedTool = 2; refreshToolbar(); }
+  else if (digit === "4") { selectedTool = 3; refreshToolbar(); }
+  else if (digit === "5") { selectedTool = 4; refreshToolbar(); }
+  else if (digit === "0") { selectedTool = -1; refreshToolbar(); }
+  else if (k === "[") { if (selectedSlot >= 1) rotateSelected(1); }
+  else if (k === "]") { if (selectedSlot >= 1) rotateSelected(-1); }
+  else if (k === "r") loadLevel(levelIdx);
+  else if (k === ",") loadLevel(levelIdx - 1);
+  else if (k === ".") loadLevel(levelIdx + 1);
+  else if (k === "n" && state === "WIN") loadLevel(levelIdx + 1);
+  else if (k === " ") { paused = !paused; e.preventDefault(); }
+  else if (k === "tab") { debugMode = (debugMode + 1) % 10; e.preventDefault(); }
+  else if (k === "t") togglePanel();
+  else if (k === "x") {           /* demo of event-driven chemistry pulses */
+    pulseParam("exoConsume", 0.15, 2.5);
+    pulseParam("exoForce", params.exoForce * 3, 2.5);
+  }
+  if (["arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) e.preventDefault();
+});
+window.addEventListener("keyup", e => keys.delete(e.key.toLowerCase()));
+
+/* ---------- main loop ---------- */
+let lastT = performance.now(), acc = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dtW = Math.min((now - lastT) / 1000, 0.1);
+  lastT = now;
+  readInput();
+  let steps = 0;
+  if (!paused && document.visibilityState !== "hidden") {
+    acc += dtW;
+    while (acc >= DT && steps < MAX_SUBSTEPS) { substep(); acc -= DT; steps++; }
+    if (steps === MAX_SUBSTEPS) acc = 0;
+  } else acc = 0;
+  lastSubsteps = steps;
+  if (spinInput !== 0 && state === "PLAY")
+    spinBudgetLeft = Math.max(0, spinBudgetLeft - steps * DT);
+  wallPaintGlow = 0;
+  const wtool = selectedTool >= 0 ? TOOLS[selectedTool] : null;
+  if (wtool && wtool.type === 9 && state === "PLAY" && steps > 0 &&
+      ((paintingMouse && keys.has("shift")) || touchPaint)) {
+    if ((budget[wtool.key] || 0) > 0) {
+      wallPaintGlow = wtool.key === "wallAdd" ? 1 : 2;
+      paintWall(touchPaint ? clampToReach(touchPaintPos) : ghostPos, wtool.key === "wallAdd");
+      budget[wtool.key] = Math.max(0, budget[wtool.key] - steps * DT);
+      syncBudgetInputs();
+      if (touchPaint && budget[wtool.key] <= 0) {
+        touchPaint = false;
+        showToast((wtool.key === "wallAdd" ? "fabricator" : "dissolver") + " time exhausted");
+      }
+    } else touchPaint = false;
+  }
+  const Lsw = curLevel().switches;
+  if (Lsw && Lsw.length && steps > 0) {
+    runFS(P.switchSense, swState.write, p => {
+      bindTex(p, "uDye", dye.read.tex, 0);
+      bindTex(p, "uState", swState.read.tex, 1);
+      gl.uniform1i(U(p, "uSwCount"), Lsw.length);
+      const rect = new Float32Array(32), mask = new Float32Array(32), cfg = new Float32Array(32);
+      Lsw.forEach((sw, i) => {
+        rect.set(sw.rect, i * 4);
+        mask.set([sw.mask[0], sw.mask[1], sw.mask[2], sw.kind === "flow" ? 1 : 0], i * 4);
+        cfg.set([sw.threshold, sw.holdSec || 1,
+          (sw.kind === "volume" || sw.latch === "static") ? 1 : 0, 0], i * 4);
+      });
+      gl.uniform4fv(U(p, "uSwRect[0]"), rect);
+      gl.uniform4fv(U(p, "uSwMask[0]"), mask);
+      gl.uniform4fv(U(p, "uSwCfg[0]"), cfg);
+      gl.uniform1f(U(p, "uDtF"), steps * DT);
+    });
+    swState.swap();
+  }
+  updateNests(steps);
+  checkPickups();
+  for (const c of pendingCallouts) {
+    if (!c.fired && simTime >= c.t) { c.fired = true; spawnCallout(c); }
+  }
+  updateCallouts();
+  drawOverlay();
+  updateOverlays(now);
+  updateSelection();
+  updateGhost();
+  fps += (1 / Math.max(dtW, 1e-4) - fps) * 0.05;
+  renderFrame(now);
+}
+
+document.getElementById("btnPlay").onclick = () => loadLevel(0);
+document.getElementById("btnOptions").onclick = () => {
+  document.getElementById("options").style.display = "flex";
+};
+document.getElementById("optClose").onclick = () => {
+  document.getElementById("options").style.display = "none";
+};
+document.getElementById("optTune").onclick = () => {
+  document.getElementById("options").style.display = "none";
+  if (!panelOpen) togglePanel();
+};
+{
+  const q = document.getElementById("optQual");
+  q.innerHTML = Object.keys(QUALITY_PRESETS).map(n =>
+    '<option value="' + n + '"' + (n === qualityName ? " selected" : "") + ">" + n + "</option>").join("");
+  q.onchange = e => {
+    try { localStorage.setItem("fluxroute.quality", e.target.value); } catch (er) {}
+    location.reload();
+  };
+}
+buildPanel();
+buildToolbar();
+loadLevel(-1);          /* boot into the attract loop + start menu */
+requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
