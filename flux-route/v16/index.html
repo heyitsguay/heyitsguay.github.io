@@ -292,6 +292,7 @@ uniform float uStagSpeed;      /* texels/s scale of "stagnant" */
 uniform sampler2D uDyn;
 uniform float uDynForce;
 uniform float uDynTrigger;
+uniform float uLaneForce;
 uniform float uDt;
 float exoAt(vec2 uv){
   vec4 d = texture(uDye,uv);
@@ -317,6 +318,7 @@ void main(){
   vel += -0.5*vec2(xR-xL, xT-xB)*uDynForce*uDt;     /* dynamite goes off */
   float red = texture(uDye,vUv).r;
   vel += texture(uAmp,vUv).rg * min(red,4.0) * uDt; /* red powers the machines */
+  vel += texture(uDyn,vUv).gb * uLaneForce * uDt;   /* drawn current: flow lanes */
   fragColor = vec4(clamp(vel,vec2(-1000.0),vec2(1000.0)), 0.0, 1.0);
 }
 `;
@@ -421,6 +423,36 @@ void main(){
 }
 `;
 
+/* lane paint: capsule along the drag segment writes unit direction into the
+ * gb channels of the matter (dyn) texture. Last-written-wins: repainting
+ * redirects without erase. Mode 0 erases (free; the well refunds itself). */
+const lanePaintFS = FRAG_HEADER + `uniform sampler2D uDyn;
+uniform vec2  uSimTexel;
+uniform vec2  uSegA;
+uniform vec2  uSegB;
+uniform vec2  uDir;
+uniform float uPaintR;        /* texels */
+uniform float uPaintMode;     /* 1 paint, 0 erase */
+void main(){
+  vec4 m = texture(uDyn,vUv);
+  vec2 pa = (vUv-uSegA)/uSimTexel, ba = (uSegB-uSegA)/uSimTexel;
+  float h = clamp(dot(pa,ba)/max(dot(ba,ba),1e-6), 0.0, 1.0);
+  float d = length(pa - ba*h);
+  if(d <= uPaintR) m.gb = uPaintMode>0.5 ? uDir : vec2(0.0);
+  fragColor = m;
+}
+`;
+
+/* matter sums for the wells: (walls coverage, lane coverage) -> reduce -> CPU */
+const matPackFS = FRAG_HEADER + `uniform sampler2D uWalls;
+uniform sampler2D uDyn;
+void main(){
+  float w = texture(uWalls,vUv).r;
+  float l = min(length(texture(uDyn,vUv).gb), 1.0);
+  fragColor = vec4(w, l, 0.0, 1.0);
+}
+`;
+
 /* dynamite field: deposits where B+G co-locate, burns where red triggers */
 const dynUpdateFS = FRAG_HEADER + `uniform sampler2D uDye;
 uniform sampler2D uDyn;
@@ -434,7 +466,8 @@ void main(){
   float form = uDynForm * smoothstep(0.06, 0.30, min(d.g, d.b));
   float trig = smoothstep(uDynTrigger*0.55, uDynTrigger, d.r);
   float burn = uDynBurn * dyn * trig;
-  fragColor = vec4(clamp(dyn + (form - burn)*uDt, 0.0, 1.5), 0.0, 0.0, 1.0);
+  vec2 lane = texture(uDyn,vUv).gb;          /* lanes live in gb; pass through */
+  fragColor = vec4(clamp(dyn + (form - burn)*uDt, 0.0, 1.5), lane, 1.0);
 }
 `;
 
@@ -444,7 +477,8 @@ const switchSenseFS = FRAG_HEADER + `uniform sampler2D uDye;
 uniform sampler2D uState;
 uniform int   uSwCount;
 uniform vec4  uSwRect[8];   /* x0,y0,x1,y1 in UV */
-uniform vec4  uSwMask[8];   /* rgb dye mask; w: 0=volume 1=flow */
+uniform sampler2D uPressure;
+uniform vec4  uSwMask[8];   /* rgb dye mask; w: 0=volume 1=flow 2=pressure */
 uniform vec4  uSwCfg[8];    /* threshold, holdSec, staticLatch, _ */
 uniform float uDtF;
 void main(){
@@ -452,21 +486,35 @@ void main(){
   vec4 st = texelFetch(uState, ivec2(i,0), 0);
   if(i >= uSwCount){ fragColor = vec4(0.0); return; }
   vec4 R = uSwRect[i];
-  float acc = 0.0;
-  for(int gy=0; gy<8; gy++)
-    for(int gx=0; gx<12; gx++){
-      vec2 uv = mix(R.xy, R.zw, vec2((float(gx)+0.5)/12.0, (float(gy)+0.5)/8.0));
-      acc += dot(texture(uDye, uv).rgb, uSwMask[i].rgb);
-    }
-  float flux = acc/96.0;
+  float kind = uSwMask[i].w;
   float thr = uSwCfg[i].x, holdS = max(uSwCfg[i].y, 1e-3);
-  if(uSwMask[i].w < 0.5){
-    st.x += flux*uDtF;                       /* volume: tank fills, latches */
-    if(st.x >= thr) st.z = 1.0;
+  float flux = 0.0;
+  if(kind > 1.5){
+    /* pressure (blast) switch: frame MAX of |p| over the grid. A blast is a
+     * traveling front — only part of the boundary sees peak at once, so max
+     * detects the hit wherever it lands. Latches forever: rubble stays rubble. */
+    for(int gy=0; gy<8; gy++)
+      for(int gx=0; gx<12; gx++){
+        vec2 uv = mix(R.xy, R.zw, vec2((float(gx)+0.5)/12.0, (float(gy)+0.5)/8.0));
+        flux = max(flux, abs(texture(uPressure, uv).x));
+      }
+    st.x = flux;
+    if(flux >= thr) st.z = 1.0;
   } else {
-    if(flux >= thr) st.y = min(st.y + uDtF, holdS*2.0);
-    else if(flux < thr*0.8) st.y = max(0.0, st.y - 2.0*uDtF);
-    if(uSwCfg[i].z > 0.5 && st.y >= holdS) st.z = 1.0;     /* static latch */
+    for(int gy=0; gy<8; gy++)
+      for(int gx=0; gx<12; gx++){
+        vec2 uv = mix(R.xy, R.zw, vec2((float(gx)+0.5)/12.0, (float(gy)+0.5)/8.0));
+        flux += dot(texture(uDye, uv).rgb, uSwMask[i].rgb);
+      }
+    flux /= 96.0;
+    if(kind < 0.5){
+      st.x += flux*uDtF;                     /* volume: tank fills, latches */
+      if(st.x >= thr) st.z = 1.0;
+    } else {
+      if(flux >= thr) st.y = min(st.y + uDtF, holdS*2.0);
+      else if(flux < thr*0.8) st.y = max(0.0, st.y - 2.0*uDtF);
+      if(uSwCfg[i].z > 0.5 && st.y >= holdS) st.z = 1.0;   /* static latch */
+    }
   }
   st.w = flux;
   fragColor = st;
@@ -1262,6 +1310,15 @@ void main(){
   vec3 gcol = mix(vec3(0.45,0.62,0.78), vec3(0.78,0.92,1.05), smoothstep(0.4,1.1,gel));
   col = mix(col, gcol*(0.5+0.4*min(gel,1.3)), mem*0.62*clamp(uGelGlow,0.0,2.0));
   col += vec3(0.45,0.75,1.0)*gEdge*mem*uGelGlow*(0.30+0.18*sin(uTime*2.2+(vUv.x+vUv.y)*34.0));
+  /* flow lanes: drawn current, chevron bands marching along the lane */
+  vec2 ln = texture(uDyn,vUv).gb;
+  float lm = length(ln);
+  if(lm>0.05){
+    vec2 dirn = ln/lm;
+    float band = smoothstep(0.45,0.95,sin(dot(vUv*vec2(16.0,9.0), dirn)*22.0 - uTime*4.0));
+    col = mix(col, col + vec3(0.05,0.18,0.20), 0.45*min(lm,1.0));
+    col += vec3(0.20,0.62,0.70)*band*0.16*min(lm,1.0);
+  }
   /* dynamite charges: packed amber solid; white-hot where firing */
   float dynv = texture(uDyn,vUv).r;
   if(dynv>0.04){
@@ -1339,7 +1396,7 @@ return {
     obstacleCompose: obstacleComposeFS, dyePost: dyePostFS, scoreAccum: scoreAccumFS,
     sensor: sensorFS, reduce: reduceFS, telemetry: telemetryFS,
     jfaSeed: jfaSeedFS, jfaStep: jfaStepFS, jfaCombine: jfaCombineFS, jfaGrad: jfaGradFS,
-    actorUpdate: actorUpdateFS, splatForce: splatForceFS, splatDye: splatDyeFS, splatWake: splatWakeFS, wakeUpdate: wakeUpdateFS, wallPaint: wallPaintFS, switchSense: switchSenseFS, dynUpdate: dynUpdateFS,
+    actorUpdate: actorUpdateFS, splatForce: splatForceFS, splatDye: splatDyeFS, splatWake: splatWakeFS, wakeUpdate: wakeUpdateFS, wallPaint: wallPaintFS, switchSense: switchSenseFS, dynUpdate: dynUpdateFS, lanePaint: lanePaintFS, matPack: matPackFS,
     splatMask: splatMaskFS, glyph: glyphFS, bright: brightFS, blur: blurFS,
     composite: compositeFS
   }
@@ -1392,6 +1449,7 @@ const DEFAULT_PARAMS = {
   gelReact: 6, gelDissolve: 0.02, gelErode: 0.01, gelDrag: 12.9, gelSolid: 1.09, gelConsume: 1.0,
   exoForce: 17745, exoKnee: 0.45, stagBoost: 33.9, stagSpeed: 27.3, exoConsume: 0.3, eatRate: 12.0,
   dynForm: 6, dynTrigger: 0.3, dynForce: 40000, dynBurn: 8, dynRed: 1.2,
+  laneForce: 700, laneBrush: 5,
   wallBrush: 7,
   warmStart: 0.8, tonemapK: 0.42, bloomStr: 0.57, bloomThr: 2.1,
   hueShift: 0.01, flowGlow: 1.42, streak: 2.62, curlTint: 0.63, schlieren: 1.14, speciesFx: 0.24,
@@ -1543,7 +1601,9 @@ const ampTex    = makeTex(SIM_W, SIM_H, gl.RG16F, gl.RG, gl.FLOAT, gl.LINEAR);
 const wake = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
 const walls = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
 const swState = makePP(8, 1, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
-const dyn = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
+const dyn = makePP(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);  /* r=charge, gb=lane dir */
+const matPackRT = makeRT(SIM_W, SIM_H, gl.RG16F, gl.RG, gl.HALF_FLOAT, gl.NEAREST);
+const matSum = makeRT(1, 1, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
 clearRT(gel.a); clearRT(gel.b); clearRT(wake.a); clearRT(wake.b); clearRT(walls.a); clearRT(walls.b); clearRT(swState.a); clearRT(swState.b); clearRT(dyn.a); clearRT(dyn.b);
 
 const reduceChain = [];
@@ -1597,7 +1657,7 @@ const LEVELS = [
       { t: 1, dur: 7, text: "Guide the red flux to the green basin. WASD to swim \u2014 your wake is a tool." },
       { t: 9, dur: 7, text: "Click places a fan (key 1). Hover + wheel rotates. Hold the capture % to win." }
     ],
-    budgets: { fan: 3, blue: 0, green: 0, wallAdd: 6, wallErase: 5 }, allowNudge: true,
+    budgets: { fan: 3, blue: 0, green: 0 }, wells: { slate: 450 }, allowNudge: true,
     removableWalls: [{ rect: [0.44, 0.55, 0.48, 0.78] }],
     playerStart: [0.25, 0.78],
     actors: [{ type: 3, pos: [0.07, 0.60], angle: 0, r: 5, strength: 430, dye: RED, locked: true, rotatable: true }],
@@ -1704,14 +1764,18 @@ const LEVELS = [
       { type: 7, pos: [0.82, 0.84], period: 12, jitter: 0.4, predTtl: 12, predThrust: 0.42 },
       { type: 5, pos: [0.56, 0.50], angle: Math.PI / 2, r: 7, amp: 0.16, omega: 1.8, phase: 0 }
     ],
-    switches: [{ id: "S", rect: [0.44, 0.55, 0.49, 0.75], kind: "flow", latch: "dynamic",
-      threshold: 0.05, holdSec: 2, mask: [1, 0, 0],
-      wires: [[[0.60, 0.65], [0.70, 0.41], [0.76, 0.41]]] }],
+    switches: [
+      { id: "S", rect: [0.44, 0.55, 0.49, 0.75], kind: "flow", latch: "dynamic",
+        threshold: 0.05, holdSec: 2, mask: [1, 0, 0],
+        wires: [[[0.60, 0.65], [0.70, 0.41], [0.76, 0.41]]] },
+      { id: "D", rect: [0.29, 0.02, 0.35, 0.32], kind: "pressure", threshold: 60 }
+    ],
     ampZones: [{ rect: [0.66, 0.18, 0.82, 0.30], angle: 0, gain: 800 }],
     paint(gs) {
       gs = gs || {};
       base();
       pxRect(SOLID_C, 0.30, 0.30, 0.34, 1.0);
+      if (!gs.D) pxRect(SOLID_C, 0.30, 0.04, 0.34, 0.30);  // blast plug (pressure-rated)
       pxRect(DRAIN_C, 0.36, 0.04, 0.70, 0.12);
       pxRect(SOLID_C, 0.74, 0.56, 0.78, 1.0);
       if (!gs.S) pxRect(SOLID_C, 0.74, 0.26, 0.78, 0.56);
@@ -1824,7 +1888,8 @@ function actorRecord(a) {
     const gv = a.gives || "";
     const sp = gv === "blue" ? [0, 0, 1] : gv === "green" ? [0, 1, 0]
       : gv === "wallAdd" ? [0.8, 0.5, 0] : gv === "wallErase" ? [1, 0.1, 0]
-      : gv === "amp" ? [0.9, 0.75, 0.2] : gv.indexOf("spin") === 0 ? [1, 0.12, 0.08] : [1, 1, 1];
+      : gv === "amp" ? [0.9, 0.75, 0.2] : gv.indexOf("spin") === 0 ? [1, 0.12, 0.08]
+      : gv === "slate" ? [0.62, 0.66, 0.74] : gv === "lanes" ? [0.2, 0.75, 0.85] : [1, 1, 1];
     f[10] = sp[0]; f[11] = sp[1]; f[12] = sp[2];
     f[6] = gv.indexOf("spin") === 0 ? (+gv[4] || 0) : 0;   // glyph throb tier
   } else {
@@ -1845,7 +1910,7 @@ const budgetOverrides = {};        // per-level session overrides from the panel
 let emittedRed = 0, gateState = {}, simTime = 0;
 let ghostAngle = 0, ghostPos = [0.5, 0.5], mouseUV = [0.5, 0.5], mouseInCanvas = false;
 let pendingSpawn = null, debugMode = 0, lastSubsteps = 0, fps = 60;
-let lastTelem = new Float32Array((TELEM_W + 8) * 4);   // +8 switch slots
+let lastTelem = new Float32Array((TELEM_W + 9) * 4);   // +8 switch slots, +1 matter sums
 let selectedSlot = -1, selectedTool = 0;
 const TOOLS = [
   { key: "fan", label: "FAN", type: 2, r: 6, dye: null, strengthKey: "fanStrength" },
@@ -1853,7 +1918,9 @@ const TOOLS = [
   { key: "green", label: "GRN", type: 3, r: 5, dye: GREEN, strengthKey: "greenEmitStrength" },
   { key: "amp", label: "AMP", type: 11, r: 6, dye: null },
   { key: "wallAdd", label: "WAL+", type: 9, r: 7, dye: [1, 0.72, 0.25] },
-  { key: "wallErase", label: "WAL\u2212", type: 9, r: 7, dye: [1, 0.32, 0.28] }
+  { key: "wallErase", label: "WAL\u2212", type: 9, r: 7, dye: [1, 0.32, 0.28] },
+  { key: "laneAdd", label: "LANE+", type: 12, r: 6, dye: [0.2, 0.7, 0.8] },
+  { key: "laneErase", label: "LANE\u2212", type: 12, r: 6, dye: [0.5, 0.3, 0.3] }
 ];
 let prevDelivered = 0, captureEMA = 0, sensorEMA = 0, pulsePhase = 0, pulseAmp = 0.1;
 let sinkHeat = 0, trigHeat = 0, winHoldT = 0, winInhibited = false, sinkHueDrift = 0, lastPulseT = performance.now() / 1000;
@@ -1916,6 +1983,33 @@ function refreshLevelTextures() {
 }
 
 let placedAmps = [], placingAmp = null, ampTick = 0;
+let wells = { slate: 0, lanes: 0 };
+let wallPxUsed = 0, lanePxUsed = 0, lastWellToast = 0;
+let lanePrev = null, laneDir = [1, 0], rightPaint = false;
+function paintLane(uv, add) {
+  if (lanePrev) {                       /* tangent smoothed over recent drag */
+    const dx = (uv[0] - lanePrev[0]) * 16, dy = (uv[1] - lanePrev[1]) * 9;
+    const l = Math.hypot(dx, dy);
+    if (l > 1e-3) {
+      const k = 0.45;
+      laneDir = [laneDir[0] + (dx / l - laneDir[0]) * k, laneDir[1] + (dy / l - laneDir[1]) * k];
+      const n = Math.hypot(laneDir[0], laneDir[1]) || 1;
+      laneDir = [laneDir[0] / n, laneDir[1] / n];
+    }
+  }
+  const a = lanePrev || uv;
+  runFS(P.lanePaint, dyn.write, p => {
+    bindTex(p, "uDyn", dyn.read.tex, 0);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform2f(U(p, "uSegA"), a[0], a[1]);
+    gl.uniform2f(U(p, "uSegB"), uv[0], uv[1]);
+    gl.uniform2f(U(p, "uDir"), laneDir[0], laneDir[1]);
+    gl.uniform1f(U(p, "uPaintR"), params.laneBrush * RES_SCALE);
+    gl.uniform1f(U(p, "uPaintMode"), add ? 1 : 0);
+  });
+  dyn.swap();
+  lanePrev = uv;
+}
 function refreshAmps() {
   const L = curLevel();
   const n = SIM_W * SIM_H;
@@ -1968,7 +2062,9 @@ function loadLevel(idx) {
   for (const sw of L.switches || [])
     for (const tgt of sw.targets || []) setTargetEnabled(tgt, false);
   const ov = budgetOverrides[levelIdx] || {};
-  budget = Object.assign({ fan: 0, blue: 0, green: 0, wallAdd: 0, wallErase: 0 }, L.budgets, ov);
+  budget = Object.assign({ fan: 0, blue: 0, green: 0, amp: 0 }, L.budgets, ov);
+  wells = Object.assign({ slate: 0, lanes: 0 }, L.wells);
+  wallPxUsed = 0; lanePxUsed = 0; lanePrev = null; rightPaint = false;
   emitRate = redEmitRate();
   {  /* removable level walls live in the dynamic walls field (survive gate repaints) */
     const wf = new Float32Array(SIM_W * SIM_H);
@@ -2181,6 +2277,7 @@ function substep() {
     gl.uniform1f(U(p, "uStagSpeed"), PV("stagSpeed") * RES_SCALE);
     bindTex(p, "uDyn", dyn.read.tex, 3);
     gl.uniform1f(U(p, "uDynForce"), PV("dynForce") * RES_SCALE);
+    gl.uniform1f(U(p, "uLaneForce"), PV("laneForce") * RES_SCALE);
     gl.uniform1f(U(p, "uDynTrigger"), PV("dynTrigger"));
     gl.uniform1f(U(p, "uDt"), DT);
   });
@@ -2272,7 +2369,7 @@ class ReadbackChannel {
     for (let i = 0; i < 3; i++) {
       const pbo = gl.createBuffer();
       gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
-      gl.bufferData(gl.PIXEL_PACK_BUFFER, (TELEM_W + 8) * 4 * 4, gl.STREAM_READ);
+      gl.bufferData(gl.PIXEL_PACK_BUFFER, (TELEM_W + 9) * 4 * 4, gl.STREAM_READ);
       this.slots.push({ pbo, fence: null });
     }
     gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
@@ -2288,6 +2385,8 @@ class ReadbackChannel {
     gl.readPixels(0, 0, TELEM_W, 1, gl.RGBA, gl.FLOAT, 0);
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, swState.read.fbo);
     gl.readPixels(0, 0, 8, 1, gl.RGBA, gl.FLOAT, TELEM_W * 16);
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, matSum.fbo);
+    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, (TELEM_W + 8) * 16);
     gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
     s.fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -2633,7 +2732,7 @@ function drawOverlay() {
     octx.strokeStyle = "#1a2236"; octx.stroke();
     octx.beginPath();                              /* gauge: tank/timer fill */
     octx.arc(P0[0], P0[1], R, -Math.PI / 2, -Math.PI / 2 + 6.2832 * Math.min(sw._frac || 0, 1));
-    octx.strokeStyle = dead ? "#8a93a6" : on ? (sw.inhibit ? "#ffb347" : "#7fe8ff") : maskTint(sw.mask);
+    octx.strokeStyle = dead ? "#8a93a6" : on ? (sw.inhibit ? "#ffb347" : "#7fe8ff") : maskTint(sw.mask || [0, 0, 0]);
     octx.stroke();
     octx.beginPath(); octx.arc(P0[0], P0[1], R + 5, 0, 6.2832);
     octx.lineWidth = 1.6;                          /* dashed = forgets */
@@ -2675,7 +2774,10 @@ function checkPickups() {
     if (!a || a.type !== 8) continue;
     const reach = (5 + (a.r || 5)) * effScale() * Math.max(SIM_TEXEL[0], SIM_TEXEL[1]);
     if (Math.hypot(px - a.pos[0], py - a.pos[1]) < reach) {
-      if (/^spin[123]$/.test(a.gives)) {
+      if (a.gives === "slate" || a.gives === "lanes") {
+        wells[a.gives] += a.count || 200;
+        showToast("+" + (a.count || 200) + " px " + (a.gives === "slate" ? "SLATE" : "LANE") + " WELL");
+      } else if (/^spin[123]$/.test(a.gives)) {
         const t = +a.gives[4];
         if (t > spinTier) { spinTier = t; showToast("SPIN MOTOR " + ["", "I", "II", "III"][t] + " \u2014 max spin raised"); }
         else showToast("spare motor part \u2014 already at tier " + spinTier);
@@ -2705,13 +2807,13 @@ function evalSwitches() {
   L.switches.forEach((sw, i) => {
     const o = (TELEM_W + i) * 4;
     const bank = lastTelem[o], timer = lastTelem[o + 1], latched = lastTelem[o + 2] > 0.5;
-    const on = latched || (sw.kind === "volume"
+    const on = latched || (sw.kind !== "flow"          /* volume + pressure read st.x */
       ? bank >= sw.threshold : timer >= (sw.holdSec || 1));
-    sw._frac = sw.kind === "volume"
+    sw._frac = sw.kind !== "flow"
       ? Math.min(bank / Math.max(sw.threshold, 1e-6), 1)
       : Math.min(timer / Math.max(sw.holdSec || 1, 1e-3), 1);
     sw._flux = lastTelem[o + 3];
-    sw._latched = latched || (on && (sw.kind === "volume" || sw.latch === "static"));
+    sw._latched = latched || (on && (sw.kind !== "flow" || sw.latch === "static"));
     if (sw.inhibit && on) winInhibited = true;
     if (!!gateState[sw.id] !== on) {
       gateState[sw.id] = on; changed = true;
@@ -2809,7 +2911,7 @@ function updateHUD(t, now) {
     if (winInhibited) txt += "  \u26a0 FLOW FAULT";
   }
   txt += "\nF" + (budget.fan | 0) + " B" + (budget.blue | 0) + " G" + (budget.green | 0) +
-    " W+" + (budget.wallAdd || 0).toFixed(0) + " W\u2212" + (budget.wallErase || 0).toFixed(0) +
+    " SLATE " + wallPxUsed.toFixed(0) + "/" + (wells.slate | 0) + " LANE " + lanePxUsed.toFixed(0) + "/" + (wells.lanes | 0) +
     "  \u2502  spin " + ["base", "I", "II", "III"][spinTier] +
     "  \u2502  tool [" + (selectedTool >= 0 ? TOOLS[selectedTool].label : "none") + "]" +
     (paused ? "  \u2502  \u23f8 PAUSED" : "") +
@@ -2904,6 +3006,8 @@ const TIPS = {
   dynForce: "Blast force when a charge fires. The whole point.",
   dynBurn: "How fast a triggered charge consumes itself. Lower = longer burns.",
   dynRed: "Red released per unit of burning charge. Above ~0.4 net, blasts prime neighboring charges \u2014 chain reactions.",
+  laneForce: "Acceleration applied along drawn flow lanes (pre-projection, like fans).",
+  laneBrush: "Lane stroke width in reference texels.",
   predSuck: "Predator suction: spiral inflow force on the FLUID (the tangential part survives the pressure solve).",
   predSense: "Predator scent-stencil radius (ref texels). Wider = ignores vortex noise, smells distant plumes.",
   predGreed: "How strongly scent gradients override the random walk. Low = drunkard, high = bloodhound.",
@@ -2943,7 +3047,8 @@ const GROUPS = {
   "exothermics": [["exoForce", 50, 40000, 0, "log"], ["exoKnee", 0.05, 10, 0.05], ["stagBoost", 0, 40, 0.1],
     ["stagSpeed", 0.2, 150, 0, "log"], ["exoConsume", 0, 5, 0.05],
     ["dynForm", 0.1, 60, 0, "log"], ["dynTrigger", 0.02, 1, 0.01],
-    ["dynForce", 1000, 300000, 0, "log"], ["dynBurn", 0.5, 60, 0, "log"], ["dynRed", 0.02, 10, 0, "log"]],
+    ["dynForce", 1000, 300000, 0, "log"], ["dynBurn", 0.5, 60, 0, "log"], ["dynRed", 0.02, 10, 0, "log"],
+    ["laneForce", 10, 20000, 0, "log"], ["laneBrush", 1, 20, 0.5]],
   "predators & wake": [["predSuck", 10, 10000, 0, "log"], ["eatRate", 0.1, 80, 0, "log"],
     ["predSense", 2, 80, 1], ["predGreed", 0.5, 500, 0, "log"], ["predTtl", 2, 60, 0.5],
     ["wakeDeposit", 0.2, 50, 0, "log"], ["wakeDiss", 0.5, 100, 0, "log"], ["wakeCurl", 0.1, 40, 0, "log"],
@@ -2958,7 +3063,7 @@ function logName(key) {
   const v = params[key];
   return key + " = " + (v >= 100 ? v.toFixed(0) : v >= 1 ? v.toFixed(2) : v.toPrecision(3));
 }
-const budgetProxy = { fan: 0, blue: 0, green: 0, wallAdd: 0, wallErase: 0 };
+const budgetProxy = { fan: 0, blue: 0, green: 0, amp: 0, slate: 0, lanes: 0 };
 const cfgState = { config: activeName || "(defaults)" };
 function cfgNames() { return ["(defaults)"].concat(Object.keys(configs)); }
 function onCfgChange(v) {
@@ -3015,13 +3120,17 @@ function buildPanel() {
   };
   for (const k of ["save", "save as", "delete", "export", "import", "revert to level"]) sys.add(acts, k);
   const bud = gui.addFolder("budgets (this level)");
-  for (const k of ["fan", "blue", "green", "wallAdd", "wallErase"]) {
-    const c = bud.add(budgetProxy, k, 0, 60, 1).onChange(v => {
-      budget[k] = Math.max(0, v);
-      budgetOverrides[levelIdx] = Object.assign({}, budgetOverrides[levelIdx], { [k]: budget[k] });
+  for (const k of ["fan", "blue", "green", "amp", "slate", "lanes"]) {
+    const isWell = k === "slate" || k === "lanes";
+    const c = bud.add(budgetProxy, k, 0, isWell ? 3000 : 60, isWell ? 10 : 1).onChange(v => {
+      if (isWell) wells[k] = Math.max(0, v);
+      else {
+        budget[k] = Math.max(0, v);
+        budgetOverrides[levelIdx] = Object.assign({}, budgetOverrides[levelIdx], { [k]: budget[k] });
+      }
     });
-    c.domElement.title = k.startsWith("wall")
-      ? "Seconds of wall " + (k === "wallAdd" ? "fabrication" : "dissolving") + " (tool " + (k === "wallAdd" ? 4 : 5) + ", hold F)."
+    c.domElement.title = isWell
+      ? "Well capacity in reference pixels: extant " + k + " matter may not exceed this. Erase refunds."
       : "How many " + k + " tools the player may place on this level.";
   }
   for (const [gname, list] of Object.entries(GROUPS)) {
@@ -3060,7 +3169,7 @@ function syncSliders() {
   if (gui) gui.controllersRecursive().forEach(c => c.updateDisplay());
 }
 function syncBudgetInputs() {
-  Object.assign(budgetProxy, { fan: 0, blue: 0, green: 0, wallAdd: 0, wallErase: 0 }, budget);
+  Object.assign(budgetProxy, { fan: 0, blue: 0, green: 0, amp: 0 }, budget, { slate: wells.slate, lanes: wells.lanes });
   if (gui) gui.controllersRecursive().forEach(c => { if (c.object === budgetProxy) c.updateDisplay(); });
 }
 function togglePanel() {
@@ -3116,13 +3225,18 @@ canvas.addEventListener("mousedown", e => {
   if (!e.shiftKey || state === "ATTRACT") return;
   if (e.button === 0) {
     const t = selectedTool >= 0 ? TOOLS[selectedTool] : null;
-    if (t && t.type === 9) paintingMouse = true;
+    if (t && (t.type === 9 || t.type === 12)) { paintingMouse = true; lanePrev = null; }
     else if (t && t.type === 11) beginAmpPlace(ghostPos);
     else placeTool(ghostPos);
     e.preventDefault();
-  } else if (e.button === 2) { deleteSelected(); e.preventDefault(); }
+  } else if (e.button === 2) {
+    const t2 = selectedTool >= 0 ? TOOLS[selectedTool] : null;
+    if (t2 && (t2.type === 9 || t2.type === 12)) { rightPaint = true; lanePrev = null; }
+    else deleteSelected();
+    e.preventDefault();
+  }
 });
-window.addEventListener("mouseup", e => { if (e.button === 0) { paintingMouse = false; if (placingAmp) { refreshAmps(); placingAmp = null; } } });
+window.addEventListener("mouseup", e => { if (e.button === 0) { paintingMouse = false; lanePrev = null; if (placingAmp) { refreshAmps(); placingAmp = null; } } if (e.button === 2) { rightPaint = false; lanePrev = null; } });
 /* ---------- touch: hold = steer toward finger; double-tap = place item /
  * enter aim mode on an item (tap to point it, double-tap anywhere exits) */
 let touchSteer = null, rotateModeSlot = -1, aimEngaged = false;
@@ -3177,13 +3291,16 @@ canvas.addEventListener("wheel", e => {            /* desktop throttle */
 function handleDoubleTap(uv) {
   const tool = selectedTool >= 0 ? TOOLS[selectedTool] : null;
   /* wall tool selected: double-tap ARMS the brush; the drag paints */
-  if (tool && tool.type === 9 && state === "PLAY") {
-    if ((budget[tool.key] || 0) > 0) {
+  if (tool && (tool.type === 9 || tool.type === 12) && state === "PLAY") {
+    const adding = tool.key.indexOf("Add") >= 0;
+    const isLane = tool.type === 12;
+    if (!adding || (isLane ? lanePxUsed < wells.lanes : wallPxUsed < wells.slate)) {
       touchPaint = true;
       touchPaintPos = uv;
-      paintWall(clampToReach(uv), tool.key === "wallAdd");
+      lanePrev = null;
+      if (isLane) paintLane(clampToReach(uv), adding); else paintWall(clampToReach(uv), adding);
     } else {
-      showToast("no " + (tool.key === "wallAdd" ? "fabricator" : "dissolver") + " time left");
+      showToast((isLane ? "lane" : "slate") + " well empty \u2014 erase to reclaim matter");
     }
     return;
   }
@@ -3271,7 +3388,7 @@ function refreshToolbar() {
 function buildToolbar() {
   if (!IS_TOUCH) return;
   const el = document.getElementById("toolbar");
-  const items = [["\u00d7", -1], ["FAN", 0], ["BLU", 1], ["GRN", 2], ["W+", 3], ["W\u2212", 4]];
+  const items = [["\u00d7", -1], ["FAN", 0], ["BLU", 1], ["GRN", 2], ["AMP", 3], ["W+", 4], ["W\u2212", 5], ["L+", 6], ["L\u2212", 7]];
   el.innerHTML = items.map(([l, i]) => '<button data-tool="' + i + '">' + l + "</button>").join("") +
     '<button data-act="pause">\u23f8</button><button data-act="reset">R</button>' +
     '<button data-act="menu">\u2630</button>';
@@ -3298,6 +3415,10 @@ window.addEventListener("keydown", e => {
   else if (digit === "2") { selectedTool = 1; refreshToolbar(); }
   else if (digit === "3") { selectedTool = 2; refreshToolbar(); }
   else if (digit === "4") { selectedTool = 3; refreshToolbar(); }
+  else if (digit === "5") { selectedTool = 4; refreshToolbar(); }
+  else if (digit === "6") { selectedTool = 5; refreshToolbar(); }
+  else if (digit === "7") { selectedTool = 6; refreshToolbar(); }
+  else if (digit === "8") { selectedTool = 7; refreshToolbar(); }
   else if (digit === "5") { selectedTool = 4; refreshToolbar(); }
   else if (digit === "0") { selectedTool = -1; refreshToolbar(); }
   else if (k === "[") { if (selectedSlot >= 1) rotateSelected(1); }
@@ -3334,19 +3455,24 @@ function frame(now) {
   if (spinInput !== 0 && state === "PLAY")
   wallPaintGlow = 0;
   const wtool = selectedTool >= 0 ? TOOLS[selectedTool] : null;
-  if (wtool && wtool.type === 9 && state === "PLAY" && steps > 0 &&
-      ((paintingMouse && keys.has("shift")) || touchPaint)) {
-    if ((budget[wtool.key] || 0) > 0) {
-      wallPaintGlow = wtool.key === "wallAdd" ? 1 : 2;
-      paintWall(touchPaint ? clampToReach(touchPaintPos) : ghostPos, wtool.key === "wallAdd");
-      budget[wtool.key] = Math.max(0, budget[wtool.key] - steps * DT);
-      syncBudgetInputs();
-      if (touchPaint && budget[wtool.key] <= 0) {
-        touchPaint = false;
-        showToast((wtool.key === "wallAdd" ? "fabricator" : "dissolver") + " time exhausted");
+  if (wtool && (wtool.type === 9 || wtool.type === 12) && state === "PLAY" && steps > 0 &&
+      ((paintingMouse && keys.has("shift")) || (rightPaint && keys.has("shift")) || touchPaint)) {
+    const adding = !rightPaint && wtool.key.indexOf("Add") >= 0;
+    const isLane = wtool.type === 12;
+    /* the well invariant: extant material may not exceed capacity. Erasing
+     * is always free — the sum drops and the refund is exact by construction. */
+    if (!adding || (isLane ? lanePxUsed < wells.lanes : wallPxUsed < wells.slate)) {
+      wallPaintGlow = adding ? 1 : 2;
+      const at = touchPaint ? clampToReach(touchPaintPos) : ghostPos;
+      if (isLane) paintLane(at, adding); else paintWall(at, adding);
+    } else {
+      if (touchPaint) touchPaint = false;
+      if (simTime - lastWellToast > 1.5) {
+        lastWellToast = simTime;
+        showToast((isLane ? "lane" : "slate") + " well empty \u2014 erase to reclaim matter");
       }
-    } else touchPaint = false;
-  }
+    }
+  } else lanePrev = null;
   if (steps > 0) {
     runFS(P.dynUpdate, dyn.write, p => {
       bindTex(p, "uDye", dye.read.tex, 0);
@@ -3357,7 +3483,19 @@ function frame(now) {
       gl.uniform1f(U(p, "uDt"), steps * DT);
     });
     dyn.swap();
+    runFS(P.matPack, matPackRT, p => {     /* wells: extant-material invariant */
+      bindTex(p, "uWalls", walls.read.tex, 0);
+      bindTex(p, "uDyn", dyn.read.tex, 1);
+    });
+    const rM = runReduce(matPackRT.tex);
+    runFS(P.copy, matSum, p => {
+      bindTex(p, "uSrc", rM.tex, 0);
+      gl.uniform1f(U(p, "uMul"), 1.0);
+    });
   }
+  const mo = (TELEM_W + 8) * 4;            /* sums in reference-res pixels */
+  wallPxUsed = lastTelem[mo] / (RES_SCALE * RES_SCALE);
+  lanePxUsed = lastTelem[mo + 1] / (RES_SCALE * RES_SCALE);
   if (placingAmp && ghostPos) {          /* live-aim a placed amp zone */
     const cx = (placingAmp.rect[0] + placingAmp.rect[2]) / 2;
     const cy = (placingAmp.rect[1] + placingAmp.rect[3]) / 2;
@@ -3369,11 +3507,13 @@ function frame(now) {
     runFS(P.switchSense, swState.write, p => {
       bindTex(p, "uDye", dye.read.tex, 0);
       bindTex(p, "uState", swState.read.tex, 1);
+      bindTex(p, "uPressure", pressure.read.tex, 2);
       gl.uniform1i(U(p, "uSwCount"), Lsw.length);
       const rect = new Float32Array(32), mask = new Float32Array(32), cfg = new Float32Array(32);
       Lsw.forEach((sw, i) => {
+        const mk = sw.mask || [0, 0, 0];
         rect.set(sw.rect, i * 4);
-        mask.set([sw.mask[0], sw.mask[1], sw.mask[2], sw.kind === "flow" ? 1 : 0], i * 4);
+        mask.set([mk[0], mk[1], mk[2], sw.kind === "flow" ? 1 : sw.kind === "pressure" ? 2 : 0], i * 4);
         cfg.set([sw.threshold, sw.holdSec || 1,
           (sw.kind === "volume" || sw.latch === "static") ? 1 : 0, 0], i * 4);
       });

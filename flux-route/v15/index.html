@@ -444,7 +444,8 @@ const switchSenseFS = FRAG_HEADER + `uniform sampler2D uDye;
 uniform sampler2D uState;
 uniform int   uSwCount;
 uniform vec4  uSwRect[8];   /* x0,y0,x1,y1 in UV */
-uniform vec4  uSwMask[8];   /* rgb dye mask; w: 0=volume 1=flow */
+uniform sampler2D uPressure;
+uniform vec4  uSwMask[8];   /* rgb dye mask; w: 0=volume 1=flow 2=pressure */
 uniform vec4  uSwCfg[8];    /* threshold, holdSec, staticLatch, _ */
 uniform float uDtF;
 void main(){
@@ -452,21 +453,35 @@ void main(){
   vec4 st = texelFetch(uState, ivec2(i,0), 0);
   if(i >= uSwCount){ fragColor = vec4(0.0); return; }
   vec4 R = uSwRect[i];
-  float acc = 0.0;
-  for(int gy=0; gy<8; gy++)
-    for(int gx=0; gx<12; gx++){
-      vec2 uv = mix(R.xy, R.zw, vec2((float(gx)+0.5)/12.0, (float(gy)+0.5)/8.0));
-      acc += dot(texture(uDye, uv).rgb, uSwMask[i].rgb);
-    }
-  float flux = acc/96.0;
+  float kind = uSwMask[i].w;
   float thr = uSwCfg[i].x, holdS = max(uSwCfg[i].y, 1e-3);
-  if(uSwMask[i].w < 0.5){
-    st.x += flux*uDtF;                       /* volume: tank fills, latches */
-    if(st.x >= thr) st.z = 1.0;
+  float flux = 0.0;
+  if(kind > 1.5){
+    /* pressure (blast) switch: frame MAX of |p| over the grid. A blast is a
+     * traveling front — only part of the boundary sees peak at once, so max
+     * detects the hit wherever it lands. Latches forever: rubble stays rubble. */
+    for(int gy=0; gy<8; gy++)
+      for(int gx=0; gx<12; gx++){
+        vec2 uv = mix(R.xy, R.zw, vec2((float(gx)+0.5)/12.0, (float(gy)+0.5)/8.0));
+        flux = max(flux, abs(texture(uPressure, uv).x));
+      }
+    st.x = flux;
+    if(flux >= thr) st.z = 1.0;
   } else {
-    if(flux >= thr) st.y = min(st.y + uDtF, holdS*2.0);
-    else if(flux < thr*0.8) st.y = max(0.0, st.y - 2.0*uDtF);
-    if(uSwCfg[i].z > 0.5 && st.y >= holdS) st.z = 1.0;     /* static latch */
+    for(int gy=0; gy<8; gy++)
+      for(int gx=0; gx<12; gx++){
+        vec2 uv = mix(R.xy, R.zw, vec2((float(gx)+0.5)/12.0, (float(gy)+0.5)/8.0));
+        flux += dot(texture(uDye, uv).rgb, uSwMask[i].rgb);
+      }
+    flux /= 96.0;
+    if(kind < 0.5){
+      st.x += flux*uDtF;                     /* volume: tank fills, latches */
+      if(st.x >= thr) st.z = 1.0;
+    } else {
+      if(flux >= thr) st.y = min(st.y + uDtF, holdS*2.0);
+      else if(flux < thr*0.8) st.y = max(0.0, st.y - 2.0*uDtF);
+      if(uSwCfg[i].z > 0.5 && st.y >= holdS) st.z = 1.0;   /* static latch */
+    }
   }
   st.w = flux;
   fragColor = st;
@@ -1704,14 +1719,18 @@ const LEVELS = [
       { type: 7, pos: [0.82, 0.84], period: 12, jitter: 0.4, predTtl: 12, predThrust: 0.42 },
       { type: 5, pos: [0.56, 0.50], angle: Math.PI / 2, r: 7, amp: 0.16, omega: 1.8, phase: 0 }
     ],
-    switches: [{ id: "S", rect: [0.44, 0.55, 0.49, 0.75], kind: "flow", latch: "dynamic",
-      threshold: 0.05, holdSec: 2, mask: [1, 0, 0],
-      wires: [[[0.60, 0.65], [0.70, 0.41], [0.76, 0.41]]] }],
+    switches: [
+      { id: "S", rect: [0.44, 0.55, 0.49, 0.75], kind: "flow", latch: "dynamic",
+        threshold: 0.05, holdSec: 2, mask: [1, 0, 0],
+        wires: [[[0.60, 0.65], [0.70, 0.41], [0.76, 0.41]]] },
+      { id: "D", rect: [0.29, 0.02, 0.35, 0.32], kind: "pressure", threshold: 600 }
+    ],
     ampZones: [{ rect: [0.66, 0.18, 0.82, 0.30], angle: 0, gain: 800 }],
     paint(gs) {
       gs = gs || {};
       base();
       pxRect(SOLID_C, 0.30, 0.30, 0.34, 1.0);
+      if (!gs.D) pxRect(SOLID_C, 0.30, 0.04, 0.34, 0.30);  // blast plug (pressure-rated)
       pxRect(DRAIN_C, 0.36, 0.04, 0.70, 0.12);
       pxRect(SOLID_C, 0.74, 0.56, 0.78, 1.0);
       if (!gs.S) pxRect(SOLID_C, 0.74, 0.26, 0.78, 0.56);
@@ -2633,7 +2652,7 @@ function drawOverlay() {
     octx.strokeStyle = "#1a2236"; octx.stroke();
     octx.beginPath();                              /* gauge: tank/timer fill */
     octx.arc(P0[0], P0[1], R, -Math.PI / 2, -Math.PI / 2 + 6.2832 * Math.min(sw._frac || 0, 1));
-    octx.strokeStyle = dead ? "#8a93a6" : on ? (sw.inhibit ? "#ffb347" : "#7fe8ff") : maskTint(sw.mask);
+    octx.strokeStyle = dead ? "#8a93a6" : on ? (sw.inhibit ? "#ffb347" : "#7fe8ff") : maskTint(sw.mask || [0, 0, 0]);
     octx.stroke();
     octx.beginPath(); octx.arc(P0[0], P0[1], R + 5, 0, 6.2832);
     octx.lineWidth = 1.6;                          /* dashed = forgets */
@@ -2705,13 +2724,13 @@ function evalSwitches() {
   L.switches.forEach((sw, i) => {
     const o = (TELEM_W + i) * 4;
     const bank = lastTelem[o], timer = lastTelem[o + 1], latched = lastTelem[o + 2] > 0.5;
-    const on = latched || (sw.kind === "volume"
+    const on = latched || (sw.kind !== "flow"          /* volume + pressure read st.x */
       ? bank >= sw.threshold : timer >= (sw.holdSec || 1));
-    sw._frac = sw.kind === "volume"
+    sw._frac = sw.kind !== "flow"
       ? Math.min(bank / Math.max(sw.threshold, 1e-6), 1)
       : Math.min(timer / Math.max(sw.holdSec || 1, 1e-3), 1);
     sw._flux = lastTelem[o + 3];
-    sw._latched = latched || (on && (sw.kind === "volume" || sw.latch === "static"));
+    sw._latched = latched || (on && (sw.kind !== "flow" || sw.latch === "static"));
     if (sw.inhibit && on) winInhibited = true;
     if (!!gateState[sw.id] !== on) {
       gateState[sw.id] = on; changed = true;
@@ -3369,11 +3388,13 @@ function frame(now) {
     runFS(P.switchSense, swState.write, p => {
       bindTex(p, "uDye", dye.read.tex, 0);
       bindTex(p, "uState", swState.read.tex, 1);
+      bindTex(p, "uPressure", pressure.read.tex, 2);
       gl.uniform1i(U(p, "uSwCount"), Lsw.length);
       const rect = new Float32Array(32), mask = new Float32Array(32), cfg = new Float32Array(32);
       Lsw.forEach((sw, i) => {
+        const mk = sw.mask || [0, 0, 0];
         rect.set(sw.rect, i * 4);
-        mask.set([sw.mask[0], sw.mask[1], sw.mask[2], sw.kind === "flow" ? 1 : 0], i * 4);
+        mask.set([mk[0], mk[1], mk[2], sw.kind === "flow" ? 1 : sw.kind === "pressure" ? 2 : 0], i * 4);
         cfg.set([sw.threshold, sw.holdSec || 1,
           (sw.kind === "volume" || sw.latch === "static") ? 1 : 0, 0], i * 4);
       });
