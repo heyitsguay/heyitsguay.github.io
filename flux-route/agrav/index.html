@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FLUX ROUTE v0.5</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="gl" width="1920" height="1080"></canvas>
+<canvas id="ovc"></canvas>
+<div id="callouts"></div>
+<div id="ioBox">
+  <div class="iocard">
+    <textarea id="ioText" spellcheck="false"></textarea>
+    <div class="iorow"><button id="ioApply">apply</button><button id="ioClose">close</button></div>
+  </div>
+</div>
+<div id="hud" class="ov"></div>
+<div id="stats" class="ov"></div>
+<div id="keys" class="ov">WASD move &#183; Q/E spin &#183; 1/2/3 tool &#183; 4/5 walls &#183; 0 none &#183; hold Shift to aim &#183; Shift+Click place/paint
+Shift+RClick delete hovered &#183; [ ] rotate hovered &#183; X destabilize &#183; , . level &#183; R reset &#183; Space pause &#183; Tab debug &#183; T tuning &#183; ESC menu</div>
+<div id="msg" class=""></div>
+<div id="toast"></div>
+<div id="win"><div>FLOW SUSTAINED</div></div>
+<div id="menu">
+  <div id="menuWash"></div>
+  <h1>FLUX ROUTE</h1>
+  <div class="sub">a frustrating plumbing simulator</div>
+  <button class="mbtn" id="btnPlay">PLAY</button>
+  <button class="mbtn" id="btnEditor">EDITOR</button>
+  <button class="mbtn" id="btnOptions">OPTIONS</button>
+  <div class="credits credits-l">fluid core: <a href="https://github.com/PavelDoGreat/WebGL-Fluid-Simulation" target="_blank" rel="noopener">Pavel Dobryakov</a></div>
+  <div class="credits credits-r">made with <span class="fable">FABLE</span></div>
+</div>
+<div id="options">
+  <div class="card">
+    <h2>OPTIONS</h2>
+    <div class="orow"><label>quality</label><select id="optQual"></select><span style="color:#5a6478">(reloads)</span></div>
+    <div class="orow"><label>advanced</label><button id="optTune">open tuning panel</button></div>
+    <div class="orow" style="justify-content:flex-end;margin-top:18px"><button id="optClose">close</button></div>
+  </div>
+</div>
+<div id="fatal"><p></p></div>
+<div id="toolbar"></div>
+<div id="panel"></div>
+<!-- lil-gui loaded as regular script (UMD, creates window.lil global) -->
+<script src="lib/lil-gui.min.js"></script>
+<!-- Engine as ES module -->
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
