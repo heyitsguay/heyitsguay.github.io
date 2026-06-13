@@ -145,7 +145,12 @@ function snapshotActors() {
     const a = cpuActors[s];
     if (!a || a.type === 6 || a.type === 1) continue;
     const c = Object.assign({}, a);
-    if (a._orig != null && a.enabled === false) c.strength = a._orig;  /* export true strength */
+    /* read current GPU position so restart doesn't lose moved actors */
+    const tx = S.lastTelem[(2 + s) * 4], ty = S.lastTelem[(2 + s) * 4 + 1];
+    if (tx || ty) c.pos = [tx, ty];
+    else if (a.pos) c.pos = a.pos.slice();
+    if (a.dye) c.dye = a.dye.slice();
+    if (a._orig != null && a.enabled === false) c.strength = a._orig;
     for (const k of ["slot", "timer", "_orig", "_saved", "dormant", "death"]) delete c[k];
     out.push(c);
   }
@@ -155,6 +160,7 @@ function rebuildEdit() {
   editData.actors = snapshotActors();
   S.editLevelObj = dataLevel(editData);
   _cb.loadLevel(9999);
+  rebuildEntityList(); rebuildPolyList(); rebuildSwitchList();
 }
 function placeEditEntity(uv) {
   if (!freeSlots.length) return;
@@ -165,10 +171,10 @@ function placeEditEntity(uv) {
   const slot = freeSlots.pop();
   writeActor(slot, actorRecord(a));
   cpuActors[slot] = Object.assign({ timer: a.type === 7 ? a.period : 0, slot }, a);
-  selectedEdit = slot; buildEntityFolder(slot);
+  selectedEdit = slot; buildEntityFolder(slot); rebuildEntityList();
 }
 function nearestEditActor(uv) {
-  let best = -1, bd = 0.05;                     /* radius in width units */
+  let best = -1, bd = 0.08;                     /* radius in UV width units */
   for (let s = 1; s < N_ACTORS; s++) {
     const a = cpuActors[s];
     if (!a || a.type === 6) continue;
@@ -185,6 +191,7 @@ function deleteEditActor(slot) {
   clearActorSlot(slot); cpuActors[slot] = null; freeSlots.push(slot);
   if (editFolder) { editFolder.destroy(); editFolder = null; }
   selectedEdit = -1;
+  rebuildEntityList();
 }
 function nd(o, k, d) { if (o[k] == null) o[k] = d; }   /* default missing props */
 function hoistFolder(F) {                               /* selected folder on top */
@@ -197,55 +204,8 @@ function buildEntityFolder(slot) {
   const a = cpuActors[slot];
   if (!a) return;
   a.slot = slot;
-  nd(a, "r", 5); nd(a, "angle", 0); nd(a, "strength", 400);
-  if (a.type === 5) { nd(a, "amp", 0.16); nd(a, "omega", 1.8); nd(a, "phase", 0); }
-  if (a.type === 7) { nd(a, "period", 12); nd(a, "jitter", 0.3); nd(a, "predTtl", 14); nd(a, "predThrust", 0.45); }
-  if (a.type === 8) { nd(a, "gives", "fan"); nd(a, "count", 1); }
   const F = editorGui.addFolder("selected " + (EDIT_TYPE_NAMES[a.type] || a.type) + " [slot " + slot + "]");
-  const push = () => writeActor(a.slot, actorRecord(a));
-  if (a.type === 2 || a.type === 3) {
-    a.locked = !!a.locked; a.rotatable = !!a.rotatable; a.tunable = !!a.tunable;
-    if (a.minStrength == null) a.minStrength = 80;
-    if (a.maxStrength == null) a.maxStrength = 1500;
-    a.id = a.id || "";
-    F.add(a, "angle", -3.1416, 3.1416, 0.01).onChange(push);
-    F.add(a, "strength", 20, 2000, 5).onChange(push);
-    F.add(a, "r", 2, 14, 0.5).onChange(push);
-    F.add(a, "locked").onChange(push);
-    F.add(a, "rotatable").onChange(push);
-    F.add(a, "tunable").onChange(push);
-    a.enabled = a.enabled !== false;
-    F.add(a, "enabled").onChange(v => _cb.setActorEnabled(a, v));
-    F.add(a, "minStrength", 10, 1000, 5);
-    F.add(a, "maxStrength", 100, 4000, 10);
-    F.add(a, "id");
-    if (a.type === 3) {
-      const pr = { species: a.dye && a.dye[2] ? "BLUE" : a.dye && a.dye[1] ? "GREEN" : "RED" };
-      F.add(pr, "species", ["RED", "BLUE", "GREEN"]).onChange(v => {
-        a.dye = (v === "BLUE" ? BLUE : v === "GREEN" ? GREEN : RED).slice(); push();
-      });
-    }
-  } else if (a.type === 5) {
-    F.add(a, "angle", -3.1416, 3.1416, 0.01).onChange(push);
-    F.add(a, "r", 3, 14, 0.5).onChange(push);
-    F.add(a, "amp", 0.02, 0.5, 0.005).onChange(push);
-    F.add(a, "omega", 0.2, 8, 0.05).onChange(push);
-    F.add(a, "phase", 0, 6.283, 0.05).onChange(push);
-  } else if (a.type === 7) {
-    a.id = a.id || "";
-    F.add(a, "period", 2, 40, 0.5);
-    F.add(a, "jitter", 0, 1, 0.05);
-    F.add(a, "predTtl", 3, 40, 0.5);
-    F.add(a, "predThrust", 0.1, 1.5, 0.05);
-    a.enabled = a.enabled !== false;
-    F.add(a, "enabled").onChange(v => _cb.setActorEnabled(a, v));
-    F.add(a, "id");
-  } else if (a.type === 8) {
-    F.add(a, "gives", ["fan", "blue", "green", "slate", "steel", "lanes", "spin1", "spin2", "spin3"]).onChange(push);
-    F.add(a, "count", 1, 1500, 1);
-    F.add(a, "r", 2, 10, 0.5).onChange(push);
-  }
-  F.add({ del() { deleteEditActor(slot); } }, "del").name("\u2715 delete entity");
+  addEntityControls(F, a, slot);
   hoistFolder(F);
   editFolder = F;
 }
@@ -317,9 +277,152 @@ document.getElementById("ioApply").onclick = () => {
     openEditor(d);
   } catch (err) { _cb.showToast("bad JSON: " + err.message); }
 };
+/* ---- collapsible list panels ---- */
+let entityListFolder = null, polyListFolder = null, switchListFolder = null;
+
+function entityLabel(a, slot) {
+  const name = EDIT_TYPE_NAMES[a.type] || ("type" + a.type);
+  const species = a.type === 3 ? (a.dye && a.dye[2] ? " B" : a.dye && a.dye[1] ? " G" : " R") : "";
+  const id = a.id ? " " + a.id : "";
+  return name + species + id + " [" + slot + "]";
+}
+
+function addEntityControls(F, a, slot) {
+  const push = () => writeActor(slot, actorRecord(a));
+  if (a.type === 2 || a.type === 3) {
+    nd(a, "r", 5); nd(a, "angle", 0); nd(a, "strength", 400);
+    a.locked = !!a.locked; a.rotatable = !!a.rotatable; a.tunable = !!a.tunable;
+    nd(a, "minStrength", 80); nd(a, "maxStrength", 1500); a.id = a.id || "";
+    F.add(a, "angle", -3.1416, 3.1416, 0.01).onChange(push);
+    F.add(a, "strength", 20, 2000, 5).onChange(push);
+    F.add(a, "r", 2, 14, 0.5).onChange(push);
+    F.add(a, "locked").onChange(push); F.add(a, "rotatable").onChange(push);
+    F.add(a, "tunable").onChange(push);
+    a.enabled = a.enabled !== false;
+    F.add(a, "enabled").onChange(v => _cb.setActorEnabled(a, v));
+    F.add(a, "minStrength", 10, 1000, 5); F.add(a, "maxStrength", 100, 4000, 10);
+    F.add(a, "id");
+    if (a.type === 3) {
+      const pr = { species: a.dye && a.dye[2] ? "BLUE" : a.dye && a.dye[1] ? "GREEN" : "RED" };
+      F.add(pr, "species", ["RED", "BLUE", "GREEN"]).onChange(v => {
+        a.dye = (v === "BLUE" ? BLUE : v === "GREEN" ? GREEN : RED).slice(); push();
+      });
+    }
+  } else if (a.type === 5) {
+    nd(a, "r", 7); nd(a, "angle", Math.PI / 2); nd(a, "amp", 0.16);
+    nd(a, "omega", 1.8); nd(a, "phase", 0);
+    F.add(a, "angle", -3.1416, 3.1416, 0.01).onChange(push);
+    F.add(a, "r", 3, 14, 0.5).onChange(push);
+    F.add(a, "amp", 0.02, 0.5, 0.005).onChange(push);
+    F.add(a, "omega", 0.2, 8, 0.05).onChange(push);
+    F.add(a, "phase", 0, 6.283, 0.05).onChange(push);
+  } else if (a.type === 7) {
+    a.id = a.id || "";
+    nd(a, "period", 12); nd(a, "jitter", 0.3); nd(a, "predTtl", 14); nd(a, "predThrust", 0.45);
+    F.add(a, "period", 2, 40, 0.5); F.add(a, "jitter", 0, 1, 0.05);
+    F.add(a, "predTtl", 3, 40, 0.5); F.add(a, "predThrust", 0.1, 1.5, 0.05);
+    a.enabled = a.enabled !== false;
+    F.add(a, "enabled").onChange(v => _cb.setActorEnabled(a, v));
+    F.add(a, "id");
+  } else if (a.type === 8) {
+    nd(a, "gives", "fan"); nd(a, "count", 1); nd(a, "r", 5);
+    F.add(a, "gives", ["fan", "blue", "green", "slate", "steel", "lanes", "spin1", "spin2", "spin3"]).onChange(push);
+    F.add(a, "count", 1, 1500, 1); F.add(a, "r", 2, 10, 0.5).onChange(push);
+  }
+  F.add({ del() { deleteEditActor(slot); rebuildEntityList(); } }, "del").name("\u2715 delete");
+}
+
+function rebuildEntityList() {
+  if (!editorGui) return;
+  if (entityListFolder) { entityListFolder.destroy(); entityListFolder = null; }
+  let count = 0;
+  for (let s = 1; s < N_ACTORS; s++) {
+    const a = cpuActors[s];
+    if (a && a.type !== 6 && a.type !== 1) count++;
+  }
+  entityListFolder = editorGui.addFolder("Entities (" + count + ")");
+  for (let s = 1; s < N_ACTORS; s++) {
+    const a = cpuActors[s];
+    if (!a || a.type === 6 || a.type === 1) continue;
+    a.slot = s;
+    const sub = entityListFolder.addFolder(entityLabel(a, s));
+    const capturedSlot = s;
+    sub.domElement.querySelector(".title").addEventListener("click", () => {
+      selectedEdit = capturedSlot;
+      if (editFolder) { editFolder.destroy(); editFolder = null; }
+    });
+    addEntityControls(sub, a, s);
+    sub.close();
+  }
+  entityListFolder.close();
+}
+
+function rebuildPolyList() {
+  if (!editorGui) return;
+  if (polyListFolder) { polyListFolder.destroy(); polyListFolder = null; }
+  const polys = editData.polys || [];
+  polyListFolder = editorGui.addFolder("Polygons (" + polys.length + ")");
+  polys.forEach((p, i) => {
+    const label = (p.kind || "solid") + " #" + i + " \u2014 " + (p.pts ? p.pts.length : 0) + " verts";
+    const sub = polyListFolder.addFolder(label);
+    sub.add(p, "kind", ["solid", "removable", "slate", "steel", "win", "drain", "media", "flow", "door", "gel", "dynamite"])
+      .onChange(() => rebuildEdit());
+    if (p.kind === "media") {
+      nd(p, "curl", 2.5); nd(p, "velDiss", 1); nd(p, "dyeDiss", 1);
+      sub.add(p, "curl", 0, 8, 0.1).onChange(() => rebuildEdit());
+      sub.add(p, "velDiss", 0, 6, 0.1).onChange(() => rebuildEdit());
+      sub.add(p, "dyeDiss", 0, 6, 0.1).onChange(() => rebuildEdit());
+    }
+    if (p.kind === "flow") {
+      nd(p, "angle", 0); nd(p, "strength", 1); p.powered = !!p.powered;
+      sub.add(p, "angle", -3.1416, 3.1416, 0.01).onChange(() => rebuildEdit());
+      sub.add(p, "strength", 0.1, 3, 0.05).onChange(() => rebuildEdit());
+      sub.add(p, "powered").onChange(() => rebuildEdit());
+    }
+    if (p.kind === "door") {
+      p.id = p.id || "A";
+      sub.add(p, "id").onChange(() => rebuildEdit());
+    }
+    if (p.kind === "gel" || p.kind === "dynamite") {
+      nd(p, "amount", 1);
+      sub.add(p, "amount", 0.1, 1.5, 0.05).onChange(() => rebuildEdit());
+    }
+    if (p.kind === "removable" || p.kind === "slate" || p.kind === "steel") {
+      p.id = p.id || "";
+      sub.add(p, "id").name("id (for switch targeting)");
+    }
+    sub.add({ del() {
+      pushUndo(); editData.polys.splice(i, 1); rebuildEdit();
+    } }, "del").name("\u2715 delete");
+    sub.close();
+  });
+  polyListFolder.close();
+}
+
+function rebuildSwitchList() {
+  if (!editorGui) return;
+  if (switchListFolder) { switchListFolder.destroy(); switchListFolder = null; }
+  const sws = editData.switches || [];
+  if (!sws.length) return;
+  switchListFolder = editorGui.addFolder("Switches (" + sws.length + ")");
+  sws.forEach((sw, i) => {
+    const sub = switchListFolder.addFolder("switch " + (sw.id || String.fromCharCode(65 + i)));
+    sub.add(sw, "kind", ["volume", "flow", "pressure"]);
+    sub.add(sw, "threshold", 0.01, 120, 0.01);
+    nd(sw, "holdSec", 2); sub.add(sw, "holdSec", 0.5, 12, 0.5);
+    nd(sw, "latch", "dynamic"); sub.add(sw, "latch", ["dynamic", "static"]);
+    sw.inhibit = !!sw.inhibit; sub.add(sw, "inhibit").name("inhibits win");
+    sub.add({ del() {
+      pushUndo(); editData.switches.splice(i, 1); rebuildEdit();
+    } }, "del").name("\u2715 delete");
+    sub.close();
+  });
+  switchListFolder.close();
+}
+
 function buildEditorGui() {
   if (editorGui) editorGui.destroy();
-  editFolder = null;
+  editFolder = null; entityListFolder = null; polyListFolder = null; switchListFolder = null;
   editorGui = new window.lil.GUI({ title: "LEVEL EDITOR", width: 300 });
   editorGui.add(eState, "mode", ["select", "polygon", "rectangle", "entity"]);
   editorGui.add(eState, "snap").name("snap to grid (Alt bypasses)");
@@ -349,17 +452,21 @@ function buildEditorGui() {
   lf.add(editData.win, "holdSec", 1, 20, 0.5).name("win hold sec");
   lf.close();
   const acts = {
-    "\u2713 close polygon": closeEditPoly,
+    "\u2713 close polygon (Enter)": closeEditPoly,
     "delete last polygon": () => { pushUndo(); editData.polys.pop(); rebuildEdit(); },
     "undo (Ctrl+Z)": editorUndo,
     "set player start (click)": () => { eState.placingStart = true; _cb.showToast("click the map to set player start"); },
-    "restart sim": rebuildEdit,
+    "restart sim (R)": rebuildEdit,
     "tuning panel": _cb.togglePanel,
     "export JSON": exportEditLevel,
     "import JSON": () => showIO("import", ""),
     "exit editor": exitEditor
   };
   for (const k of Object.keys(acts)) editorGui.add(acts, k);
+  /* ---- property inspector lists ---- */
+  rebuildEntityList();
+  rebuildPolyList();
+  rebuildSwitchList();
   const TIPS_E = {
     mode: "select: click entities/switches to edit, drag to move. polygon: click vertices. rectangle: drag a box. entity: click to place.",
     snap: "Snap editor input to the design grid. Hold Alt to bypass.",
@@ -494,10 +601,12 @@ canvas.addEventListener("mousemove", e => {
 });
 window.addEventListener("mouseup", () => { if (S.editMode) editorPointerUp(); });
 window.addEventListener("keydown", e => {
-  if (!S.editMode || selectedEdit < 1) return;
+  if (!S.editMode) return;
   const tag = (document.activeElement || {}).tagName;
   if (tag === "INPUT" || tag === "TEXTAREA") return;
-  if (e.key === "Delete" || e.key === "Backspace") deleteEditActor(selectedEdit);
+  if ((e.key === "Delete" || e.key === "Backspace") && selectedEdit >= 1) deleteEditActor(selectedEdit);
+  if (e.key === "Enter") { e.preventDefault(); closeEditPoly(); }
+  if (e.key.toLowerCase() === "r" && !e.ctrlKey && !e.metaKey) { e.preventDefault(); rebuildEdit(); }
 });
 function drawEditorOverlay(px) {
   if (eState.snap) {                       /* render the design grid */

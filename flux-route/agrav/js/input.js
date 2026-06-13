@@ -105,6 +105,7 @@ function readInput() {
     const dxp = (S.touchSteer[0] - px) * 16, dyp = (S.touchSteer[1] - py) * 9;
     const l = Math.hypot(dxp, dyp);
     inputVec = l > 0.5 ? [dxp / l, dyp / l] : [0, 0];
+    inputRef.inputVec = inputVec;
   }
 }
 
@@ -196,6 +197,7 @@ function updateSelection() {
   }
   S.selectedSlot = -1;
   if (!S.mouseInCanvas || S.state === "ATTRACT") return;
+  const plx = S.lastTelem[8], ply = S.lastTelem[9];
   let bestD = 0.05;
   for (let s = 1; s < N_ACTORS; s++) {
     const a = cpuActors[s];
@@ -203,6 +205,8 @@ function updateSelection() {
     if (a.locked && !a.rotatable) continue;
     const px = S.lastTelem[(2 + s) * 4], py = S.lastTelem[(2 + s) * 4 + 1];
     if (!px && !py) continue;
+    const rdx = (px - plx) * 16, rdy = (py - ply) * 9;
+    if (Math.hypot(rdx, rdy) > GHOST_ARM) continue;
     const d = Math.hypot(px - S.mouseUV[0], py - S.mouseUV[1]);
     if (d < bestD) { bestD = d; S.selectedSlot = s; }
   }
