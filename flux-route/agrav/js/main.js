@@ -264,6 +264,7 @@ function loadLevel(idx) {
   }
   S.state = S.levelIdx < 0 ? "ATTRACT" : "PLAY"; S.paused = false;
   S.emittedRed = 0; S.winHoldT = 0; S.prevDelivered = 0; S.captureEMA = 0; S.sensorEMA = 0;
+  S.scoreOffset = 0;
   S.sinkHueDrift = 0; S.spinTier = 0;
   S.pendingSpawn = null; S.selectedSlot = -1;
   document.getElementById("win").style.display = "none";
@@ -456,10 +457,14 @@ function spawnCallout(c) {
   el.className = "co";
   el._at = at;
   el.innerHTML = calloutHTML((S.IS_TOUCH && c.textTouch) ? c.textTouch : c.text);
-  if (c.size) {
-    const ui = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui')) || 6;
-    el.style.fontSize = (2.2 * ui * c.size).toFixed(1) + "px";
-  }
+  /* size relative to game area, not viewport — prevents UHD phones from
+     showing disproportionately large callouts vs. the game content */
+  const r = canvas.getBoundingClientRect();
+  const gameH = S.IS_PORTRAIT
+    ? Math.min(r.width / 9, r.height / 16) * 9
+    : Math.min(r.width / 16, r.height / 9) * 9;
+  const basePx = gameH / 60;            /* ≈ 2.2 * 6 = 13.2 at desktop 1080p */
+  el.style.fontSize = (basePx * (c.size || 1)).toFixed(1) + "px";
   calloutBox.appendChild(el);
   requestAnimationFrame(() => el.classList.add("show"));
   liveCallouts.push({ el, at, until: S.simTime + (c.dur || 5) });
@@ -780,7 +785,8 @@ function updateHUD(t, now) {
   S.lastPulseT = tNow;
   if (S.state === "ATTRACT") { S.pulsePhase += pdt * 3; return; }
   const L = curLevel();
-  const delivered = t[0] / SCORE_SCALE;
+  const rawDelivered = t[0] / SCORE_SCALE;
+  const delivered = rawDelivered + (S.scoreOffset || 0);
   const sensorRaw = t[4];
   if (!S.paused) {
     const inst = Math.max(0, Math.min(2, (delivered - S.prevDelivered) / pdt / Math.max(S.emitRate, 1e-6)));
@@ -792,6 +798,11 @@ function updateHUD(t, now) {
     checkEvents();
   }
   S.prevDelivered = delivered;
+  /* prevent half-float overflow: reset GPU accumulator before reduce chain saturates */
+  if (rawDelivered > 500) {
+    clearRT(scoreAcc.a); clearRT(scoreAcc.b);
+    S.scoreOffset += rawDelivered;
+  }
 
   const need = L.winFraction * params.winScale;
   if (S.state === "PLAY" && !S.paused && !S.editMode) {

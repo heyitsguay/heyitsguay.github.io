@@ -37,9 +37,9 @@ const QUALITY_PRESETS = {
   unreasonable: { simW: 1440, simH: 810, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true },
   maxx: { simW: 1920, simH: 1080, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true },
 };
-let qualityName = "high";
+let qualityName = "ultra";
 try { qualityName = localStorage.getItem("fluxroute.quality") || "high"; } catch (e) { }
-if (!QUALITY_PRESETS[qualityName]) qualityName = "high";
+if (!QUALITY_PRESETS[qualityName]) qualityName = "ultra";
 const Q = QUALITY_PRESETS[qualityName];
 
 const SIM_W = Q.simW, SIM_H = Q.simH, DYE_W = Q.dyeW, DYE_H = Q.dyeH;
@@ -99,7 +99,7 @@ export {
   pulses, pulseParam, PV, anyPulseActive, effScale
 };
 
-export const SIZE_F = { small: 1 / 3, medium: 0.5, large: 0.75, full: 1 };
+export const SIZE_F = { small: 0.4, medium: 0.5, large: 0.75, full: 1 };
 
 export function mulberry32(seed) {
   let s = seed >>> 0;
