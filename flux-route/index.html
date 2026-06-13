@@ -1502,7 +1502,10 @@ const QUALITY_PRESETS = {
   low:    { simW: 320, simH: 180, dyeW: 960,  dyeH: 540,  iters: 20, blur: 2, gel: false },
   medium: { simW: 480, simH: 270, dyeW: 1440, dyeH: 810,  iters: 24, blur: 4, gel: true },
   high:   { simW: 480, simH: 270, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true },
-  ultra:  { simW: 640, simH: 360, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true }
+  ultra:  { simW: 640, simH: 360, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true },
+  cray:   { simW: 960, simH: 480, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true },
+  unreasonable:   { simW: 1440, simH: 720, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true },
+  maxx:   { simW: 1920, simH: 1080, dyeW: 1920, dyeH: 1080, iters: 30, blur: 4, gel: true },
 };
 let qualityName = "high";
 try { qualityName = localStorage.getItem("fluxroute.quality") || "high"; } catch (e) {}
