@@ -488,6 +488,18 @@ void main(){
 }
 `;
 
+/* cut a rasterized mask out of a walls channel (switch-deleted removable walls) */
+const wallCutFS = FRAG_HEADER + `uniform sampler2D uWalls;
+uniform sampler2D uMask;
+uniform float uChan;
+void main(){
+  vec2 w = texture(uWalls,vUv).rg;
+  float m = texture(uMask,vUv).r;
+  if(uChan > 0.5) w.g *= 1.0 - m; else w.r *= 1.0 - m;
+  fragColor = vec4(w, 0.0, 1.0);
+}
+`;
+
 /* matter sums for the wells: (walls coverage, lane coverage) -> reduce -> CPU */
 const matPackFS = FRAG_HEADER + `uniform sampler2D uWalls;
 uniform sampler2D uDyn;
@@ -1448,7 +1460,7 @@ return {
     obstacleCompose: obstacleComposeFS, dyePost: dyePostFS, scoreAccum: scoreAccumFS,
     sensor: sensorFS, reduce: reduceFS, telemetry: telemetryFS,
     jfaSeed: jfaSeedFS, jfaStep: jfaStepFS, jfaCombine: jfaCombineFS, jfaGrad: jfaGradFS,
-    actorUpdate: actorUpdateFS, splatForce: splatForceFS, splatDye: splatDyeFS, splatWake: splatWakeFS, wakeUpdate: wakeUpdateFS, wallPaint: wallPaintFS, switchSense: switchSenseFS, dynUpdate: dynUpdateFS, lanePaint: lanePaintFS, matPack: matPackFS, wallErode: wallErodeFS,
+    actorUpdate: actorUpdateFS, splatForce: splatForceFS, splatDye: splatDyeFS, splatWake: splatWakeFS, wakeUpdate: wakeUpdateFS, wallPaint: wallPaintFS, switchSense: switchSenseFS, dynUpdate: dynUpdateFS, lanePaint: lanePaintFS, matPack: matPackFS, wallErode: wallErodeFS, wallCut: wallCutFS,
     splatMask: splatMaskFS, glyph: glyphFS, bright: brightFS, blur: blurFS,
     composite: compositeFS
   }
@@ -1655,6 +1667,7 @@ const swState = makePP(8, 1, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
 const dyn = makePP(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);  /* r=charge, gb=lane dir */
 const matPackRT = makeRT(SIM_W, SIM_H, gl.RG16F, gl.RG, gl.HALF_FLOAT, gl.NEAREST);
 const matSum = makeRT(1, 1, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
+const maskTex = makeTex(SIM_W, SIM_H, gl.R16F, gl.RED, gl.FLOAT, gl.NEAREST);
 clearRT(gel.a); clearRT(gel.b); clearRT(wake.a); clearRT(wake.b); clearRT(walls.a); clearRT(walls.b); clearRT(swState.a); clearRT(swState.b); clearRT(dyn.a); clearRT(dyn.b);
 
 const reduceChain = [];
@@ -1747,7 +1760,7 @@ function dataLevel(d, extra) {
       gs = gs || {}; base();
       for (const p of d.polys || []) {
         if (p.kind === "solid") pxPoly(SOLID_C, p.pts);
-        else if (p.kind === "sink") pxPoly(SINK_C, p.pts);
+        else if (p.kind === "sink" || p.kind === "win") pxPoly(SINK_C, p.pts);
         else if (p.kind === "drain") pxPoly(DRAIN_C, p.pts);
         else if (p.kind === "door" && !gs[p.id]) pxPoly(SOLID_C, p.pts);
       }
@@ -2974,15 +2987,48 @@ function evalSwitches() {
   if (changed) refreshLevelTextures();
   trigHeat = L.switches[0] ? L.switches[0]._frac : 0;
 }
+function cutWallPoly(polyId) {
+  const polys = (curLevel().data || {}).polys || [];
+  const p = polys.find(q => q.id === polyId);
+  if (!p) return;
+  const mf = new Float32Array(SIM_W * SIM_H);
+  rasterPoly(p.pts, i => { mf[i] = 1; });
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  gl.bindTexture(gl.TEXTURE_2D, maskTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, SIM_W, SIM_H, 0, gl.RED, gl.FLOAT, mf);
+  runFS(P.wallCut, walls.write, pr => {
+    bindTex(pr, "uWalls", walls.read.tex, 0);
+    bindTex(pr, "uMask", maskTex, 1);
+    gl.uniform1f(U(pr, "uChan"), p.kind === "steel" ? 1 : 0);
+  });
+  walls.swap();
+}
 function setTargetEnabled(tgt, on) {
   const want = tgt.invert ? !on : on;
+  if (tgt.poly) {                          /* removable-wall polys: deletion */
+    if (want && !tgt._cut) { tgt._cut = true; cutWallPoly(tgt.poly); }
+    return;
+  }
   for (const c of cpuActors) {
     if (!c || c.id !== tgt.id) continue;
-    if (c.type === 7) c.dormant = !want;
-    else if (c.type === 2 || c.type === 3) {
-      if (c._orig == null) c._orig = c.strength;
-      c.strength = want ? c._orig : 0;
+    if (tgt.action === "delete") {
+      if (want && c.slot >= 1) { clearActorSlot(c.slot); cpuActors[c.slot] = null; freeSlots.push(c.slot); }
+    } else if (tgt.action === "modify") {
+      if (want) {
+        if (!c._saved) {
+          c._saved = {};
+          for (const k of Object.keys(tgt.state || {})) c._saved[k] = c[k];
+        }
+        Object.assign(c, tgt.state || {});
+      } else if (c._saved) { Object.assign(c, c._saved); c._saved = null; }
       writeActor(c.slot, actorRecord(c));
+    } else {                               /* enable/disable toggle */
+      if (c.type === 7) c.dormant = !want;
+      else if (c.type === 2 || c.type === 3) {
+        if (c._orig == null) c._orig = c.strength;
+        c.strength = want ? c._orig : 0;
+        writeActor(c.slot, actorRecord(c));
+      }
     }
   }
 }
@@ -3722,18 +3768,48 @@ buildToolbar();
 /* ==================== LEVEL EDITOR ==================== */
 const eState = { mode: "select", entity: "fan", polyKind: "solid",
   angleDeg: 0, strength: 1, powered: false, curl: 2.5, velDiss: 1, dyeDiss: 1,
-  doorId: "A", placingStart: false, snap: true, amount: 1,
+  doorId: "A", placingStart: false, snap: true, gridDiv: 12, amount: 1,
   swKind: "volume", swThreshold: 0.5, swHoldSec: 2, swLatch: "dynamic",
   maskR: true, maskG: false, maskB: false, swInhibit: false };
-const SNAP_W = 160, SNAP_H = 90;      /* resolution-independent design grid */
 let altHeld = false;
 window.addEventListener("keydown", e => { if (e.key === "Alt") altHeld = true; });
 window.addEventListener("keyup", e => { if (e.key === "Alt") altHeld = false; });
+window.addEventListener("blur", () => { altHeld = false; });   /* alt+tab can eat keyup */
 function eSnap(uv) {
   if (!eState.snap || altHeld) return [uv[0], uv[1]];
-  return [Math.round(uv[0] * SNAP_W) / SNAP_W, Math.round(uv[1] * SNAP_H) / SNAP_H];
+  const gd = Math.max(1, Math.round(eState.gridDiv));   /* grid cell = gd sim texels */
+  return [Math.min(1, Math.max(0, Math.round(uv[0] * SIM_W / gd) * gd / SIM_W)),
+          Math.min(1, Math.max(0, Math.round(uv[1] * SIM_H / gd) * gd / SIM_H))];
 }
 let editRectA = null, editHover = null;
+const undoStack = [];
+function pushUndo() {
+  editData.actors = snapshotActors();
+  undoStack.push({ data: JSON.stringify(editData), pts: editPolyPts.map(p => p.slice()) });
+  if (undoStack.length > 100) undoStack.shift();
+}
+function editorUndo() {
+  if (!undoStack.length) { showToast("nothing to undo"); return; }
+  const rec = undoStack.pop();
+  editData.actors = snapshotActors();
+  if (rec.data === JSON.stringify(editData)) {   /* only vertices changed: cheap path */
+    editPolyPts = rec.pts;
+    return;
+  }
+  if (editorGui) { editorGui.destroy(); editorGui = null; editFolder = null; }
+  editData = JSON.parse(rec.data);
+  if (!editData.win) editData.win = { fraction: 0.15, holdSec: 4 };
+  editPolyPts = rec.pts;
+  editLevelObj = dataLevel(editData);
+  loadLevel(9999);
+  buildEditorGui();
+}
+window.addEventListener("keydown", e => {
+  if (!editMode || !(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
+  const tag = (document.activeElement || {}).tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA") return;
+  e.preventDefault(); editorUndo();
+});
 const EDIT_ENTITY_DEFAULTS = {
   "fan": { type: 2, r: 6, strength: 420, angle: 0, rotatable: true },
   "red emitter": { type: 3, r: 5, strength: 450, dye: RED, angle: 0, locked: true, rotatable: true },
@@ -3744,7 +3820,7 @@ const EDIT_ENTITY_DEFAULTS = {
   "pickup": { type: 8, r: 5, gives: "fan", count: 1 }
 };
 const POLY_TINT = { solid: "#ff5a5a", removable: "#8fb7ff", slate: "#aab3c5", steel: "#e3e9f5", gel: "#7fd0ff", dynamite: "#e0a040",
-  sink: "#46e08a", drain: "#ff4040", media: "#b58cff", flow: "#39c8d8", door: "#ffd45a" };
+  sink: "#46e08a", win: "#46e08a", drain: "#ff4040", media: "#b58cff", flow: "#39c8d8", door: "#ffd45a" };
 let editData = null, editorGui = null, editFolder = null;
 let editPolyPts = [], selectedEdit = -1, editDragging = false, ioMode = "";
 
@@ -3769,7 +3845,7 @@ function snapshotActors() {
     const a = cpuActors[s];
     if (!a || a.type === 6 || a.type === 1) continue;
     const c = Object.assign({}, a);
-    for (const k of ["slot", "timer", "_orig", "dormant", "death"]) delete c[k];
+    for (const k of ["slot", "timer", "_orig", "_saved", "dormant", "death"]) delete c[k];
     out.push(c);
   }
   return out;
@@ -3781,6 +3857,7 @@ function rebuildEdit() {
 }
 function placeEditEntity(uv) {
   if (!freeSlots.length) return;
+  pushUndo();
   const dflt = EDIT_ENTITY_DEFAULTS[eState.entity];
   const a = Object.assign({}, dflt, { pos: [uv[0], uv[1]] });
   if (a.dye) a.dye = a.dye.slice();
@@ -3790,30 +3867,40 @@ function placeEditEntity(uv) {
   selectedEdit = slot; buildEntityFolder(slot);
 }
 function nearestEditActor(uv) {
-  let best = -1, bd = 0.06;
+  let best = -1, bd = 0.05;                     /* radius in width units */
   for (let s = 1; s < N_ACTORS; s++) {
     const a = cpuActors[s];
     if (!a || a.type === 6) continue;
     const px2 = lastTelem[(2 + s) * 4] || (a.pos && a.pos[0]) || 0;
     const py2 = lastTelem[(2 + s) * 4 + 1] || (a.pos && a.pos[1]) || 0;
-    const d = Math.hypot(px2 - uv[0], py2 - uv[1]);
+    const d = Math.hypot(px2 - uv[0], (py2 - uv[1]) * 0.5625);   /* 9/16 aspect */
     if (d < bd) { bd = d; best = s; }
   }
   return best;
 }
 function deleteEditActor(slot) {
   if (slot < 1 || !cpuActors[slot]) return;
+  pushUndo();
   clearActorSlot(slot); cpuActors[slot] = null; freeSlots.push(slot);
   if (editFolder) { editFolder.destroy(); editFolder = null; }
   selectedEdit = -1;
+}
+function nd(o, k, d) { if (o[k] == null) o[k] = d; }   /* default missing props */
+function hoistFolder(F) {                               /* selected folder on top */
+  editorGui.$children.insertBefore(F.domElement, editorGui.$children.firstChild);
+  F.open();
 }
 function buildEntityFolder(slot) {
   if (!editorGui) return;
   if (editFolder) { editFolder.destroy(); editFolder = null; }
   const a = cpuActors[slot];
   if (!a) return;
-  const names = { 2: "fan", 3: "emitter", 5: "piston", 7: "nest", 8: "pickup" };
-  const F = editorGui.addFolder("selected " + (names[a.type] || a.type) + " [slot " + slot + "]");
+  a.slot = slot;
+  nd(a, "r", 5); nd(a, "angle", 0); nd(a, "strength", 400);
+  if (a.type === 5) { nd(a, "amp", 0.16); nd(a, "omega", 1.8); nd(a, "phase", 0); }
+  if (a.type === 7) { nd(a, "period", 12); nd(a, "jitter", 0.3); nd(a, "predTtl", 14); nd(a, "predThrust", 0.45); }
+  if (a.type === 8) { nd(a, "gives", "fan"); nd(a, "count", 1); }
+  const F = editorGui.addFolder("selected " + (EDIT_TYPE_NAMES[a.type] || a.type) + " [slot " + slot + "]");
   const push = () => writeActor(a.slot, actorRecord(a));
   if (a.type === 2 || a.type === 3) {
     a.locked = !!a.locked; a.rotatable = !!a.rotatable; a.tunable = !!a.tunable;
@@ -3854,6 +3941,7 @@ function buildEntityFolder(slot) {
     F.add(a, "r", 2, 10, 0.5).onChange(push);
   }
   F.add({ del() { deleteEditActor(slot); } }, "del").name("\u2715 delete entity");
+  hoistFolder(F);
   editFolder = F;
 }
 function attachKindProps(p) {
@@ -3865,6 +3953,7 @@ function attachKindProps(p) {
 }
 function closeEditPoly() {
   if (editPolyPts.length < 3) { showToast("polygon needs 3+ vertices"); return; }
+  pushUndo();
   const p = attachKindProps({ kind: eState.polyKind,
     pts: editPolyPts.map(q => [+q[0].toFixed(4), +q[1].toFixed(4)]) });
   editData.polys.push(p);
@@ -3875,6 +3964,7 @@ function commitRect(a, b) {
   const u0 = Math.min(a[0], b[0]), u1 = Math.max(a[0], b[0]);
   const v0 = Math.min(a[1], b[1]), v1 = Math.max(a[1], b[1]);
   if (u1 - u0 < 0.004 || v1 - v0 < 0.004) return;
+  pushUndo();
   if (eState.polyKind === "switch") {
     editData.switches = editData.switches || [];
     const id = String.fromCharCode(65 + editData.switches.length);   /* A, B, ... */
@@ -3928,8 +4018,9 @@ function buildEditorGui() {
   editorGui = new lil.GUI({ title: "LEVEL EDITOR", width: 300 });
   editorGui.add(eState, "mode", ["select", "polygon", "rectangle", "entity"]);
   editorGui.add(eState, "snap").name("snap to grid (Alt bypasses)");
+  editorGui.add(eState, "gridDiv", 1, 48, 1).name("grid cell (sim texels)");
   editorGui.add(eState, "entity", Object.keys(EDIT_ENTITY_DEFAULTS));
-  editorGui.add(eState, "polyKind", ["solid", "removable", "slate", "steel", "sink", "drain", "media", "flow", "door", "gel", "dynamite", "switch"]).name("poly/rect kind");
+  editorGui.add(eState, "polyKind", ["solid", "removable", "slate", "steel", "win", "drain", "media", "flow", "door", "gel", "dynamite", "switch"]).name("poly/rect kind");
   const pf = editorGui.addFolder("polygon properties");
   pf.add(eState, "angleDeg", -180, 180, 1).name("flow angle\u00b0");
   pf.add(eState, "strength", 0.1, 3, 0.05).name("flow strength");
@@ -3953,8 +4044,8 @@ function buildEditorGui() {
   lf.close();
   const acts = {
     "\u2713 close polygon": closeEditPoly,
-    "undo vertex": () => { editPolyPts.pop(); },
-    "delete last polygon": () => { editData.polys.pop(); rebuildEdit(); },
+    "delete last polygon": () => { pushUndo(); editData.polys.pop(); rebuildEdit(); },
+    "undo (Ctrl+Z)": editorUndo,
     "set player start (click)": () => { eState.placingStart = true; showToast("click the map to set player start"); },
     "restart sim": rebuildEdit,
     "tuning panel": togglePanel,
@@ -3963,22 +4054,113 @@ function buildEditorGui() {
     "exit editor": exitEditor
   };
   for (const k of Object.keys(acts)) editorGui.add(acts, k);
+  const TIPS_E = {
+    mode: "select: click entities/switches to edit, drag to move. polygon: click vertices. rectangle: drag a box. entity: click to place.",
+    snap: "Snap editor input to the design grid. Hold Alt to bypass.",
+    gridDiv: "Grid cell size in sim texels (1 = full sim resolution). Ragged last cells clamp to the playfield boundary.",
+    entity: "Entity placed by clicks in entity mode.",
+    polyKind: "What polygon/rectangle commits create. 'switch' (rectangle only) places a sensor; 'door' is a wall tied to a switch id.",
+    angleDeg: "Flow polys: force direction in degrees.",
+    strength: "Flow polys: force multiplier on laneForce.",
+    powered: "Flow polys: thrust scales with red present (the old amp behavior).",
+    curl: "Media polys: vorticity multiplier.", velDiss: "Media polys: velocity dissipation multiplier.",
+    dyeDiss: "Media polys: dye dissipation multiplier.",
+    doorId: "Door polys: the switch id that opens this wall.",
+    amount: "Gel/dynamite polys: deposited field density.",
+    swKind: "volume = tank fills once; flow = sustained rate; pressure = blast detector.",
+    swThreshold: "Fire level: mean dye (volume/flow) or |pressure| (pressure).",
+    swHoldSec: "Flow: seconds the rate must hold.", swLatch: "static = remembers forever; dynamic = decays when starved.",
+    maskR: "Sense red dye.", maskG: "Sense green dye.", maskB: "Sense blue dye.",
+    swInhibit: "While ON, the win condition is blocked (amber fault).",
+    fraction: "Capture fraction required to win.", holdSec: "Seconds the capture must be sustained.",
+    name: "Level name (serialized).",
+    target: "Entity or wall poly this switch will affect.",
+    action: "enable: on while switch on. disable: off while on. delete: removed when fired. modify: applies the state below.",
+    kind: "Switch sensing type.", threshold: "Switch fire level.", latch: "Flow latch mode.", inhibit: "Blocks win while ON."
+  };
+  editorGui.controllersRecursive().forEach(c => {
+    const t = TIPS_E[c.property];
+    if (t) c.domElement.title = t;
+  });
 }
 function editorPointerDown(raw) {
   const uv = eSnap(raw);
   if (eState.placingStart) {
     eState.placingStart = false;
+    pushUndo();
     editData.playerStart = [uv[0], uv[1]];
     rebuildEdit(); return;
   }
-  if (eState.mode === "polygon") editPolyPts.push([uv[0], uv[1]]);
+  if (eState.mode === "polygon") { pushUndo(); editPolyPts.push([uv[0], uv[1]]); }
   else if (eState.mode === "rectangle") editRectA = uv;
   else if (eState.mode === "entity") placeEditEntity(uv);
   else {
+    const swHit = (editData.switches || []).find(sw =>
+      Math.hypot((sw.rect[0] + sw.rect[2]) / 2 - raw[0], (sw.rect[1] + sw.rect[3]) / 2 - raw[1]) < 0.05);
+    if (swHit) { selectedEdit = -1; buildSwitchFolder(swHit); return; }
     const s = nearestEditActor(raw);
-    if (s >= 1) { selectedEdit = s; buildEntityFolder(s); editDragging = true; }
+    if (s >= 1) {
+      selectedEdit = s; buildEntityFolder(s); editDragging = true;
+      const a2 = cpuActors[s];
+      showToast("selected " + (EDIT_TYPE_NAMES[a2.type] || a2.type) + (a2.id ? " " + a2.id : "") + " \u2014 properties in panel");
+    }
     else { selectedEdit = -1; if (editFolder) { editFolder.destroy(); editFolder = null; } }
   }
+}
+const EDIT_TYPE_NAMES = { 1: "player", 2: "fan", 3: "emitter", 5: "piston", 7: "nest", 8: "pickup" };
+function buildSwitchFolder(sw) {
+  if (!editorGui) return;
+  if (editFolder) { editFolder.destroy(); editFolder = null; }
+  const F = editorGui.addFolder("selected switch " + sw.id);
+  F.add(sw, "kind", ["volume", "flow", "pressure"]);
+  F.add(sw, "threshold", 0.01, 120, 0.01);
+  sw.holdSec = sw.holdSec || 2;
+  F.add(sw, "holdSec", 0.5, 12, 0.5);
+  sw.latch = sw.latch || "dynamic";
+  F.add(sw, "latch", ["dynamic", "static"]);
+  sw.inhibit = !!sw.inhibit;
+  F.add(sw, "inhibit").name("inhibits win");
+  /* target builder: pick an entity or wall poly, pick the effect */
+  const cand = {};
+  for (let s2 = 1; s2 < N_ACTORS; s2++) {
+    const c = cpuActors[s2];
+    if (!c || c.type === 6 || c.type === 1) continue;
+    if (!c.id) c.id = "E" + s2;
+    cand[(EDIT_TYPE_NAMES[c.type] || c.type) + " " + c.id] = { id: c.id };
+  }
+  ((editData.polys) || []).forEach((p, i) => {
+    if (p.kind === "removable" || p.kind === "slate" || p.kind === "steel") {
+      if (!p.id) p.id = "P" + i;
+      cand["wall " + p.id + " (" + p.kind + ")"] = { poly: p.id };
+    }
+  });
+  const ts = { target: Object.keys(cand)[0] || "(none)",
+    action: "enable", angle: 0, strength: 450 };
+  F.add(ts, "target", Object.keys(cand).length ? Object.keys(cand) : ["(none)"]);
+  F.add(ts, "action", ["enable", "disable", "delete", "modify"]);
+  F.add(ts, "angle", -3.1416, 3.1416, 0.01).name("modify: angle");
+  F.add(ts, "strength", 0, 2000, 5).name("modify: strength");
+  F.add({ add() {
+    const c = cand[ts.target];
+    if (!c) { showToast("no target candidates"); return; }
+    pushUndo();
+    const tgt = Object.assign({}, c);
+    if (ts.action === "disable") tgt.invert = true;
+    if (ts.action === "delete") tgt.action = "delete";
+    if (ts.action === "modify") { tgt.action = "modify"; tgt.state = { angle: ts.angle, strength: ts.strength }; }
+    sw.targets = sw.targets || [];
+    sw.targets.push(tgt);
+    setTargetEnabled(tgt, !!gateState[sw.id]);
+    showToast("target added to switch " + sw.id + " (" + sw.targets.length + " total)");
+  } }, "add").name("+ add target");
+  F.add({ clr() { pushUndo(); sw.targets = []; } }, "clr").name("clear targets");
+  F.add({ del() {
+    pushUndo();
+    editData.switches.splice(editData.switches.indexOf(sw), 1);
+    F.destroy(); editFolder = null; rebuildEdit();
+  } }, "del").name("\u2715 delete switch");
+  hoistFolder(F);
+  editFolder = F;
 }
 function editorPointerMove(raw) {
   editHover = eSnap(raw);
@@ -3994,10 +4176,12 @@ function editorPointerUp() {
 }
 canvas.addEventListener("mousedown", e => {
   if (!editMode || e.shiftKey || e.button !== 0 || state !== "PLAY") return;
+  altHeld = e.altKey;                          /* self-correct stuck alt */
   editorPointerDown(canvasUV(e));
 });
 canvas.addEventListener("mousemove", e => {
   if (!editMode) return;
+  altHeld = e.altKey;
   editorPointerMove(canvasUV(e));
 });
 window.addEventListener("mouseup", () => { if (editMode) editorPointerUp(); });
