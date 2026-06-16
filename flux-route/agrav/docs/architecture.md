@@ -530,7 +530,7 @@ Two authoring paths:
 **Serialized levels** (fluxLevel v1, §53):
 ```js
 dataLevel({
-  fluxLevel: 1, name: "E1_T0",
+  fluxLevel: 1, name: "E1_T1",
   polys: [...], actors: [...], switches: [...], events: [...], callouts: [...]
 }, { /* extra: code-side overrides merged on top */ })
 ```

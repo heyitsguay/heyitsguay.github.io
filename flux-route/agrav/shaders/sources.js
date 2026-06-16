@@ -20,6 +20,11 @@ uniform float uMediaChan;      /* 0=none 1=g 2=b */
 uniform vec2  uSimTexel;
 uniform float uDt;
 uniform float uDissipation;
+uniform float uViscTempK;
+uniform float uColdDamp;
+uniform float uColdScale;
+uniform float uTempAmbient;
+uniform float uTempDiss;       /* temperature dissipation (dye pass only) */
 void main(){
   vec2 vel = texture(uVelocity,vUv).xy;
   vec2 coord = vUv - uDt*vel*uSimTexel;
@@ -27,8 +32,19 @@ void main(){
   float mul = uMediaChan<0.5 ? 1.0 : (uMediaChan<1.5 ? m.g : m.b);
   bool velChan = uMediaChan>0.5 && uMediaChan<1.5;
   float wk = velChan ? texture(uWake,vUv).r : 0.0;
-  float visc = velChan ? speciesMix(texture(uDye,vUv).rgb, uViscMul) : 1.0;
-  fragColor = texture(uSource,coord) * exp(-(uDissipation*mul*visc + uWakeDiss*wk)*uDt);
+  vec4 dy = texture(uDye,vUv);
+  float visc = velChan ? speciesMix(dy.rgb, uViscMul) : 1.0;
+  /* temperature → viscosity + cold damping (velocity pass only) */
+  if(velChan){
+    float T = dy.a;
+    visc *= exp(-uViscTempK * (T - uTempAmbient));
+    visc *= 1.0 + uColdDamp / (1.0 + uColdScale * max(T, 0.0));  /* rational cold damping */
+  }
+  vec4 src = texture(uSource,coord);
+  float diss = exp(-(uDissipation*mul*visc + uWakeDiss*wk)*uDt);
+  fragColor.rgb = src.rgb * diss;
+  /* dye pass: alpha = temperature; dissipate excess above ambient, not absolute T */
+  fragColor.a = (uMediaChan > 1.5) ? uTempAmbient + (src.a - uTempAmbient) * (1.0 - uTempDiss*uDt) : src.a * diss;
 }
 `;
 
@@ -50,20 +66,24 @@ uniform sampler2D uDye;
 uniform sampler2D uWake;
 uniform vec3  uCurlMul;        /* per-species swirliness */
 uniform float uWakeCurl;       /* wake churns: haunted dead water */
+uniform float uTempCurlBoost;
 uniform vec2  uSimTexel;
 uniform float uCurlStrength;
 uniform float uDt;
 void main(){
-  float L = texture(uCurl, vUv-vec2(uSimTexel.x,0.0)).x;
-  float R = texture(uCurl, vUv+vec2(uSimTexel.x,0.0)).x;
-  float B = texture(uCurl, vUv-vec2(0.0,uSimTexel.y)).x;
-  float T = texture(uCurl, vUv+vec2(0.0,uSimTexel.y)).x;
+  float cL = texture(uCurl, vUv-vec2(uSimTexel.x,0.0)).x;
+  float cR = texture(uCurl, vUv+vec2(uSimTexel.x,0.0)).x;
+  float cB = texture(uCurl, vUv-vec2(0.0,uSimTexel.y)).x;
+  float cT = texture(uCurl, vUv+vec2(0.0,uSimTexel.y)).x;
   float C = texture(uCurl, vUv).x;
-  vec2 force = 0.5*vec2(abs(T)-abs(B), abs(R)-abs(L));
+  vec2 force = 0.5*vec2(abs(cT)-abs(cB), abs(cR)-abs(cL));
   force /= length(force)+1e-4;
-  float sp = speciesMix(texture(uDye,vUv).rgb, uCurlMul);
+  vec4 dy = texture(uDye,vUv);
+  float sp = speciesMix(dy.rgb, uCurlMul);
   float churn = 1.0 + uWakeCurl*texture(uWake,vUv).r;
-  force *= uCurlStrength * texture(uMedia,vUv).r * sp * churn * C;
+  float Tv = dy.a;  /* temperature from dye alpha */
+  float tempCurl = 1.0 + uTempCurlBoost * smoothstep(0.2, 0.8, Tv);
+  force *= uCurlStrength * texture(uMedia,vUv).r * sp * churn * C * tempCurl;
   force.y *= -1.0;
   vec2 vel = texture(uVelocity,vUv).xy + force*uDt;
   fragColor = vec4(clamp(vel, vec2(-1000.0), vec2(1000.0)), 0.0, 1.0);
@@ -78,6 +98,9 @@ uniform float uExoForce;
 uniform float uExoKnee;        /* curve curvature: steep onset, log saturation */
 uniform float uStagBoost;      /* reaction multiplier as flow stagnates */
 uniform float uStagSpeed;      /* texels/s scale of "stagnant" */
+uniform float uActivation;     /* Arrhenius activation energy: higher = needs more heat */
+uniform float uArrhScale;      /* scalar multiplier on the arrh term (0-100) */
+uniform float uReactFloor;     /* baseline reactivity floor (added to scaled arrh) */
 uniform sampler2D uDyn;
 uniform float uDynForce;
 uniform float uDynTrigger;
@@ -85,9 +108,11 @@ uniform float uLaneForce;
 uniform float uDt;
 float exoAt(vec2 uv){
   vec4 d = texture(uDye,uv);
+  float Tv = d.a;  /* temperature from dye alpha */
+  float arrh = uActivation*Tv / (1.0 + uActivation*Tv);  /* rational Arrhenius */
   float spd = length(texture(uVelocity,uv).xy);
   float stag = 1.0 + uStagBoost*exp(-(spd*spd)/max(uStagSpeed*uStagSpeed,1e-3));
-  float P = d.r*d.g*stag;
+  float P = d.r*d.g*stag*(uReactFloor + uArrhScale*arrh);
   return log(1.0 + uExoKnee*P)/max(uExoKnee,1e-3);   /* mix, slow, then BAM */
 }
 float blastAt(vec2 uv){
@@ -186,12 +211,24 @@ uniform sampler2D uVelocity;
 uniform float uGelReact;
 uniform float uGelDissolve;
 uniform float uGelErode;
+uniform float uGelTempK;
+uniform float uGelSelfCat;    /* self-catalysis: existing gel boosts formation */
+uniform float uGelHotThresh;  /* temperature at which gel formation fully stops */
 uniform float uDt;
 void main(){
   float gel = texture(uGel,vUv).r;
-  vec3  d   = texture(uDye,vUv).rgb;
+  vec4  d4  = texture(uDye,vUv);
+  vec3  d   = d4.rgb;
   float spd = length(texture(uVelocity,vUv).xy);
-  gel += uGelReact*d.r*d.b*uDt;                 /* R + B precipitate */
+  float Tv  = d4.a;  /* temperature from dye alpha */
+  /* cold-favoring: rational 1/(1+k*T), strongest at T=0 */
+  float coldFavor = 1.0 / (1.0 + uGelTempK * max(Tv, 0.0));
+  /* hot cutoff: gel impossible above gelHotThresh, ramp starts at 70% */
+  float hotCutoff = 1.0 - smoothstep(0.7 * uGelHotThresh, uGelHotThresh, Tv);
+  /* self-catalysis: existing gel boosts further formation (endothermic runaway) */
+  float selfBoost = 1.0 + uGelSelfCat * gel;
+  float gelTempFactor = coldFavor * hotCutoff * selfBoost;
+  gel += uGelReact*d.r*d.b*gelTempFactor*uDt;   /* R + B precipitate */
   gel -= gel*(uGelDissolve + uGelErode*spd)*uDt;
   fragColor = vec4(clamp(gel,0.0,2.0), 0.0, 0.0, 1.0);
 }
@@ -285,20 +322,51 @@ void main(){
 }
 `;
 
-/* dynamite field: deposits where B+G co-locate, burns where red triggers */
+/* dynamite field: deposits where B+G co-locate, burns where red or heat triggers.
+   Solid dynamite: surface trigger uses adjacent-cell dye/heat; chain reaction
+   propagates detonation inward through the mass. */
 export const dynUpdateFS = FRAG_HEADER + `uniform sampler2D uDye;
 uniform sampler2D uDyn;
 uniform float uDynForm;
 uniform float uDynTrigger;
+uniform float uDynTempTrigger;
 uniform float uDynBurn;
+uniform vec2  uSimTexel;
 uniform float uDt;
 void main(){
   float dyn = texture(uDyn,vUv).r;
   vec4 d = texture(uDye,vUv);
   float form = uDynForm * smoothstep(0.06, 0.30, min(d.g, d.b));
-  float trig = smoothstep(uDynTrigger*0.55, uDynTrigger, d.r);
+  /* trigger: check THIS cell + 4 neighbors for red dye & heat
+     (solid dynamite blocks dye, so neighbors carry the trigger signal) */
+  vec4 dL = texture(uDye, vUv - vec2(uSimTexel.x, 0.0));
+  vec4 dR = texture(uDye, vUv + vec2(uSimTexel.x, 0.0));
+  vec4 dB = texture(uDye, vUv - vec2(0.0, uSimTexel.y));
+  vec4 dT = texture(uDye, vUv + vec2(0.0, uSimTexel.y));
+  float maxRed = max(d.r, max(max(dL.r, dR.r), max(dB.r, dT.r)));
+  float maxTemp = max(d.a, max(max(dL.a, dR.a), max(dB.a, dT.a)));
+  float redTrig = smoothstep(uDynTrigger*0.55, uDynTrigger, maxRed);
+  float tempTrig = smoothstep(uDynTempTrigger*0.7, uDynTempTrigger, maxTemp);
+  float trig = max(redTrig, tempTrig);
+  /* chain reaction: 2px stencil — if ANY individual neighbor has charge
+     but is lower than ours, it's burning → propagate.
+     Bug fix: previously used max() which masked single burning cells. */
+  if(trig < 0.01 && dyn > 0.1){
+    vec2 dx = vec2(uSimTexel.x, 0.0);
+    vec2 dy = vec2(0.0, uSimTexel.y);
+    float thresh = dyn * 0.99;
+    float n;
+    n = texture(uDyn, vUv-dx).r;       if(n > 0.05 && n < thresh) trig = 1.0;
+    n = texture(uDyn, vUv+dx).r;       if(n > 0.05 && n < thresh) trig = 1.0;
+    n = texture(uDyn, vUv-dy).r;       if(n > 0.05 && n < thresh) trig = 1.0;
+    n = texture(uDyn, vUv+dy).r;       if(n > 0.05 && n < thresh) trig = 1.0;
+    n = texture(uDyn, vUv-2.0*dx).r;   if(n > 0.05 && n < thresh) trig = 1.0;
+    n = texture(uDyn, vUv+2.0*dx).r;   if(n > 0.05 && n < thresh) trig = 1.0;
+    n = texture(uDyn, vUv-2.0*dy).r;   if(n > 0.05 && n < thresh) trig = 1.0;
+    n = texture(uDyn, vUv+2.0*dy).r;   if(n > 0.05 && n < thresh) trig = 1.0;
+  }
   float burn = uDynBurn * dyn * trig;
-  vec3 lane = texture(uDyn,vUv).gba;   /* lane dir + powered flag pass through */
+  vec3 lane = texture(uDyn,vUv).gba;
   fragColor = vec4(clamp(dyn + (form - burn)*uDt, 0.0, 1.5), lane);
 }
 `;
@@ -357,12 +425,14 @@ export const obstacleComposeFS = FRAG_HEADER + `uniform sampler2D uLevel;
 uniform sampler2D uWalls;
 uniform sampler2D uDynMask;
 uniform sampler2D uGel;
+uniform sampler2D uDyn;
 uniform float uGelSolid;
 void main(){
   vec2 vel = vec2(0.0); float solid = 0.0;
   if(texture(uLevel,vUv).r <= 0.0) solid = 1.0;
   vec2 wv2 = texture(uWalls,vUv).rg;          /* r=slate, g=steel */
   if(max(wv2.r, wv2.g) > 0.5) solid = 1.0;
+  if(texture(uDyn,vUv).r > 0.3) solid = 1.0;  /* dynamite charge is solid */
   vec4 m = texture(uDynMask,vUv);
   if(m.a > 0.5){ solid = 1.0; vel = m.rg/max(m.a,1e-4); }
   float gel = texture(uGel,vUv).r;
@@ -374,43 +444,73 @@ void main(){
 
 export const dyePostFS = FRAG_HEADER + OBST + ZONES + `uniform sampler2D uDye;
 uniform sampler2D uVelocity;
+uniform sampler2D uMedia;
 uniform float uSolidDecay;
 uniform float uExoConsume;
 uniform float uGelConsume;
+uniform float uGelHotThresh;
 uniform float uStagBoost2;
 uniform float uStagSpeed2;
 uniform sampler2D uDyn;
 uniform float uDynForm;
 uniform float uDynTrigger;
+uniform float uDynTempTrigger;
 uniform float uDynBurn;
 uniform float uDynRed;
+uniform float uActivation;
+uniform float uTempHeatRate;
+uniform float uGelHeatAbsorb;
+uniform float uDynHeat;
+uniform float uTempCoolLinear;
+uniform float uTempCoolQuad;
+uniform float uTempAmbient;
+uniform float uTempAmbientRestore;
+uniform float uTempMax;
+uniform float uTempZoneRate;
+uniform float uTempScale;
 void main(){
   vec4 dye = texture(uDye,vUv);
   float wS, wT;
   dye.rgb -= zoneRemoval(dye.rgb, vUv, wS, wT);
-  /* dynamite (plan section 9 v2): co-located B+G converts to a solid
-   * charge; red above trigger concentration detonates it. Conversion
-   * consumes the dyes here; the charge itself lives in uDyn. */
-  {
-    float dynC  = texture(uDyn,vUv).r;
-    float form2 = uDynForm * smoothstep(0.06, 0.30, min(dye.g, dye.b));
-    float trig2 = smoothstep(uDynTrigger*0.55, uDynTrigger, dye.r);
-    dye.g -= form2*0.6*uDt;
-    dye.b -= form2*0.6*uDt;
-    /* burning charge bites its trigger, then releases red of its own:
-     * net-positive above ~0.35, so the blast wave carries fresh red into
-     * neighboring charges and one detonation primes the next — chains */
-    dye.r += uDynBurn*dynC*trig2*(uDynRed - 0.35)*uDt;
-  }
+  float Tv = dye.a;  /* temperature from dye alpha */
+  /* dynamite: co-located B+G converts to charge; red OR heat detonates */
+  float dynC = texture(uDyn,vUv).r;
+  float form2 = uDynForm * smoothstep(0.06, 0.30, min(dye.g, dye.b));
+  float redTrig = smoothstep(uDynTrigger*0.55, uDynTrigger, dye.r);
+  float heatTrig = smoothstep(uDynTempTrigger*0.7, uDynTempTrigger, Tv);
+  float trig2 = max(redTrig, heatTrig);
+  dye.g -= form2*0.6*uDt;
+  dye.b -= form2*0.6*uDt;
+  dye.r += uDynBurn*dynC*trig2*(uDynRed - 0.35)*uDt;
   float spd2 = length(texture(uVelocity,vUv).xy);
   float stag2 = 1.0 + uStagBoost2*exp(-(spd2*spd2)/max(uStagSpeed2*uStagSpeed2,1e-3));
-  float rxExo = dye.r*dye.g*stag2;
-  float rxGel = dye.r*dye.b;
+  /* Arrhenius modulation of consumption (matches reactForceFS) */
+  float arrh = uActivation*Tv / (1.0 + uActivation*Tv);  /* rational Arrhenius */
+  float rxExo = dye.r*dye.g*stag2*arrh;
+  /* R+B gel consumption: cold-favoring + hot cutoff (matches gelUpdateFS) */
+  float gelColdFavor = 1.0 / (1.0 + 2.0 * max(Tv, 0.0));
+  float gelHotCutoff = 1.0 - smoothstep(0.7 * uGelHotThresh, uGelHotThresh, Tv);
+  float rxGel = dye.r*dye.b*gelColdFavor*gelHotCutoff;
   dye.r -= (uExoConsume*rxExo + uGelConsume*rxGel)*uDt;
   dye.g -= uExoConsume*rxExo*uDt;
   dye.b -= uGelConsume*rxGel*uDt;
   if(solidAt(vUv).isSolid) dye.rgb *= exp(-uSolidDecay*uDt);
-  dye.rgb = max(dye.rgb, vec3(0.0));        /* required: predators splat negative */
+  dye.rgb = max(dye.rgb, vec3(0.0));
+  /* temperature evolution (in dye.a) */
+  float T = Tv;
+  /* cooling: Newton's law — cool excess above ambient, not absolute T */
+  float Tex = max(T - uTempAmbient, 0.0);
+  /* all source/sink terms scaled by inverse heat capacity */
+  float dT = uTempHeatRate * rxExo            /* R+G exothermic */
+           - uGelHeatAbsorb * rxGel            /* R+B endothermic */
+           + uDynHeat * dynC * trig2           /* dynamite heat flash */
+           - uTempCoolLinear*Tex               /* Newton cooling */
+           - uTempCoolQuad*Tex*Tex;            /* runaway brake */
+  T += uTempScale * dT * uDt;
+  T += uTempAmbientRestore * (uTempAmbient - T) * uDt;  /* env coupling, unscaled */
+  float zoneT = texture(uMedia, vUv).a;
+  if(zoneT >= 0.0) T = mix(T, zoneT, min(uTempZoneRate*uDt, 1.0));
+  dye.a = clamp(T, 0.0, uTempMax);
   fragColor = dye;
 }
 `;
@@ -778,7 +878,7 @@ flat out vec4 vR0; flat out vec4 vR1; flat out vec4 vR2; flat out vec4 vR3;
 out vec2 vLocal;
 bool writesTarget(int type,int target){
   if(target==0) return type==2 || type==3 || type==6;  /* predators suck */
-  if(target==1) return type==3 || type==6;            /* predators eat (negative) */
+  if(target==1) return type==3 || type==6 || type==10;  /* +10: temp emitter to dye.a */
   if(target==2) return type==1 || type==5 || type==6; /* boundaries */
   if(target==3) return type==6;                       /* dissipation wake */
   return false;
@@ -829,12 +929,16 @@ void main(){
 export const splatDyeFS = SPLAT_FRAG_IN + `uniform float uDt;
 uniform float uEmitScale;
 uniform float uEatRate;
+uniform float uTempEmitScale;
 void main(){
   float g = exp(-dot(vLocal,vLocal)*4.5);
   int t = int(vR1.x);
   if(t==6){
     float life = clamp(vR2.x/max(vR3.w,1e-3), 0.0, 1.0);
     fragColor = vec4(vec3(-uEatRate*g*uDt*life), 0.0);
+  } else if(t==10){
+    /* temperature emitter: writes heat/cold to alpha (dye.a = temperature) */
+    fragColor = vec4(0.0, 0.0, 0.0, vR1.z*uTempEmitScale*g*uDt);
   } else {
     fragColor = vec4(vec3(vR2.z,vR2.w,vR3.x)*vR1.z*uEmitScale*g*uDt, 0.0);
   }
@@ -994,6 +1098,14 @@ void main(){
       c = mix(c, vec3(1.45,0.30,0.22), (0.22+0.18*tier)*hot);
     }
     col = vec4(c, max(core*0.95, ring*0.55));
+  } else if(type==10){
+    /* temperature emitter: warm core (hot=orange, cold=blue) */
+    float fill = 1.0-smoothstep(0.30,0.36,len);
+    float ring = smoothstep(0.42,0.48,len)*(1.0-smoothstep(0.52,0.58,len));
+    float isHot = step(0.0, vR1.z);
+    vec3 c = mix(vec3(0.25,0.55,1.0), vec3(1.0,0.55,0.15), isHot);
+    float pulse = 0.7 + 0.3*sin(uTime*3.0);
+    col = vec4(c*pulse, max(fill*0.85, ring*0.75));
   }
   if(uGhost>0.5){
     col.rgb = mix(vec3(1.0,0.35,0.30), col.rgb*0.6+vec3(0.2,0.5,0.25), uGhostValid);
@@ -1061,6 +1173,10 @@ uniform float uCurlTint;
 uniform float uSchlieren;
 uniform float uSpeciesFx;
 uniform float uGelGlow;
+uniform float uThermalVis;
+uniform float uThermalFloor;
+uniform float uTempAmbient;
+uniform float uTempMax;
 uniform float uResScale;
 vec3 hsv2rgb(vec3 c){
   vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
@@ -1098,6 +1214,9 @@ void main(){
   }
   if(uDebugMode==8){ float g=texture(uGel,vUv).r; fragColor = vec4(vec3(0.4,0.8,0.9)*clamp(g,0.0,1.0),1.0); return; }
   if(uDebugMode==9){ float w9=texture(uWake,vUv).r; fragColor = vec4(vec3(0.9,0.5,0.2)*w9,1.0); return; }
+  if(uDebugMode==10){ float tv=texture(uDye,vUv).a; fragColor = vec4(tv*vec3(1.0,0.3,0.1) + max(uTempAmbient-tv,0.0)*vec3(0.1,0.3,1.0), 1.0); return; }
+
+  float Tsim = texture(uDye,vUv).a;
 
   vec2 v = texture(uVelocity,vUv).xy;
   float spd = length(v)/uResScale;            /* normalized to reference-grid texels/s */
@@ -1114,7 +1233,12 @@ void main(){
   float Lr = 1.0 - exp(-dot(d,vec3(0.5))*uTonemapK*2.0);   /* dye presence, 0..1 */
   float cr = texture(uCurl,vUv).r;
   if(abs(uHueShift)>0.001) disp = hueRotate(disp,uHueShift);
-  vec3 col = vec3(1.0) - exp(-disp*uTonemapK);
+  /* tonemap: exposure scales with absolute temperature (blackbody-inspired).
+     thermalFloor = minimum multiplier at T=0 (cold).
+     thermalVis = dynamic range added by temperature above the floor. */
+  float Tnorm = Tsim / max(uTempMax, 1e-3);   /* 0..1 normalized absolute temperature */
+  float tempK = uTonemapK * (uThermalFloor + uThermalVis * Tnorm / (1.0 + Tnorm));
+  vec3 col = vec3(1.0) - exp(-disp*tempK);
   vec3 blm = texture(uBloom,vUv).rgb;
   if(abs(uHueShift)>0.001) blm = hueRotate(blm,uHueShift);
   col += blm*uBloomStrength;

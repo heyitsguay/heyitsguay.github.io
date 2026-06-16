@@ -22,7 +22,8 @@ import {
   obstacleComposeFS, dyePostFS, scoreAccumFS, sensorFS, reduceFS,
   telemetryFS, jfaSeedFS, jfaStepFS, jfaCombineFS, jfaGradFS,
   actorUpdateFS, splatVS, SPLAT_FRAG_IN, splatForceFS, splatDyeFS,
-  splatWakeFS, splatMaskFS, glyphVS, ghostVS, glyphFS,
+  splatWakeFS, splatMaskFS,
+  glyphVS, ghostVS, glyphFS,
   brightFS, blurFS, compositeFS,
   wakeUpdateFS, wallPaintFS, switchSenseFS, dynUpdateFS,
   lanePaintFS, matPackFS, wallErodeFS, wallCutFS

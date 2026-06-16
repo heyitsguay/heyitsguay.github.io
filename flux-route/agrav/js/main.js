@@ -65,7 +65,7 @@ import {
   getLevelData, setLevelData,
 } from './gl-core.js';
 import {
-  LEVELS, ATTRACT_LEVEL, curLevel, dataLevel,
+  LEVELS, EPOCHS, ATTRACT_LEVEL, curLevel, dataLevel, loadLevels,
   pxRect, pxPoly, border, base, pipHit, rasterPoly,
   lvCtx, lvCanvas, SOLID_C,
 } from './levels.js';
@@ -129,7 +129,7 @@ function refreshLevelTextures() {
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
   // media + amp fields (data, not art)
   const med = new Float32Array(n * 4);
-  for (let i = 0; i < n; i++) { med[i * 4] = 1; med[i * 4 + 1] = 1; med[i * 4 + 2] = 1; }
+  for (let i = 0; i < n; i++) { med[i * 4] = 1; med[i * 4 + 1] = 1; med[i * 4 + 2] = 1; med[i * 4 + 3] = -1.0; }
   rasterZones(L.mediaZones, med, (z, i) => {
     med[i * 4] = z.curl != null ? z.curl : 1;
     med[i * 4 + 1] = z.velDiss != null ? z.velDiss : 1;
@@ -141,6 +141,14 @@ function refreshLevelTextures() {
       med[i * 4 + 1] = p.velDiss != null ? p.velDiss : 1;
       med[i * 4 + 2] = p.dyeDiss != null ? p.dyeDiss : 1;
     });
+  /* temperature zones: media.a >= 0 = target temperature */
+  rasterZones(L.tempZones, med, (z, i) => {
+    med[i * 4 + 3] = z.temp != null ? z.temp : params.tempAmbient * params.tempMax;
+  });
+  for (const p of (L.data && L.data.polys) || [])
+    if (p.kind === "temp") rasterPoly(p.pts, i => {
+      med[i * 4 + 3] = p.temp != null ? p.temp : params.tempAmbient * params.tempMax;
+    });
   gl.bindTexture(gl.TEXTURE_2D, mediaTex);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, SIM_W, SIM_H, 0, gl.RGBA, gl.FLOAT, med);
   runJFA();
@@ -151,14 +159,14 @@ function refreshLevelTextures() {
 function initDynField(L) {
   const n = SIM_W * SIM_H, df = new Float32Array(n * 4);
   for (const p of (L.data && L.data.polys) || []) {
-    if (p.kind !== "flow") continue;
+    if (p.kind !== "flow" || p._active === false) continue;
     const st = p.strength != null ? p.strength : 1;
     const gx = Math.cos(p.angle || 0) * st, gy = Math.sin(p.angle || 0) * st;
     const pw = p.powered ? 1 : 0;
     rasterPoly(p.pts, i => { df[i * 4 + 1] = gx; df[i * 4 + 2] = gy; df[i * 4 + 3] = pw; });
   }
   for (const p of (L.data && L.data.polys) || [])
-    if (p.kind === "dynamite")
+    if (p.kind === "dynamite" && p._active !== false)
       rasterPoly(p.pts, i => { df[i * 4] = p.amount != null ? p.amount : 1; });
   rasterZones(L.ampZones, df, (z, i) => {    /* legacy amps: red-powered flow */
     const st = (z.gain || 800) / 700;
@@ -204,6 +212,11 @@ function loadLevel(idx) {
   const L = curLevel();
   setGameWindow(curLevel());
   S.gateState = {}; S.simTime = 0;
+  if (S.lastTelem) S.lastTelem.fill(0);
+  /* initialize each poly's runtime active state from its enabled property */
+  for (const p of (L.data && L.data.polys) || []) {
+    p._active = p.enabled !== false;
+  }
   clearRT(swState.a); clearRT(swState.b); initDynField(curLevel());
   compileEvents();
   pendingCallouts = (curLevel().callouts || [])
@@ -212,12 +225,38 @@ function loadLevel(idx) {
   emphases = [];
   S.rng = mulberry32(S.levelIdx * 1337 + 7);
   applyParamsForLevel();
+  /* reset switch target state BEFORE painting: undo any poly mutations from modify targets */
+  for (const sw of L.switches || []) {
+    /* initialize gate state so first-frame evalSwitches doesn't see a spurious change */
+    if (S.gateState[sw.id] === undefined) S.gateState[sw.id] = false;
+    for (const tgt of sw.targets || []) {
+      /* restore any saved poly properties before we repaint */
+      if (tgt._saved && tgt.poly) {
+        const polys = (L.data && L.data.polys) || [];
+        const p = polys.find(pp => pp.id === tgt.poly);
+        if (p) Object.assign(p, tgt._saved);
+      }
+      /* clear transient state */
+      delete tgt._saved;
+      delete tgt._cut;
+    }
+  }
   refreshLevelTextures();
   for (const rt of [velocity.a, velocity.b, pressure.a, pressure.b, dye.a, dye.b,
                     scoreAcc.a, scoreAcc.b, dynMask, divergence, curlTex, gel.a, gel.b, wake.a, wake.b,
                     actors.a, actors.b]) clearRT(rt);
+  /* initialize dye.a (temperature channel) to ambient */
+  {
+    const df = new Float32Array(DYE_W * DYE_H * 4);
+    for (let i = 0; i < DYE_W * DYE_H; i++) df[i * 4 + 3] = params.tempAmbient * params.tempMax;
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    for (const rt of [dye.a, dye.b]) {
+      gl.bindTexture(gl.TEXTURE_2D, rt.tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, DYE_W, DYE_H, 0, gl.RGBA, gl.FLOAT, df);
+    }
+  }
   {   /* pre-placed gel from polys */
-    const gp = ((curLevel().data || {}).polys || []).filter(p => p.kind === "gel");
+    const gp = ((curLevel().data || {}).polys || []).filter(p => p.kind === "gel" && p._active !== false);
     if (gp.length) {
       const gf = new Float32Array(SIM_W * SIM_H);
       for (const p of gp) rasterPoly(p.pts, i => { gf[i] = p.amount != null ? p.amount : 1; });
@@ -241,8 +280,6 @@ function loadLevel(idx) {
     cpuActors[slot] = Object.assign({ timer: a.type === 7 ? a.period : 0, slot }, a);
     if (a.enabled === false) setActorEnabled(cpuActors[slot], false);
   }
-  for (const sw of L.switches || [])
-    for (const tgt of sw.targets || []) setTargetEnabled(tgt, false);
   const ov = budgetOverrides[S.levelIdx] || {};
   S.budget = Object.assign({ fan: 0, blue: 0, green: 0 }, L.budgets, ov);
   S.wells = Object.assign({ slate: 0, lanes: 0, steel: 0 }, L.wells);
@@ -253,6 +290,7 @@ function loadLevel(idx) {
     const wf = new Float32Array(SIM_W * SIM_H * 2);
     rasterZones(L.removableWalls, wf, (z, i) => { wf[i * 2] = 1; });
     for (const p of (L.data && L.data.polys) || []) {
+      if (p._active === false) continue;
       if (p.kind === "removable" || p.kind === "slate") rasterPoly(p.pts, i => { wf[i * 2] = 1; });
       if (p.kind === "steel") rasterPoly(p.pts, i => { wf[i * 2 + 1] = 1; });
     }
@@ -270,6 +308,7 @@ function loadLevel(idx) {
   document.getElementById("win").style.display = "none";
   document.getElementById("menu").style.display = S.levelIdx < 0 ? "flex" : "none";
   document.getElementById("options").style.display = "none";
+  document.getElementById("levelSelect").style.display = "none";
   if (typeof S.rotateModeSlot !== "undefined") {
     S.rotateModeSlot = -1; S.aimEngaged = false; S.touchSteer = null;
     S.touchPaint = false; S.touchSpinG = null; S.touchSpin = 0;
@@ -366,6 +405,10 @@ function renderFrame(now) {
   gl.uniform1f(U(C, "uSpeciesFx"), params.speciesFx);
   gl.uniform1f(U(C, "uResScale"), RES_SCALE);
   gl.uniform1f(U(C, "uGelGlow"), params.gelGlow);
+  gl.uniform1f(U(C, "uThermalVis"), params.thermalVis);
+  gl.uniform1f(U(C, "uThermalFloor"), params.thermalFloor);
+  gl.uniform1f(U(C, "uTempAmbient"), params.tempAmbient * params.tempMax);
+  gl.uniform1f(U(C, "uTempMax"), params.tempMax);
   fullscreen();
 
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -636,7 +679,7 @@ function evalSwitches() {
 function setActorEnabled(c, want) {
   c.enabled = !!want;
   if (c.type === 7) c.dormant = !want;
-  else if (c.type === 2 || c.type === 3) {
+  else if (c.type === 2 || c.type === 3 || c.type === 10) {
     if (c._orig == null) c._orig = c.strength;
     c.strength = want ? c._orig : 0;
     writeActor(c.slot, actorRecord(c));
@@ -661,8 +704,31 @@ function cutWallPoly(polyId) {
 }
 function setTargetEnabled(tgt, on) {
   const want = tgt.invert ? !on : on;
-  if (tgt.poly) {                          /* removable-wall polys: deletion */
-    if (want && !tgt._cut) { tgt._cut = true; cutWallPoly(tgt.poly); }
+  if (tgt.poly) {
+    const L = curLevel();
+    const polys = (L.data && L.data.polys) || [];
+    const p = polys.find(pp => pp.id === tgt.poly);
+    if (tgt.action === "delete") {
+      if (want && !tgt._cut) { tgt._cut = true; cutWallPoly(tgt.poly); }
+    } else if (tgt.action === "modify" && p) {
+      if (want) {
+        if (!tgt._saved) {
+          tgt._saved = {};
+          for (const k of Object.keys(tgt.state || {})) tgt._saved[k] = p[k];
+        }
+        Object.assign(p, tgt.state || {});
+      } else if (tgt._saved) { Object.assign(p, tgt._saved); tgt._saved = null; }
+      refreshLevelTextures();
+    } else {
+      /* enable/disable any poly: active = painted, inactive = removed */
+      if (p) {
+        p._active = want;
+        if (p.kind === "flow" || p.kind === "dynamite") initDynField(curLevel());
+        refreshLevelTextures();
+      } else if (want && !tgt._cut) {
+        tgt._cut = true; cutWallPoly(tgt.poly);
+      }
+    }
     return;
   }
   for (const c of cpuActors) {
@@ -843,8 +909,10 @@ function updateHUD(t, now) {
     (S.state === "WIN" ? "  \u2502  \u2713 SUSTAINED \u2014 " +
       (S.IS_TOUCH ? "double-tap for next" : "N for next") : "");
   hudEl.textContent = txt;
+  const DEBUG_NAMES = ["off","velocity","pressure","divergence","curl","SDF","obstacle","score","gel","wake","temperature"];
   statsEl.textContent = S.fps.toFixed(0) + " fps \u00b7 " + S.lastSubsteps + " sub \u00b7 telem age " +
-    readback.ageFrames + " \u00b7 emit " + S.emitRate.toFixed(0) + " \u00b7 dbg " + S.debugMode;
+    readback.ageFrames + " \u00b7 emit " + S.emitRate.toFixed(0) +
+    (S.debugMode ? " \u00b7 \u25c9 " + (DEBUG_NAMES[S.debugMode] || S.debugMode) : "");
 }
 
 
@@ -852,12 +920,13 @@ function updateHUD(t, now) {
 let lastT = performance.now(), acc = 0;
 function frame(now) {
   requestAnimationFrame(frame);
-  const dtW = Math.min((now - lastT) / 1000, 0.1);
+  const dtW = Math.min((now - lastT) / 1000, MAX_SUBSTEPS * DT);  /* clamp to prevent vsync cliff on tab-return */
   lastT = now;
   readInput();
   let steps = 0;
   if (!S.paused && document.visibilityState !== "hidden") {
     acc += dtW;
+    if (acc > MAX_SUBSTEPS * DT) acc = MAX_SUBSTEPS * DT;  /* hard cap: don't accumulate across tab-away */
     while (acc >= DT && steps < MAX_SUBSTEPS) { substep(); acc -= DT; steps++; }
     if (steps === MAX_SUBSTEPS) acc = 0;
   } else acc = 0;
@@ -886,15 +955,6 @@ function frame(now) {
     }
   } else S.lanePrev = null;
   if (steps > 0) {
-    runFS(P.dynUpdate, dyn.write, p => {
-      bindTex(p, "uDye", dye.read.tex, 0);
-      bindTex(p, "uDyn", dyn.read.tex, 1);
-      gl.uniform1f(U(p, "uDynForm"), PV("dynForm"));
-      gl.uniform1f(U(p, "uDynTrigger"), PV("dynTrigger"));
-      gl.uniform1f(U(p, "uDynBurn"), PV("dynBurn"));
-      gl.uniform1f(U(p, "uDt"), steps * DT);
-    });
-    dyn.swap();
     runFS(P.wallErode, walls.write, p => {   /* blasts carve slate per-pixel */
       bindTex(p, "uWalls", walls.read.tex, 0);
       bindTex(p, "uPressure", pressure.read.tex, 1);
@@ -953,7 +1013,54 @@ function frame(now) {
   renderFrame(now);
 }
 
-document.getElementById("btnPlay").onclick = () => loadLevel(0);
+/* ---------- level select screen ---------- */
+const lsEl = document.getElementById("levelSelect");
+const epochTabsEl = document.getElementById("epochTabs");
+const levelGridEl = document.getElementById("levelGrid");
+let lsActiveEpoch = 0;
+
+function showLevelSelect() {
+  document.getElementById("menu").style.display = "none";
+  lsEl.style.display = "flex";
+  console.log("showLevelSelect: lsEl=", lsEl, "computed display=", getComputedStyle(lsEl).display, "zIndex=", getComputedStyle(lsEl).zIndex, "EPOCHS=", EPOCHS.length);
+  buildLevelSelect();
+  console.log("levelGrid children:", levelGridEl.children.length);
+}
+function hideLevelSelect() {
+  lsEl.style.display = "none";
+}
+function buildLevelSelect() {
+  /* epoch tabs */
+  epochTabsEl.innerHTML = "";
+  EPOCHS.forEach((ep, i) => {
+    const btn = document.createElement("button");
+    btn.className = "epoch-tab" + (i === lsActiveEpoch ? " active" : "");
+    btn.textContent = ep.name;
+    btn.onclick = () => { lsActiveEpoch = i; buildLevelSelect(); };
+    epochTabsEl.appendChild(btn);
+  });
+  /* level cards */
+  levelGridEl.innerHTML = "";
+  const ep = EPOCHS[lsActiveEpoch];
+  if (!ep) return;
+  for (const entry of ep.levels) {
+    const L = LEVELS[entry.idx];
+    const card = document.createElement("div");
+    card.className = "level-card";
+    card.innerHTML =
+      '<img class="lc-thumb" src="' + entry.thumb + '" alt="' + (L.name || "") + '">' +
+      '<div class="lc-info"><div class="lc-name">' + (L.name || "Untitled") + '</div>' +
+      '<div class="lc-epoch">' + ep.id + '</div></div>';
+    card.onclick = () => { hideLevelSelect(); loadLevel(entry.idx); };
+    levelGridEl.appendChild(card);
+  }
+}
+
+document.getElementById("btnPlay").onclick = showLevelSelect;
+document.getElementById("lsBack").onclick = () => {
+  hideLevelSelect();
+  document.getElementById("menu").style.display = "flex";
+};
 document.getElementById("btnOptions").onclick = () => {
   document.getElementById("options").style.display = "flex";
 };
@@ -995,5 +1102,8 @@ initEditor({
 buildPanel();
 buildToolbar();
 
-loadLevel(-1);
-requestAnimationFrame(frame);
+(async () => {
+  await loadLevels();
+  loadLevel(-1);
+  requestAnimationFrame(frame);
+})();

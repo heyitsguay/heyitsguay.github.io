@@ -455,12 +455,12 @@ window.addEventListener("keydown", e => {
   else if (digit === "0") { S.selectedTool = -1; refreshToolbar(); }
   else if (k === "[") { if (S.selectedSlot >= 1) rotateSelected(1); }
   else if (k === "]") { if (S.selectedSlot >= 1) rotateSelected(-1); }
-  else if (k === "r") _cb.loadLevel(S.levelIdx);
+  else if (k === "r" && !S.editMode) _cb.loadLevel(S.levelIdx);
   else if (k === ",") _cb.loadLevel(S.levelIdx - 1);
   else if (k === ".") _cb.loadLevel(S.levelIdx + 1);
   else if (k === "n" && S.state === "WIN") _cb.loadLevel(S.levelIdx + 1);
   else if (k === " ") { S.paused = !S.paused; e.preventDefault(); }
-  else if (k === "tab") { S.debugMode = (S.debugMode + 1) % 10; e.preventDefault(); }
+  else if (k === "tab") { S.debugMode = (S.debugMode + 1) % 11; e.preventDefault(); }
   else if (k === "t") _cb.togglePanel();
   else if (k === "x") {           /* demo of event-driven chemistry pulses */
     pulseParam("exoConsume", 0.15, 2.5);

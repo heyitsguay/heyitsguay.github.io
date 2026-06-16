@@ -48,7 +48,7 @@ let configs = {}, activeName = "";
 try {
   configs = JSON.parse(localStorage.getItem("fluxroute.configs") || "{}");
   activeName = localStorage.getItem("fluxroute.active") || "";
-} catch (e) {}
+} catch (e) { }
 
 function persistConfigs() {
   try {
@@ -149,34 +149,70 @@ const TIPS = {
   curlTint: "Swirl tint strength; saturation grows with dye concentration squared.",
   schlieren: "Ambient shading of invisible currents where dye is absent.",
   speciesFx: "Green-species scintillation amount.",
-  gelGlow: "Gel membrane and rim-glow intensity."
+  gelGlow: "Gel membrane and rim-glow intensity.",
+  thermalVis: "Temperature→tonemap dynamic range. Higher = bigger brightness difference between hot and cold.",
+  thermalFloor: "Minimum tonemap multiplier at T=0 (cold). Prevents dye from going invisible at low temperature.",
+  tempDiss: "Temperature advective dissipation (1/s). Heat spreads and fades.",
+  tempHeatRate: "Heat generated per unit R\u00b7G reaction product. The fuel.",
+  gelHeatAbsorb: "Heat absorbed per unit R\u00b7B reaction (endothermic). Gel reactions cool the medium.",
+  dynHeat: "Heat flash from dynamite detonation.",
+  tempCoolLinear: "Linear cooling rate (1/s). Newton's law of cooling.",
+  tempCoolQuad: "Quadratic cooling (1/s\u00b2). Prevents thermal runaway at high T.",
+  tempAmbient: "Ambient equilibrium temperature as a fraction (0\u20131) of tempMax. The medium drifts here at rest.",
+  tempAmbientRestore: "Rate of drift toward ambient temperature (1/s).",
+  tempMax: "Hard cap on temperature. Prevents divergence.",
+  tempEmitScale: "Global scale for temperature-emitter output.",
+  tempZoneRate: "How fast temperature zones enforce their target (1/s).",
+  tempScale: "Inverse heat capacity. Scales all thermal reactions uniformly. Higher = more responsive temperature field. 0 = temperature frozen at ambient.",
+  activation: "Reaction sensitivity to temperature. Higher = reactions ignite at lower T. Uses A\u00b7T/(1+A\u00b7T).",
+  arrhScale: "Scalar multiplier on the Arrhenius (temperature-dependent) reaction term.",
+  reactFloor: "Baseline reactivity floor. Reactions happen at this rate even at zero temperature.",
+  viscTempK: "Temperature\u2192viscosity coupling. Positive = cold thickens, hot thins.",
+  coldDamp: "Extra velocity dissipation at T=0. Cold fluid stagnates.",
+  coldScale: "Scale of the cold\u2192dissipation curve (1/T units).",
+  tempCurlBoost: "Vorticity boost at high temperature. Hot = turbulent.",
+  gelTempK: "Gel precipitation temperature dependence. Higher = gel strongly favors cold.",
+  gelSelfCat: "Self-catalysis: existing gel boosts further R+B precipitation (endothermic runaway).",
+  gelHotThresh: "Temperature (absolute, same scale as tempMax) at which gel formation fully stops.",
+  dynTempTrigger: "Temperature that detonates dynamite charges. Lower = easier heat-chain-reactions."
 };
 const GROUPS = {
   "flow": [["curl", 0, 60, 0.5], ["velDiss", 0.005, 2, 0, "log"], ["dyeDiss", 0.005, 3, 0, "log"], ["warmStart", 0, 1, 0.01]],
   "species physics": [["viscRed", 0.01, 40, 0, "log"], ["viscGreen", 0.01, 40, 0, "log"], ["viscBlue", 0.01, 40, 0, "log"],
-    ["curlRed", 0.01, 12, 0, "log"], ["curlGreen", 0.01, 12, 0, "log"], ["curlBlue", 0.01, 12, 0, "log"]],
+  ["curlRed", 0.01, 12, 0, "log"], ["curlGreen", 0.01, 12, 0, "log"], ["curlBlue", 0.01, 12, 0, "log"]],
   "zones & scoring": [["absorb", 0, 20, 0.1], ["drainRate", 0, 20, 0.1], ["solidDecay", 0, 20, 0.1], ["winScale", 0.2, 3, 0.05]],
   "emitters & tools": [["fanStrength", 10, 6000, 0, "log"], ["emitScale", 0, 0.1, 0.001],
-    ["blueEmitStrength", 10, 6000, 0, "log"], ["greenEmitStrength", 10, 6000, 0, "log"], ["wallBrush", 2, 24, 0.5]],
+  ["blueEmitStrength", 10, 6000, 0, "log"], ["greenEmitStrength", 10, 6000, 0, "log"], ["wallBrush", 2, 24, 0.5]],
   "player": [["thrust", 0, 2, 0.01], ["dragK", 0, 5, 0.05], ["flowPush", 0, 1, 0.01], ["linDamp", 0, 8, 0.05],
-    ["spinAccel", 0, 40, 0.5], ["spinDamp", 0, 5, 0.05], ["spinKick", -0.2, 0.2, 0.005]],
+  ["spinAccel", 0, 40, 0.5], ["spinDamp", 0, 5, 0.05], ["spinKick", -0.2, 0.2, 0.005]],
   "bodies": [["entityScale", 0.3, 3, 0.05], ["playerMass", 0.05, 100, 0, "log"], ["predMass", 0.05, 200, 0, "log"],
-    ["pistonMass", 0.05, 500, 0, "log"], ["restitution", 0, 1, 0.01], ["bounceFloor", 0, 120, 1],
-    ["pistonSpring", 1, 3000, 0, "log"], ["pistonDamp", 0.05, 80, 0, "log"]],
+  ["pistonMass", 0.05, 500, 0, "log"], ["restitution", 0, 1, 0.01], ["bounceFloor", 0, 120, 1],
+  ["pistonSpring", 1, 3000, 0, "log"], ["pistonDamp", 0.05, 80, 0, "log"]],
   "gel": [["gelReact", 0.05, 60, 0, "log"], ["gelDissolve", 0, 1, 0.01], ["gelErode", 0, 0.2, 0.002],
-    ["gelDrag", 0, 20, 0.1], ["gelSolid", 0.1, 1.5, 0.01], ["gelConsume", 0, 5, 0.05]],
-  "exothermics": [["exoForce", 50, 40000, 0, "log"], ["exoKnee", 0.05, 10, 0.05], ["stagBoost", 0, 40, 0.1],
-    ["stagSpeed", 0.2, 150, 0, "log"], ["exoConsume", 0, 5, 0.05],
-    ["dynForm", 0.1, 60, 0, "log"], ["dynTrigger", 0.02, 1, 0.01],
-    ["dynForce", 1000, 300000, 0, "log"], ["dynBurn", 0.5, 60, 0, "log"], ["dynRed", 0.02, 10, 0, "log"],
-    ["laneForce", 10, 20000, 0, "log"], ["laneBrush", 1, 20, 0.5], ["wallTough", 5, 1000, 0, "log"]],
+  ["gelDrag", 0, 20, 0.1], ["gelSolid", 0.1, 1.5, 0.01], ["gelConsume", 0, 5, 0.05], ["gelSelfCat", 0, 20, 0.1],
+  ["gelHotThresh", 0.5, 20, 0.1]],
+  "exothermics": [["exoForce", 50, 100000, 0, "log"], ["exoKnee", 0.05, 10, 0.05], ["stagBoost", 0, 40, 0.1],
+  ["stagSpeed", 0.2, 150, 0, "log"], ["exoConsume", 0, 5, 0.05],
+  ["dynForm", 0.1, 60, 0, "log"], ["dynTrigger", 0.02, 1, 0.01],
+  ["dynForce", 1000, 300000, 0, "log"], ["dynBurn", 0.5, 60, 0, "log"], ["dynRed", 0.02, 10, 0, "log"],
+  ["laneForce", 10, 20000, 0, "log"], ["laneBrush", 1, 20, 0.5], ["wallTough", 5, 1000, 0, "log"]],
   "predators & wake": [["predSuck", 10, 10000, 0, "log"], ["eatRate", 0.1, 80, 0, "log"],
-    ["predSense", 2, 80, 1], ["predGreed", 0.5, 500, 0, "log"], ["predTtl", 2, 60, 0.5],
-    ["wakeDeposit", 0.2, 50, 0, "log"], ["wakeDiss", 0.5, 100, 0, "log"], ["wakeCurl", 0.1, 40, 0, "log"],
-    ["wakeSlow", 0, 1, 0.005], ["wakeFast", 0, 5, 0.05], ["wakeKnee", 0, 1, 0.01]],
+  ["predSense", 2, 80, 1], ["predGreed", 0.5, 500, 0, "log"], ["predTtl", 2, 60, 0.5],
+  ["wakeDeposit", 0.2, 50, 0, "log"], ["wakeDiss", 0.5, 100, 0, "log"], ["wakeCurl", 0.1, 40, 0, "log"],
+  ["wakeSlow", 0, 1, 0.005], ["wakeFast", 0, 5, 0.05], ["wakeKnee", 0, 1, 0.01]],
   "rendering": [["tonemapK", 0.05, 1, 0.01], ["bloomStr", 0, 1, 0.01], ["bloomThr", 0, 4, 0.05],
-    ["hueShift", -3.14, 3.14, 0.01], ["flowGlow", 0, 2, 0.02], ["streak", 0, 3, 0.02],
-    ["curlTint", 0, 1, 0.01], ["schlieren", 0, 2, 0.02], ["speciesFx", 0, 2, 0.02], ["gelGlow", 0, 3, 0.05]]
+  ["hueShift", -3.14, 3.14, 0.01, "angle"], ["flowGlow", 0, 2, 0.02], ["streak", 0, 3, 0.02],
+  ["curlTint", 0, 1, 0.01], ["schlieren", 0, 2, 0.02], ["speciesFx", 0, 2, 0.02], ["gelGlow", 0, 3, 0.05],
+  ["thermalVis", 0, 3, 0.02], ["thermalFloor", 0, 1.5, 0.02]],
+  "temperature": [["tempScale", 0, 5, 0.05], ["tempHeatRate", 0.1, 20, 0, "log"], ["gelHeatAbsorb", 0.1, 10, 0, "log"],
+  ["dynHeat", 0.1, 20, 0, "log"], ["tempCoolLinear", 0.1, 10, 0, "log"], ["tempCoolQuad", 0.1, 10, 0, "log"],
+  ["tempAmbient", 0, 1, 0.01], ["tempAmbientRestore", 0.05, 5, 0, "log"],
+  ["tempDiss", 0.01, 1, 0, "log"], ["tempMax", 1, 20, 0.5],
+  ["tempEmitScale", 0.1, 10, 0, "log"], ["tempZoneRate", 0.5, 20, 0, "log"],
+  ["activation", 0.1, 20, 0, "log"], ["arrhScale", 0, 100, 0.1], ["reactFloor", 0, 5, 0.05], ["viscTempK", 0, 3, 0.05],
+  ["coldDamp", 0, 5, 0.1], ["coldScale", 0.5, 10, 0.1],
+  ["tempCurlBoost", 0, 3, 0.05], ["gelTempK", 0, 5, 0.1],
+  ["dynTempTrigger", 0.2, 5, 0.05]]
 };
 let gui = null, panelOpen = false, cfgCtrl = null;
 const logCtrls = [];
@@ -203,7 +239,7 @@ function buildPanel() {
   const sys = gui.addFolder("system");
   const sysState = { quality: qualityName };
   sys.add(sysState, "quality", Object.keys(QUALITY_PRESETS)).onChange(v => {
-    try { localStorage.setItem("fluxroute.quality", v); } catch (e) {}
+    try { localStorage.setItem("fluxroute.quality", v); } catch (e) { }
     location.reload();
   }).domElement.title = "Sim/dye resolution preset. Physics is identical at every preset; this reloads the page.";
   cfgCtrl = sys.add(cfgState, "config", cfgNames()).onChange(onCfgChange);
@@ -219,7 +255,7 @@ function buildPanel() {
     export() {
       const j = JSON.stringify(configs[activeName] ||
         { name: "current", ver: 1, quality: qualityName, params: Object.assign({}, params) });
-      try { navigator.clipboard.writeText(j); } catch (e) {}
+      try { navigator.clipboard.writeText(j); } catch (e) { }
       window.prompt("Config JSON (copied to clipboard):", j);
     },
     import() {
@@ -230,7 +266,7 @@ function buildPanel() {
         if (!c || typeof c.params !== "object") throw new Error("no params");
         const known = {};
         for (const k in c.params) if (k in DEFAULT_PARAMS) known[k] = c.params[k];
-          else console.warn("import: ignoring unknown key", k);
+        else console.warn("import: ignoring unknown key", k);
         c.params = known;
         configs[c.name || "imported"] = c; activeName = c.name || "imported";
         dirtyKeys.clear();
@@ -269,6 +305,16 @@ function buildPanel() {
         c.name(logName(k));
         c.domElement.title = (TIPS[k] || k) + " [log slider: box shows exponent]";
         logCtrls.push({ key: k, pr, c });
+      } else if (scale === "angle") {
+        /* slider shows degrees; param stored as radians */
+        const pr = { get deg() { return params[k] * 180 / Math.PI; },
+                     set deg(v) { params[k] = v * Math.PI / 180; } };
+        const c = f.add(pr, "deg", -180, 180, 1).onChange(() => {
+          dirtyKeys.add(k); dirtyVals[k] = params[k];
+          S.emitRate = _cb.redEmitRate();
+        });
+        c.name(k + "°");
+        c.domElement.title = TIPS[k] || k;
       } else {
         const c = f.add(params, k, mn, mx, st).onChange(v => {
           dirtyKeys.add(k); dirtyVals[k] = v;

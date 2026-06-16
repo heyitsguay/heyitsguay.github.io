@@ -56,25 +56,38 @@ const TELEM_W = 2 + N_ACTORS;
 const EMIT_K = 6.25;
 
 const DEFAULT_PARAMS = {
-  curl: 4.5, velDiss: 0.04, dyeDiss: 0.03, absorb: 6, solidDecay: 8, drainRate: 15.8,
+  curl: 4.5, velDiss: 0.04, dyeDiss: 0.005, absorb: 6, solidDecay: 0, drainRate: 15.8,
   viscRed: 1.0, viscGreen: 10.0, viscBlue: 0.1,
-  curlRed: 1.0, curlGreen: 0.1, curlBlue: 4.0,
-  fanStrength: 600, emitScale: 0.051, blueEmitStrength: 350, greenEmitStrength: 350,
+  curlRed: 1.0, curlGreen: 0.01, curlBlue: 4.0,
+  fanStrength: 451.9, emitScale: 0.051, blueEmitStrength: 350, greenEmitStrength: 716.1,
   entityScale: 1.0,
   thrust: 1.08, dragK: 1.2, flowPush: 0.65, linDamp: 2.5,
   spinAccel: 18.5, spinDamp: 0.05, spinKick: 0.05,
   playerMass: 1.5, predMass: 1.6, pistonMass: 8, restitution: 0.9, bounceFloor: 30,
   pistonSpring: 90, pistonDamp: 5, predSuck: 1200, predSense: 12, predGreed: 30, predTtl: 14,
   wakeDeposit: 12.0, wakeDiss: 20.0, wakeCurl: 8.0, wakeSlow: 0.07, wakeFast: 1.6, wakeKnee: 0.5,
-  gelReact: 6, gelDissolve: 0.02, gelErode: 0.01, gelDrag: 12.9, gelSolid: 1.09, gelConsume: 1.0,
-  exoForce: 17745, exoKnee: 0.45, stagBoost: 33.9, stagSpeed: 27.3, exoConsume: 0.3, eatRate: 12.0,
-  dynForm: 6, dynTrigger: 0.3, dynForce: 40000, dynBurn: 8, dynRed: 1.2,
-  laneForce: 700, laneBrush: 5, wallTough: 90,
+  gelReact: 6, gelDissolve: 0.02, gelErode: 0.01, gelDrag: 12.9, gelSolid: 1.0, gelConsume: 0.1, gelSelfCat: 6.9, gelHotThresh: 3.75,
+  exoForce: 9638, exoKnee: 0.45, stagBoost: 32.6, stagSpeed: 0.3319, exoConsume: 0.35, eatRate: 12.0,
+  dynForm: 6, dynTrigger: 0.06, dynForce: 7413, dynBurn: 60, dynRed: 0.06325,
+  laneForce: 700, laneBrush: 5, wallTough: 79.24,
   wallBrush: 7,
-  warmStart: 0.8, tonemapK: 0.36, bloomStr: 0.57, bloomThr: 2.1,
-  hueShift: 0.01, flowGlow: 1.42, streak: 2.62, curlTint: 0.63, schlieren: 1.14, speciesFx: 0.24,
-  gelGlow: 1.2,
-  winScale: 1.0
+  warmStart: 0.8, tonemapK: 0.08, bloomStr: 0.16, bloomThr: 2.85,
+  hueShift: 0.01, flowGlow: 2.0, streak: 2.62, curlTint: 0.7, schlieren: 0.52, speciesFx: 0.1,
+  gelGlow: 1.5,
+  winScale: 1.0,
+  /* temperature evolution */
+  tempDiss: 0.01641, tempHeatRate: 1.738,
+  gelHeatAbsorb: 2.0, dynHeat: 20.0,
+  tempCoolLinear: 0.1413, tempCoolQuad: 0.1318,
+  tempAmbient: 0.1, tempAmbientRestore: 0.5,
+  tempMax: 10.0, tempEmitScale: 1.0, tempZoneRate: 5.0, tempScale: 1.9,
+  /* temperature → physics couplings */
+  activation: 1.23, arrhScale: 2.1, reactFloor: 0.2, viscTempK: 2.4,
+  coldDamp: 4.5, coldScale: 7.6,
+  tempCurlBoost: 0.2, gelTempK: 1.0,
+  dynTempTrigger: 1.5,
+  /* temperature → rendering */
+  thermalVis: 1.04, thermalFloor: 0.82
 };
 const params = Object.assign({}, DEFAULT_PARAMS);
 /* parameter pulses: event-driven temporary overrides (auto-restoring).

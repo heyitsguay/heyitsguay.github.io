@@ -1,0 +1,41 @@
+{
+  "fluxLevel": 1,
+  "name": "E1 - T1: Welcome",
+  "playerStart": [0.6156, 0.5],
+  "win": { "fraction": 0.25, "holdSec": 6 },
+  "budgets": { "fan": 8, "blue": 3, "green": 3 },
+  "wells": { "slate": 1500, "steel": 800, "lanes": 1500 },
+  "size": "medium",
+  "polys": [
+    {
+      "kind": "win", "id": "W",
+      "pts": [[0.6438, 0.35], [0.7, 0.35], [0.7, 0.65], [0.6438, 0.65]]
+    }
+  ],
+  "actors": [
+    {
+      "type": 3, "r": 5, "strength": 260, "dye": [1, 0, 0], "angle": 0,
+      "locked": true, "rotatable": true, "tunable": false,
+      "minStrength": 80, "maxStrength": 1500,
+      "pos": [0.2781, 0.5], "id": "E1", "enabled": false
+    }
+  ],
+  "events": [
+    { "at": 1.2, "do": [{ "callout": { "text": "This is *FLUX ROUTE*", "at": [0.5, 0.69], "dur": 3.0, "size": 1.6 } }] },
+    { "after": 3.2, "do": [{ "callout": { "text": "a game of moving fluids from", "at": [0.5, 0.69], "dur": 2.4, "size": 1.6 } }] },
+    {
+      "after": 2.6, "do": [
+        { "callout": { "text": "*A*", "at": [0.278, 0.58], "dur": 4.5, "size": 1.6 } },
+        { "enable": "E1" },
+        { "emphasize": { "id": "E1", "dur": 2.6, "level": "high" } }
+      ]
+    },
+    { "after": 1, "do": [{ "callout": { "text": "to", "at": [0.47, 0.53], "dur": 4.5, "size": 1.6 } }] },
+    {
+      "after": 1, "do": [
+        { "callout": { "text": "*B*", "at": [0.672, 0.58], "dur": 4.9, "size": 1.6 } },
+        { "emphasize": { "poly": "W", "dur": 2.6, "level": "high" } }
+      ]
+    }
+  ]
+}

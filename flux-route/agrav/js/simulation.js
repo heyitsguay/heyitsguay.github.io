@@ -87,6 +87,7 @@ function splat(prog, target, rt, extentMul) {
   if (prog === P.splatDye) {
     gl.uniform1f(U(prog, "uEmitScale"), params.emitScale);
     gl.uniform1f(U(prog, "uEatRate"), PV("eatRate"));
+    gl.uniform1f(U(prog, "uTempEmitScale"), PV("tempEmitScale"));
   }
   if (prog === P.splatForce) gl.uniform1f(U(prog, "uPredSuck"), PV("predSuck"));
   if (prog === P.splatWake) gl.uniform1f(U(prog, "uWakeDeposit"), PV("wakeDeposit"));
@@ -98,6 +99,7 @@ function splat(prog, target, rt, extentMul) {
 function simUniforms(p) { gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]); }
 
 function substep() {
+  const ambientT = params.tempAmbient * params.tempMax;  /* 0-1 slider × tempMax */
   runFS(P.actorUpdate, actors.write, p => {
     bindTex(p, "uActors", actors.read.tex, 0);
     bindTex(p, "uVelocity", velocity.read.tex, 1);
@@ -155,6 +157,9 @@ function substep() {
       gl.uniform1f(U(p, "uGelReact"), PV("gelReact"));
       gl.uniform1f(U(p, "uGelDissolve"), PV("gelDissolve"));
       gl.uniform1f(U(p, "uGelErode"), PV("gelErode") / RES_SCALE);
+      gl.uniform1f(U(p, "uGelTempK"), params.gelTempK);
+      gl.uniform1f(U(p, "uGelSelfCat"), params.gelSelfCat);
+      gl.uniform1f(U(p, "uGelHotThresh"), params.gelHotThresh);
       gl.uniform1f(U(p, "uDt"), DT);
     });
     gel.swap();
@@ -165,6 +170,7 @@ function substep() {
     bindTex(p, "uDynMask", dynMask.tex, 1);
     bindTex(p, "uGel", gel.read.tex, 2);
     bindTex(p, "uWalls", walls.read.tex, 3);
+    bindTex(p, "uDyn", dyn.read.tex, 4);
     gl.uniform1f(U(p, "uGelSolid"), PV("gelSolid"));
   });
 
@@ -192,6 +198,11 @@ function substep() {
     simUniforms(p);
     gl.uniform1f(U(p, "uDt"), DT);
     gl.uniform1f(U(p, "uDissipation"), params.velDiss);
+    gl.uniform1f(U(p, "uViscTempK"), params.viscTempK);
+    gl.uniform1f(U(p, "uColdDamp"), params.coldDamp);
+    gl.uniform1f(U(p, "uColdScale"), params.coldScale);
+    gl.uniform1f(U(p, "uTempAmbient"), ambientT);
+    gl.uniform1f(U(p, "uTempDiss"), 0);  /* not used for velocity */
   });
   velocity.swap();
 
@@ -207,6 +218,7 @@ function substep() {
     bindTex(p, "uWake", wake.read.tex, 4);
     gl.uniform3f(U(p, "uCurlMul"), PV("curlRed"), PV("curlGreen"), PV("curlBlue"));
     gl.uniform1f(U(p, "uWakeCurl"), PV("wakeCurl"));
+    gl.uniform1f(U(p, "uTempCurlBoost"), params.tempCurlBoost);
     simUniforms(p);
     gl.uniform1f(U(p, "uCurlStrength"), params.curl);
     gl.uniform1f(U(p, "uDt"), DT);
@@ -221,6 +233,9 @@ function substep() {
     gl.uniform1f(U(p, "uExoKnee"), PV("exoKnee"));
     gl.uniform1f(U(p, "uStagBoost"), PV("stagBoost"));
     gl.uniform1f(U(p, "uStagSpeed"), PV("stagSpeed") * RES_SCALE);
+    gl.uniform1f(U(p, "uActivation"), params.activation);
+    gl.uniform1f(U(p, "uArrhScale"), params.arrhScale);
+    gl.uniform1f(U(p, "uReactFloor"), params.reactFloor);
     bindTex(p, "uDyn", dyn.read.tex, 3);
     gl.uniform1f(U(p, "uDynForce"), PV("dynForce") * RES_SCALE);
     gl.uniform1f(U(p, "uLaneForce"), PV("laneForce") * RES_SCALE);
@@ -270,6 +285,11 @@ function substep() {
     simUniforms(p);
     gl.uniform1f(U(p, "uDt"), DT);
     gl.uniform1f(U(p, "uDissipation"), params.dyeDiss);
+    gl.uniform1f(U(p, "uViscTempK"), 0);      /* temperature does NOT modulate dye dissipation */
+    gl.uniform1f(U(p, "uColdDamp"), 0);
+    gl.uniform1f(U(p, "uColdScale"), 0);
+    gl.uniform1f(U(p, "uTempAmbient"), ambientT);
+    gl.uniform1f(U(p, "uTempDiss"), params.tempDiss);  /* temperature-specific dissipation */
   });
   dye.swap();   // dye.read is PRE-absorption
 
@@ -283,6 +303,7 @@ function substep() {
     bindTex(p, "uDyn", dyn.read.tex, 4);
     gl.uniform1f(U(p, "uDynForm"), PV("dynForm"));
     gl.uniform1f(U(p, "uDynTrigger"), PV("dynTrigger"));
+    gl.uniform1f(U(p, "uDynTempTrigger"), PV("dynTempTrigger"));
     gl.uniform1f(U(p, "uDynBurn"), PV("dynBurn"));
     gl.uniform1f(U(p, "uDynRed"), PV("dynRed"));
     gl.uniform1f(U(p, "uAbsorbRate"), params.absorb);
@@ -290,8 +311,35 @@ function substep() {
     gl.uniform1f(U(p, "uSolidDecay"), params.solidDecay);
     gl.uniform1f(U(p, "uExoConsume"), PV("exoConsume"));
     gl.uniform1f(U(p, "uGelConsume"), PV("gelConsume"));
+    gl.uniform1f(U(p, "uGelHotThresh"), params.gelHotThresh);
+    gl.uniform1f(U(p, "uActivation"), params.activation);
+    bindTex(p, "uMedia", mediaTex, 5);
+    gl.uniform1f(U(p, "uTempHeatRate"), PV("tempHeatRate"));
+    gl.uniform1f(U(p, "uGelHeatAbsorb"), PV("gelHeatAbsorb"));
+    gl.uniform1f(U(p, "uDynHeat"), PV("dynHeat"));
+    gl.uniform1f(U(p, "uTempCoolLinear"), params.tempCoolLinear);
+    gl.uniform1f(U(p, "uTempCoolQuad"), params.tempCoolQuad);
+    gl.uniform1f(U(p, "uTempAmbient"), ambientT);
+    gl.uniform1f(U(p, "uTempAmbientRestore"), params.tempAmbientRestore);
+    gl.uniform1f(U(p, "uTempMax"), params.tempMax);
+    gl.uniform1f(U(p, "uTempZoneRate"), params.tempZoneRate);
+    gl.uniform1f(U(p, "uTempScale"), PV("tempScale"));
     gl.uniform1f(U(p, "uDt"), DT);
   });
+
+  /* dynamite charge evolution — runs per-substep for fast chain reactions */
+  runFS(P.dynUpdate, dyn.write, p => {
+    bindTex(p, "uDye", dye.read.tex, 0);
+    bindTex(p, "uDyn", dyn.read.tex, 1);
+    gl.uniform1f(U(p, "uDynForm"), PV("dynForm"));
+    gl.uniform1f(U(p, "uDynTrigger"), PV("dynTrigger"));
+    gl.uniform1f(U(p, "uDynTempTrigger"), PV("dynTempTrigger"));
+    gl.uniform1f(U(p, "uDynBurn"), PV("dynBurn"));
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
+    gl.uniform1f(U(p, "uDt"), DT);
+  });
+  dyn.swap();
+
   runFS(P.scoreAccum, scoreAcc.write, p => {
     bindTex(p, "uScoreAcc", scoreAcc.read.tex, 0);
     bindTex(p, "uDye", dye.read.tex, 1);

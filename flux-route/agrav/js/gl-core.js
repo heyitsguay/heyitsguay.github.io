@@ -322,6 +322,10 @@ function actorRecord(a) {
       : gv === "lanes" ? [0.2, 0.75, 0.85] : [1, 1, 1];
     f[10] = sp[0]; f[11] = sp[1]; f[12] = sp[2];
     f[6] = gv.indexOf("spin") === 0 ? (+gv[4] || 0) : 0;   // glyph throb tier
+  } else if (a.type === 10) {          // temperature emitter
+    f[6] = a.strength || 1;             // r1.z = heat injection rate (negative = cooling)
+    f[7] = 0;                           // r1.w = no angle
+    f[9] = a.locked ? 1 : 0;
   } else {
     f[6] = a.strength || 0; f[7] = a.angle || 0;
     f[9] = a.locked ? 1 : 0;
