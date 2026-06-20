@@ -160,11 +160,11 @@ const ATTRACT_LEVEL = {
   name: "", winFraction: 99, winHoldSec: 1e9,
   budgets: { fan: 0, blue: 0, green: 0 },
   playerStart: [-1, -1],
-  config: { dyeDiss: 0.06, schlieren: 0.9, curlTint: 0.45, tempAmbient: 0.25, tempMax: 1 },
+  config: { dyeDiss: 0.06, schlieren: 0.9, curlTint: 0.45, tempAmbient: 0.25, tempMax: 1, tonemapK: 0.25, bloomStr: 0.2 },
   actors: [
     { type: 3, pos: [0.16, 0.50], angle: 0, r: 6, strength: 480, dye: RED, locked: true },
     { type: 3, pos: [0.84, 0.50], angle: Math.PI, r: 6, strength: 480, dye: RED, locked: true },
-    { type: 3, pos: [0.50, 0.10], angle: Math.PI / 2, r: 5, strength: 280, dye: GREEN, locked: true },
+    { type: 3, pos: [0.50, 0.10], angle: Math.PI / 2, r: 5, strength: 380, dye: GREEN, locked: true },
     { type: 3, pos: [0.50, 0.90], angle: -Math.PI / 2, r: 4, strength: 220, dye: BLUE, locked: true },
     { type: 7, pos: [0.10, 0.12], period: 15, jitter: 0.5, predTtl: 16, predThrust: 0.5 }
   ],
