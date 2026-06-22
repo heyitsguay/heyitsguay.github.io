@@ -6,7 +6,7 @@
     0.5
   ],
   "win": {
-    "fraction": 0.15,
+    "threshold": 300,
     "holdSec": 4
   },
   "budgets": {

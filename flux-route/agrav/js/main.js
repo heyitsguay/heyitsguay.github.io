@@ -48,6 +48,7 @@ import { S, GW, RED, BLUE, GREEN, TOOLS, SPIN_TIER_DAMP } from './state.js';
 import {
   SIM_W, SIM_H, DYE_W, DYE_H, DT, MAX_SUBSTEPS, N_ACTORS, TELEM_W,
   SIM_TEXEL, RES_SCALE, EMIT_K, GEL_ON, PRESSURE_ITERS, BLUR_PASSES,
+  SAND_TOUGH, SLATE_TOUGH, CONCRETE_TOUGH, STEEL_TOUGH, WALL_INDESTRUCTIBLE,
   QUALITY_PRESETS, qualityName, SIZE_F,
   DEFAULT_PARAMS, params, dirtyKeys, dirtyVals, budgetOverrides,
   pulses, pulseParam, PV, anyPulseActive, effScale, mulberry32,
@@ -75,7 +76,7 @@ import {
   placeTool, deleteSelected, rotateSelected,
   updateSelection, updateGhost, refreshToolbar, buildToolbar,
   canvasUV, clampToReach, placementValid, initInput,
-  inputRef,
+  inputRef, hideShortcutHelp,
 } from './input.js';
 import {
   buildPanel, togglePanel, syncSliders, syncBudgetInputs,
@@ -173,6 +174,9 @@ function initDynField(L) {
     df[i * 4 + 1] = Math.cos(z.angle) * st; df[i * 4 + 2] = Math.sin(z.angle) * st;
     df[i * 4 + 3] = 1;
   });
+  for (const p of (L.data && L.data.polys) || [])
+    if (p.kind === "multiplier" && p._active !== false)
+      rasterPoly(p.pts, i => { df[i * 4 + 3] = p.rate || 0; });
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
   for (const rt of [dyn.a, dyn.b]) {
     gl.bindTexture(gl.TEXTURE_2D, rt.tex);
@@ -208,7 +212,9 @@ function layoutChrome() {     /* anchor HUD/toolbar just outside the window */
 window.addEventListener("resize", layoutChrome);
 
 function loadLevel(idx) {
+  if (idx !== 9999 && S.editMode) { S.editMode = false; S.editLevelObj = null; }
   S.levelIdx = idx < 0 ? -1 : Math.max(0, Math.min(LEVELS.length - 1, idx));
+  hideShortcutHelp();
   const L = curLevel();
   setGameWindow(curLevel());
   S.gateState = {}; S.simTime = 0;
@@ -216,6 +222,13 @@ function loadLevel(idx) {
   /* initialize each poly's runtime active state from its enabled property */
   for (const p of (L.data && L.data.polys) || []) {
     p._active = p.enabled !== false;
+  }
+  /* reset switch runtime state — these may persist in saved JSON */
+  for (const sw of (L.data && L.data.switches) || L.switches || []) {
+    delete sw._latched; delete sw._frac; delete sw._flux;
+    for (const tgt of sw.targets || []) {
+      delete tgt._cut; delete tgt._saved;
+    }
   }
   clearRT(swState.a); clearRT(swState.b); initDynField(curLevel());
   compileEvents();
@@ -282,22 +295,28 @@ function loadLevel(idx) {
   }
   const ov = budgetOverrides[S.levelIdx] || {};
   S.budget = Object.assign({ fan: 0, blue: 0, green: 0 }, L.budgets, ov);
-  S.wells = Object.assign({ slate: 0, lanes: 0, steel: 0 }, L.wells);
-  S.wallPxUsed = 0; S.lanePxUsed = 0; S.lanePrev = null; S.rightPaint = false;
+  S.wells = Object.assign({ slate: 0, concrete: 0, steel: 0, lanes: 0 }, L.wells);
+  S.wallPxUsed = 0; S.concretePxUsed = 0; S.steelPxUsed = 0; S.lanePxUsed = 0; S.lanePrev = null; S.rightPaint = false;
   layoutChrome();
   S.emitRate = redEmitRate();
   {  /* removable level walls live in the dynamic walls field (survive gate repaints) */
-    const wf = new Float32Array(SIM_W * SIM_H * 2);
-    rasterZones(L.removableWalls, wf, (z, i) => { wf[i * 2] = 1; });
+    const wf = new Float32Array(SIM_W * SIM_H);
+    rasterZones(L.removableWalls, wf, (z, i) => { wf[i] = SLATE_TOUGH; });
     for (const p of (L.data && L.data.polys) || []) {
       if (p._active === false) continue;
-      if (p.kind === "removable" || p.kind === "slate") rasterPoly(p.pts, i => { wf[i * 2] = 1; });
-      if (p.kind === "steel") rasterPoly(p.pts, i => { wf[i * 2 + 1] = 1; });
+      if (p.kind === "sand")
+        rasterPoly(p.pts, i => { wf[i] = p.toughness != null ? p.toughness : SAND_TOUGH; });
+      if (p.kind === "removable" || p.kind === "slate")
+        rasterPoly(p.pts, i => { wf[i] = p.toughness != null ? p.toughness : SLATE_TOUGH; });
+      if (p.kind === "concrete")
+        rasterPoly(p.pts, i => { wf[i] = p.toughness != null ? p.toughness : CONCRETE_TOUGH; });
+      if (p.kind === "steel")
+        rasterPoly(p.pts, i => { wf[i] = p.toughness != null ? p.toughness : STEEL_TOUGH; });
     }
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     for (const rt of [walls.a, walls.b]) {
       gl.bindTexture(gl.TEXTURE_2D, rt.tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG16F, SIM_W, SIM_H, 0, gl.RG, gl.FLOAT, wf);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, SIM_W, SIM_H, 0, gl.RED, gl.FLOAT, wf);
     }
   }
   S.state = S.levelIdx < 0 ? "ATTRACT" : "PLAY"; S.paused = false;
@@ -390,6 +409,7 @@ function renderFrame(now) {
   gl.uniform1f(U(C, "uTime"), now / 1000);
   gl.uniform1f(U(C, "uTonemapK"), params.tonemapK);
   gl.uniform1f(U(C, "uBloomStrength"), params.bloomStr);
+  gl.uniform1f(U(C, "uRedBloomBoost"), params.redBloomBoost);
   gl.uniform1f(U(C, "uSinkHeat"), S.sinkHeat);
   gl.uniform1f(U(C, "uTriggerHeat"), S.trigHeat);
   gl.uniform1f(U(C, "uSinkHueDrift"), S.sinkHueDrift);
@@ -400,7 +420,7 @@ function renderFrame(now) {
   gl.uniform1f(U(C, "uHueShift"), params.hueShift);
   gl.uniform1f(U(C, "uFlowGlow"), params.flowGlow);
   gl.uniform1f(U(C, "uStreak"), params.streak);
-  gl.uniform1f(U(C, "uCurlTint"), params.curlTint);
+  gl.uniform3f(U(C, "uCurlTint"), params.curlTintRed, params.curlTintGreen, params.curlTintBlue);
   gl.uniform1f(U(C, "uSchlieren"), params.schlieren);
   gl.uniform1f(U(C, "uSpeciesFx"), params.speciesFx);
   gl.uniform1f(U(C, "uResScale"), RES_SCALE);
@@ -409,6 +429,9 @@ function renderFrame(now) {
   gl.uniform1f(U(C, "uThermalFloor"), params.thermalFloor);
   gl.uniform1f(U(C, "uTempAmbient"), params.tempAmbient * params.tempMax);
   gl.uniform1f(U(C, "uTempMax"), params.tempMax);
+  gl.uniform1f(U(C, "uConcreteFloor"), PV("concreteFloor"));
+  gl.uniform1f(U(C, "uSteelFloor"), PV("steelFloor"));
+  gl.uniform1f(U(C, "uSandFloor"), PV("sandFloor"));
   fullscreen();
 
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -625,9 +648,9 @@ function checkPickups() {
     if (!a || a.type !== 8) continue;
     const reach = (5 + (a.r || 5)) * effScale() * Math.max(SIM_TEXEL[0], SIM_TEXEL[1]);
     if (Math.hypot(px - a.pos[0], py - a.pos[1]) < reach) {
-      if (a.gives === "slate" || a.gives === "lanes" || a.gives === "steel") {
+      if (a.gives === "sand" || a.gives === "slate" || a.gives === "concrete" || a.gives === "lanes" || a.gives === "steel") {
         S.wells[a.gives] += a.count || 200;
-        showToast("+" + (a.count || 200) + " px " + ({ slate: "SLATE", lanes: "LANE", steel: "STEEL" })[a.gives] + " WELL");
+        showToast("+" + (a.count || 200) + " px " + ({ sand: "SAND", slate: "SLATE", concrete: "CONCRETE", lanes: "LANE", steel: "STEEL" })[a.gives] + " WELL");
       } else if (/^spin[123]$/.test(a.gives)) {
         const t = +a.gives[4];
         if (t > S.spinTier) { S.spinTier = t; showToast("SPIN MOTOR " + ["", "I", "II", "III"][t] + " \u2014 max spin raised"); }
@@ -670,7 +693,9 @@ function evalSwitches() {
     if (!!S.gateState[sw.id] !== on) {
       S.gateState[sw.id] = on; changed = true;
       fireEvent("switch:" + sw.id + ":" + (on ? "on" : "off"));
-      for (const tgt of sw.targets || []) setTargetEnabled(tgt, on);
+      for (const tgt of sw.targets || []) {
+        if (setTargetEnabled(tgt, on)) changed = true;
+      }
     }
   });
   if (changed) refreshLevelTextures();
@@ -698,18 +723,18 @@ function cutWallPoly(polyId) {
   runFS(P.wallCut, walls.write, pr => {
     bindTex(pr, "uWalls", walls.read.tex, 0);
     bindTex(pr, "uMask", maskTex, 1);
-    gl.uniform1f(U(pr, "uChan"), p.kind === "steel" ? 1 : 0);
   });
   walls.swap();
 }
 function setTargetEnabled(tgt, on) {
   const want = tgt.invert ? !on : on;
+  let needRefresh = false;
   if (tgt.poly) {
     const L = curLevel();
     const polys = (L.data && L.data.polys) || [];
     const p = polys.find(pp => pp.id === tgt.poly);
     if (tgt.action === "delete") {
-      if (want && !tgt._cut) { tgt._cut = true; cutWallPoly(tgt.poly); }
+      if (want && !tgt._cut) { tgt._cut = true; cutWallPoly(tgt.poly); needRefresh = true; }
     } else if (tgt.action === "modify" && p) {
       if (want) {
         if (!tgt._saved) {
@@ -718,18 +743,18 @@ function setTargetEnabled(tgt, on) {
         }
         Object.assign(p, tgt.state || {});
       } else if (tgt._saved) { Object.assign(p, tgt._saved); tgt._saved = null; }
-      refreshLevelTextures();
+      needRefresh = true;
     } else {
       /* enable/disable any poly: active = painted, inactive = removed */
       if (p) {
         p._active = want;
         if (p.kind === "flow" || p.kind === "dynamite") initDynField(curLevel());
-        refreshLevelTextures();
+        needRefresh = true;
       } else if (want && !tgt._cut) {
-        tgt._cut = true; cutWallPoly(tgt.poly);
+        tgt._cut = true; cutWallPoly(tgt.poly); needRefresh = true;
       }
     }
-    return;
+    return needRefresh;
   }
   for (const c of cpuActors) {
     if (!c || c.id !== tgt.id) continue;
@@ -746,6 +771,7 @@ function setTargetEnabled(tgt, on) {
       writeActor(c.slot, actorRecord(c));
     } else setActorEnabled(c, want);     /* enable/disable toggle */
   }
+  return false;
 }
 
 /* ---------- events ---------- */
@@ -761,6 +787,9 @@ function emphGeom(em) {                      /* resolved per frame: tracks motio
       const v = S.lastTelem[(2 + c.slot) * 4 + 1] || (c.pos && c.pos[1]) || 0;
       return { circle: true, u, v, r: c.r || 5 };
     }
+    /* not an actor — check polys by id */
+    const p = ((curLevel().data || {}).polys || []).find(q => q.id === em.id);
+    if (p) return { pts: p.pts };
     return null;
   }
   if (em.poly) {
@@ -855,9 +884,11 @@ function updateHUD(t, now) {
   const delivered = rawDelivered + (S.scoreOffset || 0);
   const sensorRaw = t[4];
   if (!S.paused) {
-    const inst = Math.max(0, Math.min(2, (delivered - S.prevDelivered) / pdt / Math.max(S.emitRate, 1e-6)));
-    const k = 1 - Math.exp(-pdt / 0.5);
-    S.captureEMA += k * (inst - S.captureEMA);
+    /* Absolute delivery rate, normalized to reference resolution (480×270) */
+    const rs2 = RES_SCALE * RES_SCALE;
+    const absRate = Math.max(0, (delivered - S.prevDelivered) / pdt / rs2);
+    const k = 1 - Math.exp(-pdt / 2.0);   /* 2s EMA (was 0.5s) */
+    S.captureEMA += k * (absRate - S.captureEMA);
     const k2 = 1 - Math.exp(-pdt / 0.4);
     S.sensorEMA += k2 * (sensorRaw / RES_SCALE / Math.max(S.emitRate, 1e-6) - S.sensorEMA);
     evalSwitches();
@@ -870,13 +901,14 @@ function updateHUD(t, now) {
     S.scoreOffset += rawDelivered;
   }
 
-  const need = L.winFraction * params.winScale;
+  const need = L.winThreshold * params.winScale;
   if (S.state === "PLAY" && !S.paused && !S.editMode) {
     if (S.captureEMA >= need && !S.winInhibited) {
       S.winHoldT += pdt;
       S.sinkHueDrift += pdt * (0.9 + 2.6 * Math.min(S.captureEMA / Math.max(need, 1e-3), 2));
       if (S.winHoldT >= (L.winHoldSec || 4)) {
         S.state = "WIN";
+        markLevelComplete(S.levelIdx);
         document.getElementById("win").style.display = "flex";
       }
     } else {
@@ -890,7 +922,7 @@ function updateHUD(t, now) {
 
   const cum = S.emittedRed > 1e-6 ? delivered / S.emittedRed : 0;
   let txt = L.name +
-    "  \u2502  capture " + (S.captureEMA * 100).toFixed(0) + "% / need " + (need * 100).toFixed(0) + "%" +
+    "  \u2502  flow " + S.captureEMA.toFixed(0) + " / need " + need.toFixed(0) +
     "  \u2502  hold " + S.winHoldT.toFixed(1) + "/" + (L.winHoldSec || 4) + "s" +
     "  \u2502  total " + (cum * 100).toFixed(1) + "%";
   if (L.gates) {
@@ -901,13 +933,12 @@ function updateHUD(t, now) {
     if (S.winInhibited) txt += "  \u26a0 FLOW FAULT";
   }
   txt += "\nF" + (S.budget.fan | 0) + " B" + (S.budget.blue | 0) + " G" + (S.budget.green | 0) +
-    " SLATE " + S.wallPxUsed.toFixed(0) + "/" + (S.wells.slate | 0) + " STEEL " + S.steelPxUsed.toFixed(0) + "/" + (S.wells.steel | 0) + " LANE " + S.lanePxUsed.toFixed(0) + "/" + (S.wells.lanes | 0) +
+    " WALL " + S.wallPxUsed.toFixed(0) + "/" + (S.wells.slate | 0) + " CONC " + S.concretePxUsed.toFixed(0) + "/" + (S.wells.concrete | 0) + " STEEL " + S.steelPxUsed.toFixed(0) + "/" + (S.wells.steel | 0) + " LANE " + S.lanePxUsed.toFixed(0) + "/" + (S.wells.lanes | 0) +
     "  \u2502  spin " + ["base", "I", "II", "III"][S.spinTier] +
     "  \u2502  tool [" + (S.selectedTool >= 0 ? TOOLS[S.selectedTool].label : "none") + "]" +
     (S.paused ? "  \u2502  \u23f8 PAUSED" : "") +
     (anyPulseActive() ? "  \u2502  \u2697 DESTABILIZED" : "") +
-    (S.state === "WIN" ? "  \u2502  \u2713 SUSTAINED \u2014 " +
-      (S.IS_TOUCH ? "double-tap for next" : "N for next") : "");
+    (S.state === "WIN" ? "  \u2502  \u2713 SUSTAINED" : "");
   hudEl.textContent = txt;
   const DEBUG_NAMES = ["off","velocity","pressure","divergence","curl","SDF","obstacle","score","gel","wake","temperature"];
   statsEl.textContent = S.fps.toFixed(0) + " fps \u00b7 " + S.lastSubsteps + " sub \u00b7 telem age " +
@@ -939,32 +970,38 @@ function frame(now) {
     const adding = S.touchPaint ? !S.touchErase : !S.rightPaint;
     const isLane = wtool.type === 12;
     /* the well invariant: extant material may not exceed capacity. Erasing
-     * is always free — the sum drops and the refund is exact by construction. */
-    const mat = isLane ? "lanes" : wtool.key === "steel" ? "steel" : "slate";
-    const used = isLane ? S.lanePxUsed : wtool.key === "steel" ? S.steelPxUsed : S.wallPxUsed;
-    if (!adding || used < (S.wells[mat] || 0)) {
+     * is always free — the sum drops and the refund is exact by construction.
+     * Sand and slate share the "soft wall" reduce channel and well budget. */
+    const wellKey = isLane ? "lanes" : (wtool.tough === "sand" ? "slate" : (wtool.tough || "slate"));
+    const used = isLane ? S.lanePxUsed
+      : wellKey === "steel" ? S.steelPxUsed
+      : wellKey === "concrete" ? S.concretePxUsed
+      : S.wallPxUsed;
+    if (!adding || used < (S.wells[wellKey] || 0)) {
       S.wallPaintGlow = adding ? 1 : 2;
       const at = S.touchPaint ? clampToReach(S.touchPaintPos) : S.ghostPos;
-      if (isLane) paintLane(at, adding); else paintWall(at, adding, wtool.key === "steel" ? 1 : 0);
+      const tough = wtool.tough === "sand" ? SAND_TOUGH : wtool.tough === "steel" ? STEEL_TOUGH : wtool.tough === "concrete" ? CONCRETE_TOUGH : SLATE_TOUGH;
+      if (isLane) paintLane(at, adding); else paintWall(at, adding, tough);
     } else {
       if (S.touchPaint) S.touchPaint = false;
       if (S.simTime - S.lastWellToast > 1.5) {
         S.lastWellToast = S.simTime;
-        showToast(mat + " well empty \u2014 erase to reclaim matter");
+        showToast(wellKey + " well empty \u2014 erase to reclaim matter");
       }
     }
   } else S.lanePrev = null;
   if (steps > 0) {
-    runFS(P.wallErode, walls.write, p => {   /* blasts carve slate per-pixel */
+    runFS(P.wallErode, walls.write, p => {   /* blasts carve walls per-pixel */
       bindTex(p, "uWalls", walls.read.tex, 0);
       bindTex(p, "uPressure", pressure.read.tex, 1);
       gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
-      gl.uniform1f(U(p, "uWallTough"), PV("wallTough"));
     });
     walls.swap();
-    runFS(P.matPack, matPackRT, p => {     /* wells: extant-material invariant */
+    runFS(P.matPack, matPackRT, p => {     /* wells: material pixel counts */
       bindTex(p, "uWalls", walls.read.tex, 0);
       bindTex(p, "uDyn", dyn.read.tex, 1);
+      gl.uniform1f(U(p, "uConcreteFloor"), PV("concreteFloor"));
+      gl.uniform1f(U(p, "uSteelFloor"), PV("steelFloor"));
     });
     const rM = runReduce(matPackRT.tex);
     runFS(P.copy, matSum, p => {
@@ -973,9 +1010,10 @@ function frame(now) {
     });
   }
   const mo = (TELEM_W + 8) * 4;            /* sums in reference-res pixels */
-  S.wallPxUsed = S.lastTelem[mo] / (RES_SCALE * RES_SCALE);
-  S.lanePxUsed = S.lastTelem[mo + 1] / (RES_SCALE * RES_SCALE);
-  S.steelPxUsed = S.lastTelem[mo + 2] / (RES_SCALE * RES_SCALE);
+  S.wallPxUsed = S.lastTelem[mo] / (RES_SCALE * RES_SCALE);       /* R: soft walls (sand+slate) */
+  S.lanePxUsed = S.lastTelem[mo + 1] / (RES_SCALE * RES_SCALE);   /* G: lane */
+  S.concretePxUsed = S.lastTelem[mo + 2] / (RES_SCALE * RES_SCALE); /* B: concrete */
+  S.steelPxUsed = S.lastTelem[mo + 3] / (RES_SCALE * RES_SCALE);  /* A: steel */
   const Lsw = curLevel().switches;
   if (Lsw && Lsw.length && steps > 0) {
     runFS(P.switchSense, swState.write, p => {
@@ -1019,6 +1057,23 @@ const epochTabsEl = document.getElementById("epochTabs");
 const levelGridEl = document.getElementById("levelGrid");
 let lsActiveEpoch = 0;
 
+/* ---- level progression ---- */
+const PROGRESS_KEY = "fluxroute.progress";
+let completedLevels = new Set();
+try {
+  const saved = localStorage.getItem(PROGRESS_KEY);
+  if (saved) completedLevels = new Set(JSON.parse(saved));
+} catch (e) {}
+function markLevelComplete(idx) {
+  completedLevels.add(idx);
+  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify([...completedLevels])); } catch (e) {}
+}
+function isLevelUnlocked(idx) {
+  if (S.devMode) return true;             /* devs can access everything */
+  if (idx === 0) return true;             /* first level always open */
+  return completedLevels.has(idx - 1);    /* previous level completed */
+}
+
 function showLevelSelect() {
   document.getElementById("menu").style.display = "none";
   lsEl.style.display = "flex";
@@ -1030,9 +1085,14 @@ function hideLevelSelect() {
   lsEl.style.display = "none";
 }
 function buildLevelSelect() {
+  /* filter epochs by mode: game-epochs always, developer-epochs only in devMode */
+  const visibleEpochs = EPOCHS.filter(ep =>
+    ep.group === "game-epochs" || (ep.group === "developer-epochs" && S.devMode));
+  /* clamp active tab to visible range */
+  if (lsActiveEpoch >= visibleEpochs.length) lsActiveEpoch = 0;
   /* epoch tabs */
   epochTabsEl.innerHTML = "";
-  EPOCHS.forEach((ep, i) => {
+  visibleEpochs.forEach((ep, i) => {
     const btn = document.createElement("button");
     btn.className = "epoch-tab" + (i === lsActiveEpoch ? " active" : "");
     btn.textContent = ep.name;
@@ -1041,17 +1101,22 @@ function buildLevelSelect() {
   });
   /* level cards */
   levelGridEl.innerHTML = "";
-  const ep = EPOCHS[lsActiveEpoch];
+  const ep = visibleEpochs[lsActiveEpoch];
   if (!ep) return;
   for (const entry of ep.levels) {
     const L = LEVELS[entry.idx];
+    const unlocked = ep.group === "developer-epochs" || isLevelUnlocked(entry.idx);
+    const done = completedLevels.has(entry.idx);
     const card = document.createElement("div");
-    card.className = "level-card";
+    card.className = "level-card" + (unlocked ? "" : " locked");
+    card.style.position = "relative";
     card.innerHTML =
       '<img class="lc-thumb" src="' + entry.thumb + '" alt="' + (L.name || "") + '">' +
-      '<div class="lc-info"><div class="lc-name">' + (L.name || "Untitled") + '</div>' +
-      '<div class="lc-epoch">' + ep.id + '</div></div>';
-    card.onclick = () => { hideLevelSelect(); loadLevel(entry.idx); };
+      '<div class="lc-info"><div class="lc-name">' + (L.name || "Untitled") +
+      (done ? ' \u2713' : '') + '</div>' +
+      '<div class="lc-epoch">' + ep.id + '</div></div>' +
+      (unlocked ? '' : '<div class="lc-lock">\ud83d\udd12</div>');
+    if (unlocked) card.onclick = () => { hideLevelSelect(); loadLevel(entry.idx); };
     levelGridEl.appendChild(card);
   }
 }
@@ -1060,6 +1125,19 @@ document.getElementById("btnPlay").onclick = showLevelSelect;
 document.getElementById("lsBack").onclick = () => {
   hideLevelSelect();
   document.getElementById("menu").style.display = "flex";
+};
+/* ---- win screen buttons ---- */
+document.getElementById("winNext").onclick = () => {
+  document.getElementById("win").style.display = "none";
+  loadLevel(S.levelIdx + 1);
+};
+document.getElementById("winRestart").onclick = () => {
+  document.getElementById("win").style.display = "none";
+  loadLevel(S.levelIdx);
+};
+document.getElementById("winMenu").onclick = () => {
+  document.getElementById("win").style.display = "none";
+  loadLevel(-1);
 };
 document.getElementById("btnOptions").onclick = () => {
   document.getElementById("options").style.display = "flex";
@@ -1082,12 +1160,24 @@ document.getElementById("optTune").onclick = () => {
 }
 
 
+/* ---------- developer mode flash ---------- */
+const devFlashEl = document.getElementById("devFlash");
+function devFlash() {
+  if (!devFlashEl) return;
+  devFlashEl.classList.remove("active");
+  void devFlashEl.offsetWidth;     /* force reflow so animation restarts */
+  devFlashEl.classList.add("active");
+  const edBtn = document.getElementById("btnEditor");
+  if (edBtn) edBtn.style.display = "";
+}
+
 /* ---------- boot ---------- */
 setInputRef(inputRef);
 setEditorCtx(octx);
 initInput({
-  loadLevel, showToast, syncBudgetInputs, redEmitRate, togglePanel,
+  loadLevel, showToast, syncBudgetInputs, redEmitRate, togglePanel, exitEditor,
   editorPointerDown, editorPointerMove, editorPointerUp,
+  devFlash,
 });
 initPanel({ curLevel, redEmitRate, syncSliders, applyParamsForLevel });
 initEditor({
@@ -1105,5 +1195,6 @@ buildToolbar();
 (async () => {
   await loadLevels();
   loadLevel(-1);
+  document.body.classList.remove("loading");
   requestAnimationFrame(frame);
 })();

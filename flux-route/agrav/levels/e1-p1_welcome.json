@@ -6,7 +6,7 @@
     0.5
   ],
   "win": {
-    "fraction": 0.03,
+    "threshold": 100,
     "holdSec": 0.5
   },
   "budgets": {
@@ -191,7 +191,7 @@
       "_active": true
     },
     {
-      "kind": "slate",
+      "kind": "sand",
       "pts": [
         [
           0.6699,
@@ -481,17 +481,17 @@
         0,
         0
       ],
-      "_frac": 0.03447265625,
-      "_flux": 2.068359375,
-      "_latched": true,
       "holdSec": 0.5,
       "latch": "static",
       "inhibit": false,
       "targets": [
         {
           "poly": "S1",
-          "action": "delete",
-          "_cut": true
+          "action": "delete"
+        },
+        {
+          "id": "E4",
+          "invert": true
         }
       ]
     },
@@ -510,9 +510,6 @@
         0,
         0
       ],
-      "_frac": 1,
-      "_flux": 0.0005831718444824219,
-      "_latched": true,
       "holdSec": 2,
       "latch": "static",
       "inhibit": false,
@@ -524,8 +521,8 @@
     }
   ],
   "events": [
-    { "at": 1.2, "do": [{ "callout": { "text": "This is *FLUX ROUTE*", "at": [0.5, 0.59], "dur": 3.0, "size": 1.5 } }] },
-    { "after": 3.2, "do": [{ "callout": { "text": "a game of moving fluids from", "at": [0.5, 0.59], "dur": 2.4, "size": 1.5 } }] },
+    { "at": 1.2, "do": [{ "callout": { "text": "This is *FLUX ROUTE*", "at": [0.495, 0.59], "dur": 3.0, "size": 1.5 } }] },
+    { "after": 3.2, "do": [{ "callout": { "text": "a game of moving fluids from", "at": [0.495, 0.59], "dur": 2.4, "size": 1.5 } }] },
     {
       "after": 2.6, "do": [
         { "callout": { "text": "*A*", "at": [0.188, 0.75], "dur": 4.5, "size": 1.5 } },
@@ -540,7 +537,7 @@
         { "emphasize": { "poly": "W1", "dur": 2.6, "level": "high" } }
       ]
     },
-    { "after": 5.4, "do": [{ "callout": { "text": "Sit back as this level solves itself", "at": [0.5, 0.75], "dur": 4.5, "size": 1.2 }}] },
-    { "after": 5, "do": [{ "callout": { "text": "Or break free and *cause trouble*", "at": [0.5, 0.75], "dur": 4.5, "size": 1.2 }}] }
+    { "after": 5.4, "do": [{ "callout": { "text": "Sit back as this level solves itself", "at": [0.495, 0.75], "dur": 4.5, "size": 1.2 }}] },
+    { "after": 5, "do": [{ "callout": { "text": "Or break free and *cause trouble*", "at": [0.495, 0.75], "dur": 4.5, "size": 1.2 }}] }
   ]
 }

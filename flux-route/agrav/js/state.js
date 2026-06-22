@@ -26,7 +26,7 @@
 export const S = {
   /* game flow */
   levelIdx: 0, state: "PLAY", paused: false,
-  simTime: 0, emittedRed: 0, gateState: {}, debugMode: 0,
+  simTime: 0, emittedRed: 0, gateState: {}, debugMode: 0, devMode: false,
   /* player / tool */
   selectedSlot: -1, selectedTool: 0,
   ghostAngle: 0, ghostPos: [0.5, 0.5],
@@ -39,9 +39,9 @@ export const S = {
   sinkHueDrift: 0, lastPulseT: performance.now() / 1000,
   emitRate: 0, fps: 60, lastSubsteps: 0,
   /* painting */
-  wells: { slate: 0, lanes: 0, steel: 0 },
+  wells: { slate: 0, concrete: 0, steel: 0, lanes: 0 },
   budget: { fan: 0, blue: 0, green: 0 },
-  wallPxUsed: 0, lanePxUsed: 0, steelPxUsed: 0,
+  wallPxUsed: 0, concretePxUsed: 0, steelPxUsed: 0, lanePxUsed: 0,
   lastWellToast: 0, lanePrev: null, laneDir: [1, 0],
   rightPaint: false, spinTier: 0,
   wallPaintGlow: 0, paintingMouse: false,
@@ -69,7 +69,9 @@ export const TOOLS = [
   { key: "fan", label: "FAN", type: 2, r: 6, dye: null, strengthKey: "fanStrength" },
   { key: "blue", label: "BLU", type: 3, r: 5, dye: BLUE, strengthKey: "blueEmitStrength" },
   { key: "green", label: "GRN", type: 3, r: 5, dye: GREEN, strengthKey: "greenEmitStrength" },
-  { key: "wall", label: "WALL", type: 9, r: 7, dye: [1, 0.72, 0.25] },
-  { key: "steel", label: "STEEL", type: 9, r: 7, dye: [0.7, 0.75, 0.85] },
+  { key: "sand", label: "SAND", type: 9, r: 7, dye: [0.85, 0.75, 0.55], tough: "sand" },
+  { key: "wall", label: "SLATE", type: 9, r: 7, dye: [1, 0.72, 0.25], tough: "slate" },
+  { key: "concrete", label: "CONC", type: 9, r: 7, dye: [0.55, 0.52, 0.48], tough: "concrete" },
+  { key: "steel", label: "STEEL", type: 9, r: 7, dye: [0.7, 0.75, 0.85], tough: "steel" },
   { key: "lane", label: "LANE", type: 12, r: 6, dye: [0.2, 0.7, 0.8] }
 ];

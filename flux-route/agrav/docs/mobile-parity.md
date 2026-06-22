@@ -256,7 +256,7 @@ Camera model and UI redesign are separate future milestones.
 - Minimize parallel code paths for desktop vs mobile
 
 **Considerations:**
-- The current tool set (fan, blue emitter, green emitter, slate, steel, lane,
+- The current tool set (fan, blue emitter, green emitter, sand, slate, concrete, steel, lane,
   erase) is mature enough to design around
 - Touch interactions: tap-to-place, drag-to-rotate, pinch-to-adjust-strength
 - Desktop interactions: click-to-place, scroll-to-rotate, shift-drag for painting

@@ -89,7 +89,7 @@ const TIPS = {
   absorb: "Removal rate (1/s) of dye inside SINK and TRIGGER zones; also weights scoring between overlapping zones.",
   drainRate: "Removal rate (1/s) in DRAIN zones; drained dye is voided, never scored.",
   solidDecay: "Decay rate (1/s) of dye trapped inside walls and solid gel.",
-  winScale: "Multiplies every level capture target: a global difficulty dial.",
+  winScale: "Multiplies the level's win threshold: a global difficulty dial. Higher = harder.",
   fanStrength: "Fan jet force (reference-grid texels/s^2).",
   emitScale: "Dye mass per unit emitter strength. Raises all concentrations; capture % stays normalized.",
   blueEmitStrength: "Force and dye output of player-placed BLUE (builder) emitters.",
@@ -102,6 +102,7 @@ const TIPS = {
   spinAccel: "Spin-up rate while Q/E held (rad/s^2).",
   spinDamp: "Top-tier spin decay (1/s); tiers multiply it by [8,4,2,1]. Terminal spin = spinAccel/damp.",
   spinKick: "Tangential kick on bounces proportional to spin: the curveball. Negative flips direction.",
+  spinHeat: "Friction heat generated when spinning against walls. Heat = |spin| × penetration × this. 0 = disabled.",
   entityScale: "Global size multiplier for every entity, live.",
   playerMass: "Player collision mass.",
   predMass: "Predator collision mass; heavier predators shove harder.",
@@ -128,7 +129,9 @@ const TIPS = {
   dynRed: "Red released per unit of burning charge. Above ~0.4 net, blasts prime neighboring charges \u2014 chain reactions.",
   laneForce: "Acceleration applied along drawn flow lanes (pre-projection, like fans).",
   laneBrush: "Lane stroke width in reference texels.",
-  wallTough: "Pressure rating of slate: boundary pixels above this |p| are blasted away. Craters.",
+  sandFloor: "Log-threshold separating sand from slate for well tracking.",
+  concreteFloor: "Log-threshold separating slate from concrete for well tracking.",
+  steelFloor: "Log-threshold separating concrete from steel for well tracking.",
   predSuck: "Predator suction: spiral inflow force on the FLUID (the tangential part survives the pressure solve).",
   predSense: "Predator scent-stencil radius (ref texels). Wider = ignores vortex noise, smells distant plumes.",
   predGreed: "How strongly scent gradients override the random walk. Low = drunkard, high = bloodhound.",
@@ -143,16 +146,20 @@ const TIPS = {
   tonemapK: "Exposure of the dye tonemap.",
   bloomStr: "Bloom intensity; the red species blooms hardest by design.",
   bloomThr: "Brightness threshold before bloom engages.",
+  redBloomBoost: "Extra bloom weight in dense red regions. 0 = off; higher = dense red glows hotter.",
   hueShift: "Global hue rotation (radians).",
   flowGlow: "Dye brightening with flow speed.",
   streak: "Motion smear along flow: red stays tight, blue smears glassy.",
-  curlTint: "Swirl tint strength; saturation grows with dye concentration squared.",
+  curlTintRed: "Curl vortex tint strength for the red (cargo) species.",
+  curlTintGreen: "Curl vortex tint strength for the green (reagent) species.",
+  curlTintBlue: "Curl vortex tint strength for the blue (builder) species.",
   schlieren: "Ambient shading of invisible currents where dye is absent.",
   speciesFx: "Green-species scintillation amount.",
   gelGlow: "Gel membrane and rim-glow intensity.",
   thermalVis: "Temperature→tonemap dynamic range. Higher = bigger brightness difference between hot and cold.",
   thermalFloor: "Minimum tonemap multiplier at T=0 (cold). Prevents dye from going invisible at low temperature.",
   tempDiss: "Temperature advective dissipation (1/s). Heat spreads and fades.",
+  tempDiffuse: "Temperature diffusion rate (Laplacian). Heat spreads to neighboring pixels. Enables friction heat to radiate from contact points.",
   tempHeatRate: "Heat generated per unit R\u00b7G reaction product. The fuel.",
   gelHeatAbsorb: "Heat absorbed per unit R\u00b7B reaction (endothermic). Gel reactions cool the medium.",
   dynHeat: "Heat flash from dynamite detonation.",
@@ -164,6 +171,7 @@ const TIPS = {
   tempEmitScale: "Global scale for temperature-emitter output.",
   tempZoneRate: "How fast temperature zones enforce their target (1/s).",
   tempScale: "Inverse heat capacity. Scales all thermal reactions uniformly. Higher = more responsive temperature field. 0 = temperature frozen at ambient.",
+  multClamp: "Max dye intensity inside multiplier zones. 0 = unlimited growth. Prevents concentrate zones from producing infinite brightness.",
   activation: "Reaction sensitivity to temperature. Higher = reactions ignite at lower T. Uses A\u00b7T/(1+A\u00b7T).",
   arrhScale: "Scalar multiplier on the Arrhenius (temperature-dependent) reaction term.",
   reactFloor: "Baseline reactivity floor. Reactions happen at this rate even at zero temperature.",
@@ -174,6 +182,7 @@ const TIPS = {
   gelTempK: "Gel precipitation temperature dependence. Higher = gel strongly favors cold.",
   gelSelfCat: "Self-catalysis: existing gel boosts further R+B precipitation (endothermic runaway).",
   gelHotThresh: "Temperature (absolute, same scale as tempMax) at which gel formation fully stops.",
+  gelMeltRate: "Gel dissolution rate per degree above gelHotThresh. Higher = hot gel melts faster. 0 = no thermal melting.",
   dynTempTrigger: "Temperature that detonates dynamite charges. Lower = easier heat-chain-reactions."
 };
 const GROUPS = {
@@ -184,41 +193,51 @@ const GROUPS = {
   "emitters & tools": [["fanStrength", 10, 6000, 0, "log"], ["emitScale", 0, 0.1, 0.001],
   ["blueEmitStrength", 10, 6000, 0, "log"], ["greenEmitStrength", 10, 6000, 0, "log"], ["wallBrush", 2, 24, 0.5]],
   "player": [["thrust", 0, 2, 0.01], ["dragK", 0, 5, 0.05], ["flowPush", 0, 1, 0.01], ["linDamp", 0, 8, 0.05],
-  ["spinAccel", 0, 40, 0.5], ["spinDamp", 0, 5, 0.05], ["spinKick", -0.2, 0.2, 0.005]],
+  ["spinAccel", 0, 40, 0.5], ["spinDamp", 0, 5, 0.05], ["spinKick", -0.2, 0.2, 0.005], ["spinHeat", 0, 5, 0.05]],
   "bodies": [["entityScale", 0.3, 3, 0.05], ["playerMass", 0.05, 100, 0, "log"], ["predMass", 0.05, 200, 0, "log"],
   ["pistonMass", 0.05, 500, 0, "log"], ["restitution", 0, 1, 0.01], ["bounceFloor", 0, 120, 1],
   ["pistonSpring", 1, 3000, 0, "log"], ["pistonDamp", 0.05, 80, 0, "log"]],
-  "gel": [["gelReact", 0.05, 60, 0, "log"], ["gelDissolve", 0, 1, 0.01], ["gelErode", 0, 0.2, 0.002],
+  "gel": [["gelReact", 0.05, 60, 0, "log"], ["gelDissolve", 0, 1, 0.01], ["gelErode", 0, 1, 0.005],
   ["gelDrag", 0, 20, 0.1], ["gelSolid", 0.1, 1.5, 0.01], ["gelConsume", 0, 5, 0.05], ["gelSelfCat", 0, 20, 0.1],
-  ["gelHotThresh", 0.5, 20, 0.1]],
+  ["gelHotThresh", 0.5, 20, 0.1], ["gelMeltRate", 0, 10, 0.1]],
   "exothermics": [["exoForce", 50, 100000, 0, "log"], ["exoKnee", 0.05, 10, 0.05], ["stagBoost", 0, 40, 0.1],
   ["stagSpeed", 0.2, 150, 0, "log"], ["exoConsume", 0, 5, 0.05],
   ["dynForm", 0.1, 60, 0, "log"], ["dynTrigger", 0.02, 1, 0.01],
   ["dynForce", 1000, 300000, 0, "log"], ["dynBurn", 0.5, 60, 0, "log"], ["dynRed", 0.02, 10, 0, "log"],
-  ["laneForce", 10, 20000, 0, "log"], ["laneBrush", 1, 20, 0.5], ["wallTough", 5, 1000, 0, "log"]],
+  ["laneForce", 10, 20000, 0, "log"], ["laneBrush", 1, 20, 0.5], ["sandFloor", 2, 5, 0.1], ["concreteFloor", 3, 10, 0.1], ["steelFloor", 5, 12, 0.1]],
   "predators & wake": [["predSuck", 10, 10000, 0, "log"], ["eatRate", 0.1, 80, 0, "log"],
   ["predSense", 2, 80, 1], ["predGreed", 0.5, 500, 0, "log"], ["predTtl", 2, 60, 0.5],
   ["wakeDeposit", 0.2, 50, 0, "log"], ["wakeDiss", 0.5, 100, 0, "log"], ["wakeCurl", 0.1, 40, 0, "log"],
   ["wakeSlow", 0, 1, 0.005], ["wakeFast", 0, 5, 0.05], ["wakeKnee", 0, 1, 0.01]],
   "rendering": [["tonemapK", 0.05, 1, 0.01], ["bloomStr", 0, 1, 0.01], ["bloomThr", 0, 4, 0.05],
+  ["redBloomBoost", 0, 3, 0.05],
   ["hueShift", -3.14, 3.14, 0.01, "angle"], ["flowGlow", 0, 2, 0.02], ["streak", 0, 3, 0.02],
-  ["curlTint", 0, 1, 0.01], ["schlieren", 0, 2, 0.02], ["speciesFx", 0, 2, 0.02], ["gelGlow", 0, 3, 0.05],
+  ["curlTintRed", 0, 2, 0.01], ["curlTintGreen", 0, 2, 0.01], ["curlTintBlue", 0, 2, 0.01],
+  ["schlieren", 0, 2, 0.02], ["speciesFx", 0, 2, 0.02], ["gelGlow", 0, 3, 0.05],
   ["thermalVis", 0, 3, 0.02], ["thermalFloor", 0, 1.5, 0.02]],
   "temperature": [["tempScale", 0, 5, 0.05], ["tempHeatRate", 0.1, 20, 0, "log"], ["gelHeatAbsorb", 0.1, 10, 0, "log"],
   ["dynHeat", 0.1, 20, 0, "log"], ["tempCoolLinear", 0.1, 10, 0, "log"], ["tempCoolQuad", 0.1, 10, 0, "log"],
   ["tempAmbient", 0, 1, 0.01], ["tempAmbientRestore", 0.05, 5, 0, "log"],
-  ["tempDiss", 0.01, 1, 0, "log"], ["tempMax", 1, 20, 0.5],
+  ["tempDiss", 0.01, 1, 0, "log"], ["tempDiffuse", 0, 5, 0.05], ["tempMax", 1, 20, 0.5],
   ["tempEmitScale", 0.1, 10, 0, "log"], ["tempZoneRate", 0.5, 20, 0, "log"],
   ["activation", 0.1, 20, 0, "log"], ["arrhScale", 0, 100, 0.1], ["reactFloor", 0, 5, 0.05], ["viscTempK", 0, 3, 0.05],
   ["coldDamp", 0, 5, 0.1], ["coldScale", 0.5, 10, 0.1],
   ["tempCurlBoost", 0, 3, 0.05], ["gelTempK", 0, 5, 0.1],
-  ["dynTempTrigger", 0.2, 5, 0.05]]
+  ["dynTempTrigger", 0.2, 5, 0.05],
+  ["multClamp", 0, 20000, 1]]
 };
 let gui = null, panelOpen = false, cfgCtrl = null;
 const logCtrls = [];
+const paramCtrls = [];   /* {key, c} — every param controller, for dirty-mark refresh */
 function logName(key) {
   const v = params[key];
   return key + " = " + (v >= 100 ? v.toFixed(0) : v >= 1 ? v.toFixed(2) : v.toPrecision(3));
+}
+function markDirty(c, key) {
+  const el = c.domElement.querySelector('.name');
+  if (!el) return;
+  const diff = Math.abs(params[key] - DEFAULT_PARAMS[key]) > 1e-9 * (Math.abs(DEFAULT_PARAMS[key]) + 1);
+  el.style.fontWeight = diff ? 'bold' : '';
 }
 const budgetProxy = { fan: 0, blue: 0, green: 0, slate: 0, steel: 0, lanes: 0 };
 const cfgState = { config: activeName || "(defaults)" };
@@ -301,10 +320,12 @@ function buildPanel() {
           dirtyKeys.add(k); dirtyVals[k] = params[k];
           S.emitRate = _cb.redEmitRate();
           c.name(logName(k));
+          markDirty(c, k);
         });
         c.name(logName(k));
         c.domElement.title = (TIPS[k] || k) + " [log slider: box shows exponent]";
         logCtrls.push({ key: k, pr, c });
+        paramCtrls.push({ key: k, c });
       } else if (scale === "angle") {
         /* slider shows degrees; param stored as radians */
         const pr = { get deg() { return params[k] * 180 / Math.PI; },
@@ -312,15 +333,19 @@ function buildPanel() {
         const c = f.add(pr, "deg", -180, 180, 1).onChange(() => {
           dirtyKeys.add(k); dirtyVals[k] = params[k];
           S.emitRate = _cb.redEmitRate();
+          markDirty(c, k);
         });
         c.name(k + "°");
         c.domElement.title = TIPS[k] || k;
+        paramCtrls.push({ key: k, c });
       } else {
         const c = f.add(params, k, mn, mx, st).onChange(v => {
           dirtyKeys.add(k); dirtyVals[k] = v;
           S.emitRate = _cb.redEmitRate();
+          markDirty(c, k);
         });
         c.domElement.title = TIPS[k] || k;
+        paramCtrls.push({ key: k, c });
       }
     }
     f.close();
@@ -334,6 +359,7 @@ function syncSliders() {
     L.c.name(logName(L.key));
   }
   if (gui) gui.controllersRecursive().forEach(c => c.updateDisplay());
+  for (const pc of paramCtrls) markDirty(pc.c, pc.key);
 }
 function syncBudgetInputs() {
   Object.assign(budgetProxy, { fan: 0, blue: 0, green: 0 }, S.budget, { slate: S.wells.slate, steel: S.wells.steel, lanes: S.wells.lanes });

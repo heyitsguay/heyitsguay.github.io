@@ -52,7 +52,7 @@
  */
 import { S, GW, SPIN_TIER_DAMP } from './state.js';
 import {
-  SIM_W, SIM_H, DT, GEL_ON, SIM_TEXEL, RES_SCALE, TELEM_W,
+  SIM_W, SIM_H, DYE_W, DYE_H, DT, GEL_ON, SIM_TEXEL, RES_SCALE, TELEM_W,
   N_ACTORS, params, PV, effScale, PRESSURE_ITERS,
 } from './config.js';
 import {
@@ -121,6 +121,7 @@ function substep() {
     gl.uniform1f(U(p, "uSpinAccel"), params.spinAccel);
     gl.uniform1f(U(p, "uSpinDamp"), params.spinDamp * SPIN_TIER_DAMP[S.spinTier]);
     gl.uniform1f(U(p, "uSpinKick"), params.spinKick);
+    gl.uniform1f(U(p, "uSpinHeat"), params.spinHeat);
     gl.uniform1f(U(p, "uEntityScale"), effScale());
     bindTex(p, "uDyn", dyn.read.tex, 11);
     gl.uniform1f(U(p, "uMassPlayer"), params.playerMass);
@@ -160,6 +161,7 @@ function substep() {
       gl.uniform1f(U(p, "uGelTempK"), params.gelTempK);
       gl.uniform1f(U(p, "uGelSelfCat"), params.gelSelfCat);
       gl.uniform1f(U(p, "uGelHotThresh"), params.gelHotThresh);
+      gl.uniform1f(U(p, "uGelMeltRate"), params.gelMeltRate);
       gl.uniform1f(U(p, "uDt"), DT);
     });
     gel.swap();
@@ -324,6 +326,17 @@ function substep() {
     gl.uniform1f(U(p, "uTempMax"), params.tempMax);
     gl.uniform1f(U(p, "uTempZoneRate"), params.tempZoneRate);
     gl.uniform1f(U(p, "uTempScale"), PV("tempScale"));
+    gl.uniform1f(U(p, "uMultClamp"), params.multClamp);
+    bindTex(p, "uActors", actors.read.tex, 6);
+    bindTex(p, "uLevel", level.tex, 7);
+    bindTex(p, "uWalls", walls.read.tex, 8);
+    bindTex(p, "uGel", gel.read.tex, 9);
+    gl.uniform1f(U(p, "uGelSolid"), PV("gelSolid"));
+    gl.uniform1f(U(p, "uSpinHeat"), params.spinHeat);
+    gl.uniform1f(U(p, "uEntityScale"), effScale());
+    gl.uniform1f(U(p, "uTempDiffuse"), params.tempDiffuse);
+    gl.uniform2f(U(p, "uDyeTexel"), 1 / DYE_W, 1 / DYE_H);
+    gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
     gl.uniform1f(U(p, "uDt"), DT);
   });
 

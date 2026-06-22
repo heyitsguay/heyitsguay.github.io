@@ -6,7 +6,7 @@
 <title>FLUX ROUTE v0.5</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="loading">
 <canvas id="gl" width="1920" height="1080"></canvas>
 <canvas id="ovc"></canvas>
 <div id="callouts"></div>
@@ -18,17 +18,16 @@
 </div>
 <div id="hud" class="ov"></div>
 <div id="stats" class="ov"></div>
-<div id="keys" class="ov">WASD move &#183; Q/E spin &#183; 1/2/3 tool &#183; 4/5 walls &#183; 0 none &#183; hold Shift to aim &#183; Shift+Click place/paint
-Shift+RClick delete hovered &#183; [ ] rotate hovered &#183; X destabilize &#183; , . level &#183; R reset &#183; Space pause &#183; Tab debug &#183; T tuning &#183; ESC menu</div>
+<div id="keys" class="ov">/ for shortcuts</div>
 <div id="msg" class=""></div>
 <div id="toast"></div>
-<div id="win"><div>FLOW SUSTAINED</div></div>
+<div id="win"><div><div class="win-title">FLOW SUSTAINED</div><div class="win-btns"><button class="mbtn win-btn" id="winNext">NEXT LEVEL</button><button class="mbtn win-btn" id="winRestart">RESTART</button><button class="mbtn win-btn" id="winMenu">MAIN MENU</button></div></div></div>
 <div id="menu">
   <div id="menuWash"></div>
   <h1>FLUX ROUTE</h1>
   <div class="sub">a frustrating plumbing simulator</div>
   <button class="mbtn" id="btnPlay">PLAY</button>
-  <button class="mbtn" id="btnEditor">EDITOR</button>
+  <button class="mbtn" id="btnEditor" style="display:none">EDITOR</button>
   <button class="mbtn" id="btnOptions">OPTIONS</button>
   <div class="credits credits-l">fluid core: <a href="https://github.com/PavelDoGreat/WebGL-Fluid-Simulation" target="_blank" rel="noopener">Pavel Dobryakov</a></div>
   <div class="credits credits-r">made with <span class="fable">FABLE</span></div>
@@ -49,9 +48,11 @@ Shift+RClick delete hovered &#183; [ ] rotate hovered &#183; X destabilize &#183
     <div class="orow" style="justify-content:flex-end;margin-top:18px"><button id="optClose">close</button></div>
   </div>
 </div>
+<div id="devFlash"></div>
 <div id="fatal"><p></p></div>
 <div id="toolbar"></div>
 <div id="panel"></div>
+<div id="shortcutHelp"></div>
 <!-- lil-gui loaded as regular script (UMD, creates window.lil global) -->
 <script src="lib/lil-gui.min.js"></script>
 <!-- Engine as ES module -->

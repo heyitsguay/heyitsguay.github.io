@@ -214,6 +214,7 @@ uniform float uGelErode;
 uniform float uGelTempK;
 uniform float uGelSelfCat;    /* self-catalysis: existing gel boosts formation */
 uniform float uGelHotThresh;  /* temperature at which gel formation fully stops */
+uniform float uGelMeltRate;   /* gel dissolution rate per degree above hotThresh */
 uniform float uDt;
 void main(){
   float gel = texture(uGel,vUv).r;
@@ -230,6 +231,9 @@ void main(){
   float gelTempFactor = coldFavor * hotCutoff * selfBoost;
   gel += uGelReact*d.r*d.b*gelTempFactor*uDt;   /* R + B precipitate */
   gel -= gel*(uGelDissolve + uGelErode*spd)*uDt;
+  /* thermal melting: gel above hotThresh dissolves proportionally to excess T */
+  float hotExcess = max(Tv - uGelHotThresh, 0.0);
+  gel -= gel * uGelMeltRate * hotExcess * uDt;
   fragColor = vec4(clamp(gel,0.0,2.0), 0.0, 0.0, 1.0);
 }
 `;
@@ -240,43 +244,40 @@ uniform vec2  uSimTexel;
 uniform vec2  uPaintPos;
 uniform float uPaintR;        /* texels */
 uniform float uPaintMode;     /* 1 add, 0 erase */
-uniform float uPaintChan;     /* 0 slate (r), 1 steel (g) */
+uniform float uPaintTough;    /* log(pressure threshold) to paint */
 void main(){
-  vec2 w = texture(uWalls,vUv).rg;
+  float w = texture(uWalls,vUv).r;
   float d = length((vUv-uPaintPos)/uSimTexel);
   float brush = step(0.35, 1.0 - smoothstep(uPaintR-1.0, uPaintR, d));
-  float c = uPaintChan > 0.5 ? w.g : w.r;
-  c = uPaintMode>0.5 ? max(c, brush) : c*(1.0-brush);
-  if(uPaintChan > 0.5) w.g = c; else w.r = c;
-  fragColor = vec4(w, 0.0, 1.0);
+  w = uPaintMode>0.5 ? max(w, brush * uPaintTough) : w*(1.0-brush);
+  fragColor = vec4(w, 0.0, 0.0, 1.0);
 }
 `;
 
-/* per-pixel destructible slate: boundary pixels of the walls field die when
- * the pressure beside them exceeds the toughness rating. One cheap SIM-res
- * pass; the field drives physics directly (no SDF rebuild), and the wells
- * invariant refunds eroded player matter automatically. Blasts carve craters. */
+/* per-pixel destructible walls: boundary pixels erode when adjacent pressure
+ * exceeds their toughness (stored as log(threshold)). Negative toughness =
+ * indestructible. One cheap SIM-res pass; the wells invariant refunds eroded
+ * player matter automatically. */
 export const wallErodeFS = FRAG_HEADER + `uniform sampler2D uWalls;
 uniform sampler2D uPressure;
 uniform vec2  uSimTexel;
-uniform float uWallTough;
 void main(){
-  vec2 w2 = texture(uWalls,vUv).rg;            /* r=slate erodes; g=steel never */
-  float w = w2.r;
-  if(w > 0.05){
+  float w = texture(uWalls,vUv).r;
+  if(w > 0.01){                                      /* positive = erodible */
     float nL = texture(uWalls,vUv-vec2(uSimTexel.x,0.0)).r;
     float nR = texture(uWalls,vUv+vec2(uSimTexel.x,0.0)).r;
     float nB = texture(uWalls,vUv-vec2(0.0,uSimTexel.y)).r;
     float nT = texture(uWalls,vUv+vec2(0.0,uSimTexel.y)).r;
-    if(min(min(nL,nR),min(nB,nT)) < 0.5){               /* boundary pixel */
+    float nMin = min(min(abs(nL),abs(nR)),min(abs(nB),abs(nT)));
+    if(nMin < 0.5){                                    /* boundary pixel */
       float p = max(max(abs(texture(uPressure,vUv-vec2(uSimTexel.x,0.0)).x),
                         abs(texture(uPressure,vUv+vec2(uSimTexel.x,0.0)).x)),
                     max(abs(texture(uPressure,vUv-vec2(0.0,uSimTexel.y)).x),
                         abs(texture(uPressure,vUv+vec2(0.0,uSimTexel.y)).x)));
-      if(p > uWallTough) w = 0.0;
+      if(log(max(p,1e-6)) > w) w = 0.0;               /* per-pixel threshold */
     }
   }
-  fragColor = vec4(w, w2.g, 0.0, 1.0);
+  fragColor = vec4(w, 0.0, 0.0, 1.0);
 }
 `;
 
@@ -300,25 +301,35 @@ void main(){
 }
 `;
 
-/* cut a rasterized mask out of a walls channel (switch-deleted removable walls) */
+/* cut a rasterized mask out of walls (switch-deleted removable walls) */
 export const wallCutFS = FRAG_HEADER + `uniform sampler2D uWalls;
 uniform sampler2D uMask;
-uniform float uChan;
 void main(){
-  vec2 w = texture(uWalls,vUv).rg;
+  float w = texture(uWalls,vUv).r;
   float m = texture(uMask,vUv).r;
-  if(uChan > 0.5) w.g *= 1.0 - m; else w.r *= 1.0 - m;
-  fragColor = vec4(w, 0.0, 1.0);
+  w *= 1.0 - m;
+  fragColor = vec4(w, 0.0, 0.0, 1.0);
 }
 `;
 
-/* matter sums for the wells: (walls coverage, lane coverage) -> reduce -> CPU */
+/* matter sums for the wells: bucket wall toughness → pixel counts → reduce → CPU.
+ * Sand and slate share the R channel ("soft wall") since the reduce is limited to 4 channels.
+ * Their visual and physics identities (different toughness) remain distinct. */
 export const matPackFS = FRAG_HEADER + `uniform sampler2D uWalls;
 uniform sampler2D uDyn;
+uniform float uConcreteFloor;  /* log-threshold: above = concrete or steel */
+uniform float uSteelFloor;     /* log-threshold: above = steel */
 void main(){
-  vec2 wv = texture(uWalls,vUv).rg;
-  float l = min(length(texture(uDyn,vUv).gb), 1.0);
-  fragColor = vec4(wv.r, l, wv.g, 1.0);
+  float w = texture(uWalls,vUv).r;
+  float aw = abs(w);
+  float isWall = step(0.01, aw);
+  float isConcreteUp = step(uConcreteFloor, aw) * isWall;
+  float isSteelUp = step(uSteelFloor, aw) * isWall;
+  float soft     = isWall * (1.0 - isConcreteUp);     /* R: sand + slate */
+  float concrete = isConcreteUp * (1.0 - isSteelUp);  /* B: concrete */
+  float steel    = isSteelUp;                          /* A: steel */
+  float l = min(length(texture(uDyn,vUv).gb), 1.0);   /* G: lane */
+  fragColor = vec4(soft, l, concrete, steel);
 }
 `;
 
@@ -430,8 +441,8 @@ uniform float uGelSolid;
 void main(){
   vec2 vel = vec2(0.0); float solid = 0.0;
   if(texture(uLevel,vUv).r <= 0.0) solid = 1.0;
-  vec2 wv2 = texture(uWalls,vUv).rg;          /* r=slate, g=steel */
-  if(max(wv2.r, wv2.g) > 0.5) solid = 1.0;
+  float wv = abs(texture(uWalls,vUv).r);
+  if(wv > 0.01) solid = 1.0;
   if(texture(uDyn,vUv).r > 0.3) solid = 1.0;  /* dynamite charge is solid */
   vec4 m = texture(uDynMask,vUv);
   if(m.a > 0.5){ solid = 1.0; vel = m.rg/max(m.a,1e-4); }
@@ -468,13 +479,25 @@ uniform float uTempAmbientRestore;
 uniform float uTempMax;
 uniform float uTempZoneRate;
 uniform float uTempScale;
+uniform float uMultClamp;
+uniform sampler2D uActors;
+uniform sampler2D uLevel;
+uniform sampler2D uWalls;
+uniform sampler2D uGel;
+uniform float uGelSolid;
+uniform float uSpinHeat;
+uniform float uEntityScale;
+uniform float uTempDiffuse;
+uniform vec2  uDyeTexel;
+uniform vec2  uSimTexel;
 void main(){
   vec4 dye = texture(uDye,vUv);
   float wS, wT;
   dye.rgb -= zoneRemoval(dye.rgb, vUv, wS, wT);
   float Tv = dye.a;  /* temperature from dye alpha */
   /* dynamite: co-located B+G converts to charge; red OR heat detonates */
-  float dynC = texture(uDyn,vUv).r;
+  vec4 dynV = texture(uDyn,vUv);
+  float dynC = dynV.r;
   float form2 = uDynForm * smoothstep(0.06, 0.30, min(dye.g, dye.b));
   float redTrig = smoothstep(uDynTrigger*0.55, uDynTrigger, dye.r);
   float heatTrig = smoothstep(uDynTempTrigger*0.7, uDynTempTrigger, Tv);
@@ -494,6 +517,13 @@ void main(){
   dye.r -= (uExoConsume*rxExo + uGelConsume*rxGel)*uDt;
   dye.g -= uExoConsume*rxExo*uDt;
   dye.b -= uGelConsume*rxGel*uDt;
+  /* multiplier zones: dyn.a = rate when NOT a flow zone (dyn.gb = 0) */
+  float isFlow = step(0.001, length(dynV.gb));
+  float multRate = dynV.a * (1.0 - isFlow);
+  if(abs(multRate) > 1e-5){
+    dye.rgb *= exp(multRate * uDt);
+    if(uMultClamp > 0.01) dye.rgb = min(dye.rgb, vec3(uMultClamp));
+  }
   if(solidAt(vUv).isSolid) dye.rgb *= exp(-uSolidDecay*uDt);
   dye.rgb = max(dye.rgb, vec3(0.0));
   /* temperature evolution (in dye.a) */
@@ -510,6 +540,33 @@ void main(){
   T += uTempAmbientRestore * (uTempAmbient - T) * uDt;  /* env coupling, unscaled */
   float zoneT = texture(uMedia, vUv).a;
   if(zoneT >= 0.0) T = mix(T, zoneT, min(uTempZoneRate*uDt, 1.0));
+  /* friction heat: spinning player against real solids (not the player body mask) */
+  vec4 pR0 = texelFetch(uActors, ivec2(0,0), 0);  /* player pos, vel */
+  vec4 pR1 = texelFetch(uActors, ivec2(0,1), 0);  /* type, radius */
+  vec4 pR2 = texelFetch(uActors, ivec2(0,2), 0);  /* .z = spin omega */
+  float pRadTx = pR1.y * uEntityScale;             /* radius in texels */
+  vec2  dUV = vUv - pR0.xy;
+  float dP = length(dUV / uSimTexel);              /* distance in texels (aspect-correct) */
+  float spinW = abs(pR2.z);
+  if(dP < pRadTx * 1.3 && spinW > 0.5){
+    /* check real solids: level SDF, placed walls, dense gel, dynamite */
+    bool realSolid = texture(uLevel,vUv).r < 0.0
+                  || abs(texture(uWalls,vUv).r) > 0.3
+                  || texture(uGel,vUv).r / max(uGelSolid,1e-3) > 0.55
+                  || texture(uDyn,vUv).r > 0.5;
+    if(realSolid){
+      float rim = smoothstep(pRadTx*0.3, pRadTx*1.1, dP);  /* stronger at edge */
+      T += spinW * uSpinHeat * rim * uDt;
+    }
+  }
+  /* temperature diffusion (Laplacian) */
+  if(uTempDiffuse > 1e-5){
+    float Tl = texture(uDye, vUv - vec2(uDyeTexel.x,0.0)).a;
+    float Tr = texture(uDye, vUv + vec2(uDyeTexel.x,0.0)).a;
+    float Tb = texture(uDye, vUv - vec2(0.0,uDyeTexel.y)).a;
+    float Tt = texture(uDye, vUv + vec2(0.0,uDyeTexel.y)).a;
+    T += (Tl + Tr + Tb + Tt - 4.0*T) * uTempDiffuse * uDt;
+  }
   dye.a = clamp(T, 0.0, uTempMax);
   fragColor = dye;
 }
@@ -640,6 +697,7 @@ uniform float uLinDamp;
 uniform float uSpinAccel;
 uniform float uSpinDamp;
 uniform float uSpinKick;
+uniform float uSpinHeat;
 uniform float uEntityScale;
 uniform float uMassPlayer;
 uniform float uMassPred;
@@ -676,8 +734,7 @@ void resolveWalls(inout vec2 pos, inout vec2 vel, float radius){
 /* dynamic solids: player walls + solid gel. Deliberately simple: 4-probe
  * normal estimate, push-out, restitution bounce (plan section 38). */
 float hardAt(vec2 uv){
-  vec2 ws2 = texture(uWalls,uv).rg;
-  float w = max(ws2.r, ws2.g);                /* slate or steel */
+  float w = step(0.01, abs(texture(uWalls,uv).r));
   float g = texture(uGel,uv).r/max(uGelSolid,1e-3);
   float dn = step(0.6, texture(uDyn,uv).r);          /* packed charge too */
   return max(max(w, dn), step(0.55, g));   /* dense gel is a wall for bodies */
@@ -823,6 +880,14 @@ void main(){
     vel += (uInput.xy*uThrust + uDragK*(fluidUv-vel)) * uDt;
     vel *= exp(-uLinDamp*uDt);
     pos += vel*uDt;
+    /* friction heat: detect contact BEFORE wall resolution pushes us out */
+    float wallPen = texture(uLevel,pos).r - r1.y*uEntityScale;
+    float contact = wallPen < 0.0 ? min(-wallPen, 3.0) : 0.0;
+    vec2 ro = r1.y*uEntityScale*uSimTexel;
+    float dynC = max(max(hardAt(pos+vec2(ro.x,0.0)), hardAt(pos-vec2(ro.x,0.0))),
+                     max(hardAt(pos+vec2(0.0,ro.y)), hardAt(pos-vec2(0.0,ro.y))));
+    if(dynC > 0.5) contact = max(contact, 1.0);
+    r3.y = contact > 0.0 ? abs(r2.z) * contact * uSpinHeat : 0.0;
     resolveWalls(pos, vel, r1.y*uEntityScale);
     vel *= exp(-uGelDrag*0.8*clamp(texture(uGel,pos).r/max(uGelSolid,1e-3),0.0,1.5)*uDt);
     resolveDynamic(pos, vel, r1.y*uEntityScale);
@@ -1169,7 +1234,7 @@ uniform sampler2D uDyn;
 uniform float uHueShift;
 uniform float uFlowGlow;
 uniform float uStreak;
-uniform float uCurlTint;
+uniform vec3  uCurlTint;
 uniform float uSchlieren;
 uniform float uSpeciesFx;
 uniform float uGelGlow;
@@ -1178,6 +1243,10 @@ uniform float uThermalFloor;
 uniform float uTempAmbient;
 uniform float uTempMax;
 uniform float uResScale;
+uniform float uRedBloomBoost;
+uniform float uConcreteFloor;
+uniform float uSteelFloor;
+uniform float uSandFloor;
 vec3 hsv2rgb(vec3 c){
   vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
   vec3 p = abs(fract(c.xxx+K.xyz)*6.0-K.www);
@@ -1241,11 +1310,14 @@ void main(){
   vec3 col = vec3(1.0) - exp(-disp*tempK);
   vec3 blm = texture(uBloom,vUv).rgb;
   if(abs(uHueShift)>0.001) blm = hueRotate(blm,uHueShift);
-  col += blm*uBloomStrength;
-  /* curl tint: overall strength = uCurlTint; saturation ~ dye concentration^2 */
-  float w = Lr*Lr;
+  float redBloom = 1.0 + uRedBloomBoost * clamp(d.r, 0.0, 1.0);
+  col += blm * uBloomStrength * redBloom;
+  /* curl tint: per-species strength; total bounded by Lr² (0..1) */
   vec3 tint = cr>0.0 ? vec3(0.85,0.35,1.00) : vec3(0.25,1.00,0.85);
-  col += tint*abs(cr)*0.05*uCurlTint*w;
+  float dSum = d.r + d.g + d.b;
+  vec3 dFrac = dSum > 1e-3 ? d / dSum : vec3(0.333);  /* species fractions */
+  float wt = Lr * Lr * dot(dFrac, uCurlTint);
+  col += tint * abs(cr) * 0.05 * wt;
   /* ambient schlieren: ONLY where dye is absent; arriving dye develops it away
      into the curl tint above (the two crossfade on Lr) */
   float s = cr*(1.0 - smoothstep(0.0,0.30,Lr));
@@ -1267,12 +1339,29 @@ void main(){
   /* flow lanes: drawn current, chevron bands marching along the lane */
   vec4 lnv = texture(uDyn,vUv);
   float lm = length(lnv.gb);
-  if(lm>0.05){
+  if(lm>0.001){
     vec2 dirn = lnv.gb/lm;
     float pw = clamp(lnv.a,0.0,1.0);     /* powered zones run warm */
+    float lv = max(smoothstep(0.001, 0.15, lm), 0.4);  /* floor so weak flows are legible */
     float band = smoothstep(0.45,0.95,sin(dot(vUv*vec2(16.0,9.0), dirn)*22.0 - uTime*4.0));
-    col = mix(col, col + mix(vec3(0.05,0.18,0.20), vec3(0.15,0.10,0.03), pw), 0.45*min(lm,1.0));
-    col += mix(vec3(0.20,0.62,0.70), vec3(0.95,0.62,0.20), pw)*band*0.16*min(lm,1.0);
+    col = mix(col, col + mix(vec3(0.05,0.18,0.20), vec3(0.15,0.10,0.03), pw), 0.45*lv);
+    col += mix(vec3(0.20,0.62,0.70), vec3(0.95,0.62,0.20), pw)*band*0.16*lv;
+  }
+  /* multiplier zones: uniform white flash with delayed color chirp */
+  float multR = lnv.a * (1.0 - step(0.001, lm));   /* .a = rate only when NOT flow */
+  if(abs(multR) > 1e-5){
+    float isConc = step(0.0, multR);                /* 1 = concentrate, 0 = dilute */
+    float mag = clamp(log2(abs(multR)*1e3+1.0)*0.12, 0.05, 0.45);
+    /* sin² flash cycle */
+    float s = sin(uTime * 3.0);
+    float flash = s * s;
+    /* opacity: faint white base, pulses bright */
+    float opacity = (0.06 + 0.30 * flash) * mag;
+    /* hue: delayed chirp — only tints near flash peak */
+    float hueBlend = smoothstep(0.8, 1.0, flash) * 0.2;
+    vec3 accent = mix(vec3(0.53,0.0,0.0), vec3(0.0,0.53,0.0), isConc);  /* #800 / #080 */
+    vec3 tint = mix(vec3(0.9,0.92,0.95), accent, hueBlend);
+    col += tint * opacity;
   }
   /* dynamite charges: packed amber solid; white-hot where firing */
   float dynv = texture(uDyn,vUv).r;
@@ -1289,6 +1378,12 @@ void main(){
   /* zones */
   vec4 z = texture(uRegions,vUv);
   if(z.r>0.01){
+    /* idle iridescent sheen: thin-film interference — a narrow spectral band
+     * shifts across the surface like oil on water. Cheap cosine palette. */
+    float phase = (vUv.x * 6.0 + vUv.y * 3.5) - uTime * 0.4;
+    vec3 irid = 0.5 + 0.5 * cos(6.2832 * (phase * 0.3 + vec3(0.0, 0.33, 0.67)));
+    irid *= vec3(0.85, 0.80, 0.90);   /* desaturate toward the game's cool palette */
+    col = mix(col, irid, z.r * 0.95);
     /* whole-region pulse from darkness; CPU raises the beat with flow rate,
      * amplitude rises with it here. No spatial wave: the basin breathes. */
     float w = pow(max(sin(uPulsePhase), 0.0), 2.2);
@@ -1321,24 +1416,40 @@ void main(){
     float st = 0.5+0.3*sin(uTime*3.0 + vUv.x*30.0);
     col = mix(col, vec3(0.55,0.15,0.60)*st, z.a*0.45);
   }
-  /* removable walls: panelled slate with a cyan seam (vs immutable dark) */
-  vec2 wpair = texture(uWalls,vUv).rg;
-  float wallv = wpair.r;
-  if(wallv>0.05){
-    float hat = 0.85 + 0.15*step(0.5, fract((vUv.x+vUv.y)*120.0));
-    float wl=texture(uWalls,vUv-vec2(uSimTexel.x,0.0)).r, wr2=texture(uWalls,vUv+vec2(uSimTexel.x,0.0)).r;
-    float wb=texture(uWalls,vUv-vec2(0.0,uSimTexel.y)).r, wt=texture(uWalls,vUv+vec2(0.0,uSimTexel.y)).r;
+  /* placed walls: four visual tiers based on toughness */
+  float wallv = texture(uWalls,vUv).r;
+  float wabs = abs(wallv);
+  if(wabs > 0.01){
+    float wl=abs(texture(uWalls,vUv-vec2(uSimTexel.x,0.0)).r), wr2=abs(texture(uWalls,vUv+vec2(uSimTexel.x,0.0)).r);
+    float wb=abs(texture(uWalls,vUv-vec2(0.0,uSimTexel.y)).r), wt=abs(texture(uWalls,vUv+vec2(0.0,uSimTexel.y)).r);
     float wedge = clamp(abs(wr2-wl)+abs(wt-wb), 0.0, 1.0);
-    col = mix(col, vec3(0.16,0.19,0.26)*hat, smoothstep(0.35,0.6,wallv));
-    col += vec3(0.20,0.50,0.75)*wedge*0.55;
-  }
-  if(wpair.g>0.05){                            /* steel: riveted, blast-proof */
+    float hat = 0.85 + 0.15*step(0.5, fract((vUv.x+vUv.y)*120.0));
+    /* tier blend: sand → slate → concrete → steel */
+    float slateT = smoothstep(uSandFloor-0.3, uSandFloor+0.3, wabs);
+    float concT = smoothstep(uConcreteFloor-0.5, uConcreteFloor+0.5, wabs);
+    float steelT = smoothstep(uSteelFloor-0.5, uSteelFloor+0.5, wabs);
+    /* sand: warm grainy */
+    float grain = fract(sin(dot(floor(vUv*vec2(480.0,270.0)), vec2(12.9898,78.233)))*43758.5453);
+    vec3 sandCol = vec3(0.55,0.45,0.30) * (0.85 + 0.15*grain);
+    vec3 sandEdge = vec3(0.70,0.55,0.30);
+    /* slate: cool dark panelled */
+    vec3 slateCol = vec3(0.16,0.19,0.26)*hat;
+    vec3 slateEdge = vec3(0.20,0.50,0.75);
+    /* concrete: grey-brown */
+    vec3 concCol = vec3(0.25,0.23,0.21)*hat;
+    vec3 concEdge = vec3(0.60,0.45,0.25);
+    /* steel: cold grey riveted */
     float riv = step(0.92, fract(vUv.x*70.0)*fract(vUv.y*39.4));
-    float sl=texture(uWalls,vUv-vec2(uSimTexel.x,0.0)).g, sr=texture(uWalls,vUv+vec2(uSimTexel.x,0.0)).g;
-    float sb=texture(uWalls,vUv-vec2(0.0,uSimTexel.y)).g, st=texture(uWalls,vUv+vec2(0.0,uSimTexel.y)).g;
-    float sedge = clamp(abs(sr-sl)+abs(st-sb), 0.0, 1.0);
-    col = mix(col, vec3(0.23,0.25,0.29) + vec3(0.10)*riv, smoothstep(0.35,0.6,wpair.g));
-    col += vec3(0.55,0.60,0.70)*sedge*0.45;
+    vec3 steelCol = vec3(0.23,0.25,0.29) + vec3(0.10)*riv;
+    vec3 steelEdge = vec3(0.55,0.60,0.70);
+    vec3 wCol = mix(sandCol, slateCol, slateT);
+    wCol = mix(wCol, concCol, concT);
+    wCol = mix(wCol, steelCol, steelT);
+    vec3 wEdge = mix(sandEdge, slateEdge, slateT);
+    wEdge = mix(wEdge, concEdge, concT);
+    wEdge = mix(wEdge, steelEdge, steelT);
+    col = mix(col, wCol, smoothstep(0.01,0.3,wabs));
+    col += wEdge*wedge*0.55;
   }
   /* walls */
   float dd = texture(uLevel,vUv).r;

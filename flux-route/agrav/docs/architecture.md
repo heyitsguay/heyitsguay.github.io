@@ -175,7 +175,7 @@ programs, and provides the actor table helpers. This is the "hardware layer."
 | actors | F32 | 64×4 | yes | Actor table (§9.1) |
 | scoreAcc | F32 | SIM | yes | Per-cell delivered dye accumulator |
 | regionsTex | RGBA8 | SIM | no | Zone map: R=sink, G=drain, B=trigger, A=sensor |
-| walls | RG16F | SIM | yes | R=slate (erodible), G=steel (blast-proof) |
+| walls | R16F | SIM | yes | R=log(pressure threshold); >0 erodible, <0 indestructible, 0=empty |
 | dyn | RGBA16F | SIM | yes | R=dynamite charge, GB=lane direction |
 | wake | R16F | SIM | yes | Predator wake field |
 | swState | RGBA16F | 8×1 | yes | Switch state (bank/timer/latched/flux) |
@@ -343,7 +343,7 @@ readInput() ──→ inputRef.inputVec ──→ substep()
  wallPaint     (if shift+drag held: user paints walls/lanes)
  dynUpdate   ──→ dyn.swap()         (dynamite deposit/burn, lane passthrough)
  wallErode   ──→ walls.swap()       (blast-pressure erodes slate boundary px)
- matPack     ──→ matPackRT          (pack slate+lane+steel pixel counts)
+ matPack     ──→ matPackRT          (pack soft-wall+lane+concrete+steel pixel counts)
  reduce(matPackRT) ──→ matSum       (1×1 well totals for readback)
  switchSense ──→ swState.swap()     (if level has switches)
  updateNests / checkPickups         (CPU-timed spawning, item collection)
@@ -447,7 +447,7 @@ three `readPixels` calls into the same PBO at different byte offsets:
 | ... | px 2..65 | Actor row 0 for slots 0..63 |
 | `[TELEM_W*4..]` | swState px 0 | R=bank (volume) or instant (flow), G=hold timer, B=latched flag (>0.5=yes), A=instant flux |
 | `[TELEM_W*4+4..]` | swState px 1-7 | Same layout for switches 1..7 (max 8) |
-| `[(TELEM_W+8)*4..]` | matSum | R=slate pixel count, G=lane pixel count, B=steel pixel count, A=1 |
+| `[(TELEM_W+8)*4..]` | matSum | R=soft wall (sand+slate) px, G=lane px, B=concrete px, A=steel px |
 
 **Important:** matSum values are in active-resolution pixels. CPU divides
 by `RES_SCALE²` to get reference-resolution counts for well comparison:
@@ -550,7 +550,7 @@ canonical serialize-then-extend workflow.
   playerStart: [u, v],                       // UV coords, v is UP
   win: { fraction: 0.25, holdSec: 6 },       // sustained captureEMA target
   budgets: { fan: 8, blue: 3, green: 3 },    // tool item counts
-  wells: { slate: 1500, steel: 800, lanes: 1500 },  // matter pixel budgets
+  wells: { slate: 2000, concrete: 800, steel: 400, lanes: 1500 },  // matter pixel budgets (sand+slate share "slate")
   config: { curl: 6.0, dragK: 1.5 },         // per-level param overrides
   allowNudge: true,                          // (legacy: player can nudge actors)
   polys: [...], actors: [...], switches: [...],
@@ -610,7 +610,7 @@ cut targets). Coordinates are UV `[0,1]²`, v UP.
 **Pickup `gives` values:**
 `"fan"`, `"blue"`, `"green"` — tool budget +count.
 `"spin1"`, `"spin2"`, `"spin3"` — spin tier upgrade (monotonic per level).
-`"slate"`, `"steel"`, `"lanes"` — well capacity +count pixels.
+`"sand"`, `"slate"`, `"concrete"`, `"steel"`, `"lanes"` — well capacity +count pixels.
 
 ### 12.4 Switch schema (§41)
 

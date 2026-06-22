@@ -97,7 +97,7 @@ function readInput() {
   const l = Math.hypot(x, y);
   inputVec = l > 0 ? [x / l, y / l] : [0, 0];
   inputRef.inputVec = inputVec;
-  spinInput = (keys.has("q") ? 1 : 0) - (keys.has("e") ? 1 : 0);
+  spinInput = (keys.has("u") ? 1 : 0) - (keys.has("o") ? 1 : 0);
   if (S.touchSpin) spinInput = S.touchSpin;
   inputRef.spinInput = spinInput;
   if (S.touchSteer && S.rotateModeSlot < 0 && S.state === "PLAY") {
@@ -155,14 +155,14 @@ function spawnAtPlayer() {
   S.emitRate = _cb.redEmitRate();
   _cb.syncBudgetInputs();
 }
-function paintWall(uv, add, chan) {
+function paintWall(uv, add, tough) {
   runFS(P.wallPaint, walls.write, p => {
     bindTex(p, "uWalls", walls.read.tex, 0);
     gl.uniform2f(U(p, "uSimTexel"), SIM_TEXEL[0], SIM_TEXEL[1]);
     gl.uniform2f(U(p, "uPaintPos"), uv[0], uv[1]);
     gl.uniform1f(U(p, "uPaintR"), params.wallBrush * RES_SCALE);
     gl.uniform1f(U(p, "uPaintMode"), add ? 1 : 0);
-    gl.uniform1f(U(p, "uPaintChan"), chan || 0);
+    gl.uniform1f(U(p, "uPaintTough"), tough);
   });
   walls.swap();
 }
@@ -438,13 +438,34 @@ function buildToolbar() {
   });
   refreshToolbar();
 }
+/* ---------- developer mode: secret keypress sequence ---------- */
+const DEV_SEQ = "bullfrog";
+let devSeqPos = 0;
+
 window.addEventListener("keydown", e => {
   const tag = (e.target.tagName || "").toUpperCase();
   if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
   const k = e.key.toLowerCase();
   keys.add(k);
-  if (k === "escape") { if (S.levelIdx >= 0) _cb.loadLevel(-1); return; }
-  if (S.levelIdx < 0 && k !== "t" && k !== "tab") return;
+  /* secret sequence: track at title screen regardless of other key handling */
+  if (S.levelIdx < 0 && !S.devMode && k.length === 1) {
+    if (k === DEV_SEQ[devSeqPos]) {
+      devSeqPos++;
+      if (devSeqPos >= DEV_SEQ.length) {
+        S.devMode = true;
+        devSeqPos = 0;
+        if (_cb.devFlash) _cb.devFlash();
+      }
+    } else {
+      devSeqPos = (k === DEV_SEQ[0]) ? 1 : 0;
+    }
+  }
+  if (k === "escape") {
+    if (S.editMode) { _cb.exitEditor(); }
+    else if (S.levelIdx >= 0) _cb.loadLevel(-1);
+    return;
+  }
+  if (S.levelIdx < 0 && k !== "t" && k !== "tab" && k !== "/" && e.key !== "?") return;
   const digit = e.code && e.code.indexOf("Digit") === 0 ? e.code.slice(5) : null;
   if (digit === "1") { S.selectedTool = 0; refreshToolbar(); }
   else if (digit === "2") { S.selectedTool = 1; refreshToolbar(); }
@@ -456,20 +477,67 @@ window.addEventListener("keydown", e => {
   else if (k === "[") { if (S.selectedSlot >= 1) rotateSelected(1); }
   else if (k === "]") { if (S.selectedSlot >= 1) rotateSelected(-1); }
   else if (k === "r" && !S.editMode) _cb.loadLevel(S.levelIdx);
-  else if (k === ",") _cb.loadLevel(S.levelIdx - 1);
-  else if (k === ".") _cb.loadLevel(S.levelIdx + 1);
-  else if (k === "n" && S.state === "WIN") _cb.loadLevel(S.levelIdx + 1);
+  else if (k === "," && S.devMode) _cb.loadLevel(S.levelIdx - 1);
+  else if (k === "." && S.devMode) _cb.loadLevel(S.levelIdx + 1);
+  else if (k === "n" && S.state === "WIN" && S.devMode) _cb.loadLevel(S.levelIdx + 1);
   else if (k === " ") { S.paused = !S.paused; e.preventDefault(); }
   else if (k === "tab") { S.debugMode = (S.debugMode + 1) % 11; e.preventDefault(); }
-  else if (k === "t") _cb.togglePanel();
+  else if (k === "t" && S.devMode) _cb.togglePanel();
   else if (k === "x") {           /* demo of event-driven chemistry pulses */
     pulseParam("exoConsume", 0.15, 2.5);
     pulseParam("exoForce", params.exoForce * 3, 2.5);
   }
   if (["arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) e.preventDefault();
+  if (e.key === "?" || e.key === "/") toggleShortcutHelp();
 });
 window.addEventListener("keyup", e => keys.delete(e.key.toLowerCase()));
 
+/* ---------- unified shortcut help overlay ---------- */
+const shortcutEl = document.getElementById("shortcutHelp");
+let shortcutOpen = false;
+function K(key, desc) { return `<span class="sk">${key}</span>${desc}`; }
+function buildShortcutHelp() {
+  const lines = [
+    '<div class="sh">MOVEMENT</div>',
+    K("W A S D", "move"), K("U / O", "spin CW / CCW"),
+    K("Arrows", "move (alt)"),
+    '', '<div class="sh">TOOLS</div>',
+    K("1-3", "fan / blue / green"), K("4-5", "slate / steel walls"),
+    K("6", "flow lane"), K("0", "deselect tool"),
+    K("[ ]", "rotate hovered"),
+    K("Shift", "aim mode"), K("Shift+Click", "place / paint"),
+    K("Shift+RClick", "delete hovered"),
+    '', '<div class="sh">GAME</div>',
+    K("R", "reset level"),
+    K("Space", "pause"), K("ESC", "menu"),
+  ];
+  if (S.devMode) {
+    lines.push('', '<div class="sh">DEVELOPER</div>');
+    lines.push(K("T", "tuning panel"), K("Tab", "cycle debug view"));
+    lines.push(K("N", "next level (after win)"), K(", .", "prev / next level"));
+    lines.push(K("X", "chemistry pulse demo"));
+  }
+  if (S.editMode) {
+    lines.push('', '<div class="sh">EDITOR MODES</div>');
+    lines.push(K("J", "select"), K("I", "entity (place)"));
+    lines.push(K("L", "rectangle (box)"), K("K", "polygon"));
+    lines.push('', '<div class="sh">EDITOR ACTIONS</div>');
+    lines.push(K("Enter", "close polygon"), K("R", "restart simulation"));
+    lines.push(K("Del", "delete selected"), K("Ctrl+Z", "undo"));
+    lines.push(K("Y", "toggle editor panel"));
+  }
+  lines.push('', '<div class="sd">press / to close</div>');
+  shortcutEl.innerHTML = lines.join("\n");
+}
+function toggleShortcutHelp() {
+  shortcutOpen = !shortcutOpen;
+  if (shortcutOpen) buildShortcutHelp();
+  shortcutEl.style.display = shortcutOpen ? "block" : "none";
+}
+function hideShortcutHelp() {
+  shortcutOpen = false;
+  shortcutEl.style.display = "none";
+}
 
 export {
   keys, readInput,
@@ -478,5 +546,5 @@ export {
   updateSelection, updateGhost,
   refreshToolbar, buildToolbar,
   canvasUV, clampToReach, nearestAdjustable, aimSlotAt,
-  placementValid,
+  placementValid, hideShortcutHelp,
 };

@@ -55,32 +55,45 @@ const TELEM_W = 2 + N_ACTORS;
 // emission constant: gaussian integral 0.694 * (3r·ratio)² dye texels / ratio² downsample = 6.25r²
 const EMIT_K = 6.25;
 
+/* wall toughness constants: walls.r = log(pressure threshold).
+ * Positive = erodible at that threshold; negative = indestructible.
+ * Sand → slate → concrete → steel is ~10× toughness per tier. */
+const SAND_TOUGH     = Math.log(90);     // ≈ 3.00
+const SLATE_TOUGH    = Math.log(316);     // ≈ 4.38
+const CONCRETE_TOUGH = Math.log(800);    // ≈ 6.68
+const STEEL_TOUGH    = Math.log(8000);   // ≈ 8.99
+const WALL_INDESTRUCTIBLE = -1;          // convention: < 0 = never erodes
+
 const DEFAULT_PARAMS = {
   curl: 4.5, velDiss: 0.04, dyeDiss: 0.005, absorb: 6, solidDecay: 0, drainRate: 15.8,
   viscRed: 1.0, viscGreen: 10.0, viscBlue: 0.1,
   curlRed: 1.0, curlGreen: 0.01, curlBlue: 4.0,
   fanStrength: 451.9, emitScale: 0.051, blueEmitStrength: 350, greenEmitStrength: 716.1,
   entityScale: 1.0,
-  thrust: 1.08, dragK: 1.2, flowPush: 0.65, linDamp: 2.5,
-  spinAccel: 18.5, spinDamp: 0.05, spinKick: 0.05,
+  thrust: 2.0, dragK: 4.65, flowPush: 1.0, linDamp: 2.5,
+  spinAccel: 20.5, spinDamp: 0.05, spinKick: 0.05, spinHeat: 5,
   playerMass: 1.5, predMass: 1.6, pistonMass: 8, restitution: 0.9, bounceFloor: 30,
   pistonSpring: 90, pistonDamp: 5, predSuck: 1200, predSense: 12, predGreed: 30, predTtl: 14,
   wakeDeposit: 12.0, wakeDiss: 20.0, wakeCurl: 8.0, wakeSlow: 0.07, wakeFast: 1.6, wakeKnee: 0.5,
-  gelReact: 6, gelDissolve: 0.02, gelErode: 0.01, gelDrag: 12.9, gelSolid: 1.0, gelConsume: 0.1, gelSelfCat: 6.9, gelHotThresh: 3.75,
+  gelReact: 0.86398, gelDissolve: 0.04, gelErode: 0.3, gelDrag: 12.9, gelSolid: 1.0, gelConsume: 0.4, gelSelfCat: 6.9, gelHotThresh: 3.75, gelMeltRate: 4.0,
   exoForce: 9638, exoKnee: 0.45, stagBoost: 32.6, stagSpeed: 0.3319, exoConsume: 0.35, eatRate: 12.0,
   dynForm: 6, dynTrigger: 0.06, dynForce: 7413, dynBurn: 60, dynRed: 0.06325,
-  laneForce: 700, laneBrush: 5, wallTough: 79.24,
+  laneForce: 700, laneBrush: 5,
+  sandFloor: 3.7,       /* log-threshold separating sand from slate in matPack */
+  concreteFloor: 5.5,  /* log-threshold separating slate from concrete in matPack */
+  steelFloor: 7.8,     /* log-threshold separating concrete from steel in matPack */
   wallBrush: 7,
-  warmStart: 0.8, tonemapK: 0.08, bloomStr: 0.16, bloomThr: 2.85,
-  hueShift: 0.01, flowGlow: 2.0, streak: 2.62, curlTint: 0.7, schlieren: 0.52, speciesFx: 0.1,
+  warmStart: 0.8, tonemapK: 0.08, bloomStr: 0.16, bloomThr: 2.85, redBloomBoost: 0.85,
+  hueShift: 0.01, flowGlow: 2.0, streak: 2.62, curlTintRed: 0.19, curlTintGreen: 0.25, curlTintBlue: 1.8, schlieren: 0.52, speciesFx: 0.1,
   gelGlow: 1.5,
   winScale: 1.0,
   /* temperature evolution */
-  tempDiss: 0.01641, tempHeatRate: 1.738,
+  tempDiss: 0.01641, tempDiffuse: 0.5, tempHeatRate: 1.738,
   gelHeatAbsorb: 2.0, dynHeat: 20.0,
   tempCoolLinear: 0.1413, tempCoolQuad: 0.1318,
   tempAmbient: 0.1, tempAmbientRestore: 0.5,
   tempMax: 10.0, tempEmitScale: 1.0, tempZoneRate: 5.0, tempScale: 1.9,
+  multClamp: 200,   /* multiplier zone max dye intensity; 0 = unlimited */
   /* temperature → physics couplings */
   activation: 1.23, arrhScale: 2.1, reactFloor: 0.2, viscTempK: 2.4,
   coldDamp: 4.5, coldScale: 7.6,
@@ -108,6 +121,7 @@ export {
   SIM_W, SIM_H, DYE_W, DYE_H, N_ACTORS, ACTOR_ROWS,
   DT, MAX_SUBSTEPS, PRESSURE_ITERS, BLUR_PASSES, GEL_ON,
   SIM_TEXEL, RES_SCALE, TELEM_W, EMIT_K,
+  SAND_TOUGH, SLATE_TOUGH, CONCRETE_TOUGH, STEEL_TOUGH, WALL_INDESTRUCTIBLE,
   DEFAULT_PARAMS, params, dirtyKeys,
   pulses, pulseParam, PV, anyPulseActive, effScale
 };

@@ -1,0 +1,285 @@
+{
+  "fluxLevel": 1,
+  "name": "E1 - P2: Swimming",
+  "playerStart": [
+    0.671875,
+    0.375
+  ],
+  "win": {
+    "threshold": 1700,
+    "holdSec": 2
+  },
+  "budgets": {
+    "fan": 0,
+    "blue": 0,
+    "green": 0
+  },
+  "wells": {
+    "slate": 0,
+    "steel": 0,
+    "lanes": 0
+  },
+  "polys": [
+    {
+      "kind": "flow",
+      "pts": [
+        [
+          0.625,
+          0.25
+        ],
+        [
+          0.7188,
+          0.25
+        ],
+        [
+          0.7188,
+          0.2917
+        ],
+        [
+          0.625,
+          0.2917
+        ]
+      ],
+      "id": "flow1",
+      "angle": 1.5707963267948966,
+      "strength": 2.2,
+      "powered": false,
+      "_active": true,
+      "enabled": true
+    },
+    {
+      "kind": "flow",
+      "pts": [
+        [
+          0.6016,
+          0.2917
+        ],
+        [
+          0.625,
+          0.2917
+        ],
+        [
+          0.625,
+          0.4583
+        ],
+        [
+          0.6016,
+          0.4583
+        ]
+      ],
+      "id": "flow2",
+      "angle": 0,
+      "strength": 1,
+      "powered": false,
+      "_active": true,
+      "enabled": true
+    },
+    {
+      "kind": "flow",
+      "pts": [
+        [
+          0.625,
+          0.4583
+        ],
+        [
+          0.7188,
+          0.4583
+        ],
+        [
+          0.7188,
+          0.5
+        ],
+        [
+          0.625,
+          0.5
+        ]
+      ],
+      "id": "flow3",
+      "angle": -1.5707963267948966,
+      "strength": 1.0,
+      "powered": false,
+      "_active": true,
+      "enabled": true
+    },
+    {
+      "kind": "flow",
+      "pts": [
+        [
+          0.7188,
+          0.2917
+        ],
+        [
+          0.7422,
+          0.2917
+        ],
+        [
+          0.7422,
+          0.4583
+        ],
+        [
+          0.7188,
+          0.4583
+        ]
+      ],
+      "id": "flow4",
+      "angle": 3.141592653589793,
+      "strength": 2.2,
+      "powered": false,
+      "_active": true,
+      "enabled": true
+    },
+    {
+      "kind": "win",
+      "pts": [
+        [
+          0.25,
+          0.7083
+        ],
+        [
+          0.2969,
+          0.7083
+        ],
+        [
+          0.2969,
+          0.75
+        ],
+        [
+          0.25,
+          0.75
+        ]
+      ],
+      "id": "win1",
+      "_active": true
+    },
+    {
+      "kind": "media",
+      "pts": [
+        [
+          0.625,
+          0.2917
+        ],
+        [
+          0.7188,
+          0.2917
+        ],
+        [
+          0.7188,
+          0.4583
+        ],
+        [
+          0.625,
+          0.4583
+        ]
+      ],
+      "id": "media1",
+      "curl": 8,
+      "velDiss": 6,
+      "dyeDiss": 6,
+      "_active": true,
+      "enabled": true
+    }
+  ],
+  "actors": [
+    {
+      "type": 3,
+      "r": 5,
+      "strength": 300,
+      "dye": [
+        1,
+        0,
+        0
+      ],
+      "angle": 0,
+      "locked": true,
+      "rotatable": true,
+      "pos": [
+        0.26171875,
+        0.5208333134651184
+      ],
+      "tunable": false,
+      "minStrength": 80,
+      "maxStrength": 1500,
+      "id": "",
+      "enabled": true
+    },
+    {
+      "type": 2,
+      "r": 6,
+      "strength": 420,
+      "angle": 0,
+      "rotatable": false,
+      "pos": [
+        0.5078125,
+        0.4166666567325592
+      ],
+      "locked": true,
+      "tunable": false,
+      "minStrength": 80,
+      "maxStrength": 1500,
+      "id": "",
+      "enabled": true
+    },
+    {
+      "type": 2,
+      "r": 6,
+      "strength": 420,
+      "angle": 0,
+      "rotatable": false,
+      "pos": [
+        0.5078125,
+        0.3333333432674408
+      ],
+      "locked": true,
+      "tunable": false,
+      "minStrength": 80,
+      "maxStrength": 1500,
+      "id": "",
+      "enabled": true
+    },
+    {
+      "type": 2,
+      "r": 6,
+      "strength": 420,
+      "angle": -1.5707963267948966,
+      "rotatable": false,
+      "pos": [
+        0.6484375,
+        0.6666666865348816
+      ],
+      "locked": true,
+      "tunable": false,
+      "minStrength": 80,
+      "maxStrength": 1500,
+      "id": "",
+      "enabled": true
+    },
+    {
+      "type": 2,
+      "r": 6,
+      "strength": 420,
+      "angle": -1.5707963267948966,
+      "rotatable": false,
+      "pos": [
+        0.6953125,
+        0.6666666865348816
+      ],
+      "locked": true,
+      "tunable": false,
+      "minStrength": 80,
+      "maxStrength": 1500,
+      "id": "",
+      "enabled": true
+    }
+  ],
+  "size": "medium",
+  "events": [
+    { "at": 1.2, "do": [{ "callout": { "text": "Use *WASD* to swim", "at": [0.495, 0.59], "dur": 3.0, "size": 1.5 } }] },
+    { "after": 3.2, "do": [{ "callout": { "text": "The flow moves you", "at": [0.495, 0.59], "dur": 3.0, "size": 1.5 } }] },
+    { "after": 3.2, "do": [{ "callout": { "text": "You move the flow", "at": [0.495, 0.59], "dur": 3.0, "size": 1.5 } }] },
+    { "after": 3.2, "do": [
+        { "callout": {"text": "Move *red dye* here to win", "at": [0.38, 0.69], "dur": 3.0, "size": 1.5 } },
+        { "emphasize": {"poly": "win1", "dur": 3, "level": "high" } }
+      ]
+    }
+  ]
+}

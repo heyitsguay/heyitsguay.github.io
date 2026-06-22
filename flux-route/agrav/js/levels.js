@@ -1,8 +1,9 @@
 /* FLUX ROUTE — level loading, painting, curLevel().
  *
- * Levels are loaded from JSON files listed in LEVEL_MANIFEST.
- * loadLevels() fetches each JSON and calls dataLevel() to produce
- * LEVELS entries with auto-generated paint() from polygon data.
+ * Levels are discovered dynamically from levels/manifest.json (generated
+ * by gen-manifest.sh). loadLevels() fetches the manifest, then each level
+ * JSON, calling dataLevel() to produce LEVELS entries with auto-generated
+ * paint() from polygon data.
  *
  * ## Exports
  *   LEVELS               Array of level objects (populated by loadLevels)
@@ -96,7 +97,7 @@ function dataLevel(d, extra) {
   return Object.assign({
     name: d.name || "custom",
     size: d.size || "full",
-    winFraction: d.win && d.win.fraction != null ? d.win.fraction : 0.2,
+    winThreshold: (d.win && d.win.threshold) || 200,
     winHoldSec: (d.win && d.win.holdSec) || 4,
     playerStart: d.playerStart || [0.25, 0.5],
     budgets: d.budgets || {}, wells: d.wells || {}, config: d.config || {},
@@ -119,45 +120,40 @@ function dataLevel(d, extra) {
 window.fluxLevelFromJSON = (json, extra) =>
   dataLevel(typeof json === "string" ? JSON.parse(json) : json, extra);
 
-/* ---------- level manifest: epochs → JSON files ---------- */
-const LEVEL_MANIFEST = [
-  {
-    id: "E1", name: "Epoch 1: Foundations", files: [
-      "levels/e1-t1_welcome.json",
-    ]
-  },
-  {
-    id: "D1", name: "Developer Levels", files: [
-      "levels/d1-t1_reaction-chambers.json",
-    ]
-  },
-];
+/* ---------- level manifest: loaded from levels/manifest.json ---------- */
 
 const LEVELS = [];
-const EPOCHS = [];   /* populated by loadLevels: [{id, name, levels: [{idx, thumb},...]}] */
+const EPOCHS = [];   /* populated by loadLevels: [{id, name, group, levels: [{idx, thumb},...]}] */
 
 async function loadLevels() {
   LEVELS.length = 0;
   EPOCHS.length = 0;
-  for (const ep of LEVEL_MANIFEST) {
-    const epochEntry = { id: ep.id, name: ep.name, levels: [] };
-    for (const file of ep.files) {
-      const resp = await fetch(file);
-      if (!resp.ok) { console.error("failed to load level:", file); continue; }
-      const json = await resp.json();
-      const idx = LEVELS.length;
-      const level = dataLevel(json);
-      level.thumb = file.replace(/\.json$/, ".png");
-      LEVELS.push(level);
-      epochEntry.levels.push({ idx, thumb: level.thumb });
+  const resp = await fetch("levels/manifest.json");
+  if (!resp.ok) { console.error("failed to load levels/manifest.json"); return; }
+  const manifest = await resp.json();
+  for (const group of ["game-epochs", "developer-epochs"]) {
+    const epochs = manifest[group] || {};
+    for (const [id, epochData] of Object.entries(epochs)) {
+      const epochEntry = { id, name: epochData.name, group, levels: [] };
+      for (const file of epochData.levels || []) {
+        const path = "levels/" + file;
+        const r = await fetch(path);
+        if (!r.ok) { console.error("failed to load level:", path); continue; }
+        const json = await r.json();
+        const idx = LEVELS.length;
+        const level = dataLevel(json);
+        level.thumb = path.replace(/\.json$/, ".png");
+        LEVELS.push(level);
+        epochEntry.levels.push({ idx, thumb: level.thumb });
+      }
+      EPOCHS.push(epochEntry);
     }
-    EPOCHS.push(epochEntry);
   }
 }
 
 /* attract mode: the machine dreaming. No player, no zones, no HUD. */
 const ATTRACT_LEVEL = {
-  name: "", winFraction: 99, winHoldSec: 1e9,
+  name: "", winThreshold: 1e9, winHoldSec: 1e9,
   budgets: { fan: 0, blue: 0, green: 0 },
   playerStart: [-1, -1],
   config: { dyeDiss: 0.06, schlieren: 0.9, curlTint: 0.45, tempAmbient: 0.25, tempMax: 1, tonemapK: 0.25, bloomStr: 0.2 },

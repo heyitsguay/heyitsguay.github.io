@@ -199,10 +199,10 @@ const regionsTex = makeTex(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl
 const levelPngTex = makeTex(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.NEAREST);
 const mediaTex  = makeTex(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.FLOAT, gl.LINEAR);
 const wake = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);
-const walls = makePP(SIM_W, SIM_H, gl.RG16F, gl.RG, gl.HALF_FLOAT, gl.LINEAR);  /* r=slate (erodible), g=steel */
+const walls = makePP(SIM_W, SIM_H, gl.R16F, gl.RED, gl.HALF_FLOAT, gl.LINEAR);  /* r=toughness (log threshold), <0=indestructible */
 const swState = makePP(8, 1, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
 const dyn = makePP(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.LINEAR);  /* r=charge, gb=lane dir */
-const matPackRT = makeRT(SIM_W, SIM_H, gl.RG16F, gl.RG, gl.HALF_FLOAT, gl.NEAREST);
+const matPackRT = makeRT(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, gl.NEAREST);
 const matSum = makeRT(1, 1, F32.internal, gl.RGBA, F32.type, gl.NEAREST);
 const maskTex = makeTex(SIM_W, SIM_H, gl.R16F, gl.RED, gl.FLOAT, gl.NEAREST);
 clearRT(gel.a); clearRT(gel.b); clearRT(wake.a); clearRT(wake.b); clearRT(walls.a); clearRT(walls.b); clearRT(swState.a); clearRT(swState.b); clearRT(dyn.a); clearRT(dyn.b);
@@ -318,7 +318,8 @@ function actorRecord(a) {
     const sp = gv === "blue" ? [0, 0, 1] : gv === "green" ? [0, 1, 0]
       : gv === "wallAdd" ? [0.8, 0.5, 0] : gv === "wallErase" ? [1, 0.1, 0]
       : gv.indexOf("spin") === 0 ? [1, 0.12, 0.08]
-      : gv === "slate" ? [0.62, 0.66, 0.74] : gv === "steel" ? [0.78, 0.82, 0.92]
+      : gv === "sand" ? [0.85, 0.75, 0.55] : gv === "slate" ? [0.62, 0.66, 0.74] : gv === "concrete" ? [0.55, 0.52, 0.48]
+      : gv === "steel" ? [0.78, 0.82, 0.92]
       : gv === "lanes" ? [0.2, 0.75, 0.85] : [1, 1, 1];
     f[10] = sp[0]; f[11] = sp[1]; f[12] = sp[2];
     f[6] = gv.indexOf("spin") === 0 ? (+gv[4] || 0) : 0;   // glyph throb tier

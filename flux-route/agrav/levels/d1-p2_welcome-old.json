@@ -2,7 +2,7 @@
   "fluxLevel": 1,
   "name": "D1 - P2: Welcome (Old)",
   "playerStart": [0.6156, 0.5],
-  "win": { "fraction": 0.25, "holdSec": 6 },
+  "win": { "threshold": 500, "holdSec": 6 },
   "budgets": { "fan": 8, "blue": 3, "green": 3 },
   "wells": { "slate": 1500, "steel": 800, "lanes": 1500 },
   "size": "medium",

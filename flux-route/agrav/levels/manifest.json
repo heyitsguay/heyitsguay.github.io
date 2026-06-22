@@ -1,0 +1,22 @@
+{
+  "game-epochs": {
+    "e1": {
+      "name": "Epoch 1: Foundations",
+      "levels": [
+        "e1-p1_welcome.json",
+        "e1-p2_swimming.json",
+        "e1-p3_spinning.json",
+        "e1-p4_rotating.json"
+      ]
+    }
+  },
+  "developer-epochs": {
+    "d1": {
+      "name": "Developer Levels",
+      "levels": [
+        "d1-p1_reaction-chambers.json",
+        "d1-p2_welcome-old.json"
+      ]
+    }
+  }
+}
