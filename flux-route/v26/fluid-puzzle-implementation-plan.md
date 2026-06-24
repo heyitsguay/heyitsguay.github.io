@@ -58,12 +58,9 @@ Constraints:
 
 Non-goals (do not build):
 - Networked play, replays, cross-machine determinism.
-- Rigid bodies with rotation / pressure-integrated torque.
 - GPU-initiated entity spawning (entities deciding to spawn other entities
   based on field state). All spawning is CPU-initiated or follows the
   spawn-relative-to-entity protocol in Section 9.5.
-- Mobile/touch support beyond "doesn't crash"; keyboard+mouse is the target.
-- A level editor UI (but the level *format* must make external editing trivial).
 
 ## 3. Architecture overview
 
@@ -102,7 +99,7 @@ the texture it is rendering to.
 Get these right once; every shader below assumes them.
 
 - **UV space**: all positions are stored in UV coordinates `[0,1]²` over the
-  tank. The tank is the full 1280×720 window (minus chrome). Sim grid and dye
+  tank. The tank is a variable-sized window with fixed 16:9 or 9:16 aspect ratio. Sim grid and dye
   grid share this UV space, so a position is meaningful against any texture.
 - **Field velocity units**: the velocity field stores **sim texels per
   second**. To convert to UV/sec multiply by `uSimTexel` (= `1/simRes`).
@@ -1171,8 +1168,8 @@ time spent experimenting, which is the whole activity now. Replace it:
   with a hold-progress tick; cumulative % remains as a secondary readout.
 - Telemetry latency (~2–3 frames) is absorbed by the EMA; no change needed.
 
-**Control scheme rework** (forced by §24 claiming Q/E):
-- WASD/arrows: steer. Q/E: player spin (§24). F: drop fan at player.
+**Control scheme rework** (forced by §24 claiming U/O):
+- WASD/arrows: steer. U/O: player spin (§24). F: drop fan at player.
 - Mouse hover within pick radius (0.05 UV, from telemetry positions) selects
   the nearest *adjustable* actor — fans AND emitters, excluding `locked` and
   pistons. Selection is shown by a brightened ring (pass a `uSelected` slot
@@ -1451,10 +1448,10 @@ Acceptance: a flux gate opens ~0.5 s after a stream crosses its sensor, shuts
 (with dwell) when the stream is cut; the player circling fast through a sensor
 alone can hold it open; a trigger+flux two-stage lock level is solvable.
 
-## 24. Player spin (Q/E) with emergent Magnus
+## 24. Player spin (U/O) with emergent Magnus
 
 State: r2.z = angular velocity ω (rad/s), r2.w = accumulated angle θ (for the
-glyph). Both rows are free for the player. Input: Q/E held →
+glyph). Both rows are free for the player. Input: U/O held →
 `uSpinInput ∈ {-1,0,1}` uniform; in the player block:
 `ω += uSpinInput*uSpinAccel*uDt; ω *= exp(-uSpinDamp*uDt); θ += ω*uDt;`
 (uSpinAccel ~12 rad/s², uSpinDamp ~1.2 /s.)
@@ -1723,7 +1720,7 @@ their mouths before eating the dye — and now body-check the player.
 ## 36. Spin budget — SUPERSEDED by §46 (spin tiers); do not implement
 
 Per-level metered spin: seconds of applied spin input (default generous, 30 s;
-`level.spinBudget` overrides; slider-tunable). Consumed only while Q/E is held;
+`level.spinBudget` overrides; slider-tunable). Consumed only while U/O is held;
 HUD shows remaining. Rationale: spin is the most powerful free verb (Magnus,
 erosion, sensor-feeding); a soft meter turns it from an exploit into a spend.
 

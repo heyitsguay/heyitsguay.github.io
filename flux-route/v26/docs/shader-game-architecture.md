@@ -1,6 +1,6 @@
 # FLUX ROUTE — Shader-Based Game Architecture
 
-> Last updated: 2026-06-21
+> Last updated: 2026-06-24
 
 ## Design Philosophy
 
@@ -82,7 +82,7 @@ Each column is one actor slot (0 = player, 1–63 = entities). Each row stores 4
 
 ## 2. Substep Pass Sequence
 
-Each substep executes 14+ GPU passes. The ordering is critical — each pass depends on outputs from previous passes.
+Each substep executes 15+ GPU passes. The ordering is critical — each pass depends on outputs from previous passes.
 
 ```
 substep() {
@@ -131,7 +131,10 @@ substep() {
   │      Zone absorption, solid decay, gel/dyn chemistry, temperature evolution,
   │      friction heat injection, temperature diffusion, multiplier zones
   │
-  └─ 14. scoreAccum ──→ scoreAcc.swap()  [reads: scoreAcc, dye(pre-absorption), regions]
+  ├─ 14. dynUpdate ──→ dyn.swap()        [reads: dye, dyn]
+  │      Dynamite charge evolution (per-substep for fast chain reactions)
+  │
+  └─ 15. scoreAccum ──→ scoreAcc.swap()  [reads: scoreAcc, dye(pre-absorption), regions]
 }
 ```
 

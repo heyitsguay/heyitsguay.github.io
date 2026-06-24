@@ -1,6 +1,6 @@
 # FLUX ROUTE — Codebase Overview
 
-> Last updated: 2026-06-21
+> Last updated: 2026-06-24
 
 ## What This Is
 
@@ -30,7 +30,7 @@ agrav/
 │   ├── state.js             Shared mutable state bag (S), tools, species vectors
 │   ├── config.js            Quality presets, DEFAULT_PARAMS, pulse system
 │   ├── gl-core.js           WebGL2 context, ALL GPU resources, shader compilation
-│   ├── simulation.js        Physics substep pipeline (14 GPU passes per tick)
+│   ├── simulation.js        Physics substep pipeline (15 GPU passes per tick)
 │   ├── input.js             Keyboard, mouse, touch, toolbar, tool placement
 │   ├── levels.js            Level loading, manifest parsing, canvas painting
 │   ├── main.js              Boot, frame loop, HUD, scoring, switches, events
@@ -38,7 +38,7 @@ agrav/
 │   └── editor.js            Level editor (dev mode), lil-gui, poly/entity editing
 ├── shaders/
 │   ├── common.js            Shared GLSL snippets (FRAG_HEADER, OBST, ZONES, SPECIES)
-│   ├── sources.js           All fragment shader source strings (~57KB, ~1370 lines)
+│   ├── sources.js           All fragment shader source strings (~62KB, ~1470 lines)
 │   └── index.js             Assembles GLSL object consumed by gl-core.js
 ├── levels/
 │   ├── manifest.json        Auto-generated level registry (game-epochs + developer-epochs)
@@ -123,7 +123,8 @@ Each frame runs 1–4 substeps at DT = 1/120s. Each substep executes these GPU p
 11. **pressure projection** — divergence → Jacobi iteration → gradient subtract
 12. **advect dye** — at DYE resolution (higher than SIM)
 13. **dyePost** — zone absorption, solid decay, gel/dynamite chemistry, temperature
-14. **scoreAccum** — accumulate delivered dye for win condition
+14. **dynUpdate** — dynamite charge evolution (per-substep for fast chain reactions)
+15. **scoreAccum** — accumulate delivered dye for win condition
 
 ### Splat Mechanism
 N_ACTORS (64) instanced quads drawn with additive blending. The vertex shader culls instances by type. Four target types: velocity force, dye, boundary mask, wake.
@@ -234,8 +235,8 @@ Activated by typing **BULLFROG** (case-insensitive) at the title screen. Provide
 | Key | Action |
 |-----|--------|
 | W/A/S/D, Arrows | Move |
-| U / O | Spin CW / CCW |
-| 1-6 | Select tool |
+| U / O | Spin CCW / CW |
+| 1-6 | Select tool (fan, blue, green, sand, slate, concrete; steel/lane via toolbar) |
 | 0 | Deselect tool |
 | [ ] | Rotate hovered entity |
 | Shift | Aim mode |

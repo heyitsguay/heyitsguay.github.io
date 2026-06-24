@@ -58,8 +58,8 @@ const EMIT_K = 6.25;
 /* wall toughness constants: walls.r = log(pressure threshold).
  * Positive = erodible at that threshold; negative = indestructible.
  * Sand → slate → concrete → steel is ~10× toughness per tier. */
-const SAND_TOUGH     = Math.log(90);     // ≈ 3.00
-const SLATE_TOUGH    = Math.log(316);     // ≈ 4.38
+const SAND_TOUGH     = Math.log(90);     // ≈ 4.50
+const SLATE_TOUGH    = Math.log(316);    // ≈ 5.76
 const CONCRETE_TOUGH = Math.log(800);    // ≈ 6.68
 const STEEL_TOUGH    = Math.log(8000);   // ≈ 8.99
 const WALL_INDESTRUCTIBLE = -1;          // convention: < 0 = never erodes

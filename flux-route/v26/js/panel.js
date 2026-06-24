@@ -99,7 +99,7 @@ const TIPS = {
   dragK: "Coupling rate (1/s) pulling the player toward local fluid velocity.",
   flowPush: "Fraction of local flow speed the player is dragged toward. Below 1 keeps you in control.",
   linDamp: "Player and predator velocity damping (1/s).",
-  spinAccel: "Spin-up rate while Q/E held (rad/s^2).",
+  spinAccel: "Spin-up rate while U/O held (rad/s^2).",
   spinDamp: "Top-tier spin decay (1/s); tiers multiply it by [8,4,2,1]. Terminal spin = spinAccel/damp.",
   spinKick: "Tangential kick on bounces proportional to spin: the curveball. Negative flips direction.",
   spinHeat: "Friction heat generated when spinning against walls. Heat = |spin| × penetration × this. 0 = disabled.",

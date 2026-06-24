@@ -119,7 +119,7 @@ The single source of truth for all runtime game state. Every module imports
 | `GW` | Game window rect `{f, u0, v0, u1, v1}` — the playable sub-region |
 | `SPIN_TIER_DAMP` | `[8, 4, 2, 1]` — damping multipliers per spin tier |
 | `RED, BLUE, GREEN` | Pure species vectors `[1,0,0]`, `[0,0,1]`, `[0,1,0]` |
-| `TOOLS` | Tool definitions array (fan, blue, green, wall, steel, lane) |
+| `TOOLS` | Tool definitions array (fan, blue, green, sand, slate, concrete, steel, lane) |
 
 ### 4.2 `config.js` — Constants and configuration
 
@@ -139,7 +139,7 @@ pulse system. Persists quality choice to localStorage.
 | `PV(key)` | Pulse-aware param read: returns pulse value if active, else `params[key]` |
 | `effScale()` | `entityScale * RES_SCALE` — resolution-independent entity sizing |
 | `pulseParam(key, value, dur)` | Event-driven temporary param override |
-| `SIZE_F` | Game window size map: `{small: 1/3, medium: 0.5, large: 0.75, full: 1}` |
+| `SIZE_F` | Game window size map: `{small: 0.4, medium: 0.5, large: 0.75, full: 1}` |
 | `mulberry32(seed)` | Seeded PRNG for deterministic nest spawning |
 
 ### 4.3 `gl-core.js` — WebGL2 foundation (§5, §6, §8.2, §9.1)
@@ -167,7 +167,7 @@ programs, and provides the actor table helpers. This is the "hardware layer."
 | pressure | R16F | SIM | yes | Jacobi iterate |
 | divergence | R16F | SIM | no | Per-substep scratch |
 | curlTex | R16F | SIM | no | Vorticity magnitude |
-| dye | RGBA16F | DYE | yes | RGB = 3 species concentrations |
+| dye | RGBA16F | DYE | yes | RGB = 3 species concentrations, A = temperature |
 | dynMask | RGBA16F | SIM | no | Actor coverage mask (cleared per substep) |
 | obstacle | RGBA16F | SIM | no | Composed obstacle field (§19) |
 | gel | R16F | SIM | yes | Reactive gel concentration |
@@ -176,7 +176,7 @@ programs, and provides the actor table helpers. This is the "hardware layer."
 | scoreAcc | F32 | SIM | yes | Per-cell delivered dye accumulator |
 | regionsTex | RGBA8 | SIM | no | Zone map: R=sink, G=drain, B=trigger, A=sensor |
 | walls | R16F | SIM | yes | R=log(pressure threshold); >0 erodible, <0 indestructible, 0=empty |
-| dyn | RGBA16F | SIM | yes | R=dynamite charge, GB=lane direction |
+| dyn | RGBA16F | SIM | yes | R=dynamite charge, GB=lane/flow direction, A=powered(flow)/rate(mult) |
 | wake | R16F | SIM | yes | Predator wake field |
 | swState | RGBA16F | 8×1 | yes | Switch state (bank/timer/latched/flux) |
 | telemetry | F32 | 66×1 | no | Score + actor positions for CPU readback |
@@ -184,10 +184,21 @@ programs, and provides the actor table helpers. This is the "hardware layer."
 **Actor table (§9.1):** 64 slots × 4 rows of RGBA32F.
 - Row 0: pos.xy (UV), vel.zw (UV/s)
 - Row 1: type, radius, strength/param, angle/param
-- Row 2: ttl, flags, dye.rg or spin ω/θ
-- Row 3: dye.b, spares
+- Row 2: ttl (−1=immortal), flags/enabled, varies by type, varies by type
+- Row 3: varies by type
 
-Types: 0=empty, 1=player, 2=fan, 3=emitter, 5=piston, 6=predator, 7=nest, 8=pickup
+**Row 2–3 vary by type:**
+
+| Type | r2.z | r2.w | r3.x | r3.y | r3.z | r3.w |
+|------|------|------|------|------|------|------|
+| 1 (player) | spin ω | spin θ | — | friction heat | — | — |
+| 3 (emitter) | dye.g | dye.b | dye.r | — | — | — |
+| 5 (piston) | omega | phase | — | home.x | home.y | — |
+| 6 (predator) | dye.g | wander heading | vortex spin (±1) | — | — | ttl₀ |
+| 7 (nest) | — | arm frac | — | — | — | — |
+| 8 (pickup) | species.r | species.g | species.b | — | — | — |
+
+Types: 0=empty, 1=player, 2=fan, 3=emitter, 5=piston, 6=predator, 7=nest, 8=pickup, 10=tempEmitter
 
 ### 4.4 `simulation.js` — Physics substep (§7, §9.2–9.3, §10, §19–§24)
 
@@ -208,7 +219,8 @@ sequence from §3 of the impl plan.
 11. `divergence` → `jacobi` ×N → `gradientSubtract` — pressure projection (§7.5–7.6)
 12. `advect` dye — at DYE resolution
 13. `dyePost` — zone absorption (sink/drain/trigger), solid decay, gel/dynamite chemistry
-14. `scoreAccum` — ping-pong accumulate delivered dye (pre-absorption dye, §7.8)
+14. `dynUpdate` — dynamite charge evolution (per-substep for chain reactions)
+15. `scoreAccum` — ping-pong accumulate delivered dye (pre-absorption dye, §7.8)
 
 **Readback (§10.2):** `ReadbackChannel` — ring of 3 PBOs with fence sync.
 - `kick(fbo)` — async readPixels from telemetry + swState + matSum
@@ -223,7 +235,7 @@ Handles all user input: keyboard, mouse, touch. Manages tool placement,
 wall/lane painting, item selection/rotation, and the ghost preview.
 
 **Key functions:**
-- `readInput()` — called once per frame; reads WASD/arrows into `inputVec`, Q/E into `spinInput`; updates `inputRef` for simulation.js
+- `readInput()` — called once per frame; reads WASD/arrows into `inputVec`, U/O into `spinInput`; updates `inputRef` for simulation.js
 - `updateGhost()` — positions placement preview at mouse, clamped to arm reach from player (via `S.lastTelem[8..9]`)
 - `placeTool(uv)` — validates position, allocates actor slot, writes to GPU
 - `paintWall(uv, add, chan)` / `paintLane(uv, add)` — matter painting with well checks
@@ -248,7 +260,9 @@ Level definitions and the `dataLevel()` serialization wrapper.
   LEVELS-compatible entry. `extra` merges declarative additions (events,
   custom paint). This is the serialize→extend workflow.
 - `curLevel()` — returns `LEVELS[S.levelIdx]` (or the attract level for -1)
-- Canvas painting helpers: `pxRect()`, `pxPoly()`, `rasterPoly()`, `rasterZones()`
+- Canvas painting helpers: `pxRect()`, `pxPoly()`, `rasterPoly()`
+
+**Note:** `rasterZones()` is in `main.js`, not levels.js.
 
 **Level paint pipeline:** `L.paint(gateState)` draws to a shared 2D canvas
 (`lvCtx`). Colors encode zones:
@@ -335,17 +349,17 @@ readInput() ──→ inputRef.inputVec ──→ substep()
  jacobi ×N   ──→ pressure.swap() (×N, N=PRESSURE_ITERS)
  gradSub     ──→ velocity.swap()
  advect dye  ──→ dye.swap()         ← dye.read is now PRE-absorption
- dyePost     ──→ dye.write          ← zone absorption, solid decay, chemistry
- scoreAccum  ──→ scoreAcc.swap()    ← reads PRE-absorption dye (invariant §7.5)
- dye.swap()                         ← dye.read is now POST-absorption
+  dyePost     ──→ dye.write          ← zone absorption, solid decay, chemistry
+  dynUpdate   ──→ dyn.swap()         (dynamite charge evolution, per-substep for chain reactions)
+  scoreAccum  ──→ scoreAcc.swap()    ← reads PRE-absorption dye (invariant §7.5)
+  dye.swap()                         ← dye.read is now POST-absorption
     │
     ▼  (once per frame, after all substeps)
- wallPaint     (if shift+drag held: user paints walls/lanes)
- dynUpdate   ──→ dyn.swap()         (dynamite deposit/burn, lane passthrough)
- wallErode   ──→ walls.swap()       (blast-pressure erodes slate boundary px)
- matPack     ──→ matPackRT          (pack soft-wall+lane+concrete+steel pixel counts)
- reduce(matPackRT) ──→ matSum       (1×1 well totals for readback)
- switchSense ──→ swState.swap()     (if level has switches)
+  wallPaint     (if shift+drag held: user paints walls/lanes)
+  wallErode   ──→ walls.swap()       (blast-pressure erodes slate boundary px)
+  matPack     ──→ matPackRT          (pack soft-wall+lane+concrete+steel pixel counts)
+  reduce(matPackRT) ──→ matSum       (1×1 well totals for readback)
+  switchSense ──→ swState.swap()     (if level has switches)
  updateNests / checkPickups         (CPU-timed spawning, item collection)
  updateCallouts / drawOverlay       (DOM text, 2D canvas wires/gauges)
     │
@@ -565,8 +579,10 @@ canonical serialize-then-extend workflow.
 ```js
 { kind: "solid",     pts: [[u,v], ...] }          // immutable wall (SDF)
 { kind: "removable", pts: [...] }                 // → slate field (erodible by blast)
-{ kind: "slate",     pts: [...] }                 // player-paintable soft matter
-{ kind: "steel",     pts: [...] }                 // blast-proof hard matter
+{ kind: "sand",      pts: [...] }                 // soft erodible matter (1/4 slate toughness)
+{ kind: "slate",     pts: [...] }                 // standard erodible matter
+{ kind: "concrete",  pts: [...] }                 // hard erodible matter (~10× slate)
+{ kind: "steel",     pts: [...] }                 // very hard erodible matter (~10× concrete)
 { kind: "win",       pts: [...] }                 // intake zone (scores red). "sink" is an alias.
 { kind: "drain",     pts: [...] }                 // voids all dye
 { kind: "media",     pts: [...], curl: 2.5, velDiss: 1, dyeDiss: 1 }  // local physics weather
@@ -574,6 +590,7 @@ canonical serialize-then-extend workflow.
 { kind: "door",      pts: [...], id: "A" }        // solid while switch A is OFF
 { kind: "gel",       pts: [...], amount: 1 }      // pre-placed gel
 { kind: "dynamite",  pts: [...], amount: 1 }      // pre-placed charge
+{ kind: "multiplier", pts: [...], rate: 2 }       // concentrator (rate>1) or diluter (rate<1)
 ```
 
 Polys may carry an `id` field for switch targeting (e.g. `id: "P0"` for wall
@@ -644,10 +661,11 @@ cut targets). Coordinates are UV `[0,1]²`, v UP.
 **GPU sensing:** `switchSenseFS` runs per frame on the 8×1 `swState` ping-pong texture. Each pixel holds `(bank/instant, hold timer, latched flag, instant flux)`. CPU reads these from `S.lastTelem[(TELEM_W+i)*4..]`.
 
 **Switch target actions:**
-- `enable`/`disable` (default) — toggles actor strength (stashes `_orig`)
-- `delete` — frees the actor slot permanently
+- `enable`/`disable` (default) — toggles actor or poly active state. Use `invert: true` to disable on switch ON (e.g., to remove a wall when a switch triggers).
+- `delete` — for poly targets: cuts wall from buffer via `wallCutFS` (one-time). For actor targets: frees the actor slot permanently.
 - `modify` — applies `state` overrides while ON, restores saved values on release
-- `poly` target — cuts a wall poly from the walls field via `wallCutFS`
+
+**Runtime state cleanup:** On level load/restart, the code deletes `_cut`, `_saved`, `_latched`, `_frac`, `_flux` from all switches and targets. The editor export also strips these keys via a JSON replacer to prevent serialization of runtime state.
 
 ### 12.5 Event schema (§43)
 

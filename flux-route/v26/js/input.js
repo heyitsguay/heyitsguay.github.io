@@ -1,14 +1,14 @@
 /* FLUX ROUTE — input handling: keyboard, mouse, touch, toolbar, tools.
  *
  * All user interaction flows through this module. Handles WASD/arrows
- * (player steering), Q/E (spin), tool selection (number keys), Shift+click
+ * (player steering), U/O (spin), tool selection (number keys), Shift+click
  * (placement/painting), and the full touch control suite.
  *
  * ## Exports
  *   initInput(callbacks)   Accept _cb registry from main.js at boot
  *   inputRef               Shared {inputVec, spinInput} object for simulation.js
  *   keys                   Set<string> of currently-held key names
- *   readInput()            Per-frame: poll WASD/arrows/QE → inputVec, spinInput
+ *   readInput()            Per-frame: poll WASD/arrows/UO → inputVec, spinInput
  *   updateGhost()          Position placement preview, clamped to GHOST_ARM from player
  *   updateSelection()      Find nearest adjustable actor to cursor, set S.selectedSlot
  *   placeTool(uv)          Validate position → allocate slot → write actor to GPU
