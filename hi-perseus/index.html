@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="">
+	<head>
+		<title>Matt Guay: Technical History </title>
+		<meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/reveal.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/theme/white.min.css">
+        <!-- <link type="text/css" rel="stylesheet" href="style.css"> -->
+        <style>
+          /* ============================================================
+             Your original rules (kept; fixed one stray semicolon)
+             ============================================================ */
+          span.emph {
+              color: #424f95;
+          }
+
+          .reveal { font-size: 32px; }   /* white theme default is 40px */
+          .reveal .compact { font-size: 0.8em; }
+          .reveal .centered { text-align: center; }
+
+
+          hr {
+              display: block;
+              position: relative;
+              padding: 0;
+              margin: 8px auto;
+              height: 0;
+              width: 100%;
+              max-height: 0;
+              font-size: 1px;
+              line-height: 0;
+              clear: both;
+              border: none;
+              border-top: 1px solid #222222;
+              border-bottom: 1px solid #666666;
+          }
+
+          .reveal section img {
+              border: none;
+              box-shadow: none;
+              background-color: transparent;
+          }
+
+          /* ============================================================
+             Light professional tweaks (layered on reveal 3.6 "white")
+             Each is independent — delete any block to revert it.
+             ============================================================ */
+
+          /* 1. The big one: drop the theme's dated ALL-CAPS headings,
+                ease the weight and tighten spacing a touch. */
+          .reveal h1,
+          .reveal h2,
+          .reveal h3,
+          .reveal h4 {
+              text-transform: none;
+              letter-spacing: -0.01em;
+              font-weight: 600;
+              color: #1d2233;          /* near-black with a hint of the accent's navy */
+          }
+
+          /* 2. Calmer heading scale (the defaults run large). */
+          .reveal h1 { font-size: 2.0em; }
+          .reveal h2 { font-size: 1.5em; }
+          .reveal h3 { font-size: 1.2em; }
+
+          /* 3. A little more air for body text and lists. */
+          .reveal p,
+          .reveal li { line-height: 1.45; }
+          .reveal li { margin: 0.3em 0; }
+
+          /* 4. One accent, used consistently: links pick up the emph indigo
+                instead of the theme's bright default blue. */
+          .reveal a {
+              color: #424f95;
+              text-decoration: none;
+              border-bottom: 1px solid rgba(66, 79, 149, 0.35);
+          }
+          .reveal a:hover {
+              color: #2c356b;
+              border-bottom-color: #424f95;
+          }
+
+          /* 5. Make code look deliberate rather than default. */
+          .reveal code {
+              background: #f2f3f8;
+              color: #424f95;
+              padding: 0.1em 0.35em;
+              border-radius: 3px;
+              font-size: 0.9em;
+          }
+          .reveal pre {
+              box-shadow: none;
+              border: 1px solid #e6e6ee;
+              border-radius: 4px;
+          }
+          .reveal pre code {
+              background: #fafbff;
+              padding: 1em 1.2em;
+          }
+
+          /* 6. Quiet the chrome so the content leads. */
+          .reveal .progress      { color: #424f95; height: 3px; }
+          .reveal .controls      { color: #424f95; }
+          .reveal .slide-number  { background: transparent; color: #999; }
+
+          .reveal .slides { text-align: left; }
+
+
+        </style>
+
+    </head>
+
+    <body>
+
+    	<div class="reveal">
+    		<div class="slides">
+
+
+    			<section data-background="linear-gradient(#62628480, #99999980)">
+    				<h3>Research, Engineering, and Technical Impact History</h3>
+                    <hr/>
+                    <br/><br/>
+    				Matthew Guay
+                    <br/>
+                    <a href="mailto:matt.d.guay@gmail.com" target="_blank">matt.d.guay@gmail.com</a><br/>
+                    <a href="https://www.linkedin.com/in/matthew-guay-51a8451a6/" target="_blank">LinkedIn</a>
+				
+    			</section>
+		    
+
+
+          <section data-markdown data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### Overview
+
+                  **Introduction** (5 minutes)
+
+                  **Technical History** (20 minutes)
+
+                  **Thoughts for Perseus** (5 minutes)
+              </textarea>
+          </section>
+
+          <section data-markdown data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### About Me
+
+                  - **Matthew Guay** (Matt). 
+                    - Moved to Austin from DC in August 2025.
+                    - Applied math PhD → bio AI → defense AI.
+
+                  - **Today**: Leading the CV/ML team at Allen Control Systems.
+                    - 16 CV/ML, tracking, MLOps, and data engineers.
+                    - Drone detection: passive sensors; low-latency edge compute.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### Professional History
+
+                  - **Allen Control Systems**: CV/ML Engineering Manager (2026–), prev. Senior Eng then Staff Eng & Lead (2025-2026)
+
+                  - **Percipient.AI**: Staff Computer Vision Scientist (2023–25), prev. Computer Vision Scientist (2022-2023)
+                    - Serially conceived and executed 0→1 projects fielding emerging multimodal capabilities for SIGINT analysis.
+
+                  - **Moichor**: Principal Computer Vision Scientist (2021–22)
+                    - First engineering hire. Built the AI org from pre-seed prototype to a dozen production models for veterinary diagnostics.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### Professional History
+
+                  - **Bioinformatics Scientist**: NIH (contractor, Kelly) (2020–21)
+                    - Continuation of postdoctoral research.
+
+                  - **Postdoctoral Research Fellow**: NIH (2016–20)
+                    - Computer vision R&D for automated, large-scale generation of 3D cellular structural models from electron microscopy.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### Education History
+
+                  - **Ph.D. Applied Mathematics**: University of Maryland, College Park. (2016)
+                    - Thesis: [Sparse signal representation in digital and biological systems](https://api.drum.lib.umd.edu/server/api/core/bitstreams/f7f0c5dc-3ee2-48fa-ae20-f5be3ed98de5/content)
+
+                  - **B.A. Mathematics**: _magna cum laude_, Cornell University. (2011)
+                    - Thesis: [Infinity-harmonic functions on _SG_](https://heyitsguay.github.io/undergradthesis.pdf)
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### Technical History: Summary
+
+                  - **Pure math undergrad**: real analysis, topology.
+                  - **Applied math PhD**: harmonic analyis, scientific computing, image/signal processing.
+                  - **Career**: Applied computer vision, trend towards real-world impact.
+                    - Large-scale biomedical imaging.
+                    - High-performance video understanding.
+                    - Embedded robotic perception for cUAS.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### Undergrad Research: Analysis on Fractals
+
+                  - Study existence of functions and operators on fractals.
+                  - Prove convergence of function sequences on subset sequences.
+                  - **Result**: Proved "infinity-harmonic" functions $$\Delta_{\infty}u=0$$ are well-defined on the Sierpinski Triangle.
+                    - [Thesis presentation](https://heyitsguay.github.io/undergradpresentation.pdf)
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### PhD Research: Sparse signal representation in digital and biological systems
+
+                  - **Compressed sensing for electron tomography**: Understand biomedical image sparsity implications for tomography.
+                  - **Modeling sparse sensory coding**: Explore the how and why of sparse neural population representations for locust olfaction.
+                    - [Defense presentation](https://heyitsguay.github.io/gradpresentation.pdf)
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### PhD Research: Modeling sparse sensory coding
+
+                  - **Goal**: Understand the relationship between neural population sparsity, temporal sparsity, and the "[sparse coding hypothesis](https://bernstein-network.de/wp-content/uploads/2021/03/Lecture-15-Sparse-coding-2020.pdf)" for locust olfaction.
+                  - **Sparse coding hypothesis**: "Natural" signals lie near low-dimensional manifolds in state space.
+                    - Neuron populations form sparse overcomplete representations tuned to natural signals, for efficiency and separability.
+                    - Sounds like the signal processing concept of sparse representation, but drawing an exact connection was challenging.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### PhD Research: Modeling sparse sensory coding
+
+                  - **Locust olfaction at a glance**
+                    - **High-dimensional molecule config space** sampled by many olfactory receptor types (ORNs).
+                    - ORNs -> excitatory PNs + inhibitory LNs, inhibition waves shape PN activity into windowed time-varying functions (**higher-dimensional projection**).
+                    - PNs trigger overcomplete KCs in the olfactory bulb, **KC population response is sparse**.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### PhD Research: Modeling sparse sensory coding
+
+                  - **Results**
+                    - Implemented "large-scale" (~100K) **olfactory neuron population simulations**. 
+                      - Custom RK4 integrator for Hodgkin-Huxley neurons in C++/CUDA.
+                    - Grounded simulation in lab + literature electrophys experiments.
+                    - Tested population connectivity hypotheses, demonstrated emergence of **sparse KC population statistics** in a reduced population model.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### PhD Research: Compressed sensing for electron tomography
+
+                  - **Compressed sensing** (CS): Recover an $s$-sparse signal $u \in \mathbb{R}^n$ from few measurements $y = Au + e$, where $A \in \mathbb{R}^{m\times n}$ with $m \ll n$ and $\|e\|_2 \le \varepsilon$.
+                    - **Recover** by $\ell_1$-minimization (LASSO):  $\displaystyle \hat{u} = \arg\min_x \tfrac{1}{2}\|Ax - y\|_2^2 + \lambda\|x\|_1$
+                    - **Guarantee:** if $A$ has RIP with $\delta_{2s} < \sqrt{2}-1$, then $\|\hat{u} - u\|_2 \le C\varepsilon$  (exact recovery when $e=0$)
+                    - **Random matrices work:** Gaussian $A$ satisfies this w.h.p. once $m \gtrsim s\log(n/s)$
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### PhD Research: Compressed sensing for electron tomography
+
+                  - **Electron tomography** (ET): Tilt a specimen through many angles; each tilt image is a set of line integrals of the specimen's electron scattering density $f$ along the beam.
+                    - **Projection = Radon transform.** Each angle $\theta$ yields
+                      $$p_\theta(r) = \mathcal{R}f(\theta,r) = \iint f(x,y)\,\delta(x\cos\theta + y\sin\theta - r)\,dx\,dy$$
+                    - **Filtered backprojection.** Real-space recovery formula with a ramp filter correcting the polar $1/|\omega|$ sampling density:
+                      $$f(x,y) = \int\_0^\pi (p\_{\theta} * h)(x\cos\theta + y\sin\theta)\,d\theta, \qquad \hat{h}(\omega) = |\omega|$$
+                    - **The missing wedge.** Mechanical tilt is limited to ≈ ±70°, leaving a wedge of Fourier space unmeasured; sparsity/compressed-sensing reconstructions help fill the gap.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### PhD Research: Compressed sensing for electron tomography
+
+                  - **Application interest**: Recover a signal with far fewer samples than traditionally required.
+                    - Faster MRI, dose-limited electron microscopy (EM), computed tomography.
+                  - **Research goal**: Characterize the application of CS to ET.
+                  - **Results**
+                    - Measurement + sparsity analysis: no useful random measurements, bio EM images aren't sparse.
+                    - Implementation: new reconstruction algo matches SOTA (SIRT/ART), but doesn't exceed like in materials EM.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### PhD Research: CS-ET measurement + sparsity analysis
+
+                  - **ET measurement**: Measurement vectors are discretized line integral weights.
+                    - CS reconstruction theory requires incoherent measurements. Tilt series measurements exhibit coherence (same $r$, different $\theta$).
+                    - No natural randomization strategy to introduce statistical incoherence.
+
+                  - **Signal sparsity**: Bio EM images are not sparse in Euclidean or wavelet domains.
+                    - Somewhat compressible in wavelet and "_TV_ domain".
+
+                  - **Signal recovery**: Deterministic measurement matrix = CS recovery is just Lasso regression. $$\hat{u}=\mathrm{argmin}_{x} ||Rx-y||_2^2 + \lambda_1 ||x||_1 + \lambda_2 ||Wx||_1 + \lambda_3 ||TVx||_1$$
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### Postdoctoral Research: Large-scale 3D semantic segmentation 
+
+                  - **Goal**: Enable large-scale automated 3D reconstruction of cells from SBF-SEM imaging.
+                    - [Project Hub](https://leapmanlab.github.io/dense-cell/)
+                  - **Methods**: Developed hybrid 2D-3D U-Net segmentation models.
+                  - **Results**
+                    - Segmentation algorithm beat other published methods on our data.
+                    - Failed to operationalize: lessons learned.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### Professional Engineering: Mirage Glance
+
+                  - My first high-impact project at Percipient: **Mirage Glance**.
+                  - **Summary**: Created a zero-shot text+image video search tool unprompted, shortly after joining Percipient.
+                    - Optimized for large-scale search on prosumer compute.
+                    - Identified offering gap, created prototype, got stakeholder buy-in, worked cross-team to productize.
+                  - **Result**: Working product with major customer demand.
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  ### Professional Engineering: CV @ ACS
+
+                  - Ownership over the full computer vision pipeline for the **Bullfrog** turret.
+                  - **Methods focus**: Efficient passive small object detection in video, against sky and cluttered backgrounds.
+                  - **Pipeline focus**
+                    - Sourcing high-quality training data.
+                    - MLOps for lower-friction, higher-volume methods testing.
+                    - Test operations improvements for perception evaluation and performance analysis.
+                  - **Result**: More work to do, but we keep beating everyone at detect+track demos.
+              </textarea>
+          </section>
+
+          <section data-markdown class="centered" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  # Thoughts for Perseus
+              </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+            <textarea data-template>
+                ### Background questions
+                 
+                - **Compute**: What *exactly* is the board? TOPS, and NPU vs FPGA vs DSP?
+                - **Sensor + optics**: Uncooled LWIR? Resolution, pixel pitch, frame rate, lens f/# and FOV. IMUs?
+                - **Engagement geometry**: Handoff range, closing speed, and INS error at handoff.
+                - **Lethality**: Required miss distance (establishes how good "good enough" tracking is).
+                - **Dynamics**: body rates (especially roll) while in vision mode.
+            </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+            <textarea data-template>
+                ### What CV Is Actually Needed?
+                 
+                - **Sensor decision first**: This constrains everything else. Assuming uncooled LWIR based on SWaP.
+                - **Is unconstrained clutter really in scope?**
+                  - CONOP is INS-to-waypoint, terminal vision only.
+                  - Engaging from below = target is mostly against sky.
+                - **Motivation**: Compute limits present major challenges for appearance-based CV against unconstrained backgrounds.
+                  - Problem suggests a _thermal hot-spot seeker_ rather than neural net-based CV.
+                  - Maybe combined with a horizon detector.
+            </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+            <textarea data-template>
+                ### Back of Envelope: Pixels on Target.
+
+                - Assume Boson FLIR-style 640x512 @ 12$\mu$m camera, 0.35m target, $10^{\circ}$ or $20^{\circ}$ FOV lens.
+                 
+                | Range | Wide FOV (20°) | Narrow FOV (10°) |
+                |---|---|---|
+                | 1000 m | ~0.6 px | ~1.3 px |
+                | 500 m | ~1.3 px | ~2.6 px |
+                | 200 m | ~3 px | ~6.5 px |
+                | 100 m | ~6 px | ~13 px |
+                | 50 m | ~13 px | ~26 px |
+
+                - Target only spatially resolved at 100m, for ~0.5s.
+            </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+            <textarea data-template>
+                ### Proposed Terminal Pipeline
+ 
+                - **IR hot-spot seeker**: Find the most anomalous thermal source in the basket, hand to a lightweight tracker.
+                - **Track LOS state**: Filter bearing measurements with an EKF to estimate LOS angles + rates for proportional nav.
+                - **Ego motion compensation**: Assuming no gimbal, the tracker must tolerate roll and motion blur. **De-rotate with the IMU** (how accurate?)
+                - **Maybe a neural net**: decoy/bird discrimination, _if_ it fits the latency budget.
+                  - Either applied to target silhouette (limited range) or target trajectory time series (limited data).
+            </textarea>
+          </section>
+
+          <section data-markdown class="compact" data-background="linear-gradient(#62628480, #99999980)">
+            <textarea data-template>
+                ### Risks, Data & Test, Failure Modes
+ 
+                - **Data risk**: High-speed, all-condition LWIR video is scarce. 
+                  - **Data collection + test ops** are first-class concerns. What are the plans?
+                - **Failure modes** to design for now
+                  - **Loss-of-lock & re-acquisition**. How do vision and control interact?
+                  - **Decoy / bird discrimination**: Where a small classifier or kinematic gating may pay off.
+                  - **Sun + thermal saturation**, and the **sky→clutter transition** at pitch-over.
+                - **First impressions:** LWIR hot-spot tracking against sky is very achievable. The sky→clutter transition milestone is the primary CV risk. I'd identify the true vision requirements and de-risk this first.
+            </textarea>
+          </section>
+
+          <section data-markdown class="centered" data-background="linear-gradient(#62628480, #99999980)">
+              <textarea data-template>
+                  # Thank You!
+              </textarea>
+          </section>
+
+    		</div>
+    	</div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/js/reveal.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/markdown/marked.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/markdown/markdown.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/math/math.js"></script>
+
+        
+        <script type="text/javascript">
+            Reveal.initialize({
+
+                math: {
+                    mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js',
+                    config: 'TeX-AMS_HTML-full'
+                },
+
+                // Factor of the display size that should remain empty around the content
+                margin: 0.03,
+
+                // Display controls in the bottom right corner
+                controls: true,
+
+                // Display a presentation progress bar
+                progress: true,
+
+                // Set default timing of 2 minutes per slide
+                defaultTiming: 90,
+
+                // Display the page number of the current slide
+                slideNumber: true,
+
+                // Push each slide change to the browser history
+                history: false,
+
+                // Enable keyboard shortcuts for navigation
+                keyboard: true,
+
+                // Enable the slide overview mode
+                overview: true,
+
+                // Vertical centering of slides
+                center: true,
+
+                // Enables touch navigation on devices with touch input
+                touch: true,
+
+                // Loop the presentation
+                loop: false,
+
+                // Change the presentation direction to be RTL
+                rtl: false,
+
+                // Randomizes the order of slides each time the presentation loads
+                shuffle: false,
+
+                // Turns fragments on and off globally
+                fragments: true,
+
+                // Flags if the presentation is running in an embedded mode,
+                // i.e. contained within a limited portion of the screen
+                embedded: false,
+
+                // Flags if we should show a help overlay when the questionmark
+                // key is pressed
+                help: true,
+
+                // Flags if speaker notes should be visible to all viewers
+                showNotes: false,
+
+                // Global override for autolaying embedded media (video/audio/iframe)
+                // - null: Media will only autoplay if data-autoplay is present
+                // - true: All media will autoplay, regardless of individual setting
+                // - false: No media will autoplay, regardless of individual setting
+                autoPlayMedia: null,
+
+                // Number of milliseconds between automatically proceeding to the
+                // next slide, disabled when set to 0, this value can be overwritten
+                // by using a data-autoslide attribute on your slides
+                autoSlide: 0,
+
+                // Stop auto-sliding after user input
+                autoSlideStoppable: true,
+
+                // Use this method for navigation when auto-sliding
+                autoSlideMethod: Reveal.navigateNext,
+
+                // Enable slide navigation via mouse wheel
+                mouseWheel: false,
+
+                // Hides the address bar on mobile devices
+                hideAddressBar: true,
+
+                // Opens links in an iframe preview overlay
+                previewLinks: false,
+
+                // Transition style
+                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+                // Transition speed
+                transitionSpeed: 'default', // default/fast/slow
+
+                // Transition style for full page slide backgrounds
+                backgroundTransition: 'fade', // none/fade/slide/convex/concave/zoom
+
+                // Number of slides away from the current that are visible
+                viewDistance: 3,
+
+                // Parallax background image
+                parallaxBackgroundImage: '', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+
+                // Parallax background size
+                parallaxBackgroundSize: '', // CSS syntax, e.g. "2100px 900px"
+
+                // Number of pixels to move the parallax background per slide
+                // - Calculated automatically unless specified
+                // - Set to 0 to disable movement along an axis
+                parallaxBackgroundHorizontal: null,
+                parallaxBackgroundVertical: null,
+
+                // The display mode that will be used to show slides
+                display: 'block'
+            });
+        </script>
+
+    </body>
+        
+</html>
