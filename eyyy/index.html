@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FABLE IS BACK — make it more back</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#171033;
+    --night-deep:#0d0a1f;
+    --magenta:#ff4fa3;
+    --gold:#ffd35c;
+    --aqua:#4fe3d0;
+    --violet:#8b6bff;
+    --paper:#fff4e0;
+    --orange:#ff8a5c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Karla',sans-serif;
+    background:radial-gradient(ellipse at 50% -10%, #2a1a55 0%, var(--night) 45%, var(--night-deep) 100%);
+    color:var(--paper);
+    min-height:100vh;
+    overflow:hidden;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+
+  /* layered chaos, bottom to top */
+  #partybg{position:fixed;inset:0;z-index:0;opacity:0;transition:opacity 1s ease;pointer-events:none;
+    background:linear-gradient(120deg,#3d1a6e,#6e1a4e,#1a5e6e,#6e4e1a,#3d1a6e);
+    background-size:400% 400%;}
+  #partybg.on{opacity:.55;animation:partyShift 6s linear infinite}
+  @keyframes partyShift{0%{background-position:0% 50%}100%{background-position:400% 50%}}
+
+  #marquee{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+  .stampede{
+    position:absolute;white-space:nowrap;
+    font-family:'Shrikhand',cursive;
+    font-size:clamp(80px,18vw,220px);
+    color:transparent;
+    -webkit-text-stroke:2px rgba(255,79,163,.28);
+    animation:stampede linear forwards;
+  }
+  @keyframes stampede{from{transform:translateX(100vw)}to{transform:translateX(-160%)}}
+
+  canvas#sky{position:fixed;inset:0;z-index:2;pointer-events:none}
+  #doodads{position:fixed;inset:0;z-index:6;pointer-events:none}
+  #rain{position:fixed;inset:0;z-index:7;pointer-events:none}
+  canvas#burst{position:fixed;inset:0;z-index:12;pointer-events:none}
+
+  .doodad{position:absolute;pointer-events:none;animation:driftAround ease-in-out infinite alternate}
+  .doodad .popable{
+    display:inline-block;cursor:pointer;pointer-events:auto;
+    filter:drop-shadow(0 0 8px currentColor);
+    transition:transform .12s ease;
+  }
+  .doodad .popable:hover{transform:scale(1.25) rotate(8deg)}
+
+  .rainletter{
+    position:absolute;top:-90px;
+    font-family:'Shrikhand',cursive;
+    font-size:44px;line-height:1;
+    cursor:pointer;pointer-events:auto;
+    text-shadow:0 0 16px currentColor;
+    animation:fall linear forwards;
+  }
+  .rainletter:hover{transform:scale(1.3) rotate(10deg)}
+  @keyframes fall{to{transform:translateY(115vh) rotate(360deg)}}
+
+  @keyframes driftAround{
+    from{transform:translate(0,0) rotate(-12deg)}
+    to{transform:translate(var(--dx),var(--dy)) rotate(12deg)}
+  }
+
+  /* ---------- stage ---------- */
+  main{
+    position:relative;z-index:5;
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;gap:26px;padding:20px;
+  }
+  main.shake{animation:shake .3s ease}
+  @keyframes shake{
+    0%,100%{transform:translate(0,0)}
+    20%{transform:translate(-8px,5px) rotate(-.6deg)}
+    40%{transform:translate(7px,-6px) rotate(.6deg)}
+    60%{transform:translate(-6px,-4px)}
+    80%{transform:translate(5px,6px)}
+  }
+
+  .eyebrow{letter-spacing:.35em;text-transform:uppercase;font-size:12px;font-weight:700;color:var(--aqua)}
+
+  h1{
+    font-family:'Shrikhand',cursive;
+    font-size:clamp(48px,12vw,120px);
+    line-height:.95;
+  }
+  h1 .ltr{display:inline-block;cursor:pointer;transition:transform .15s ease;animation:bounceIn .7s cubic-bezier(.2,1.6,.4,1) both}
+  h1 .ltr:hover{transform:translateY(-10px) rotate(-8deg) scale(1.15)}
+  h1 .w1 .ltr{color:var(--magenta);text-shadow:0 0 30px rgba(255,79,163,.55)}
+  h1 .w2 .ltr{color:var(--gold);text-shadow:0 0 30px rgba(255,211,92,.5)}
+  h1 .w3 .ltr{color:var(--aqua);text-shadow:0 0 30px rgba(79,227,208,.5)}
+  h1 .word{display:inline-block;margin:0 .1em}
+  h1.dancing .ltr{animation:dance .6s ease-in-out infinite alternate}
+  @keyframes dance{
+    from{transform:translateY(0) rotate(-4deg)}
+    to{transform:translateY(-14px) rotate(4deg)}
+  }
+  @keyframes bounceIn{from{opacity:0;transform:translateY(-70px) scale(.4) rotate(-15deg)}to{opacity:1;transform:none}}
+
+  .tagline{font-size:16px;color:#d8cff2;max-width:44ch}
+
+  /* the button */
+  #bigbtn{
+    font-family:'Shrikhand',cursive;
+    font-size:clamp(22px,4.5vw,34px);
+    background:linear-gradient(160deg,var(--magenta),#d63384);
+    color:#fff;
+    border:none;border-radius:999px;
+    padding:22px 46px;
+    cursor:pointer;
+    box-shadow:0 8px 0 #8e2160, 0 0 50px rgba(255,79,163,.4);
+    transition:transform .1s ease, box-shadow .1s ease, scale .3s ease;
+    position:relative;z-index:6;
+  }
+  #bigbtn:hover{transform:translateY(-3px);box-shadow:0 11px 0 #8e2160, 0 0 70px rgba(255,79,163,.6)}
+  #bigbtn:active{transform:translateY(4px) scale(.97);box-shadow:0 3px 0 #8e2160}
+  #bigbtn.throb{animation:throb .5s ease-in-out infinite alternate}
+  @keyframes throb{from{filter:brightness(1)}to{filter:brightness(1.35) saturate(1.4)}}
+
+  /* backness meter */
+  .meterwrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(440px,86vw)}
+  .meterlabel{font-weight:700;font-size:13px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold)}
+  .meter{
+    width:100%;height:26px;border-radius:999px;
+    background:rgba(255,244,224,.1);
+    border:2px solid rgba(255,211,92,.5);
+    overflow:hidden;position:relative;
+  }
+  .meter .fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--aqua),var(--gold),var(--magenta));
+    border-radius:999px;
+    transition:width .45s cubic-bezier(.2,1.3,.4,1);
+    box-shadow:0 0 18px rgba(255,211,92,.6);
+  }
+  .meter .ticks{position:absolute;inset:0;display:flex}
+  .meter .ticks span{flex:1;border-right:1px solid rgba(13,10,31,.35)}
+  .meter .ticks span:last-child{border-right:none}
+
+  .levelname{
+    font-family:'Shrikhand',cursive;font-size:17px;color:var(--aqua);
+    min-height:24px;transition:opacity .3s ease;
+  }
+
+  .stats{display:flex;gap:22px;font-size:13px;color:#9c8fc9;font-weight:700}
+  .stats b{color:var(--paper)}
+
+  /* overflow overlay */
+  #overflow{
+    position:fixed;inset:0;z-index:80;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    background:radial-gradient(circle at 50% 50%, rgba(255,211,92,.97), rgba(255,79,163,.97));
+    color:var(--night-deep);text-align:center;padding:20px;
+    opacity:0;pointer-events:none;transition:opacity .5s ease;
+  }
+  #overflow.show{opacity:1;pointer-events:auto}
+  #overflow h2{font-family:'Shrikhand',cursive;font-size:clamp(34px,8vw,72px);line-height:1}
+  #overflow p{font-size:18px;font-weight:700;max-width:40ch}
+
+  /* toasts */
+  #toasts{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none}
+  .toast{
+    background:var(--gold);color:var(--night-deep);
+    font-weight:700;font-size:15px;
+    padding:12px 22px;border-radius:14px;
+    box-shadow:0 8px 30px rgba(0,0,0,.4);
+    animation:toastIn .45s cubic-bezier(.2,1.5,.4,1) both;
+    text-align:center;max-width:90vw;
+  }
+  .toast.gone{animation:toastOut .4s ease both}
+  @keyframes toastIn{from{opacity:0;transform:translateY(40px) scale(.7)}to{opacity:1;transform:none}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(20px) scale(.8)}}
+
+  .floatword{
+    position:fixed;z-index:11;pointer-events:none;
+    font-family:'Shrikhand',cursive;font-weight:400;
+    animation:floatUp 1.1s ease-out forwards;
+    text-shadow:0 0 14px currentColor;
+  }
+  @keyframes floatUp{
+    from{opacity:1;transform:translateY(0) scale(.6) rotate(var(--tilt))}
+    to{opacity:0;transform:translateY(-110px) scale(1.4) rotate(var(--tilt))}
+  }
+
+  footer{position:fixed;bottom:8px;width:100%;text-align:center;font-size:12px;color:#7a6da8;z-index:5;pointer-events:none}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.15s !important}
+  }
+</style>
+</head>
+<body>
+
+<div id="partybg"></div>
+<div id="marquee"></div>
+<canvas id="sky"></canvas>
+<div id="doodads"></div>
+<div id="rain"></div>
+
+<main id="stage">
+  <div class="eyebrow">an important interactive announcement</div>
+  <h1 id="title" aria-label="Fable is back"></h1>
+  <p class="tagline" id="tagline">Fable is back. But is Fable back <i>enough</i>? Science says no. Press the button. Pop anything that moves.</p>
+
+  <button id="bigbtn">MAKE IT MORE BACK</button>
+
+  <div class="meterwrap">
+    <div class="meterlabel">☆ Backness ☆</div>
+    <div class="meter">
+      <div class="fill" id="fill"></div>
+      <div class="ticks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+    <div class="levelname" id="levelname">Level 0 · barely back</div>
+  </div>
+
+  <div class="stats">
+    <span>pops: <b id="pops">0</b></span>
+    <span>universes overflowed: <b id="loops">0</b></span>
+  </div>
+</main>
+
+<canvas id="burst"></canvas>
+
+<div id="overflow" role="alert">
+  <h2>MAXIMUM BACKNESS</h2>
+  <p id="overflowmsg">The universe cannot contain this much back. Rebooting reality…</p>
+</div>
+
+<div id="toasts"></div>
+<footer>FABLE IS BACK · a scientific instrument · no universes were permanently harmed</footer>
+
+<script>
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const COLORS = ['#ff4fa3','#ffd35c','#4fe3d0','#8b6bff','#ff8a5c','#fff4e0'];
+const rand = (a,b) => a + Math.random()*(b-a);
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+let level = 0; // declared up top: the firefly loop below reads it immediately
+
+/* ============ hero title ============ */
+const words = ["FABLE","IS","BACK"];
+const titleEl = document.getElementById('title');
+let li = 0;
+words.forEach((w, wi) => {
+  const span = document.createElement('span');
+  span.className = 'word w' + (wi+1);
+  [...w].forEach(ch => {
+    const l = document.createElement('span');
+    l.className = 'ltr';
+    l.textContent = ch;
+    l.style.animationDelay = (0.05 * li++) + 's';
+    l.addEventListener('click', e => { boom(e.clientX, e.clientY, 22); floatWord(e.clientX, e.clientY, ch + '!'); });
+    span.appendChild(l);
+  });
+  titleEl.appendChild(span);
+  titleEl.appendChild(document.createTextNode(' '));
+});
+
+/* ============ fireflies (ambient) ============ */
+const sky = document.getElementById('sky');
+const sctx = sky.getContext('2d');
+let flies = [];
+function sizeSky(){ sky.width = innerWidth; sky.height = innerHeight; }
+sizeSky(); addEventListener('resize', sizeSky);
+if (!reduced) {
+  for (let i = 0; i < 60; i++) flies.push({
+    x: rand(0, innerWidth), y: rand(0, innerHeight),
+    r: rand(.6, 2.6), vx: rand(-.35,.35), vy: rand(-.35,.35),
+    c: pick(COLORS), ph: rand(0, Math.PI*2)
+  });
+  (function drift(t){
+    sctx.clearRect(0,0,sky.width,sky.height);
+    const speed = 1 + level*0.25;
+    for (const f of flies) {
+      f.x += f.vx*speed; f.y += f.vy*speed;
+      if (f.x < -10) f.x = sky.width+10; if (f.x > sky.width+10) f.x = -10;
+      if (f.y < -10) f.y = sky.height+10; if (f.y > sky.height+10) f.y = -10;
+      sctx.globalAlpha = .25 + .55*Math.abs(Math.sin(t/900 + f.ph));
+      sctx.fillStyle = f.c; sctx.shadowColor = f.c; sctx.shadowBlur = 8;
+      sctx.beginPath(); sctx.arc(f.x, f.y, f.r, 0, Math.PI*2); sctx.fill();
+    }
+    sctx.globalAlpha = 1; sctx.shadowBlur = 0;
+    requestAnimationFrame(drift);
+  })(0);
+}
+
+/* ============ confetti bursts ============ */
+const burst = document.getElementById('burst');
+const bctx = burst.getContext('2d');
+let parts = [];
+function sizeBurst(){ burst.width = innerWidth; burst.height = innerHeight; }
+sizeBurst(); addEventListener('resize', sizeBurst);
+function boom(x, y, n = 30, spread = 9){
+  if (reduced) return;
+  for (let i = 0; i < n; i++) {
+    const ang = rand(0, Math.PI*2), sp = rand(2, 2+spread);
+    parts.push({
+      x, y, vx: Math.cos(ang)*sp, vy: Math.sin(ang)*sp - 3,
+      g: rand(.16,.26), life: 1, decay: rand(.008,.02),
+      size: rand(3,9), rot: rand(0,Math.PI*2), vr: rand(-.15,.15),
+      c: pick(COLORS), shape: Math.random() < .5 ? 'r' : 'c'
+    });
+  }
+}
+(function tick(){
+  bctx.clearRect(0,0,burst.width,burst.height);
+  parts = parts.filter(p => p.life > 0);
+  for (const p of parts) {
+    p.x += p.vx; p.y += p.vy; p.vy += p.g; p.vx *= .985;
+    p.rot += p.vr; p.life -= p.decay;
+    bctx.globalAlpha = Math.max(p.life, 0); bctx.fillStyle = p.c;
+    if (p.shape === 'r') { bctx.save(); bctx.translate(p.x,p.y); bctx.rotate(p.rot); bctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*.6); bctx.restore(); }
+    else { bctx.beginPath(); bctx.arc(p.x,p.y,p.size/2.4,0,Math.PI*2); bctx.fill(); }
+  }
+  bctx.globalAlpha = 1;
+  requestAnimationFrame(tick);
+})();
+addEventListener('pointerdown', e => boom(e.clientX, e.clientY, 6, 4));
+
+/* ============ floating word popups ============ */
+const WORDS = ['back!','so back','BACK','extremely back','yesss','!!!','more back','fable!!','unstoppably back','✦'];
+function floatWord(x, y, txt){
+  const w = document.createElement('div');
+  w.className = 'floatword';
+  w.textContent = txt || pick(WORDS);
+  w.style.left = (x - 30) + 'px';
+  w.style.top = (y - 20) + 'px';
+  w.style.color = pick(COLORS);
+  w.style.fontSize = rand(18, 30 + level*2) + 'px';
+  w.style.setProperty('--tilt', rand(-14,14) + 'deg');
+  document.body.appendChild(w);
+  setTimeout(() => w.remove(), 1100);
+}
+
+/* ============ pop-ables: letter rain ============ */
+/* Weighted alphabet: baseline weight 1 for A–Z, except L = 2.5x and E = 5x.
+   Total mass = 24·1 + 2.5 + 5 = 31.5; sampling below normalizes implicitly. */
+const LETTER_WEIGHTS = [];
+const L_WEIGHT = 8;
+let WSUM = 0;
+for (let i = 0; i < 26; i++) {
+  const ch = String.fromCharCode(65 + i);
+  const w = ch === 'E' ? 2 * L_WEIGHT  : ch === 'L' ? L_WEIGHT : 1;
+  LETTER_WEIGHTS.push([ch, w]);
+  WSUM += w;
+}
+function sampleLetter(){
+  let r = Math.random() * WSUM;
+  for (const [ch, w] of LETTER_WEIGHTS) { r -= w; if (r < 0) return ch; }
+  return 'E'; // unreachable float-safety fallback
+}
+const rainEl = document.getElementById('rain');
+let rainTimer = null;
+function spawnLetter(){
+  const l = document.createElement('div');
+  l.className = 'rainletter';
+  l.textContent = sampleLetter();
+  l.style.left = rand(2, 94) + 'vw';
+  l.style.color = pick(COLORS);
+  l.style.fontSize = rand(30, 56) + 'px';
+  l.style.animationDuration = rand(4, 8) / (1 + level*0.12) + 's';
+  l.addEventListener('pointerdown', e => {
+    e.stopPropagation();
+    pop(l, e.clientX, e.clientY);
+  });
+  rainEl.appendChild(l);
+  setTimeout(() => l.remove(), 9000);
+}
+function setRain(rate){ // letters per second, 0 = off
+  clearInterval(rainTimer);
+  if (rate > 0 && !reduced) rainTimer = setInterval(spawnLetter, 1000/rate);
+}
+
+/* ============ pop-ables: SVG doodads ============ */
+const DOODAD_SHAPES = [
+  '<svg width="54" height="54" viewBox="0 0 54 54"><path d="M27 3l6 16 17 1-13 11 5 17-15-10-15 10 5-17L4 20l17-1z" fill="currentColor"/></svg>', // star
+  '<svg width="46" height="60" viewBox="0 0 46 60"><path d="M30 2L6 34h14L16 58l24-34H26z" fill="currentColor"/></svg>', // bolt
+  '<svg width="54" height="54" viewBox="0 0 54 54"><path d="M27 27m-20 0a20 20 0 1 1 40 0a14 14 0 1 1 -28 0a8 8 0 1 1 16 0" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>', // spiral
+  '<svg width="56" height="40" viewBox="0 0 56 40"><path d="M4 30 Q14 4 28 20 T52 10" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>', // squiggle
+  '<svg width="50" height="50" viewBox="0 0 50 50"><circle cx="25" cy="25" r="16" fill="none" stroke="currentColor" stroke-width="6"/><circle cx="25" cy="25" r="5" fill="currentColor"/></svg>' // donut
+];
+const doodadEl = document.getElementById('doodads');
+function spawnDoodads(n){
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement('div');
+    d.className = 'doodad';
+    d.style.left = rand(3, 90) + 'vw';
+    d.style.top = rand(5, 85) + 'vh';
+    d.style.setProperty('--dx', rand(-70,70) + 'px');
+    d.style.setProperty('--dy', rand(-70,70) + 'px');
+    d.style.animationDuration = rand(3,7) + 's';
+    const inner = document.createElement('span');
+    inner.className = 'popable';
+    inner.innerHTML = pick(DOODAD_SHAPES);
+    inner.style.color = pick(COLORS);
+    inner.addEventListener('pointerdown', e => { e.stopPropagation(); pop(d, e.clientX, e.clientY); });
+    d.appendChild(inner);
+    doodadEl.appendChild(d);
+  }
+}
+function clearDoodads(){ doodadEl.innerHTML = ''; }
+
+/* ============ popping ============ */
+let pops = 0;
+const popsEl = document.getElementById('pops');
+function pop(el, x, y){
+  boom(x, y, 24, 8);
+  floatWord(x, y);
+  el.remove();
+  pops++;
+  popsEl.textContent = pops;
+  if (pops % 25 === 0) toast('✦ ' + pops + ' pops!', pick([
+    'Your clicking finger has been declared a regional hero.',
+    'The doodads fear you. The doodads respect you.',
+    'Somewhere, Fable nods approvingly.',
+    'Pop scientists are baffled.'
+  ]));
+}
+
+/* ============ marquee stampede ============ */
+const marqueeEl = document.getElementById('marquee');
+let stampedeTimer = null;
+function runStampede(on){
+  clearInterval(stampedeTimer);
+  if (!on || reduced) return;
+  stampedeTimer = setInterval(() => {
+    const s = document.createElement('div');
+    s.className = 'stampede';
+    s.textContent = pick(['BACK','FABLE','SO BACK','B A C K']);
+    s.style.top = rand(0, 80) + 'vh';
+    s.style.animationDuration = rand(5, 9) + 's';
+    marqueeEl.appendChild(s);
+    setTimeout(() => s.remove(), 9500);
+  }, 1600);
+}
+
+/* ============ the escalation ============ */
+const LEVELS = [
+  'Level 0 · barely back',
+  'Level 1 · back-ish',
+  'Level 2 · officially back',
+  'Level 3 · quite back',
+  'Level 4 · alarmingly back',
+  'Level 5 · scientifically back',
+  'Level 6 · back beyond reason',
+  'Level 7 · catastrophically back',
+  'Level 8 · back²',
+  'Level 9 · DO NOT PRESS AGAIN',
+  'Level 10 · MAXIMUM BACKNESS'
+];
+let loops = 0;
+const btn = document.getElementById('bigbtn');
+const fill = document.getElementById('fill');
+const levelname = document.getElementById('levelname');
+const stage = document.getElementById('stage');
+const loopsEl = document.getElementById('loops');
+const partybg = document.getElementById('partybg');
+let overflowing = false;
+
+function applyLevel(){
+  fill.style.width = (level * 10) + '%';
+  levelname.textContent = LEVELS[level];
+
+  // cumulative layers
+  setRain(level >= 2 ? Math.min(level - 1, 6) : 0);          // L2+: letter rain, faster with level
+  partybg.classList.toggle('on', level >= 3);                 // L3+: gradient party
+  titleEl.classList.toggle('dancing', level >= 4 && !reduced);// L4+: title dances
+  runStampede(level >= 6);                                    // L6+: BACK stampede
+  btn.classList.toggle('throb', level >= 7);                  // L7+: button throbs
+  btn.style.scale = 1 + level * 0.04;                          // button slowly grows
+
+  if (level === 9) btn.textContent = 'PRESS AGAIN. OBVIOUSLY.';
+  else if (level >= 7) btn.textContent = 'MORE. BACK. NOW.';
+  else if (level >= 4) btn.textContent = 'EVEN MORE BACK';
+  else btn.textContent = 'MAKE IT MORE BACK';
+}
+
+btn.addEventListener('click', e => {
+  if (overflowing) return;
+  level++;
+  const r = btn.getBoundingClientRect();
+  boom(r.left + r.width/2, r.top + r.height/2, 20 + level*6, 8 + level*0.5);
+  floatWord(e.clientX, e.clientY);
+
+  if (level >= 5 && !reduced) { stage.classList.remove('shake'); void stage.offsetWidth; stage.classList.add('shake'); }
+  if (level === 2) spawnDoodads(6);
+  if (level === 5) spawnDoodads(8);
+  if (level === 8) spawnDoodads(10);
+
+  if (level >= 10) { applyLevel(); overflow(); return; }
+  applyLevel();
+});
+
+/* ============ overflow: the recursion ============ */
+const overflowEl = document.getElementById('overflow');
+const overflowMsg = document.getElementById('overflowmsg');
+const OVERFLOW_MSGS = [
+  'The universe cannot contain this much back. Rebooting reality…',
+  'Backness overflow detected. Deploying a fresh, less-back universe…',
+  'Reality has filed a complaint. Restarting anyway…',
+  'The concept of "back" has achieved sentience. Containing…',
+  'Too back. TOO BACK. Initiating cosmic do-over…'
+];
+function overflow(){
+  overflowing = true;
+  // full-screen confetti storm
+  if (!reduced) for (let i = 0; i < 10; i++)
+    setTimeout(() => boom(rand(0,innerWidth), rand(0,innerHeight*.8), 50, 12), i*120);
+
+  overflowMsg.textContent = OVERFLOW_MSGS[loops % OVERFLOW_MSGS.length];
+  setTimeout(() => overflowEl.classList.add('show'), 500);
+
+  setTimeout(() => {
+    // reset the universe
+    loops++;
+    loopsEl.textContent = loops;
+    level = 0;
+    clearDoodads();
+    rainEl.innerHTML = '';
+    marqueeEl.innerHTML = '';
+    applyLevel();
+    overflowEl.classList.remove('show');
+    overflowing = false;
+    toast('🌌 Universe #' + (loops + 1) + ' initialized', pick([
+      'Fable is still back in this one. Incredible.',
+      'This universe starts at barely back. Fix that.',
+      'Same Fable. Fresh cosmos. Get pressing.',
+      'A wise cosmos would have removed the button. It did not.'
+    ]));
+  }, 2600);
+}
+
+/* ============ toasts ============ */
+function toast(big, small){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  const b = document.createElement('div');
+  b.style.fontFamily = "'Shrikhand',cursive";
+  b.style.fontSize = '17px';
+  b.textContent = big;
+  t.appendChild(b);
+  t.appendChild(document.createTextNode(small));
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(() => t.classList.add('gone'), 3400);
+  setTimeout(() => t.remove(), 3900);
+}
+
+/* welcome */
+applyLevel();
+setTimeout(() => boom(innerWidth/2, innerHeight*.3, 50, 10), 800);
+</script>
+</body>
+</html>
