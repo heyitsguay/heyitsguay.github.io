@@ -226,7 +226,7 @@ export class Eel {
     const hx = Math.cos(this.heading), hy = Math.sin(this.heading);
     this.hx = hx; this.hy = hy;
     const s = Math.sin(this.phase);
-    const dLat = (s - this.prevSin) * this.seg * (0.22 + 0.55 * this.speedSm);
+    const dLat = (s - this.prevSin) * this.seg * (0.16 + 0.34 * this.speedSm);
     this.prevSin = s;
     this.x += hx * this.speed * dt - hy * dLat;
     this.y += hy * this.speed * dt + hx * dLat;
@@ -278,7 +278,7 @@ export class Eel {
       const tm = Math.hypot(tx, ty) || 1;
       tx /= tm; ty /= tm;
       const t = i / (N - 1);
-      const env = 0.18 + 0.82 * Math.pow(t, 1.4);
+      const env = 0.10 + 0.90 * Math.pow(t, 1.4);
       const off = amp * env * Math.sin(this.phase - t * WAVELENGTHS * TAU);
       rx[i] = px[i] - ty * off;
       ry[i] = py[i] + tx * off;
@@ -353,8 +353,8 @@ export class Eel {
     const ux = p.nx * side, uy = p.ny * side;   // toward the head's top (shrinks mid-roll)
     const ex = p.x + this.hx * 1.2 * ws + ux * 2.0 * ws;   // forward on the face
     const ey = p.y + this.hy * 1.2 * ws + uy * 2.0 * ws;
-    // Slightly elliptical: long axis along the head's "up".
-    const rUp = 5.4 * ws, rAcross = 4.1 * ws;
+    // Slightly elliptical: wider than tall (long axis along the heading).
+    const rUp = 4.1 * ws, rAcross = 5.4 * ws;
     const upAngle = Math.atan2(uy, ux) * 180 / Math.PI;
     this.eye.setAttribute('cx', ex.toFixed(1));
     this.eye.setAttribute('cy', ey.toFixed(1));

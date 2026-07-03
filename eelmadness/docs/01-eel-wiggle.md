@@ -44,7 +44,7 @@ We add this **at render time only**, as a lateral offset along each spine point'
 
 ```
 t_i     = i / (N-1)                          # 0 at head, 1 at tail
-env(t)  = 0.18 + 0.82 * t^1.4                # amplitude envelope: some head sway, most at tail
+env(t)  = 0.10 + 0.90 * t^1.4                # amplitude envelope: a little head sway, most at tail
 A       = widthScale * (2.0 + 6.0 * speedSm) # px; grows with smoothed speed
 offset_i = A * env(t_i) * sin(phase - t_i * WAVELENGTHS * 2π)     # WAVELENGTHS ≈ 1.5
 r_i     = p_i + n_i * offset_i               # rendered spine point
@@ -58,7 +58,8 @@ speed fraction so amplitude eases in and out rather than snapping.
 long straight swims look like a ribbon on rails. Fix: inject a small lateral oscillation into
 the head's actual position each frame, as the *delta* of a sine (so it never accumulates
 drift): `x += perp * (sin(phase) - prevSin) * headAmp`. The chain then records a genuinely
-sinuous path, and the render wave rides on top of it.
+sinuous path, and the render wave rides on top of it. `headAmp` is kept small — the head
+should barely wiggle; the wave envelope puts the visible motion in the body and tail.
 
 ## 3. Outline generation (spine → path `d`)
 
@@ -121,7 +122,7 @@ up, which is exactly what a real fish-shaped thing would do. No pop.
 
 - **Eye**: one big cute eye — anchored at `s ≈ 0.045` plus a forward push along the heading
   so it sits on the face, offset `normal * sideSm` above the spine. Slightly elliptical
-  (long axis along the head's "up"), large pupil leading toward the heading (the eel looks
+  — wider than tall (long axis along the heading), large pupil leading toward the heading (the eel looks
   where it's going), a small highlight, and short eyelashes fanning over the upper rim with
   tail-swept tips.
 - **Wig**: long platinum-blonde *locks* (thick filled ribbons, not stroked strands) rooted
