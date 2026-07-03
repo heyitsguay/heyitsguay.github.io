@@ -1,0 +1,49 @@
+# Eel Madness — Overview
+
+A small HTML/CSS/JS/WebGL game about an eel swimming around and doing stuff. What stuff comes
+later; the first milestone is a satisfying proof-of-concept sandbox: a black, slender eel
+swimming through a living underwater scene, controlled by keyboard or touch.
+
+## Design pillars
+
+1. **Satisfying swim** — the wiggle is the game. Undulation, ease-in when starting, momentum
+   carrying briefly after stopping, arcing turns. If the eel feels good to move, everything
+   else can be built on top.
+2. **SVG-composed eel** — the eel is authored and rendered as SVG: a body path whose outline
+   is regenerated every frame from a simulated spine, with decorations (eyes, wig, later more)
+   composed as SVG child elements that ride the spine.
+3. **Living water** — the environment isn't a backdrop. Kelp sways and reacts when the eel
+   swims past, motes drift and scatter, bubbles trail from the eel. All within a mid-range
+   mobile phone's frame budget.
+4. **Dual input from day one** — keyboard (WASD/arrows = swim direction) and pointer
+   (tap-and-hold a point = swim toward it) are both first-class, unified behind one intent
+   abstraction so the physics never knows which was used.
+
+## Locked decisions
+
+| Decision | Choice | Why |
+|---|---|---|
+| Rendering | Hybrid: SVG eel layered over a WebGL canvas | True SVG authoring/composition for the eel; WebGL headroom for the environment. One animated path is cheap in the DOM. |
+| Vibe | Moody kelp forest | Green-teal mid-depth water, kelp silhouettes, dappled god rays. Atmospheric but readable. |
+| Eel look | Black and slender, cartoon head | Dark silhouette body with a near-black bluish fin-fringe stroke. Slender body, but the head is deliberately oversized with a deep-hinged jaw and huge gape — cute > accurate (a deliberate deviation from real eel proportions). |
+| Stack | Vanilla JS, ES modules, no build step | Static hosting on github.io; open `index.html` and it runs. |
+| Camera | Smoothed follow-cam in a 2×3-screen world | The world is two screens wide, three tall. Depth = light: the surface is bright aqua, the floor keeps the original deep palette. Kelp lines the whole floor. The SVG viewBox is the camera. |
+| View convention | Side view | One eye, wig on top of the head, dorsal-fin fringe. The eel swims freely in 2D (a side-on water column), and decorations smoothly swap sides when it turns to face the other way — a "roll" rather than a mirror pop. See [01-eel-wiggle](01-eel-wiggle.md). |
+
+## Documents
+
+- [01-eel-wiggle.md](01-eel-wiggle.md) — the crux: spine simulation, wave model, outline
+  generation, SVG composition system.
+- [02-movement-and-input.md](02-movement-and-input.md) — steering physics, ease curves,
+  momentum, the intent abstraction.
+- [03-environment.md](03-environment.md) — the WebGL kelp forest: layers, shaders, particles,
+  performance budget.
+- [04-architecture.md](04-architecture.md) — file layout, frame loop, coordinate system,
+  module APIs.
+- [05-roadmap.md](05-roadmap.md) — milestones and the mobile testing checklist.
+
+## Current scope (Milestone 0)
+
+The sandbox: one eel, one screen, WASD + tap-and-hold, living kelp/motes/bubbles environment.
+No goals, no collectibles, no sound. Success = "I opened it on my phone and just swam around
+for a minute because it felt nice."

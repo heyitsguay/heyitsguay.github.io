@@ -1,0 +1,65 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: #041018;
+}
+
+body {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#water, #eel-layer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#eel-layer { pointer-events: none; }
+
+#eel-body {
+  fill: #0b0b0e;
+  stroke: rgba(35, 40, 51, 0.9);   /* fins: near-black, a whisper of blue */
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+#eel-mouth { fill: #45141f; }   /* mouth interior, shows through the open jaw */
+#eel-eye { fill: #f5efe2; }
+#eel-pupil { fill: #141312; }
+#eel-shine { fill: #ffffff; opacity: 0.9; }
+
+#eel-lashes path {
+  stroke: #141312;
+  stroke-width: 1.3;
+  fill: none;
+  stroke-linecap: round;
+}
+
+/* Hair color knobs (lock thickness/length/count are in js/eel.js) */
+#eel-wig path {
+  fill: #efe7e2;     /* the hair — platinum blonde */
+  stroke: #d9cdb0;   /* lock edge, so overlapping locks read separately */
+  stroke-width: 0.5;
+  stroke-linejoin: round;
+}
+
+#hint {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  color: rgba(210, 235, 225, 0.55);
+  font: 14px/1.4 system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 1.2s;
+}
+
+#hint.hidden { opacity: 0; }

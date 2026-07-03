@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Guess The Number!</title>
+</head>
+<body>
+<h1>Guess The Number!</h1>
+<input type="text" id="guess" maxlength="1" inputmode="numeric">
+<button onclick="check()">Guess!</button>
+<p id="msg"></p>
+
+<script>
+var input = document.getElementById("guess");
+input.addEventListener("input", function() {
+  this.value = this.value.replace(/[^0-9]/g, "");
+});
+
+function check() {
+  var msg = document.getElementById("msg");
+  msg.textContent = "That is not the number!";
+  setTimeout(function() {
+    msg.textContent = "";
+  }, 1000);
+}
+</script>
+</body>
+</html>
