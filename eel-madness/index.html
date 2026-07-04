@@ -9,7 +9,9 @@
 <body>
 <canvas id="water"></canvas>
 <svg id="eel-layer" xmlns="http://www.w3.org/2000/svg">
+  <g id="food"></g>
   <g id="eel">
+    <rect id="eel-damage"/>
     <path id="eel-mouth"/>
     <path id="eel-body"/>
     <ellipse id="eel-eye"/>
@@ -19,7 +21,20 @@
     <g id="eel-wig"></g>
   </g>
 </svg>
+<div id="veil"></div>
 <div id="hint">WASD / arrows to swim &mdash; space to open wide &mdash; or press &amp; hold</div>
+<div id="ui">
+  <button id="pause" aria-label="Pause">&#10074;&#10074;</button>
+  <div id="menu" hidden>
+    <div id="menu-panel">
+      <div id="meters"></div>
+      <button id="resume">Resume</button>
+      <button id="reset">Reset progress</button>
+    </div>
+  </div>
+  <button id="btn-eat" aria-label="Eat" hidden>&#9675;</button>
+  <button id="btn-greet" aria-label="Greet" hidden>&#9825;</button>
+</div>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@ Everything behind the eel is one WebGL canvas. Goal: a scene that feels *inhabit
 on its own and it reacts to the eel — while holding 60 fps (or a clean 30) on a medium-end
 modern phone.
 
-## Layers (three draw calls)
+## Layers (three draw calls + a few pulse quads)
 
 ### 1. Water background — fullscreen fragment shader
 
@@ -41,8 +41,41 @@ All motion happens in the vertex shader — no per-frame uploads:
 - **Bubbles** (pool of ~40): spawned from the eel's mouth while effort is high (~10/s),
   rise with buoyancy, wobble, fade, recycled offscreen. Rendered as rings (same point shader,
   a `kind` attribute switches disc → ring).
+- **Marine snow** (~50): sparse pale specks sinking slowly through the view, wrapping
+  around the camera rect — the barren sea's first texture, present from LIGHT = 0.
 
-One buffer upload per frame (~160 points × 5 floats — trivial), one draw call.
+One buffer upload per frame (~210 points × 5 floats — trivial), one draw call.
+
+### 4. Light pulses — a handful of additive quads
+
+A small pool (~6) of expanding radial glows, additively blended, one tiny draw each:
+the eat flourish (axis-colored, docs/06) and any future momentary light. Zero cost
+when idle.
+
+## Progression-driven lighting (LIGHT axis — see docs/07)
+
+The scene's light is no longer fixed: it interpolates between an authored **dark
+endpoint** (near-black deep water, faint rays — the barren sea) and a **bright
+endpoint** (today's look, a touch brighter) as the LIGHT axis grows. Two pieces:
+
+1. **GL uniforms.** The background shader's deep/surface colors, god-ray strength,
+   and shimmer strength are uniforms; the kelp shader gains a dim factor so plants
+   don't glow against black water. Endpoint palettes live in `js/tuning.js`
+   (`lightParams(light01)` returns the blended values); main.js feeds them to
+   `water.setLight(params)` only when LIGHT actually changes.
+2. **The darkness veil** (`js/veil.js`) — sprites (SVG food, later critters) must
+   darken too, and they composite above the canvas. The veil is a single
+   world-height div above the SVG layer carrying a fixed vertical gradient
+   (black, alpha rising with world depth), moved with `transform: translateY(−camY)`
+   each frame — a compositor-only operation, no repaint. The gradient itself is
+   regenerated only when LIGHT moves by >0.01. At LIGHT=0 the deep world is genuinely
+   unreadable (that's gameplay); at LIGHT=1 the veil is fully transparent.
+   Perf watch: the veil layer rasters at viewport-width × world-height; if it ever
+   hurts on mobile, the fallback is a viewport-sized gradient re-anchored at ~10 Hz.
+
+The eel-glow "hole" in the veil is a later EEL MAGIC unlock (docs/07), planned as a
+second, small radial-gradient element following the eel — same compositor-only
+pattern.
 
 ## Mobile performance budget
 
@@ -55,7 +88,9 @@ One buffer upload per frame (~160 points × 5 floats — trivial), one draw call
 
 Degradation levers if a target device struggles, in order: drop dpr cap to 1.5 → halve motes
 → drop far kelp layer → simplify god rays to one sine. All are constants at the top of
-`water.js`.
+`water.js`. JS-side sim knobs (mote/bubble physics, kelp geometry, eel-push strength) are
+named constants there too; shader-internal shape and color numbers deliberately live in the
+shader source strings next to the effect they shape.
 
 ## Deliberate exclusions (PoC)
 

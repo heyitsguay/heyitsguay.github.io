@@ -13,9 +13,12 @@ intent = { active, dirX, dirY, throttle, mouth }   # dir unit-length, throttle �
 ```
 
 - **Keyboard** (WASD + arrows): pressed keys sum to a direction, normalized; `throttle = 1`.
-- **Mouth** (Space, hold): `intent.mouth` is true while held. The eel's `mouth` state snaps
-  open (τ ≈ 70 ms) and eases shut (τ ≈ 120 ms); an open mouth costs 30% of top speed (drag).
-  No mobile mouth input yet — candidates: second finger, double-tap-hold, on-screen button.
+- **Mouth** (Space, hold — or the translucent on-screen eat button on touch devices,
+  which drives the same flag via `setMouth`): `intent.mouth` is true while held. The eel's
+  `mouth` state snaps open (τ ≈ 70 ms) and eases shut (τ ≈ 120 ms); an open mouth costs
+  30% of top speed (drag).
+- **UI guard:** pointer-downs on `#ui` (pause button, menu, mobile action buttons) never
+  reach steering — the window listener ignores targets inside it.
 - **Pointer** (tap/click and hold, drag to steer): direction = head → pointer.
   `throttle = min(1, dist / 150)` — an *arrive* behavior, so the eel decelerates smoothly
   and settles at the held point instead of orbiting it. Within 14 px the intent goes
@@ -67,11 +70,15 @@ the outward velocity component is killed so it slides along the wall instead of 
 
 ## Tuning table
 
+All of these are named constants at the top of `eel.js` (steering/speed group) or
+`input.js` (pointer group):
+
 | Constant | Value | Feel it controls |
 |---|---|---|
-| `effort τ` up / down | 0.30 / 0.55 s | startup gather / throttle release |
-| `speed τ` up / down | 0.50 / 0.90 s | acceleration ramp / glide distance |
-| `maxSpeed` | 1.15 × body length /s | top speed |
-| `turnRate` | 3.4 + 2.2·speed01 rad/s | turn radius |
-| arrive radius | 150 px | how early it brakes for a held point |
-| wall margin | 70 px | how soon it shies from edges |
+| `TAU_EFFORT_UP` / `_DOWN` | 0.30 / 0.55 s | startup gather / throttle release |
+| `TAU_SPEED_UP` / `_DOWN` | 0.50 / 0.90 s | acceleration ramp / glide distance |
+| `MAX_SPEED_BL` | 1.15 body lengths /s | top speed |
+| `TURN_RATE_BASE` + `TURN_RATE_SLOPE`·speed01 | 3.4 + 2.2 rad/s | turn radius |
+| `POINTER_ARRIVE` (input.js) | 150 px | how early it brakes for a held point |
+| `POINTER_DEADZONE` (input.js) | 14 px | jitter deadzone around a held point |
+| `WALL_MARGIN` / `WALL_PUSH` | 70 px / 1.2 | how soon / how hard it shies from edges |

@@ -6,13 +6,69 @@
 
 import { TAU } from './math.js';
 
+// JS-side sim knobs live here; shape/color numbers inside the shader strings
+// below deliberately stay next to the effect they control (see docs/03).
 const REF_W = 1920, REF_H = 1080;  // world sizing is in reference-screen units
-const MOTE_COUNT = 120;
-const BUBBLE_POOL = 40;
+
+// Kelp (geometry built once per resize; heights are fractions of REF_H, px otherwise)
 const KELP_PER_SCREEN = 22;    // strands per reference-screen-width of world floor
 const KELP_FAR_FRAC = 12 / 22; // fraction in the dimmer/shorter back layer
 const KELP_SEGS = 16;
-const REPEL_RADIUS = 70;   // px — motes scatter from the eel head inside this
+const KELP_FAR_H_MIN = 0.35, KELP_FAR_H_VAR = 0.30;   // back-layer strand heights
+const KELP_NEAR_H_MIN = 0.55, KELP_NEAR_H_VAR = 0.40; // front-layer strand heights
+const KELP_FAR_W_MIN = 6, KELP_FAR_W_VAR = 4;         // base half-widths, px
+const KELP_NEAR_W_MIN = 9, KELP_NEAR_W_VAR = 7;
+const PUSH_BASE = 0.25;        // kelp-part strength at rest...
+const PUSH_SLOPE = 0.75;       // ...plus this at full eel speed
+
+// Motes
+const MOTE_COUNT = 120;
+const MOTE_SIZE_MIN = 1.6, MOTE_SIZE_VAR = 1.8;  // px
+const MOTE_WANDER = 3;         // px/s² sinusoidal drift force
+const MOTE_REPEL = 400;        // px/s² scatter at the eel head, scaled by its speed
+const REPEL_RADIUS = 70;       // px — motes scatter from the eel head inside this
+const MOTE_DAMP = 1.2;         // 1/s velocity damping
+const MOTE_ALPHA = 0.18, MOTE_TWINKLE = 0.15;    // base alpha + twinkle amplitude
+const MOTE_TWINKLE_F = 0.8;    // rad/s
+const WRAP_PAD = 20;           // px beyond the view rect before motes wrap around
+
+// Marine snow: sparse pale specks sinking through the view (docs/03) — the
+// barren sea's first texture, present from LIGHT = 0.
+const SNOW_COUNT = 50;
+const SNOW_SINK_MIN = 5, SNOW_SINK_VAR = 9;      // px/s
+const SNOW_SIZE_MIN = 1.0, SNOW_SIZE_VAR = 1.2;  // px
+const SNOW_ALPHA = 0.10, SNOW_TWINKLE = 0.05;
+const SNOW_WANDER = 4;         // px/s lateral sine drift
+
+// Light pulses: a small pool of expanding additive glows (eat flourish, docs/06)
+const PULSE_POOL = 6;
+const PULSE_R_BASE = 130, PULSE_R_AMT = 90;      // px radius vs progression amount
+const PULSE_A_BASE = 0.70, PULSE_A_AMT = 0.30;   // peak alpha vs amount (capped 1)
+const PULSE_T_BASE = 0.85, PULSE_T_AMT = 0.30;   // s duration vs amount
+
+// Bubbles
+const BUBBLE_POOL = 40;
+const BUBBLE_MIN_EFFORT = 0.4; // eel effort needed to emit
+const BUBBLE_RATE_BASE = 4, BUBBLE_RATE_SLOPE = 14;  // per second, vs effort
+const BUBBLE_MOUTH_OFF = 8;    // px ahead of the head at spawn
+const BUBBLE_JITTER = 6;       // px spawn scatter
+const BUBBLE_KICK = 30;        // px/s forward speed inherited from the eel
+const BUBBLE_RISE0 = 20, BUBBLE_RISE_VAR = 20;       // px/s initial upward speed
+const BUBBLE_BUOY = 50;        // px/s² buoyant acceleration
+const BUBBLE_RISE_MAX = 70;    // px/s terminal rise speed
+const BUBBLE_WOBBLE = 15;      // px/s² lateral wobble force
+const BUBBLE_WOBBLE_F = 4;     // rad/s
+const BUBBLE_DRAG = 0.8;       // 1/s horizontal damping
+const BUBBLE_LIFE_MIN = 1.2, BUBBLE_LIFE_VAR = 1.5;  // s
+const BUBBLE_SIZE_MIN = 2, BUBBLE_SIZE_VAR = 3;      // px
+const BUBBLE_FADE = 0.5;       // s — fade-out at end of life
+const BUBBLE_ALPHA = 0.7;
+// Burst (the eat flourish — see docs/06): a puff of pool bubbles at a point
+const BURST_COUNT = 7;
+const BURST_SCATTER = 14;      // px spawn spread
+const BURST_VX = 40;           // px/s lateral scatter speed
+const BURST_RISE0 = 30, BURST_RISE_VAR = 40;   // px/s initial upward speed
+const BURST_LIFE_MIN = 0.8, BURST_LIFE_VAR = 0.8;  // s
 
 const QUAD_VS = `
 attribute vec2 a_pos;
@@ -26,6 +82,10 @@ uniform vec2 u_ref;        // reference screen size, device px (world-fixed scal
 uniform vec2 u_cam;        // camera top-left, device px, world y-down
 uniform float u_worldH;    // world height, device px
 uniform float u_t;
+uniform vec3 u_deep;       // LIGHT-axis palette + strengths (see docs/03, tuning.js)
+uniform vec3 u_surface;
+uniform float u_ray;
+uniform float u_shim;
 void main() {
   vec2 uv = gl_FragCoord.xy / u_res;
   // world position of this fragment (y-down: 0 = surface, u_worldH = floor)
@@ -33,17 +93,14 @@ void main() {
   float wy = u_cam.y + (u_res.y - gl_FragCoord.y);
   float depth = clamp(wy / u_worldH, 0.0, 1.0);
   float bright = 1.0 - depth;
-  // deepest water keeps the original palette; the surface is light aqua
-  vec3 deep = vec3(0.010, 0.048, 0.070);
-  vec3 surface = vec3(0.30, 0.62, 0.66);
-  vec3 col = mix(surface, deep, pow(depth, 0.85));
+  vec3 col = mix(u_surface, u_deep, pow(depth, 0.85));
   // god rays: fixed in world space, strongest near the surface
   float rx = wx / u_ref.x * 3.0 + wy / u_ref.y * 0.9;
   float r1 = sin(rx * 4.0 + u_t * 0.10) * sin(rx * 7.3 - u_t * 0.07 + 1.7);
-  col += vec3(0.26, 0.48, 0.55) * pow(max(r1, 0.0), 3.0) * pow(bright, 2.2) * 0.35;
+  col += vec3(0.26, 0.48, 0.55) * pow(max(r1, 0.0), 3.0) * pow(bright, 2.2) * u_ray;
   // faint large-scale shimmer
   float sh = sin(wx / u_ref.x * 9.0 + u_t * 0.23) * sin(wy / u_ref.y * 7.0 - u_t * 0.19);
-  col += vec3(0.04, 0.09, 0.11) * sh * 0.06 * (0.3 + 0.7 * bright);
+  col += vec3(0.04, 0.09, 0.11) * sh * u_shim * (0.3 + 0.7 * bright);
   vec2 c = uv - 0.5;
   col *= 1.0 - dot(c, c) * 0.5;
   gl_FragColor = vec4(col, 1.0);
@@ -82,10 +139,11 @@ void main() {
 const KELP_FS = `
 precision mediump float;
 varying float v_shade;
+uniform float u_dim;   // LIGHT-axis dim so plants don't glow against dark water
 void main() {
   vec3 far = vec3(0.055, 0.165, 0.125);
   vec3 near = vec3(0.012, 0.070, 0.052);
-  gl_FragColor = vec4(mix(far, near, v_shade), 1.0);
+  gl_FragColor = vec4(mix(far, near, v_shade) * u_dim, 1.0);
 }
 `;
 
@@ -116,6 +174,32 @@ void main() {
   float a = mix(disc, ring, v_kind) * v_alpha;
   vec3 col = mix(vec3(0.60, 0.80, 0.82), vec3(0.78, 0.93, 0.95), v_kind);
   gl_FragColor = vec4(col, a);
+}
+`;
+
+const PULSE_VS = `
+attribute vec2 a_pos;      // the fullscreen triangle, reused as a unit-space quad
+uniform vec2 u_res;
+uniform vec2 u_cam;
+uniform vec2 u_center;     // world position, device px
+uniform float u_radius;    // device px
+varying vec2 v_uv;
+void main() {
+  v_uv = a_pos;
+  vec2 clip = (u_center + a_pos * u_radius - u_cam) / u_res * 2.0 - 1.0;
+  gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
+}
+`;
+
+const PULSE_FS = `
+precision mediump float;
+varying vec2 v_uv;
+uniform vec3 u_color;
+uniform float u_alpha;
+void main() {
+  float a = max(0.0, 1.0 - length(v_uv));
+  a *= a;
+  gl_FragColor = vec4(u_color * (a * u_alpha), 0.0);   // additive
 }
 `;
 
@@ -150,17 +234,25 @@ export class Water {
     this.t = 0;
     this.eelX = 0; this.eelY = 0; this.eelPush = 0;
     this.spawnAcc = 0;
+    // Light params (tuning.lightParams shape); today's look until main sets it.
+    this.lightP = { deep: [0.010, 0.048, 0.070], surface: [0.30, 0.62, 0.66],
+                    ray: 0.35, shim: 0.06, kelpDim: 1.0 };
 
     this.bgProg = buildProgram(gl, QUAD_VS, BG_FS);
     this.kelpProg = buildProgram(gl, KELP_VS, KELP_FS);
     this.pointProg = buildProgram(gl, POINT_VS, POINT_FS);
+    this.pulseProg = buildProgram(gl, PULSE_VS, PULSE_FS);
     this.loc = {
       bg: { pos: gl.getAttribLocation(this.bgProg, 'a_pos'),
             res: gl.getUniformLocation(this.bgProg, 'u_res'),
             ref: gl.getUniformLocation(this.bgProg, 'u_ref'),
             cam: gl.getUniformLocation(this.bgProg, 'u_cam'),
             worldH: gl.getUniformLocation(this.bgProg, 'u_worldH'),
-            t: gl.getUniformLocation(this.bgProg, 'u_t') },
+            t: gl.getUniformLocation(this.bgProg, 'u_t'),
+            deep: gl.getUniformLocation(this.bgProg, 'u_deep'),
+            surface: gl.getUniformLocation(this.bgProg, 'u_surface'),
+            ray: gl.getUniformLocation(this.bgProg, 'u_ray'),
+            shim: gl.getUniformLocation(this.bgProg, 'u_shim') },
       kelp: { xy: gl.getAttribLocation(this.kelpProg, 'a_xy'),
               aux: gl.getAttribLocation(this.kelpProg, 'a_aux'),
               res: gl.getUniformLocation(this.kelpProg, 'u_res'),
@@ -168,11 +260,19 @@ export class Water {
               eel: gl.getUniformLocation(this.kelpProg, 'u_eel'),
               t: gl.getUniformLocation(this.kelpProg, 'u_t'),
               dpr: gl.getUniformLocation(this.kelpProg, 'u_dpr'),
-              push: gl.getUniformLocation(this.kelpProg, 'u_push') },
+              push: gl.getUniformLocation(this.kelpProg, 'u_push'),
+              dim: gl.getUniformLocation(this.kelpProg, 'u_dim') },
       point: { pos: gl.getAttribLocation(this.pointProg, 'a_pos'),
                aux: gl.getAttribLocation(this.pointProg, 'a_aux'),
                res: gl.getUniformLocation(this.pointProg, 'u_res'),
                cam: gl.getUniformLocation(this.pointProg, 'u_cam') },
+      pulse: { pos: gl.getAttribLocation(this.pulseProg, 'a_pos'),
+               res: gl.getUniformLocation(this.pulseProg, 'u_res'),
+               cam: gl.getUniformLocation(this.pulseProg, 'u_cam'),
+               center: gl.getUniformLocation(this.pulseProg, 'u_center'),
+               radius: gl.getUniformLocation(this.pulseProg, 'u_radius'),
+               color: gl.getUniformLocation(this.pulseProg, 'u_color'),
+               alpha: gl.getUniformLocation(this.pulseProg, 'u_alpha') },
     };
 
     this.quadBuf = gl.createBuffer();
@@ -183,13 +283,18 @@ export class Water {
     this.kelpVerts = 0;
 
     this.pointBuf = gl.createBuffer();
-    this.pointData = new Float32Array((MOTE_COUNT + BUBBLE_POOL) * 5);
+    this.pointData = new Float32Array((MOTE_COUNT + BUBBLE_POOL + SNOW_COUNT) * 5);
 
     // Particle sim lives in CSS px; converted to device px on upload.
     this.motes = [];
+    this.snow = [];
     this.bubbles = [];
     for (let i = 0; i < BUBBLE_POOL; i++) {
       this.bubbles.push({ x: 0, y: 0, vx: 0, vy: 0, life: 0, size: 2, seed: Math.random() * TAU });
+    }
+    this.pulses = [];
+    for (let i = 0; i < PULSE_POOL; i++) {
+      this.pulses.push({ x: 0, y: 0, color: [1, 1, 1], age: 1e9, dur: 1, r: 0, a: 0 });
     }
   }
 
@@ -202,6 +307,7 @@ export class Water {
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     this.buildKelp();
     this.motesSeeded = false;   // reseed around the camera on next update
+    this.snowSeeded = false;
   }
 
   // Kelp lines the whole world floor; sizes are in reference-screen units so
@@ -215,8 +321,10 @@ export class Water {
     for (let k = 0; k < count; k++) {
       const far = k < farCount;
       const x = Math.random() * worldW;
-      const h = (far ? 0.35 + Math.random() * 0.30 : 0.55 + Math.random() * 0.40) * REF_H;
-      const hw = far ? 6 + Math.random() * 4 : 9 + Math.random() * 7;
+      const h = (far ? KELP_FAR_H_MIN + Math.random() * KELP_FAR_H_VAR
+                     : KELP_NEAR_H_MIN + Math.random() * KELP_NEAR_H_VAR) * REF_H;
+      const hw = far ? KELP_FAR_W_MIN + Math.random() * KELP_FAR_W_VAR
+                     : KELP_NEAR_W_MIN + Math.random() * KELP_NEAR_W_VAR;
       const ph = Math.random() * TAU;
       const shade = far ? 0.15 + Math.random() * 0.2 : 0.75 + Math.random() * 0.25;
       for (let j = 0; j <= KELP_SEGS; j++) {
@@ -244,12 +352,12 @@ export class Water {
     this.t += dt;
     const t = this.t;
     this.eelX = eel.x; this.eelY = eel.y;
-    this.eelPush = 0.25 + 0.75 * eel.speedSm;
+    this.eelPush = PUSH_BASE + PUSH_SLOPE * eel.speedSm;
 
     // Motes live in world space but only near the camera: they wrap around the
     // (slightly expanded) view rect, so the visible density is constant.
-    const left = cam.x - 20, top = cam.y - 20;
-    const spanX = this.W + 40, spanY = this.H + 40;
+    const left = cam.x - WRAP_PAD, top = cam.y - WRAP_PAD;
+    const spanX = this.W + 2 * WRAP_PAD, spanY = this.H + 2 * WRAP_PAD;
     if (!this.motesSeeded) {
       this.motesSeeded = true;
       this.motes.length = 0;
@@ -257,24 +365,49 @@ export class Water {
         this.motes.push({
           x: left + Math.random() * spanX, y: top + Math.random() * spanY,
           vx: 0, vy: 0,
-          size: 1.6 + Math.random() * 1.8,
+          size: MOTE_SIZE_MIN + Math.random() * MOTE_SIZE_VAR,
           seed: Math.random() * TAU,
         });
       }
     }
 
+    if (!this.snowSeeded) {
+      this.snowSeeded = true;
+      this.snow.length = 0;
+      for (let i = 0; i < SNOW_COUNT; i++) {
+        this.snow.push({
+          x: left + Math.random() * spanX, y: top + Math.random() * spanY,
+          sink: SNOW_SINK_MIN + Math.random() * SNOW_SINK_VAR,
+          size: SNOW_SIZE_MIN + Math.random() * SNOW_SIZE_VAR,
+          seed: Math.random() * TAU,
+        });
+      }
+    }
+
+    // Marine snow: sink slowly, drift a little, wrap around the camera rect.
+    for (const s of this.snow) {
+      s.x += Math.sin(t * 0.3 + s.seed) * SNOW_WANDER * dt;
+      s.y += s.sink * dt;
+      if (s.x < left) s.x += spanX; else if (s.x > left + spanX) s.x -= spanX;
+      if (s.y > top + spanY) { s.y -= spanY; s.x = left + Math.random() * spanX; }
+      else if (s.y < top) s.y += spanY;
+    }
+
+    // Light pulses just age.
+    for (const p of this.pulses) p.age += dt;
+
     // Motes: lazy wander + scatter away from a fast eel.
     for (const m of this.motes) {
-      m.vx += Math.sin(t * 0.5 + m.seed) * 3 * dt;
-      m.vy += Math.cos(t * 0.4 + m.seed * 1.7) * 3 * dt;
+      m.vx += Math.sin(t * 0.5 + m.seed) * MOTE_WANDER * dt;
+      m.vy += Math.cos(t * 0.4 + m.seed * 1.7) * MOTE_WANDER * dt;
       const dx = m.x - eel.x, dy = m.y - eel.y;
       const d = Math.hypot(dx, dy);
       if (d < REPEL_RADIUS && d > 0.01) {
-        const f = (1 - d / REPEL_RADIUS) * 400 * eel.speed01 * dt;
+        const f = (1 - d / REPEL_RADIUS) * MOTE_REPEL * eel.speed01 * dt;
         m.vx += (dx / d) * f;
         m.vy += (dy / d) * f;
       }
-      const damp = Math.exp(-dt * 1.2);
+      const damp = Math.exp(-dt * MOTE_DAMP);
       m.vx *= damp; m.vy *= damp;
       m.x += m.vx * dt; m.y += m.vy * dt;
       // wrap around the camera rect so re-entry isn't visible
@@ -283,29 +416,64 @@ export class Water {
     }
 
     // Bubbles: emitted from the mouth while the eel works, rise and pop offscreen.
-    if (eel.effort > 0.4) {
-      this.spawnAcc += dt * (4 + 14 * eel.effort);
+    if (eel.effort > BUBBLE_MIN_EFFORT) {
+      this.spawnAcc += dt * (BUBBLE_RATE_BASE + BUBBLE_RATE_SLOPE * eel.effort);
       while (this.spawnAcc >= 1) {
         this.spawnAcc -= 1;
         const b = this.bubbles.find(b => b.life <= 0);
         if (!b) break;
-        b.x = eel.x + eel.hx * 8 + (Math.random() - 0.5) * 6;
-        b.y = eel.y + eel.hy * 8 + (Math.random() - 0.5) * 6;
-        b.vx = eel.hx * 30 * eel.speed01;
-        b.vy = -20 - Math.random() * 20;
-        b.life = 1.2 + Math.random() * 1.5;
-        b.size = 2 + Math.random() * 3;
+        b.x = eel.x + eel.hx * BUBBLE_MOUTH_OFF + (Math.random() - 0.5) * BUBBLE_JITTER;
+        b.y = eel.y + eel.hy * BUBBLE_MOUTH_OFF + (Math.random() - 0.5) * BUBBLE_JITTER;
+        b.vx = eel.hx * BUBBLE_KICK * eel.speed01;
+        b.vy = -BUBBLE_RISE0 - Math.random() * BUBBLE_RISE_VAR;
+        b.life = BUBBLE_LIFE_MIN + Math.random() * BUBBLE_LIFE_VAR;
+        b.size = BUBBLE_SIZE_MIN + Math.random() * BUBBLE_SIZE_VAR;
         b.seed = Math.random() * TAU;
       }
     }
     for (const b of this.bubbles) {
       if (b.life <= 0) continue;
-      b.vy = Math.max(b.vy - 50 * dt, -70);        // buoyancy
-      b.vx += Math.sin(t * 4 + b.seed) * 15 * dt;  // wobble
-      b.vx *= Math.exp(-dt * 0.8);
+      b.vy = Math.max(b.vy - BUBBLE_BUOY * dt, -BUBBLE_RISE_MAX);        // buoyancy
+      b.vx += Math.sin(t * BUBBLE_WOBBLE_F + b.seed) * BUBBLE_WOBBLE * dt;  // wobble
+      b.vx *= Math.exp(-dt * BUBBLE_DRAG);
       b.x += b.vx * dt; b.y += b.vy * dt;
       b.life -= dt;
       if (b.y < 5) b.life = 0;   // popped at the surface
+    }
+  }
+
+  // LIGHT-axis palette + strengths, from tuning.lightParams(light01).
+  setLight(params) {
+    this.lightP = params;
+  }
+
+  // An expanding additive light pulse at a world point (docs/06): color is the
+  // food's axis signature, size/strength scale with its progression amount.
+  pulse(x, y, color, amount) {
+    if (!this.ok) return;
+    const p = this.pulses.find(p => p.age >= p.dur) || this.pulses[0];
+    p.x = x; p.y = y;
+    p.color = color;
+    p.age = 0;
+    p.dur = PULSE_T_BASE + PULSE_T_AMT * amount;
+    p.r = PULSE_R_BASE + PULSE_R_AMT * amount;
+    p.a = Math.min(1, PULSE_A_BASE + PULSE_A_AMT * amount);
+  }
+
+  // A one-shot puff of bubbles at a world point (the eat flourish). Draws
+  // from the same pool as mouth bubbles; silently emits fewer if it's busy.
+  burst(x, y) {
+    if (!this.ok) return;
+    for (let k = 0; k < BURST_COUNT; k++) {
+      const b = this.bubbles.find(b => b.life <= 0);
+      if (!b) break;
+      b.x = x + (Math.random() - 0.5) * BURST_SCATTER;
+      b.y = y + (Math.random() - 0.5) * BURST_SCATTER;
+      b.vx = (Math.random() - 0.5) * BURST_VX;
+      b.vy = -BURST_RISE0 - Math.random() * BURST_RISE_VAR;
+      b.life = BURST_LIFE_MIN + Math.random() * BURST_LIFE_VAR;
+      b.size = BUBBLE_SIZE_MIN + Math.random() * BUBBLE_SIZE_VAR;
+      b.seed = Math.random() * TAU;
     }
   }
 
@@ -327,6 +495,11 @@ export class Water {
     gl.uniform2f(this.loc.bg.cam, camX, camY);
     gl.uniform1f(this.loc.bg.worldH, this.worldH * dpr);
     gl.uniform1f(this.loc.bg.t, t);
+    const lp = this.lightP;
+    gl.uniform3f(this.loc.bg.deep, lp.deep[0], lp.deep[1], lp.deep[2]);
+    gl.uniform3f(this.loc.bg.surface, lp.surface[0], lp.surface[1], lp.surface[2]);
+    gl.uniform1f(this.loc.bg.ray, lp.ray);
+    gl.uniform1f(this.loc.bg.shim, lp.shim);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     // 2. kelp
@@ -342,6 +515,7 @@ export class Water {
     gl.uniform1f(this.loc.kelp.t, t);
     gl.uniform1f(this.loc.kelp.dpr, dpr);
     gl.uniform1f(this.loc.kelp.push, this.eelPush);
+    gl.uniform1f(this.loc.kelp.dim, this.lightP.kelpDim);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.kelpVerts);
 
     // 3. particles
@@ -350,14 +524,20 @@ export class Water {
     for (const m of this.motes) {
       pd[n++] = m.x * dpr; pd[n++] = m.y * dpr;
       pd[n++] = m.size * dpr;
-      pd[n++] = 0.18 + 0.15 * (0.5 + 0.5 * Math.sin(t * 0.8 + m.seed * 3));
+      pd[n++] = MOTE_ALPHA + MOTE_TWINKLE * (0.5 + 0.5 * Math.sin(t * MOTE_TWINKLE_F + m.seed * 3));
+      pd[n++] = 0;
+    }
+    for (const s of this.snow) {
+      pd[n++] = s.x * dpr; pd[n++] = s.y * dpr;
+      pd[n++] = s.size * dpr;
+      pd[n++] = SNOW_ALPHA + SNOW_TWINKLE * (0.5 + 0.5 * Math.sin(t * 0.5 + s.seed * 2));
       pd[n++] = 0;
     }
     for (const b of this.bubbles) {
       if (b.life <= 0) continue;
       pd[n++] = b.x * dpr; pd[n++] = b.y * dpr;
       pd[n++] = b.size * dpr;
-      pd[n++] = Math.min(1, b.life / 0.5) * 0.7;
+      pd[n++] = Math.min(1, b.life / BUBBLE_FADE) * BUBBLE_ALPHA;
       pd[n++] = 1;
     }
     gl.enable(gl.BLEND);
@@ -372,5 +552,28 @@ export class Water {
     gl.uniform2f(this.loc.point.res, rw, rh);
     gl.uniform2f(this.loc.point.cam, camX, camY);
     gl.drawArrays(gl.POINTS, 0, n / 5);
+
+    // 4. light pulses — additive expanding glows, one small draw each
+    let anyPulse = false;
+    for (const p of this.pulses) if (p.age < p.dur) { anyPulse = true; break; }
+    if (anyPulse) {
+      gl.blendFunc(gl.ONE, gl.ONE);
+      gl.useProgram(this.pulseProg);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuf);
+      gl.enableVertexAttribArray(this.loc.pulse.pos);
+      gl.vertexAttribPointer(this.loc.pulse.pos, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform2f(this.loc.pulse.res, rw, rh);
+      gl.uniform2f(this.loc.pulse.cam, camX, camY);
+      for (const p of this.pulses) {
+        if (p.age >= p.dur) continue;
+        const u = p.age / p.dur;
+        const ease = u * u * (3 - 2 * u);
+        gl.uniform2f(this.loc.pulse.center, p.x * dpr, p.y * dpr);
+        gl.uniform1f(this.loc.pulse.radius, p.r * dpr * (0.35 + 0.65 * ease));
+        gl.uniform3f(this.loc.pulse.color, p.color[0], p.color[1], p.color[2]);
+        gl.uniform1f(this.loc.pulse.alpha, p.a * (1 - u) * (1 - u));
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+    }
   }
 }

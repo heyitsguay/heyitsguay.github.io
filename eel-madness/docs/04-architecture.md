@@ -11,8 +11,13 @@ eelmadness/
     main.js         boot, resize, frame loop — owns the order of operations
     input.js        keyboard + pointer → the intent struct (see 02)
     eel.js          spine sim, outline build, SVG rendering, decorations (see 01, 02)
+    food.js         food items: spawn, drift, floor pile, eat/bounce (see 06)
     water.js        WebGL: background, kelp, particles (see 03)
-    math.js         clamp / lerp / expApproach / angleDiff
+    tuning.js       THE experiment surface: axes, food economy, light palettes, dials (see 07)
+    progress.js     axis accumulators, localStorage persistence, URL overrides, dial eval
+    veil.js         the darkness veil overlay (see 03)
+    ui.js           pause menu + reset, mobile action buttons (eat / greet)
+    math.js         clamp / lerp / expApproach / angleDiff / curves (curve01 library)
 ```
 
 No build step, no dependencies. ES modules loaded from `index.html`; deploy = push to
@@ -21,13 +26,33 @@ github.io.
 ## DOM stacking
 
 ```
-<body>                      position:fixed, inset:0 on both layers
+<body>                      position:fixed, inset:0 on the fullscreen layers
   <canvas id="water">       WebGL — environment, behind
-  <svg id="eel-layer">      the eel — in front, pointer-events:none
-  <div id="hint">           "WASD / hold to swim", fades on first input
+  <svg id="eel-layer">      food + eel — in front, pointer-events:none
+    <g id="food">           food <image> pool, behind the eel
+    <g id="eel">            the eel
+  <div id="veil">           darkness veil — world-height gradient, camera-translated
+  <div id="hint">           "WASD / hold to swim", fades on first input (above the veil)
 ```
 
 Input listens on `window`, so the SVG layer never intercepts touches.
+
+**Chromium stale-raster bug + the damage-rect workaround.** In Chrome (hardware raster,
+dPR 1, 100% zoom — Firefox is clean), the wig paths' per-frame paint invalidation fails:
+each frame's raster of a lock is not cleared before the next. Near the body this is
+masked — the body/eye/wig-mass invalidation rects force re-raster of everything around
+the eel each frame — so residue only becomes visible where lock tips drift above that
+crowd, instantly stacking into scribble-like wads a fixed height above the body. Any
+overlapping invalidation rect erases it (observed directly); a window resize wipes it
+all. `will-change: transform` does NOT fix it. Root cause in Chromium unidentified.
+
+The workaround makes the accidental cleanup deliberate: `<rect id="eel-damage">` (first
+child of `#eel`, painted at an imperceptible 0.4% alpha so Chromium can't skip it) is
+resized every frame to the bounding box of all wig-lock outlines plus `DAMAGE_PAD`
+(eel.js). Its old∪new invalidation rect then forces re-raster of the wig's entire
+painted region every frame — an explicit clear step for the layer. Perf cost is
+re-rastering the wig neighborhood per frame, which normal swimming already pays. If the
+Chromium bug is ever fixed upstream, the rect and its bookkeeping can be deleted.
 
 ## Coordinate system & camera
 
@@ -39,6 +64,12 @@ about the camera:
 
 - Camera: top-left `(camX, camY)`, eased toward centering the eel (τ = 0.3 s) with a small
   speed-scaled lookahead along the heading, clamped to world bounds, snapped on resize.
+- **Zoom:** on coarse-pointer (touch) devices the camera is zoomed out to `MOBILE.ZOOM`
+  (0.5×): the view spans `W/zoom × H/zoom` world px. Implementation: the viewBox uses the
+  view span; water gets `(viewW, viewH, dpr·zoom)` — its canvas backing store stays
+  `W×dpr` so nothing blurs, the world-to-device scale just becomes `dpr·zoom`; the veil
+  is built at `worldH·zoom` CSS px; input converts the eel's world position to screen
+  via `(eel − cam) · zoom`.
 - SVG: `viewBox="camX camY W H"` — **the viewBox is the camera.** Spine coordinates stay in
   world space; one attribute per frame pans the whole eel layer.
 - WebGL: canvas backing store is `W×dpr, H×dpr` (dpr capped at 2). Geometry and uniforms are
@@ -54,11 +85,17 @@ about the camera:
 
 ```
 requestAnimationFrame:
+  if ui.paused: skip everything, keep the loop alive
   dt = clamp(now - last, ≤ 50 ms)          # tab-switch protection
   intent = getIntent(eel.x, eel.y)         # input → intent
   eel.update(dt, intent, W, H)             # physics: head, chain, phase, side factor
+  eaten = food.update(dt, eel, W, H)       # spawn/fall; eat & bounce vs the eel
+  per eaten item: water.burst + water.pulse (axis color) + progress.add(axis, amount)
   water.update(dt, eel)                    # particles react to eel; bubbles spawn
+  water.setLight(lightParams(light))       # only when LIGHT changed meaningfully
+  veil.update(camY, light)                 # compositor-only translate (+ rare rebuild)
   eel.render()                             # spine → path d + decoration transforms
+  food.render()                            # one transform per live item
   water.render(t)                          # 3 GL draw calls
 ```
 
@@ -76,11 +113,31 @@ eel.js     new Eel(svgRoot)
            .update(dt, intent, worldW, worldH)
            .render()
            exposes: x, y, hx, hy, speed01, speedSm, effort, mouth   # read by main/water
+                    px, py, wArr (spine points + half-widths)       # read by food collision
+
+food.js    new Food(svgRoot)
+           .update(dt, eel, worldW, worldH) → [{x, y}]   # eat events for the flourish
+           .render()
 
 water.js   new Water(canvas)
            .resize(W, H, dpr, worldW, worldH)         # rebuilds kelp geometry
            .update(dt, eel, cam)
            .render(cam)
+           .burst(x, y)                               # bubble burst at a world point
+           .pulse(x, y, color, amount)                # additive light pulse (eat flourish)
+           .setLight(params)                          # from tuning.lightParams(light01)
+
+ui.js      initUI({ onReset }) → { paused() }         # pause menu, reset, mobile buttons
+input.js   also exports setMouth(held)                # mobile eat button drives the flag
+
+progress.js  progress (singleton)
+           .value(axis) → 0..1                        # 1 − exp(−W/K), or URL override
+           .add(axis, amount), .reset()
+           .dial({axis, threshold, curve, rampWidth, max}) → value
+           URL previews: ?light=0.7&life=0.2&worldmagic=0.5&eelmagic=1 (not persisted)
+
+veil.js    new Veil(el, worldH)
+           .update(camY, light01)                     # translate; rebuild on LIGHT change
 ```
 
 ## Resize strategy

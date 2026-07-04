@@ -15,6 +15,12 @@ Currently at Milestone 0+ (the swim sandbox with a follow-cam world); gameplay c
    modify above `eelmadness/`.
 4. **Don't launch browsers to test.** Matt tests by hand. After changes, give him a short,
    specific checklist of what to look at. `node --check js/*.js` for syntax is fine.
+5. **ASK QUESTIONS, DO NOT MAKE ASSUMPTIONS.** You are instruction-tuned to be confident
+   in your ability to make assumptions and guess user intent, but you are NOT capable of
+   it. When observed behavior, a diagnosis, or Matt's intent is uncertain or has more than
+   one plausible reading, stop and ask him — he is testing by hand and can answer quickly.
+   Never present an assumption as a conclusion, and never build a fix on an unconfirmed
+   hypothesis.
 
 ## Doc index
 
@@ -26,6 +32,8 @@ Currently at Milestone 0+ (the swim sandbox with a follow-cam world); gameplay c
 | `docs/03-environment.md` | WebGL water/kelp/particles, perf budget, degradation levers |
 | `docs/04-architecture.md` | file map, frame loop, world/camera coordinate system, module APIs |
 | `docs/05-roadmap.md` | milestone status, gameplay candidates, mobile test checklist |
+| `docs/06-food.md` | food items: spawn bands, Poisson spawner, drift, floor pile, eat/bounce |
+| `docs/07-progression.md` | the game: dark→vibrant progression axes, tuning.js plan, critter/FX catalog, phases |
 
 ## Facts you'll want at zero context
 
@@ -39,6 +47,10 @@ Currently at Milestone 0+ (the swim sandbox with a follow-cam world); gameplay c
 - **Feel/appearance knobs are deliberately centralized:**
   - `js/eel.js` top: wiggle, easing, head contour (`HEAD_PTS`), mouth, wig geometry constants
   - `js/water.js` top + shader source strings: colors, kelp, particles
+  - `js/food.js` top: food types table (sizes, spawn bands, populations, drift), eat/bounce
+  - `js/tuning.js`: THE game-shaping surface — axes (K, colors), food economy CSV,
+    progression dials, light palettes, veil shape. Preview any state via URL:
+    `?light=0.7&life=0.2&worldmagic=0.5&eelmagic=1`
   - `style.css`: eel body/fin colors, **hair color** (`#eel-wig path`), eye colors
   - `js/main.js` top: world size, camera feel
 - Matt tunes constants directly between requests — expect the file to have changed since you

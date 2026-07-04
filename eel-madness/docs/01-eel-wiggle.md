@@ -126,7 +126,8 @@ up, which is exactly what a real fish-shaped thing would do. No pop.
   where it's going), a small highlight, and short eyelashes fanning over the upper rim with
   tail-swept tips.
 - **Wig**: long platinum-blonde *locks* (thick filled ribbons, not stroked strands) rooted
-  along the crown. Each lock is its own tiny trailing chain (the same follow-the-leader trick
+  along a mammal-skull hairline over the back of the head (see below). Each lock is its own
+  tiny trailing chain (the same follow-the-leader trick
   as the body): the root is pinned to the scalp, free points get sway forces (a strong idle
   billow term runs even at rest — the water owns the hair) plus a weak pull (τ ≈ 2.6 s)
   toward a rest pose lying back along the body with slowly-wandering lift, then the
@@ -135,12 +136,18 @@ up, which is exactly what a real fish-shaped thing would do. No pop.
   the wake** — streams behind during a swim, sweeps across during the side-roll, billows at
   rest.
 
-  Attachment points are jittered per lock, fixed at startup: the scalp *is* the spine, so
-  along-scalp jitter is gaussian noise on the `s` parameter (`WIG_ATTACH_XSTD`, in WPROF
-  units, converted via `1 unit = 1/REF_LEN` of body length) and off-scalp jitter rides the
-  normal (`WIG_ATTACH_YSTD`, kept very small). Count/length/thickness knobs: `WIG_LOCKS`,
-  `WIG_POINTS`, `WIG_THICK`, `WIG_THICK_VAR` in eel.js; **hair color is in style.css**
-  (`#eel-wig path` — fill is the hair, stroke is the lock edge).
+  **The hairline is a skull oval.** Imagine the oval of a mammal skull sitting on the spine
+  (center at `WIG_OVAL_S`, radii `WIG_OVAL_RA` along the body × `WIG_OVAL_RB` upward). Locks
+  root along its arc, in the head frame where 0° points at the nose and 90° is straight up:
+  from `WIG_ARC_START` (≈80°, just shy of the crown) back and down to `WIG_ARC_END` (≈155°,
+  the nape). Lock length grows front→back, so the longest hair hangs from the nape. Roots sit
+  `WIG_ROOT_PROUD` off the oval surface; per-lock jitter, fixed at startup, is along the arc
+  (`WIG_ATTACH_ASTD`, degrees) and radial (`WIG_ATTACH_RSTD`, kept small so roots hug the
+  skull). The oval frame lives on the rendered spine at `WIG_OVAL_S`, so the hairline rides
+  the head through turns and squashes with `sideSm` mid-roll like every other decoration.
+  Count/length/thickness knobs: `WIG_LOCKS`, `WIG_POINTS`, `WIG_THICK`, `WIG_THICK_VAR` in
+  eel.js; **hair color is in style.css** (`#eel-wig path` — fill is the hair, stroke is the
+  lock edge).
 - **Dorsal fringe**: the translucent stroke on the body path doubles as the continuous
   dorsal/ventral fin membrane eels have; a dedicated fin ribbon path is a roadmap item.
 
@@ -152,11 +159,15 @@ Later decorations (fins, accessories, expressions) plug into the same `pointAt(s
 
 ## Risks & tuning notes
 
-- **The feel lives in ~8 constants**: `MAX_BEND`, wave amp/freq coefficients, envelope
-  exponent, `WAVELENGTHS`, head-injection amplitude. They're grouped at the top of `eel.js`
-  and meant to be fiddled with live.
+- **Every feel knob is a named constant at the top of `eel.js`**, grouped by system: spine
+  (`MAX_BEND`), wave (`FREQ_*`, `AMP_*`, `ENV_*`, `WAVELENGTHS`), head injection
+  (`HEADWIG_*`), steering/speed (`TURN_RATE_*`, `MAX_SPEED_BL`, `TAU_*`, `WALL_*`),
+  eye/lashes (`EYE_*`, `PUPIL_*`, `LASH_*`), wig (`WIG_*`). No tuning number hides in a
+  function body — only math identities, epsilons, and per-lock/per-point phase strides
+  (pure decorrelation, not feel) stay inline. The core of the swim feel is `MAX_BEND`
+  plus the wave and head-injection groups.
 - If turns look too stiff → raise `MAX_BEND`; too noodly → lower it.
-- If fast swimming looks frantic → lower the freq slope (`2.3`) before touching amplitude.
+- If fast swimming looks frantic → lower `FREQ_SLOPE` before touching amplitude.
 - Watch for outline self-intersection at max bend + max amplitude near the thick head section;
   if it appears, cap `env * A` against local radius of curvature (not needed at current
   values).

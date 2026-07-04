@@ -8,19 +8,50 @@
 import { TAU, clamp, lerp, expApproach, angleDiff } from './math.js';
 
 // ---- The feel lives here: tune these live ----
+// Decoration geometry constants are in WPROF units (px at REF_LEN, scaled by
+// the eel's actual size) unless noted otherwise.
+
+// Spine & body
 const N = 44;                 // spine points
 const REF_LEN = 260;          // body length (px) the width profile is authored at
+const EEL_LEN = 375;          // actual body length, world px
 const MAX_BEND = 0.26;        // rad per segment — lower = stiffer body
+const START_X_FRAC = 0.5;     // spawn: fraction across the world
+const START_DEPTH = 486;      // spawn: world px below the surface (food falls from up there)
+
+// Traveling wave (render-time undulation)
 const WAVELENGTHS = 1.5;      // wave cycles along the body
 const FREQ_BASE = 0.4;        // Hz at idle
 const FREQ_SLOPE = 2.3;       // extra Hz at full speed
 const AMP_BASE = 1.0;         // px lateral amplitude at idle (at REF_LEN scale)
-const AMP_SLOPE = 8.0;        // extra px at full speed
+const AMP_SLOPE = 16.0;        // extra px at full speed
+const ENV_HEAD = 0.1;        // fraction of full amplitude at the head (tail gets 1)
+const ENV_EXP = 1.4;          // envelope curve — higher pushes motion tailward
+
+// Head wiggle injection: the head's *actual* position oscillates a little so
+// the chain records a sinuous path (see docs/01). Units: segment lengths per
+// unit of sine swing. Keep small — the visible motion belongs to the body.
+const HEADWIG_BASE = 0.06;
+const HEADWIG_SLOPE = 0.14;   // extra at full speed
+
+// Steering & speed
+const MAX_SPEED_BL = 1.15;    // body lengths per second at full effort
+const MOUTH_DRAG = 0.30;      // fraction of top speed lost at full gape
+const TURN_RATE_BASE = 3.4;   // rad/s
+const TURN_RATE_SLOPE = 2.2;  // extra rad/s at full speed (turns tighter with flow)
 const TAU_EFFORT_UP = 0.30;   // s — swim startup gather
 const TAU_EFFORT_DOWN = 0.55; // s — throttle release
 const TAU_SPEED_UP = 0.50;    // s — acceleration ramp
 const TAU_SPEED_DOWN = 0.90;  // s — glide / momentum carry
+const TAU_SPEED_SM = 0.4;     // s — smoothed speed signal driving wave/hair feel
 const WALL_MARGIN = 70;       // px — soft-steer away from edges inside this band
+const WALL_PUSH = 1.2;        // strength of the inward steer blended in at a wall
+const GLIDE_STEER_MIN = 10;   // px/s — gliding faster than this still steers off walls
+const EDGE_CLAMP = 10;        // px — hard position clamp inside the world edge
+
+// Side roll (which side of the spine the face is on)
+const SIDE_FLIP_MIN = 0.15;   // |heading·x| needed before the face picks a side
+const TAU_SIDE = 0.18;        // s — how fast the eye/wig roll across on a turn
 
 // Width profile: [t along body, half-width in px at REF_LEN]. Slender, with an
 // ovular head (bulge peaking at 0.13, neck dip at 0.30). The head's front is
@@ -57,13 +88,63 @@ const WIG_LOCKS = 15;
 const WIG_POINTS = 8;     // chain points per lock
 const WIG_THICK = 1.0;    // lock half-width at its widest, in WPROF units
 const WIG_THICK_VAR = 0.7; // extra thickness, cycling every 3rd lock
-// Attachment jitter (fixed per lock, drawn once at startup). The scalp is the
-// spine itself, so "x" is distance along the spline (jitters the s parameter)
-// and "y" is off the scalp surface along the normal. WPROF units.
-const WIG_ATTACH_XSTD = 1.2;
-const WIG_ATTACH_YSTD = 0.25;  // keep very small — roots should hug the scalp
 // (hair COLOR lives in style.css: #eel-wig path — fill is the hair, stroke is the lock edge)
+// Hairline: imagine the oval of a mammal skull sitting on the spine — locks
+// root along its arc over the back of the head. Angles are degrees in the head
+// frame: 0 points at the nose, 90 is straight up, 180 is toward the tail.
+const WIG_OVAL_S = 0.10;      // spine anchor of the oval's center
+const WIG_OVAL_RA = 14;       // oval radius along the body
+const WIG_OVAL_RB = 9;        // oval radius upward (~scalp height at the crown)
+const WIG_ARC_START = 45;     // deg — first (shortest) lock, just shy of the crown
+const WIG_ARC_END = 155;      // deg — last (longest) lock, at the nape
+const WIG_ROOT_PROUD = 0.5;   // roots sit this far off the oval surface
+// Attachment jitter, fixed per lock at startup: along the hairline arc
+// (degrees) and radially off the surface (keep small — roots hug the skull).
+const WIG_ATTACH_ASTD = 3;
+const WIG_ATTACH_RSTD = 0.25;
+const WIG_LEN_BASE = 34;      // shortest (front) lock length
+const WIG_LEN_STEP = 7;       // extra length per lock toward the back
+const WIG_REST_TAU = 2.6;     // s — weak pull to the rest pose; higher = water owns the hair
+// Rest-pose lift off the scalp: base + two slow incommensurate sines (amp, rad/s)
+const WIG_LIFT_BASE = 0.22;
+const WIG_LIFT_A1 = 0.18; const WIG_LIFT_F1 = 0.31;
+const WIG_LIFT_A2 = 0.12; const WIG_LIFT_F2 = 0.173;
+// Sway forces on free points (px/s at REF_LEN scale) — the idle terms are
+// strong on purpose: at rest the hair billows, the water owns it.
+const WIG_SWAY_BEAT = 14;     // synced to the body wave, at idle
+const WIG_SWAY_BEAT_SLOPE = 18; // extra at full speed
+const WIG_SWAY_BEAT_FREQ = 1.1; // multiple of the body wave phase
+const WIG_SWAY_SLOW = 9;      // slow ambient billow
+const WIG_SWAY_SLOW_F = 0.42; // rad/s
+// Lock ribbon silhouette: near-full width to the shoulder, then a soft tip
+const WIG_SHOULDER = 0.3;     // fraction of the lock at/near full width
+const WIG_ROOT_W = 0.55;      // width at the root, fraction of max
+const WIG_TIP_EXP = 0.85;     // taper curve after the shoulder
+const WIG_MIN_W = 0.3;        // px floor so tips don't vanish
+const WIG_DAMAGE_PAD = 12;    // margin around the wig bbox swept by the Chromium
+                              // damage rect (see docs/04) — covers spline overshoot
+
+// Eye
+const EYE_S = 0.045;          // spine anchor (s parameter)
+const EYE_FWD = 1.2;          // push along the heading, onto the face
+const EYE_UP = 2.0;           // offset above the spine
+const EYE_R_UP = 4.1;         // radius along head-up — smaller than across: wider than tall
+const EYE_R_ACROSS = 5.4;     // radius along the heading
+const PUPIL_LEAD = 1.4;       // pupil offset toward the heading (looks where it's going)
+const PUPIL_R = 2.3;
+const SHINE_R = 0.75;
+const SHINE_OFF = 0.8;        // highlight offset from the pupil, up-and-back
+const SHINE_BACK = 0.3;       // how much that offset leans back from the heading
+
+// Eyelashes
 const LASHES = 8;
+const LASH_FAN_START = -0.2;  // first lash direction blend (up-back)
+const LASH_FAN_SPAN = 1.6;    // ...sweeping to up-forward across the fan
+const LASH_LEN = 2.1;         // first (backmost) lash length
+const LASH_LEN_STEP = 0.07;   // shorter per lash across the fan
+const LASH_RIM = 0.95;        // base sits at this fraction of the eye's up-radius
+const LASH_CTRL = 0.7;        // curve control point, fraction along the lash
+const LASH_SWEEP = 0.3;       // tip drift toward the tail
 
 function gauss() {
   const u = 1 - Math.random(), v = Math.random();
@@ -99,6 +180,7 @@ export class Eel {
     const NS = 'http://www.w3.org/2000/svg';
     this.body = svgRoot.querySelector('#eel-body');
     this.mouthEl = svgRoot.querySelector('#eel-mouth');
+    this.damage = svgRoot.querySelector('#eel-damage');
     this.eye = svgRoot.querySelector('#eel-eye');
     this.pupil = svgRoot.querySelector('#eel-pupil');
     this.shine = svgRoot.querySelector('#eel-shine');
@@ -122,13 +204,13 @@ export class Eel {
       this.wigY.push(new Float64Array(WIG_POINTS));
     }
     this.wigReady = false;
-    // Per-lock attachment jitter, fixed at startup: along-spline (as an s
-    // offset; 1 WPROF unit = 1/REF_LEN of body length) and off-scalp.
-    this.wigJitS = new Float64Array(WIG_LOCKS);
-    this.wigJitY = new Float64Array(WIG_LOCKS);
+    // Per-lock attachment jitter, fixed at startup: along the hairline arc
+    // (angle) and radially off the skull surface.
+    this.wigJitA = new Float64Array(WIG_LOCKS);
+    this.wigJitR = new Float64Array(WIG_LOCKS);
     for (let i = 0; i < WIG_LOCKS; i++) {
-      this.wigJitS[i] = gauss() * WIG_ATTACH_XSTD / REF_LEN;
-      this.wigJitY[i] = gauss() * WIG_ATTACH_YSTD;
+      this.wigJitA[i] = gauss() * WIG_ATTACH_ASTD * Math.PI / 180;
+      this.wigJitR[i] = gauss() * WIG_ATTACH_RSTD;
     }
     // scratch buffers for lock ribbon outlines (top edge + bottom edge)
     this.lox = new Float64Array(2 * WIG_POINTS);
@@ -156,14 +238,14 @@ export class Eel {
 
   resize(worldW, worldH) {
     // Fixed size in world units (the world itself is window-independent).
-    this.len = 375;
+    this.len = EEL_LEN;
     this.seg = this.len / (N - 1);
     this.ws = this.len / REF_LEN;
     for (let i = 0; i < N; i++) this.wArr[i] = halfWidth(i / (N - 1)) * this.ws;
     if (!this.placed) {
-      // start in the deepest reference-screen, mid-world
-      this.x = worldW * 0.5;
-      this.y = worldH - 486;
+      // start near the surface, mid-world — where the light and the food are
+      this.x = worldW * START_X_FRAC;
+      this.y = START_DEPTH;
       for (let i = 0; i < N; i++) {
         this.px[i] = this.x - i * this.seg;
         this.py[i] = this.y;
@@ -184,10 +266,10 @@ export class Eel {
 
     let steerX = 0, steerY = 0, steering = false;
     if (intent.active) {
-      steerX = intent.dirX + pushX * 1.2;
-      steerY = intent.dirY + pushY * 1.2;
+      steerX = intent.dirX + pushX * WALL_PUSH;
+      steerY = intent.dirY + pushY * WALL_PUSH;
       steering = true;
-    } else if ((pushX || pushY) && this.speed > 10) {
+    } else if ((pushX || pushY) && this.speed > GLIDE_STEER_MIN) {
       steerX = pushX; steerY = pushY;    // turn away from walls while gliding
       steering = true;
     }
@@ -200,7 +282,7 @@ export class Eel {
     // Rate-limited turning: direction changes are arcs, never snaps.
     if (steering && (steerX || steerY)) {
       const desired = Math.atan2(steerY, steerX);
-      const rate = 3.4 + 2.2 * this.speed01;
+      const rate = TURN_RATE_BASE + TURN_RATE_SLOPE * this.speed01;
       this.heading += clamp(angleDiff(desired, this.heading), -rate * dt, rate * dt);
     }
 
@@ -211,12 +293,12 @@ export class Eel {
 
     // Speed: asymmetric easing = swim-up ramp vs glide-down momentum.
     // An open mouth drags — swimming while gaping is slower.
-    const maxSpeed = this.len * 1.15 * (1 - 0.30 * this.mouth);
+    const maxSpeed = this.len * MAX_SPEED_BL * (1 - MOUTH_DRAG * this.mouth);
     const speedTarget = maxSpeed * this.effort;
     this.speed = expApproach(this.speed, speedTarget, dt,
       speedTarget > this.speed ? TAU_SPEED_UP : TAU_SPEED_DOWN);
     this.speed01 = this.speed / maxSpeed;
-    this.speedSm = expApproach(this.speedSm, this.speed01, dt, 0.4);
+    this.speedSm = expApproach(this.speedSm, this.speed01, dt, TAU_SPEED_SM);
 
     // Undulation phase: always ticking (idle sway), faster with speed.
     this.phase += (FREQ_BASE + FREQ_SLOPE * this.speedSm) * TAU * dt;
@@ -226,12 +308,12 @@ export class Eel {
     const hx = Math.cos(this.heading), hy = Math.sin(this.heading);
     this.hx = hx; this.hy = hy;
     const s = Math.sin(this.phase);
-    const dLat = (s - this.prevSin) * this.seg * (0.16 + 0.34 * this.speedSm);
+    const dLat = (s - this.prevSin) * this.seg * (HEADWIG_BASE + HEADWIG_SLOPE * this.speedSm);
     this.prevSin = s;
     this.x += hx * this.speed * dt - hy * dLat;
     this.y += hy * this.speed * dt + hx * dLat;
-    this.x = clamp(this.x, 10, W - 10);
-    this.y = clamp(this.y, 10, H - 10);
+    this.x = clamp(this.x, EDGE_CLAMP, W - EDGE_CLAMP);
+    this.y = clamp(this.y, EDGE_CLAMP, H - EDGE_CLAMP);
 
     // Chain: each point trails the previous at fixed length, bend-limited.
     this.px[0] = this.x; this.py[0] = this.y;
@@ -247,8 +329,8 @@ export class Eel {
 
     // Side factor: the eye/wig side rolls smoothly when the eel turns around.
     // Head normal is perp(tailward tangent); its dot with world-up works out to hx.
-    if (Math.abs(hx) > 0.15) this.sideTarget = Math.sign(hx);
-    this.sideSm = expApproach(this.sideSm, this.sideTarget, dt, 0.18);
+    if (Math.abs(hx) > SIDE_FLIP_MIN) this.sideTarget = Math.sign(hx);
+    this.sideSm = expApproach(this.sideSm, this.sideTarget, dt, TAU_SIDE);
   }
 
   // Interpolated point on the rendered spine: position, normal, tailward tangent.
@@ -278,7 +360,7 @@ export class Eel {
       const tm = Math.hypot(tx, ty) || 1;
       tx /= tm; ty /= tm;
       const t = i / (N - 1);
-      const env = 0.10 + 0.90 * Math.pow(t, 1.4);
+      const env = ENV_HEAD + (1 - ENV_HEAD) * Math.pow(t, ENV_EXP);
       const off = amp * env * Math.sin(this.phase - t * WAVELENGTHS * TAU);
       rx[i] = px[i] - ty * off;
       ry[i] = py[i] + tx * off;
@@ -349,12 +431,11 @@ export class Eel {
 
   renderEye() {
     const ws = this.ws, side = this.sideSm;
-    const p = this.pointAt(0.045);
+    const p = this.pointAt(EYE_S);
     const ux = p.nx * side, uy = p.ny * side;   // toward the head's top (shrinks mid-roll)
-    const ex = p.x + this.hx * 1.2 * ws + ux * 2.0 * ws;   // forward on the face
-    const ey = p.y + this.hy * 1.2 * ws + uy * 2.0 * ws;
-    // Slightly elliptical: wider than tall (long axis along the heading).
-    const rUp = 4.1 * ws, rAcross = 5.4 * ws;
+    const ex = p.x + this.hx * EYE_FWD * ws + ux * EYE_UP * ws;   // forward on the face
+    const ey = p.y + this.hy * EYE_FWD * ws + uy * EYE_UP * ws;
+    const rUp = EYE_R_UP * ws, rAcross = EYE_R_ACROSS * ws;
     const upAngle = Math.atan2(uy, ux) * 180 / Math.PI;
     this.eye.setAttribute('cx', ex.toFixed(1));
     this.eye.setAttribute('cy', ey.toFixed(1));
@@ -362,28 +443,28 @@ export class Eel {
     this.eye.setAttribute('ry', rAcross.toFixed(1));
     this.eye.setAttribute('transform', `rotate(${upAngle.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)})`);
     // Pupil leads toward the heading: the eel looks where it's going.
-    const px = ex + this.hx * 1.4 * ws, py = ey + this.hy * 1.4 * ws;
+    const px = ex + this.hx * PUPIL_LEAD * ws, py = ey + this.hy * PUPIL_LEAD * ws;
     this.pupil.setAttribute('cx', px.toFixed(1));
     this.pupil.setAttribute('cy', py.toFixed(1));
-    this.pupil.setAttribute('r', (2.3 * ws).toFixed(1));
-    this.shine.setAttribute('cx', (px + (ux - this.hx * 0.3) * 0.8 * ws).toFixed(1));
-    this.shine.setAttribute('cy', (py + (uy - this.hy * 0.3) * 0.8 * ws).toFixed(1));
-    this.shine.setAttribute('r', (0.75 * ws).toFixed(1));
+    this.pupil.setAttribute('r', (PUPIL_R * ws).toFixed(1));
+    this.shine.setAttribute('cx', (px + (ux - this.hx * SHINE_BACK) * SHINE_OFF * ws).toFixed(1));
+    this.shine.setAttribute('cy', (py + (uy - this.hy * SHINE_BACK) * SHINE_OFF * ws).toFixed(1));
+    this.shine.setAttribute('r', (SHINE_R * ws).toFixed(1));
 
     // Eyelashes: short strokes fanning over the upper-forward rim, tips swept
     // gently back toward the tail.
     const um = Math.hypot(ux, uy) || 1;
     const uxn = ux / um, uyn = uy / um;
     for (let k = 0; k < LASHES; k++) {
-      const blend = -0.2 + k * (1.6 / (LASHES - 1));   // up-back ... up-forward
+      const blend = LASH_FAN_START + k * (LASH_FAN_SPAN / (LASHES - 1));
       let dx = uxn + this.hx * blend, dy = uyn + this.hy * blend;
       const dm = Math.hypot(dx, dy) || 1;
       dx /= dm; dy /= dm;
-      const len = (2.1 - k * 0.07) * ws;
-      const bx = ex + dx * rUp * 0.95, by = ey + dy * rUp * 0.95;
-      const cxp = bx + dx * len * 0.7, cyp = by + dy * len * 0.7;
-      const txp = bx + dx * len + p.tx * len * 0.3;
-      const typ = by + dy * len + p.ty * len * 0.3;
+      const len = (LASH_LEN - k * LASH_LEN_STEP) * ws;
+      const bx = ex + dx * rUp * LASH_RIM, by = ey + dy * rUp * LASH_RIM;
+      const cxp = bx + dx * len * LASH_CTRL, cyp = by + dy * len * LASH_CTRL;
+      const txp = bx + dx * len + p.tx * len * LASH_SWEEP;
+      const typ = by + dy * len + p.ty * len * LASH_SWEEP;
       this.lashes[k].setAttribute('d',
         `M${bx.toFixed(1)} ${by.toFixed(1)}Q${cxp.toFixed(1)} ${cyp.toFixed(1)} ${txp.toFixed(1)} ${typ.toFixed(1)}`);
     }
@@ -396,29 +477,36 @@ export class Eel {
   renderWig() {
     const ws = this.ws, side = this.sideSm, dt = this.dt || 0.016;
     // weak rest pull: the hair mostly does what the water tells it
-    const restPull = 1 - Math.exp(-dt / 2.6);
+    const restPull = 1 - Math.exp(-dt / WIG_REST_TAU);
     const lox = this.lox, loy = this.loy;
     const time = this.time;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    // The skull-oval frame: pinned to the rendered spine at the oval's center,
+    // forward toward the nose, up toward the scalp side (squashes mid-roll).
+    const c = this.pointAt(WIG_OVAL_S);
+    const fwX = -c.tx, fwY = -c.ty;
+    const upX = c.nx * side, upY = c.ny * side;
     for (let i = 0; i < WIG_LOCKS; i++) {
-      // crown cluster, back from the nose, with fixed per-lock jitter
-      const s = clamp(0.045 + i * 0.0075 + this.wigJitS[i], 0.005, 0.17);
-      const p = this.pointAt(s);
-      const w = halfWidth(s) * ws;
-      const ux = p.nx * side, uy = p.ny * side;
-      const root = w * 1.1 + this.wigJitY[i] * ws;   // just proud of the scalp
-      const bx = p.x + ux * root, by = p.y + uy * root;
+      // root on the hairline arc, with fixed per-lock jitter
+      const th = (WIG_ARC_START + (WIG_ARC_END - WIG_ARC_START) * (i / (WIG_LOCKS - 1)))
+        * Math.PI / 180 + this.wigJitA[i];
+      const proud = WIG_ROOT_PROUD + this.wigJitR[i];
+      const ra = (WIG_OVAL_RA + proud) * ws, rb = (WIG_OVAL_RB + proud) * ws;
+      const bx = c.x + fwX * Math.cos(th) * ra + upX * Math.sin(th) * rb;
+      const by = c.y + fwY * Math.cos(th) * ra + upY * Math.sin(th) * rb;
       // Rest pose: lie back along the body from the root (near-zero slope),
       // lifted a touch off the scalp, drifting slowly and smoothly as if in
       // water — two incommensurate slow sines per lock stand in for randomness.
-      const lift = 0.22
-        + 0.18 * Math.sin(time * 0.31 + i * 2.13)
-        + 0.12 * Math.sin(time * 0.173 + i * 0.71);
-      let rdx = p.tx + ux * lift;
-      let rdy = p.ty + uy * lift;
+      // (The i·… phase strides here and below just decorrelate the locks.)
+      const lift = WIG_LIFT_BASE
+        + WIG_LIFT_A1 * Math.sin(time * WIG_LIFT_F1 + i * 2.13)
+        + WIG_LIFT_A2 * Math.sin(time * WIG_LIFT_F2 + i * 0.71);
+      let rdx = c.tx + upX * lift;
+      let rdy = c.ty + upY * lift;
       const rm = Math.hypot(rdx, rdy) || 1;
       rdx /= rm; rdy /= rm;
       const perpX = -rdy, perpY = rdx;
-      const L = (34 + i * 7) * ws;              // long locks
+      const L = (WIG_LEN_BASE + i * WIG_LEN_STEP) * ws;   // long locks
       const segL = L / (WIG_POINTS - 1);
 
       const xs = this.wigX[i], ys = this.wigY[i];
@@ -428,11 +516,11 @@ export class Eel {
           ys[j] = by + rdy * segL * j;
         }
       }
-      // forces on free points: sway + weak pull toward the rest pose.
-      // The idle sway term is strong on purpose — at rest the hair billows.
+      // forces on free points: sway + weak pull toward the rest pose
       for (let j = 1; j < WIG_POINTS; j++) {
-        const sway = (Math.sin(this.phase * 1.1 + j * 0.7 + i * 1.5) * (14 + 18 * this.speedSm)
-          + Math.sin(time * 0.42 + j * 1.1 + i * 2.3) * 9) * ws * dt;
+        const sway = (Math.sin(this.phase * WIG_SWAY_BEAT_FREQ + j * 0.7 + i * 1.5)
+            * (WIG_SWAY_BEAT + WIG_SWAY_BEAT_SLOPE * this.speedSm)
+          + Math.sin(time * WIG_SWAY_SLOW_F + j * 1.1 + i * 2.3) * WIG_SWAY_SLOW) * ws * dt;
         xs[j] += perpX * sway + (bx + rdx * segL * j - xs[j]) * restPull;
         ys[j] += perpY * sway + (by + rdy * segL * j - ys[j]) * restPull;
       }
@@ -451,9 +539,9 @@ export class Eel {
       const maxW = (WIG_THICK + (i % 3) * WIG_THICK_VAR) * ws;
       for (let j = 0; j < WIG_POINTS; j++) {
         const u = j / (WIG_POINTS - 1);
-        const lw = maxW * (u < 0.3
-          ? 0.55 + 0.45 * (u / 0.3)
-          : Math.pow(1 - (u - 0.3) / 0.7, 0.85)) + 0.3;
+        const lw = maxW * (u < WIG_SHOULDER
+          ? WIG_ROOT_W + (1 - WIG_ROOT_W) * (u / WIG_SHOULDER)
+          : Math.pow(1 - (u - WIG_SHOULDER) / (1 - WIG_SHOULDER), WIG_TIP_EXP)) + WIG_MIN_W;
         const j0 = Math.max(j - 1, 0), j1 = Math.min(j + 1, WIG_POINTS - 1);
         let tx = xs[j1] - xs[j0], ty = ys[j1] - ys[j0];
         const tm = Math.hypot(tx, ty) || 1;
@@ -464,7 +552,20 @@ export class Eel {
         loy[2 * WIG_POINTS - 1 - j] = ys[j] - tx * lw;
       }
       this.wig[i].setAttribute('d', closedLoopPath(lox, loy, 2 * WIG_POINTS));
+      for (let k = 0; k < 2 * WIG_POINTS; k++) {
+        if (lox[k] < minX) minX = lox[k];
+        if (lox[k] > maxX) maxX = lox[k];
+        if (loy[k] < minY) minY = loy[k];
+        if (loy[k] > maxY) maxY = loy[k];
+      }
     }
+    // Explicit clear step: sweep the damage rect over everything the wig
+    // painted, so Chromium re-rasters the region every frame (see docs/04).
+    const pad = WIG_DAMAGE_PAD * ws;
+    this.damage.setAttribute('x', (minX - pad).toFixed(1));
+    this.damage.setAttribute('y', (minY - pad).toFixed(1));
+    this.damage.setAttribute('width', (maxX - minX + 2 * pad).toFixed(1));
+    this.damage.setAttribute('height', (maxY - minY + 2 * pad).toFixed(1));
     this.wigReady = true;
   }
 }

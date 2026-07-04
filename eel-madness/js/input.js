@@ -1,6 +1,9 @@
 // Keyboard + pointer unified into one swim intent (see docs/02-movement-and-input.md).
 // Physics never knows which device produced it.
 
+const POINTER_DEADZONE = 14;  // px — intent goes inactive within this of the head
+const POINTER_ARRIVE = 150;   // px — full throttle beyond this; eases down inside (arrive)
+
 const KEYMAP = {
   KeyW: [0, -1], ArrowUp: [0, -1],
   KeyS: [0, 1], ArrowDown: [0, 1],
@@ -11,6 +14,11 @@ const KEYMAP = {
 const keys = new Set();
 const pointer = { active: false, x: 0, y: 0 };
 let mouthHeld = false;
+
+// The mobile eat button drives the same flag the Space key does (see ui.js).
+export function setMouth(held) {
+  mouthHeld = held;
+}
 
 export function initInput(onFirstInput) {
   let first = false;
@@ -36,6 +44,8 @@ export function initInput(onFirstInput) {
   window.addEventListener('blur', () => { keys.clear(); mouthHeld = false; });
 
   window.addEventListener('pointerdown', e => {
+    // UI touches (pause, menu, action buttons) never reach steering.
+    if (e.target && e.target.closest && e.target.closest('#ui')) return;
     pointer.active = true;
     pointer.x = e.clientX;
     pointer.y = e.clientY;
@@ -63,8 +73,8 @@ export function getIntent(headX, headY) {
     const d = Math.hypot(tx, ty);
     // Arrive behavior: throttle eases down near the held point so the eel
     // settles there instead of orbiting. Small deadzone against jitter.
-    if (d > 14) {
-      return { active: true, dirX: tx / d, dirY: ty / d, throttle: Math.min(1, d / 150), mouth: mouthHeld };
+    if (d > POINTER_DEADZONE) {
+      return { active: true, dirX: tx / d, dirY: ty / d, throttle: Math.min(1, d / POINTER_ARRIVE), mouth: mouthHeld };
     }
   }
   return { active: false, dirX: 0, dirY: 0, throttle: 0, mouth: mouthHeld };

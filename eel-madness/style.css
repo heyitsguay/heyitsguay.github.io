@@ -22,6 +22,17 @@ body {
 
 #eel-layer { pointer-events: none; }
 
+/* Darkness veil (docs/03, docs/07): world-height gradient above the sprites,
+   translated with the camera each frame — height + gradient set from js. */
+#veil {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  will-change: transform;
+}
+
 #eel-body {
   fill: #0b0b0e;
   stroke: rgba(35, 40, 51, 0.9);   /* fins: near-black, a whisper of blue */
@@ -40,6 +51,12 @@ body {
   fill: none;
   stroke-linecap: round;
 }
+
+/* Chromium workaround, not decoration: a barely-painted rect resized over the
+   wig every frame so its invalidation rect forces Chrome to re-raster the
+   region (wig paths under-invalidate and leave residue) — see docs/04.
+   0.4% alpha ≈ 1/255: the minimum that still paints. */
+#eel-damage { fill: rgb(11 11 14 / 0.4%); }
 
 /* Hair color knobs (lock thickness/length/count are in js/eel.js) */
 #eel-wig path {
@@ -63,3 +80,84 @@ body {
 }
 
 #hint.hidden { opacity: 0; }
+
+/* UI layer: pause + menu + mobile action buttons. Steering ignores taps here. */
+#ui [hidden] { display: none !important; }
+
+#ui button {
+  font: 16px system-ui, sans-serif;
+  color: rgba(210, 235, 225, 0.75);
+  background: rgba(210, 235, 225, 0.08);
+  border: 1px solid rgba(210, 235, 225, 0.22);
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+#pause {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  width: 40px;
+  height: 40px;
+  font-size: 12px;
+}
+
+#menu {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 10, 14, 0.55);
+}
+
+#menu-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 26px;
+  background: rgba(8, 24, 30, 0.92);
+  border: 1px solid rgba(210, 235, 225, 0.15);
+  border-radius: 14px;
+}
+
+#menu-panel button {
+  border-radius: 9px;
+  padding: 10px 20px;
+}
+
+/* Axis meters in the pause menu */
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 11px/1 system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  color: rgba(210, 235, 225, 0.65);
+}
+.meter span { width: 92px; text-align: right; }
+.meter .track {
+  width: 150px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(210, 235, 225, 0.10);
+  overflow: hidden;
+}
+.meter .fill {
+  height: 100%;
+  border-radius: 3px;
+  width: 0;
+}
+#meters { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+
+/* Translucent action buttons (touch devices; docs/07): eat right, greet left */
+#btn-eat, #btn-greet {
+  position: fixed;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  width: 64px;
+  height: 64px;
+  font-size: 26px;
+}
+#btn-eat { right: max(18px, env(safe-area-inset-right)); }
+#btn-greet { left: max(18px, env(safe-area-inset-left)); }

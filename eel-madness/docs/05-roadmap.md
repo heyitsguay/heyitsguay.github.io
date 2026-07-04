@@ -33,7 +33,8 @@ phone (or a stable 30 with the degradation levers in 03).
 Ideation gate — decide what the *game* is. Candidates that build directly on M0 tech:
 
 - ~~Camera-follow in a larger level~~ done: 2×3-screen world, depth-light gradient
-- Things to eat that flee using the same steering model
+- ~~Things to eat~~ first pass done: drifting food with mouth-open eating (docs/06);
+  fleeing prey via the steering model is still open
 - Currents (flow fields the eel and particles both ride)
 - Hiding in kelp / being seen (kelp-push already knows where the eel is)
 - Collectibles that attach to the spine as decorations (the composition system is the hook)
