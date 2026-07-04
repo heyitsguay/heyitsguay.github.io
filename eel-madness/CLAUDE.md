@@ -2,8 +2,9 @@
 
 A vanilla HTML/CSS/JS/WebGL game: an eel with a platinum wig swims through a kelp forest,
 eating falling food to transform a dark barren sea into a bright living one. Progression
-runs on four persistent axes (LIGHT / LIFE / WORLD MAGIC / EEL MAGIC — docs/07); phases
-P0–P2 are implemented.
+runs on four persistent axes (LIGHT / LIFE / WORLD MAGIC / EEL MAGIC — docs/07), each
+quantized into 30 levels with level-up popups (docs/08); phases P0–P2 and the level
+system are implemented.
 
 ## Workflow rules
 
@@ -14,11 +15,13 @@ P0–P2 are implemented.
    approach, constants) — then implement to match. If code and docs drift, fixing the doc is
    part of the change, not optional.
 3. **Stay in this directory.** The parent repo hosts unrelated projects; don't explore or
-   modify above `eelmadness/`.
+   modify above `eel-madness/`.
 4. **Don't launch browsers to test.** Matt tests by hand. After changes, give him a short,
-   specific checklist of what to look at. `node --check js/*.js` for syntax is fine, and
-   **run the headless suites in `tests/`** (`cd tests && node check-<name>.mjs` — they mock
-   the DOM and simulate real frames). Extend them when you add mechanics; when one fails,
+   specific checklist of what to look at. **Run `tests/run.sh`** — it syntax-checks all of
+   `js/` and runs every headless suite (`tests/check-*.mjs`, which mock the DOM and simulate
+   real frames; new `check-<name>.mjs` files are picked up automatically, and rare-RNG
+   failures are auto-retried and flagged FLAKY rather than FAIL — a recurring FLAKY is a
+   real intermittent bug). Extend the suites when you add mechanics; when one hard-fails,
    check whether the test hardcodes constants Matt has since retuned before suspecting
    the code.
 5. **ASK QUESTIONS, DO NOT MAKE ASSUMPTIONS.** You are instruction-tuned to be confident
@@ -40,6 +43,7 @@ P0–P2 are implemented.
 | `docs/05-roadmap.md` | milestone status, gameplay candidates, mobile test checklist |
 | `docs/06-food.md` | falling food: Poisson spawner, drift, the auto-mouth probe, eat effects |
 | `docs/07-progression.md` | the game: dark→vibrant progression axes, tuning.js plan, critter/FX catalog, phases |
+| `docs/08-levels.md` | discrete level system: 30 levels/axis, chained level-up popups, quantization layer |
 
 ## Facts you'll want at zero context
 
@@ -54,8 +58,9 @@ P0–P2 are implemented.
   - `js/eel.js` top: wiggle, easing, head contour (`HEAD_PTS`), mouth, wig geometry constants
   - `js/water.js` top + shader source strings: colors, kelp, particles
   - `js/food.js` top: food types table (sizes, spawn bands, populations, drift), eat/bounce
-  - `js/tuning.js`: THE game-shaping surface — axes (K, colors), food economy CSV,
-    progression dials, light palettes, veil shape, boost/greet/eat-feedback numbers
+  - `js/tuning.js`: THE game-shaping surface — axes (K, colors), level bands + level-up
+    notes/popup timing, food economy CSV, progression dials, light palettes, veil shape,
+    boost/greet/eat-feedback numbers
   - `js/critters.js` top: minnow/jelly feel, flocking, follow, greet signatures;
     `js/sparkles.js` + `js/hearts.js` tops: particle and heart feel
   - `style.css`: eel body/fin colors, **hair color** (`#eel-wig path`), eye colors
@@ -65,11 +70,12 @@ P0–P2 are implemented.
 - **Controls:** WASD/arrows or press-and-hold pointer to swim. The mouth is automatic —
   food crossing a nose probe opens the jaw (`food.probe`, docs/02 + docs/06). Greet = I
   (or the touch button), speed burst = hold Shift (or a second finger) — both are EEL
-  MAGIC unlocks and silently inert before their dial thresholds. Esc or ⏸ pauses
-  (axis meters + reset).
-- **Progression persists** in localStorage; preview any state with URL params
-  (`?light=0.7&life=0.2&worldmagic=0.5&eelmagic=1` — pinned axes show "(preview)" in
-  the pause meters, a common source of "progression looks frozen" confusion).
+  MAGIC unlocks (levels 1 and 8), inert before their level and announced by guide
+  popups when they arrive (docs/08). Esc or ⏸ pauses (level meters + reset).
+- **Progression persists** in localStorage, quantized into 30 levels per axis
+  (docs/08); preview any state with URL params — values > 1 are levels, ≤ 1 raw
+  fractions (`?light=21&eelmagic=0.35` — pinned axes show "(preview)" in the pause
+  meters, a common source of "progression looks frozen" confusion).
 - Cartoon over realism: proportions (big head, huge gape, flowing wig) deliberately deviate
   from real eels for visual effect. Cute > accurate.
 - Perf target: mid-range phone at 60fps. No SVG filters, no GL textures/framebuffers —

@@ -255,7 +255,7 @@ export class Eel {
     this.sideTarget = 1; this.sideSm = 1;   // which side of the spine faces world-up
     this.placed = false;
     // EEL MAGIC package (docs/07), pushed by main via setMagic as the axis moves
-    this.magic = { lashLen: 4, shadowA: 0, lipA: 0, hueRange: 0, boostAmt: 0.2, boostDur: 1.5 };
+    this.magic = { lashLen: 4, shadowA: 0, lipA: 0, hueRange: 0, boostAmt: 0.5, boostDur: 1.5 };
     this.stamina = 1;       // speed-burst fuel, 0..1
     this.boost01 = 0;       // eased burst factor (main reads it for sparks)
     this.boostOn = false;
@@ -309,18 +309,6 @@ export class Eel {
     this.effort = expApproach(this.effort, effortTarget, dt,
       effortTarget > this.effort ? TAU_EFFORT_UP : TAU_EFFORT_DOWN);
 
-    // Rate-limited turning: direction changes are arcs, never snaps.
-    if (steering && (steerX || steerY)) {
-      const desired = Math.atan2(steerY, steerX);
-      const rate = TURN_RATE_BASE + TURN_RATE_SLOPE * this.speed01;
-      this.heading += clamp(angleDiff(desired, this.heading), -rate * dt, rate * dt);
-    }
-
-    // Mouth: snaps open while held, eases shut on release.
-    const mouthTarget = intent.mouth ? 1 : 0;
-    this.mouth = expApproach(this.mouth, mouthTarget, dt,
-      mouthTarget > this.mouth ? TAU_MOUTH_OPEN : TAU_MOUTH_CLOSE);
-
     // Speed burst (docs/07): a fresh press starts a burst (given reserve);
     // it runs while held until the stamina empties, then eases out and
     // recharges — holding through empty never self-retriggers.
@@ -332,11 +320,24 @@ export class Eel {
       this.boostOn ? TAU_BOOST_UP : TAU_BOOST_DOWN);
     if (this.boostOn) this.stamina = Math.max(0, this.stamina - dt / this.magic.boostDur);
     else this.stamina = Math.min(1, this.stamina + dt / BOOST_RECHARGE);
+    const boostF = 1 + this.magic.boostAmt * this.boost01;
+
+    // Rate-limited turning: direction changes are arcs, never snaps. A burst
+    // trades agility for speed — turn rate drops by the boost factor (docs/02).
+    if (steering && (steerX || steerY)) {
+      const desired = Math.atan2(steerY, steerX);
+      const rate = (TURN_RATE_BASE + TURN_RATE_SLOPE * this.speed01) / boostF;
+      this.heading += clamp(angleDiff(desired, this.heading), -rate * dt, rate * dt);
+    }
+
+    // Mouth: snaps open while held, eases shut on release.
+    const mouthTarget = intent.mouth ? 1 : 0;
+    this.mouth = expApproach(this.mouth, mouthTarget, dt,
+      mouthTarget > this.mouth ? TAU_MOUTH_OPEN : TAU_MOUTH_CLOSE);
 
     // Speed: asymmetric easing = swim-up ramp vs glide-down momentum.
     // An open mouth drags — swimming while gaping is slower.
-    const maxSpeed = this.len * MAX_SPEED_BL * (1 - MOUTH_DRAG * this.mouth)
-      * (1 + this.magic.boostAmt * this.boost01);
+    const maxSpeed = this.len * MAX_SPEED_BL * (1 - MOUTH_DRAG * this.mouth) * boostF;
     const speedTarget = maxSpeed * this.effort;
     this.speed = expApproach(this.speed, speedTarget, dt,
       speedTarget > this.speed ? TAU_SPEED_UP : TAU_SPEED_DOWN);

@@ -6,14 +6,19 @@ beautiful. We get there by stacking *many* bespoke, low-cost effects — most of
 conventional (little light blooms, particle trails, things drifting in parallax
 planes) — combined tastefully. The god rays set the tone: subtle, cheap, lovely.
 
-Status: **P2 landed** — phosphorescent plankton (deep water, brightens near the eel)
+Status: **Levels landed** (docs/08) — the four axes are quantized into 30 discrete
+levels each with chained, axis-colored "Level Up!" popups (guide popups for the
+greet and speed-burst unlocks), a ~1.5 s bloom ease into each new step, and
+axis-colored confetti sparks; pacing retuned from 5 sessions to 4; speed burst
+buffed to +50%→+150% with a proportional turn-rate penalty. Previously: **P2
+landed** — phosphorescent plankton (deep water, brightens near the eel)
 and ambient WORLD MAGIC drift-sparkles (multicolor, spiraling, all on the glow layer
 so they shine in the dark); the food pixelation pulse (precomputed levels, eased
 1→8px pulses, WORLD MAGIC-gated); seagrass along the floor growing denser/taller
 with LIFE. The eel baseline glow was built and **cut** (looked bad) — the EEL MAGIC
 power after speed burst is open again, and glow burst (J) is shelved with it. Speed
-burst verified working — it *unlocks at EEL MAGIC ≥ 0.28* (`DIALS.speedBurst`);
-below that, Shift is intentionally inert. Previously: **P1 + unified lighting** — the veil is now a multiplicative
+burst verified working — it unlocks along `DIALS.speedBurst` (since retuned:
+EEL MAGIC level 8 / 0.30, docs/08); below that, Shift is intentionally inert. Previously: **P1 + unified lighting** — the veil is now a multiplicative
 illumination layer over the whole scene (GL palettes carry hue only) and emissive
 sprites (jelly glow, hearts; later eel glow) live on a glow layer above it — light
 sources punch through the dark (docs/03). Also in P1 — far parallax silhouettes
@@ -36,11 +41,16 @@ minnows, jellyfish, greet/hearts, food bubble trails.
 - **Persistence:** localStorage. Reset lives in a **minimal pause menu** (also the
   natural home for future options); minimal version ships with P0 alongside
   persistence itself. Timescales span sessions.
-- **Timescale targets:** one session ≈ **5 minutes**; **5 sessions** to "sea fully alive."
+- **Timescale targets:** one session ≈ **5 minutes**; **4 sessions** to "sea fully
+  alive" (level 30 on every axis — sessions land levels 1–16 / 17–24 / 25–28 /
+  29–30, docs/08).
 - **Darkness is gameplay:** early on, food that sinks into the deep dark is genuinely
   lost unless you dive blind and get lucky.
 - **Continuous axes**, no stages: each world element has a dial that is zero until its
   axis crosses a threshold, then creeps up along a per-element curve.
+  **Amendment (landed, docs/08):** the presentation is discretized into 30 levels
+  per axis with chained level-up popups — the continuous squash stays underneath as
+  the level→value mapping; dials and curves are unchanged.
 - **Parallax lives in existing surfaces:** far planes = extra silhouette passes in the
   WebGL canvas (per-layer camera factor); near-foreground = a counter-transformed group
   in the existing SVG. No new compositing surfaces.
@@ -62,10 +72,11 @@ minnows, jellyfish, greet/hearts, food bubble trails.
 
 **Earning:** each food drives exactly one axis by its progression amount (table below).
 Axis accumulators `W` squash to a 0–1 value with diminishing returns:
-`axis = 1 − exp(−W / K_axis)`. Calibration: at ~25 eats/session (5 min), pick each
-`K ≈ (expected 5-session W for that axis) / 3`, since `1 − e⁻³ ≈ 0.95` — "fully alive"
-lands at session 5. Session 1 must still visibly bloom within minutes (first god-ray
-warmth, first minnow) — that's what thresholds near 0 are for.
+`axis = 1 − exp(−W / K_axis)`, **quantized into 30 levels** (docs/08). Calibration:
+pick each `K ≈ (expected 4-session W for that axis) / 3`, since `1 − e⁻³ ≈ 0.95` —
+"fully alive" (level 30) lands at session 4. Session 1 must still visibly bloom
+within minutes (first god-ray warmth, first minnow) — that's what the cheap early
+levels and near-zero thresholds are for.
 
 **Element dials** — every gated element is one record, one shape, everywhere:
 
@@ -77,8 +88,9 @@ value = max * curve01((axis − threshold) / rampWidth)   # 0 until threshold
 `curve01` from a small shared library: linear, smoothstep, sigmoid, sqrt, quadratic,
 log. Spawn probabilities, population caps, effect intensities, glow radii — all dials.
 
-**Dev ergonomics:** URL overrides (`?light=0.7&eelmagic=0.2`) and a cheat key granting
-axis weight, so any state of the sea is reachable instantly while tuning.
+**Dev ergonomics:** URL overrides — values > 1 pin a level (`?eelmagic=12`), ≤ 1 pin a
+raw axis fraction (`?light=0.35`) — so any state of the sea is reachable instantly while
+tuning. (A cheat key granting axis weight was once planned; the overrides made it moot.)
 
 ## Food v2
 
@@ -161,20 +173,26 @@ offscreen point if the camera outruns it), so the school re-forms wherever you g
   fast near the core, then a long soft tail pushing the halo outward — and **dims as
   the eel approaches** (shy light). **WORLD MAGIC example:** each jelly's light hue is
   drawn from a range around cyan that *expands* with the `jellyHue` dial — a magic sea
-  has rainbow lanterns.
+  has rainbow lanterns. **Planned rework (Next up, below):** subtler — jellies keep
+  their standard coloring and *pulse* hue shifts whose magnitude and frequency both
+  grow with WORLD MAGIC, instead of a static rainbow spread.
 
 ## Eel magic track
 
 Greet (I) is the **first EEL MAGIC unlock**, not a birthright — the axis teaches
 itself by granting a power on your first EEL MAGIC food. Since those foods are rare,
-the unlock threshold is tiny (raw W ≤ 1.0, i.e., one chocolate or one burger grants
-it). Then, along the axis:
+greet unlocks at **EEL MAGIC level 1**, whose threshold is capped at one chocolate's
+scaled grant (`LEVELS.FIRST_CAP`, docs/08) — one chocolate or one burger grants it.
+Then, along the axis:
 
 1. **Speed burst (hold Shift / second finger)** — the eel wiggles faster and harder
-   and its top speed ramps +20% (eased in and out), draining a stamina bar; on empty
+   and its top speed ramps +50% (eased in and out), draining a stamina bar; on empty
    or release it eases back and recharges. Electric-blue spark particles stream off
    the body while boosting. Boost strength, stamina duration, and spark intensity all
-   ramp with the `speedBurst` dial (base +20% → up to +45%).
+   ramp with the `speedBurst` dial (base +50% → up to +150% — a real charge, unlocks
+   at EEL MAGIC level 8). The same factor that multiplies top speed *divides* the
+   turn rate (docs/02) — bursting trades agility for speed, committing the eel to
+   wide arcs.
 2. Further powers TBD (deliberately open). A baseline glow + veil-hole was built and
    cut — it looked bad in practice; if a "see in the dark" power returns it needs a
    different visual treatment.
@@ -288,6 +306,25 @@ their modules; anything you'd tune to shape the game lives here.
 - **P2 — magic:** phosphorescence set, eel baseline glow, glow burst (J), pixelation
   pulse, seagrass + first flora growth, kelp-tip glints.
 - **P3+ —** catalog expansion, rare events, companion, remaining powers, sound.
+
+### Next up (P3 kickoff, agreed 2026-07-04)
+
+1. **More critter types** — extend the catalog (octopus, crab, seahorse, anglerfish…);
+   each rides the existing vicinity/dial machinery and the shared greet emitter.
+2. **Greeted critters follow closer** — raise the befriended-swarm follow speed so
+   the fan club actually keeps pace with a cruising eel ("Saying hello" above).
+3. **In-focus front parallax plane** — a new layer slightly in front of the player
+   (camera factor > 1, *sharp* — unlike the blurred near-foreground fronds), kelp
+   only to start. It occludes the eel and must respect the veil's single lighting
+   authority (docs/03).
+4. **WORLD MAGIC: fairies + subtle jelly hues** — little glowing "fairies" (glow
+   layer) that wander and shed an ephemeral particle trail; and the jellyfish hue
+   rework above (standard coloring with hue *pulses* growing in magnitude and
+   frequency with WORLD MAGIC, replacing the static expanding range). Pulse
+   discipline applies.
+5. **Seafloor in the background parallax planes** — visible land in the far layers,
+   populated with corals and other flora/fauna as LIFE grows, and lights and other
+   pretty things as WORLD MAGIC grows (pairs with the sunken-ruin catalog idea).
 
 ## Still open (deliberately)
 

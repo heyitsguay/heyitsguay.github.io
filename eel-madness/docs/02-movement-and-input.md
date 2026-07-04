@@ -47,7 +47,9 @@ tau    = target > effort ? 0.30 : 0.55        # seconds
 effort = expApproach(effort, target, dt, tau)
 
 # turning: rate-limited, so direction changes are arcs, never snaps
-turnRate = 3.4 + 2.2 * speed01                # rad/s — turns tighter with flow over the body
+boostF   = 1 + boostAmt * boost01             # the speed-burst multiplier (1 → up to 2.5)
+turnRate = (3.4 + 2.2 * speed01) / boostF     # rad/s — tighter with flow over the body,
+                                              # proportionally wider mid-burst
 heading += clamp(angleDiff(desired, heading), ±turnRate * dt)
 
 # speed: asymmetric easing = swim-up ramp vs glide-down momentum
@@ -70,6 +72,9 @@ Why this shape:
   a body-length or so, wave amplitude relaxing with `speedSm`, before settling into idle sway.
 - **Arcing turns**: rate-limited heading + the chain trailing through the turn path is what
   makes reversals read as a fish U-turn instead of a sprite rotation.
+- **Burst = commitment**: the same factor that multiplies top speed during a speed burst
+  *divides* the turn rate, so a burst trades agility for speed — you commit to a line and
+  carve wide arcs until you ease off.
 
 ## Boundaries
 
@@ -89,6 +94,7 @@ All of these are named constants at the top of `eel.js` (steering/speed group) o
 | `TAU_SPEED_UP` / `_DOWN` | 0.50 / 0.90 s | acceleration ramp / glide distance |
 | `MAX_SPEED_BL` | 1.15 body lengths /s | top speed |
 | `TURN_RATE_BASE` + `TURN_RATE_SLOPE`·speed01 | 3.4 + 2.2 rad/s | turn radius |
+| turn ÷ (1 + `boostAmt`·boost01) | ÷1.5 → ÷2.5 | burst arcs widen with the speed gain (BOOST in tuning.js) |
 | `POINTER_ARRIVE` (input.js) | 150 px | how early it brakes for a held point |
 | `POINTER_DEADZONE` (input.js) | 14 px | jitter deadzone around a held point |
 | `WALL_MARGIN` / `WALL_PUSH` | 70 px / 1.2 | how soon / how hard it shies from edges |

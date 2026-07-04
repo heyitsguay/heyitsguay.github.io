@@ -1,6 +1,7 @@
 // progress.js is headless-safe by design (localStorage/location wrapped in try).
+// Covers the level quantization layer (docs/08) plus curves/light/veil.
 import { progress } from '../js/progress.js';
-import { AXES, FOODS, DIALS, lightParams } from '../js/tuning.js';
+import { AXES, FOODS, DIALS, LEVELS, LEVEL_NOTES, AMOUNT_SCALE, lightParams } from '../js/tuning.js';
 import { Veil } from '../js/veil.js';
 import { curves } from '../js/math.js';
 
@@ -8,32 +9,98 @@ let fail = 0;
 const check = (name, ok) => { console.log(ok ? ' ok ' : 'FAIL', name); if (!ok) fail++; };
 
 // fresh state
-check('all axes start at 0', Object.keys(AXES).every(a => progress.value(a) === 0));
+check('all axes start at 0 / level 0',
+  Object.keys(AXES).every(a => progress.value(a) === 0 && progress.level(a) === 0));
 
-// greet unlocks on one chocolate (eelMagic +1.0)
+// thresholds (docs/08): monotonic, T(30) = 3K, band costs double
+for (const axis of Object.keys(AXES)) {
+  const T = progress.T[axis];
+  check(`${axis} has ${LEVELS.COUNT} thresholds`, T.length === LEVELS.COUNT + 1 && T[0] === 0);
+  check(`${axis} thresholds monotonic`, T.every((v, i) => i === 0 || v > T[i - 1]));
+  check(`${axis} T(30) = 3K`, Math.abs(T[LEVELS.COUNT] - 3 * AXES[axis].K) < 1e-9);
+}
+const Tl = progress.T.light;
+const cost = L => Tl[L] - Tl[L - 1];
+check('per-level cost doubles each band',
+  Math.abs(cost(17) - 2 * cost(2)) < 1e-9
+  && Math.abs(cost(25) - 4 * cost(2)) < 1e-9
+  && Math.abs(cost(29) - 8 * cost(2)) < 1e-9);
+check('eelMagic level 1 costs no more than one chocolate (FIRST_CAP)',
+  progress.T.eelMagic[1] <= FOODS.chocolate.amount * AMOUNT_SCALE + 1e-12);
+
+// one chocolate (the real scaled in-game grant) = eelMagic level 1 = greet
 check('greet locked at start', progress.dial(DIALS.greet) === 0);
-progress.add('eelMagic', FOODS.chocolate.amount);
+progress.add('eelMagic', FOODS.chocolate.amount * AMOUNT_SCALE);
+check('one chocolate reaches level 1', progress.level('eelMagic') === 1);
+progress.tick(LEVELS.BLOOM_T + 0.1);
 check('greet unlocked after one chocolate', progress.dial(DIALS.greet) > 0);
 check('speedBurst still locked', progress.dial(DIALS.speedBurst) === 0);
+let ups = progress.consumeLevelUps();
+check('level-up event queued', ups.length === 1 && ups[0].axis === 'eelMagic' && ups[0].level === 1);
 
-// K calibration: simulate 5 sessions of eating (125 eats, share ∝ rarity)
+// multi-level jumps chain one event per level, in order
+progress.add('eelMagic', FOODS.burger.amount * AMOUNT_SCALE);   // → level 2
+progress.add('eelMagic', FOODS.burger.amount * AMOUNT_SCALE);   // → level 4 (a jump)
+ups = progress.consumeLevelUps();
+check('chained multi-level events', ups.map(u => u.level).join(',') === '2,3,4');
+
+// bloom: value() eases from the old step to the new one over BLOOM_T
 progress.reset();
+progress.add('light', progress.T.light[1] + 1e-6);
+const v1 = progress.levelValue('light', 1);
+check('value holds the old step before tick', progress.value('light') === 0);
+progress.tick(LEVELS.BLOOM_T / 2);
+const mid = progress.value('light');
+check('bloom in progress at half time', mid > 0 && mid < v1);
+progress.tick(LEVELS.BLOOM_T);
+check('bloom settles on the new step', Math.abs(progress.value('light') - v1) < 1e-9);
+
+// pacing (docs/08): expected per-session intake lands the band boundaries
+// exactly — levels 16 / 24 / 28 / 30 after sessions 1–4 (25 eats/session at
+// authored amounts, spawn share ∝ rarity ⇔ ~100 scaled eats in-game).
+progress.reset();
+progress.consumeLevelUps();
 const totalRarity = Object.values(FOODS).reduce((s, f) => s + f.rarity, 0);
-for (const f of Object.values(FOODS)) {
-  progress.add(f.axis, f.amount * 125 * (f.rarity / totalRarity));
+const eatSession = () => {
+  for (const f of Object.values(FOODS)) progress.add(f.axis, f.amount * 25 * (f.rarity / totalRarity));
+};
+const bandEnds = [16, 24, 28, 30];
+for (let s = 0; s < 4; s++) {
+  eatSession();
+  for (const axis of Object.keys(AXES)) {
+    check(`${axis} at level ${bandEnds[s]} after session ${s + 1} (got ${progress.level(axis)})`,
+      progress.level(axis) === bandEnds[s]);
+  }
 }
+progress.tick(LEVELS.BLOOM_T + 0.1);
 for (const axis of Object.keys(AXES)) {
   const v = progress.value(axis);
-  check(`${axis} ≈ fully-alive after 5 sessions (got ${v.toFixed(2)})`, v > 0.9 && v <= 1);
+  check(`${axis} ≈ fully alive at level 30 (got ${v.toFixed(2)})`, v > 0.94 && v <= 1);
 }
 
-// one session (25 eats): every axis should have moved visibly
-progress.reset();
-for (const f of Object.values(FOODS)) progress.add(f.axis, f.amount * 25 * (f.rarity / totalRarity));
-for (const axis of Object.keys(AXES)) {
-  const v = progress.value(axis);
-  check(`${axis} visibly moved after 1 session (got ${v.toFixed(2)})`, v > 0.15);
+// note↔dial alignment (docs/08): every dial's computed unlock level must have
+// an authored LEVEL_NOTES entry, so retunes can't silently desync the popups.
+const unlockLevel = dial => {
+  let L = 1;
+  while (L <= LEVELS.COUNT && progress.levelValue(dial.axis, L) < dial.threshold) L++;
+  return L;
+};
+for (const [name, dial] of Object.entries(DIALS)) {
+  const L = unlockLevel(dial);
+  check(`${name} unlocks at a noted level (${dial.axis} ${L})`,
+    L <= LEVELS.COUNT && LEVEL_NOTES[dial.axis][L] !== undefined);
 }
+check('greet is the level-1 unlock', unlockLevel(DIALS.greet) === 1);
+check('speed burst unlocks at level 8', unlockLevel(DIALS.speedBurst) === 8);
+check('unlock guides are marked', typeof LEVEL_NOTES.eelMagic[1] === 'object'
+  && LEVEL_NOTES.eelMagic[1].guide && LEVEL_NOTES.eelMagic[8].guide);
+
+// overrides: fractions pass through verbatim (dial-tuning pins), level derived
+progress.reset();
+progress.override.light = 0.5;
+check('fraction override returned verbatim', progress.value('light') === 0.5);
+check('override level derived from the pin', progress.level('light') === 14);
+delete progress.override.light;
 
 // curves: endpoints + range
 for (const [name, fn] of Object.entries(curves)) {

@@ -60,7 +60,8 @@ skipped and retried by the process.
   color (peak ~0.10–0.22 opacity, ~0.18 s fade; the div sits above the veil so depth
   can't mute it) and a small decaying camera shake (4–14 px, τ ≈ 0.12 s) applied to
   the rendering camera only — every visual layer shakes together, the sim camera
-  stays clean.
+  stays clean. A bite that levels an axis up (docs/08) hits `LEVELUP_MUL` (1.4×)
+  harder on both, applied after the usual caps so the boost always reads.
 - **Bounce** — otherwise the spine chain is solid: push-out along the contact normal,
   restitution `BOUNCE_REST`, a kick scaling with eel speed, plus the contact tumble.
 

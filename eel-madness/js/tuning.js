@@ -5,15 +5,75 @@
 import { lerp } from './math.js';
 
 // ---- Axes ----------------------------------------------------------------
-// axis value = 1 − exp(−W / K). K sets the axis timescale.
-// Calibration (docs/07): ~25 eats per 5-min session, spawn share ∝ rarity/27,
-// K ≈ (expected 5-session W) / 3 so the axis hits ~0.95 at session 5.
-// color: the axis signature (eat pulse, milestone sparks) — approved palette.
+// axis value = 1 − exp(−W / K), quantized into LEVELS.COUNT levels (docs/08).
+// K sets the axis timescale. Calibration (docs/07+08): spawn share ∝ rarity/27,
+// K ≈ (expected 4-session W) / 3 so level 30 (= 3K of W) hits ~0.95 at session 4.
+// color: the axis signature (eat pulse, level-ups, milestone sparks) — approved palette.
 export const AXES = {
-  light: { K: 8.3, color: [1.00, 0.83, 0.42], label: 'LIGHT' },       // warm gold
-  life: { K: 11.3, color: [0.48, 0.90, 0.50], label: 'LIFE' },        // spring green
-  worldMagic: { K: 2.3, color: [0.55, 0.50, 0.95], label: 'WORLD MAGIC' }, // violet-teal
-  eelMagic: { K: 7.7, color: [1.00, 0.55, 0.75], label: 'EEL MAGIC' },     // rose-pink
+  light: { K: 6.6, color: [1.00, 0.83, 0.42], label: 'LIGHT' },       // warm gold
+  life: { K: 9.0, color: [0.48, 0.90, 0.50], label: 'LIFE' },         // spring green
+  worldMagic: { K: 1.8, color: [0.55, 0.50, 0.95], label: 'WORLD MAGIC' }, // violet-teal
+  eelMagic: { K: 6.1, color: [1.00, 0.55, 0.75], label: 'EEL MAGIC' },     // rose-pink
+};
+
+// ---- Levels (docs/08) -------------------------------------------------------
+// Each axis is quantized into COUNT levels; sessions land levels 1–16 / 17–24 /
+// 25–28 / 29–30, so the W cost per level doubles each band (64 cost units total,
+// one unit = 3K/64 — the level 30 threshold is exactly 3K).
+export const LEVELS = {
+  COUNT: 30,
+  BANDS: [16, 8, 4, 2],   // levels per session; per-level cost doubles each band
+  // Per-axis cap on the level-1 threshold: eelMagic's first level must cost no
+  // more than one chocolate (scaled), so the first magic food teaches greet.
+  FIRST_CAP: { eelMagic: 0.25 },
+  BLOOM_T: 1.5,     // s — the world eases into each new step (smoothstep)
+  POP_T: 1.6,       // s — a normal "Level Up!" popup's dwell
+  GUIDE_T: 3.0,     // s — dwell for guide popups (control unlocks)
+  SPARKS: 14,       // axis-colored confetti motes per level-up
+};
+
+// Level-up announcements (docs/08): manual per-axis {level: note} map. Levels
+// without an entry still pop "Level Up!", just with no note line. Unlock notes
+// MUST sit at their dial's computed unlock level — check-progress enforces it.
+// {text, guide: true} = an instructional unlock popup (longer dwell).
+export const LEVEL_NOTES = {
+  light: {
+    1: 'The water warms',
+    5: 'God rays reach deeper',
+    9: 'Caustics shimmer above',
+    13: 'The mid-water brightens',
+    17: 'The gloom recedes',
+    21: 'Golden waters',
+    25: 'The deep begins to open',
+    30: 'The sea shines',
+  },
+  life: {
+    2: 'Seagrass takes root',
+    4: 'Minnows arrive',
+    7: 'The minnows school up',
+    10: 'The kelp grows denser',
+    13: 'Jellyfish drift in',
+    18: 'The schools multiply',
+    24: 'A crowded sea',
+    30: 'The sea teems with life',
+  },
+  worldMagic: {
+    2: 'Plankton glow in the deep',
+    3: 'Jelly lanterns tint strange colors',
+    4: 'Sparkles drift on the current',
+    5: 'Minnows mob falling food',
+    11: 'Food pulses with enchantment',
+    20: 'The magic thickens',
+    30: 'An enchanted sea',
+  },
+  eelMagic: {
+    1: { text: 'GREET unlocked — press I (or tap ♡)', guide: true },
+    4: 'A touch of makeup',
+    8: { text: 'SPEED BURST — hold Shift (or a second finger). Fast, but wide turns!', guide: true },
+    12: 'Longer lashes',
+    18: 'Makeup hues begin to drift',
+    30: 'Fully fabulous',
+  },
 };
 
 // ---- The food economy (Matt's CSV — docs/07) ------------------------------
@@ -50,10 +110,12 @@ export const AMOUNT_SCALE = 0.25;
 // One shape everywhere: value = max * curve01((axis − threshold) / rampWidth),
 // zero below threshold. Consumed by their systems as they come online.
 export const DIALS = {
-  // EEL MAGIC power track (docs/07): greet unlocks on the first magic food
-  // (one chocolate → axis ≈ 0.12 > threshold).
-  greet: { axis: 'eelMagic', threshold: 0.10, curve: 'linear', rampWidth: 0.01, max: 1 },
-  speedBurst: { axis: 'eelMagic', threshold: 0.28, curve: 'smoothstep', rampWidth: 0.6, max: 1 },
+  // EEL MAGIC power track (docs/07+08): greet unlocks at level 1 — the first
+  // magic food (LEVELS.FIRST_CAP guarantees one chocolate reaches level 1,
+  // whose value is 0.040; the threshold sits inside it).
+  greet: { axis: 'eelMagic', threshold: 0.03, curve: 'linear', rampWidth: 0.01, max: 1 },
+  // speed burst = level 8 (0.30 sits between V(7)=0.280 and V(8)=0.313)
+  speedBurst: { axis: 'eelMagic', threshold: 0.30, curve: 'smoothstep', rampWidth: 0.6, max: 1 },
   // (a baseline eel glow was built here and cut — looked bad; next EEL MAGIC
   // power after speed burst is TBD, docs/07)
   // EEL MAGIC cosmetics (docs/07): makeup fades in, then its hues start drifting
@@ -83,6 +145,7 @@ export const EAT_FX = {
   SHAKE_AMT: 3,      // ...plus this per progression amount
   SHAKE_TAU: 0.12,   // s — shake decay
   SHAKE_F1: 31, SHAKE_F2: 37,   // rad/s — incommensurate x/y wobble
+  LEVELUP_MUL: 1.4,  // flash+shake multiplier when the bite levels an axis up (docs/08)
 };
 
 // ---- Greeting (docs/07) ------------------------------------------------------
@@ -97,8 +160,9 @@ export const GREET = {
 
 // ---- Speed burst (docs/07): base values + ramps along the speedBurst dial ----
 export const BOOST = {
-  AMT_BASE: 0.20,   // +20% top speed at dial 0...
-  AMT_RAMP: 0.25,   // ...up to +45% at dial 1
+  AMT_BASE: 0.50,   // +50% top speed at dial 0...
+  AMT_RAMP: 1.00,   // ...up to +150% at dial 1 — a real charge (turn rate
+                    // drops by the same factor, docs/02)
   DUR_BASE: 1.5,    // s of full boost (stamina capacity)...
   DUR_RAMP: 1.5,    // ...up to 3 s
   SPARK_BASE: 10,   // electric sparks/s while boosting...

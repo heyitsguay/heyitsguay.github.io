@@ -14,7 +14,7 @@ import { Hearts } from './hearts.js';
 import { Sparkles } from './sparkles.js';
 import { initUI } from './ui.js';
 import { progress } from './progress.js';
-import { AXES, FOODS, MOBILE, AMOUNT_SCALE, DIALS, GREET, BOOST, EAT_FX, lightParams } from './tuning.js';
+import { AXES, FOODS, MOBILE, AMOUNT_SCALE, DIALS, GREET, BOOST, EAT_FX, LEVELS, lightParams } from './tuning.js';
 import { clamp, lerp, expApproach } from './math.js';
 
 // Fixed world: 2x3 screens of a 1920x1080 reference, independent of window size.
@@ -103,6 +103,9 @@ function frame(now) {
   const dt = Math.min((now - last) / 1000, DT_MAX);   // tab-switch protection
   last = now;
 
+  progress.tick(dt);   // level-up bloom easing (docs/08)
+  ui.tick(dt);         // level-up popup queue
+
   // Pointer input is screen-space; the eel's screen position keeps them aligned.
   const intent = getIntent((eel.x - cam.x) * ZOOM, (eel.y - cam.y) * ZOOM);
   intent.mouth = food.probe(eel);   // auto-mouth: food ahead opens the jaw
@@ -141,10 +144,19 @@ function frame(now) {
     const f = FOODS[e.key];
     if (f) {
       progress.add(f.axis, f.amount * AMOUNT_SCALE);
+      // Level-ups from this bite (docs/08): chained popups + axis-colored
+      // confetti, and the eat's own flash + shake hit LEVELUP_MUL harder
+      // (applied after the caps so the boost always reads).
+      const ups = progress.consumeLevelUps();
+      for (const lu of ups) {
+        ui.levelUp(lu);
+        sparkles.burst(eel.x, eel.y - 26, AXES[lu.axis].color, LEVELS.SPARKS);
+      }
+      const mul = ups.length ? EAT_FX.LEVELUP_MUL : 1;
       water.pulse(eel.x, eel.y, AXES[f.axis].color, f.amount);   // flourish keeps raw scale
       screenFeedback(AXES[f.axis].color,
-        Math.min(0.22, EAT_FX.FLASH_A + EAT_FX.FLASH_A_AMT * f.amount),
-        Math.min(14, EAT_FX.SHAKE_BASE + EAT_FX.SHAKE_AMT * f.amount));
+        mul * Math.min(0.22, EAT_FX.FLASH_A + EAT_FX.FLASH_A_AMT * f.amount),
+        mul * Math.min(14, EAT_FX.SHAKE_BASE + EAT_FX.SHAKE_AMT * f.amount));
     }
   }
 

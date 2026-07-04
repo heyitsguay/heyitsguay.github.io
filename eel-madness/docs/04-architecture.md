@@ -3,23 +3,28 @@
 ## Files
 
 ```
-eelmadness/
+eel-madness/
   index.html        DOM skeleton: <canvas id="water"> under <svg id="eel-layer">, hint text
-  style.css         fullscreen stacking, eel/wig/eye styling, touch-action: none
+  style.css         fullscreen stacking, eel/wig/eye styling, level-up popups, touch-action: none
   docs/             these documents
+  tests/            headless suites (check-*.mjs) + run.sh, the one-command check runner
   js/
     main.js         boot, resize, frame loop — owns the order of operations
     input.js        keyboard + pointer → the intent struct (see 02)
     eel.js          spine sim, outline build, SVG rendering, decorations (see 01, 02)
     food.js         falling food: spawn, drift, auto-mouth probe, eat/bounce (see 06)
     water.js        WebGL: background, kelp, particles (see 03)
-    tuning.js       THE experiment surface: axes, food economy, light palettes, dials (see 07)
-    progress.js     axis accumulators, localStorage persistence, URL overrides, dial eval
+    tuning.js       THE experiment surface: axes, levels + level-up notes, food economy,
+                    light palettes, dials (see 07, 08)
+    progress.js     axis accumulators, level quantization + bloom (see 08), localStorage
+                    persistence, URL overrides, dial eval
     veil.js         the darkness veil overlay (see 03)
     critters.js     fauna: minnow schools + jellyfish, greet responses (see 07)
     hearts.js       pooled heart-emitter (greets; pattern/color/size per species)
     sparkles.js     glow-layer particles: WORLD MAGIC drift-sparkles + deep plankton
-    ui.js           pause menu + reset, greet button (touch)
+                    + level-up confetti bursts
+    ui.js           pause menu (level meters) + reset, greet button (touch),
+                    level-up popup queue (see 08)
     math.js         clamp / lerp / expApproach / angleDiff / curves (curve01 library)
 ```
 
@@ -43,6 +48,8 @@ github.io.
     <g id="hearts">         greet hearts — they shine in the dark
   <div id="flash">          eat/greet screen flash — color set per event, opacity per frame
   <div id="hint">           "WASD / hold to swim", fades on first input (above the veil)
+  <div id="levelups">       level-up popup queue (docs/08) — pointer-events:none, outside
+                            #ui so steering never sees it
 ```
 
 Input listens on `window`, so the SVG layer never intercepts touches.
@@ -162,16 +169,23 @@ hearts.js  new Hearts(glowRoot)
 sparkles.js  new Sparkles(glowRoot)
            .update(dt, cam, viewW, viewH, eel, worldW, worldH)   # dial-driven spawns
            .render()
+           .burst(x, y, rgb, n)   # level-up confetti in the axis color (docs/08)
 
 food.js    also exposes .positions() → [{x, y}]   # live items, for the minnow feast
 
-ui.js      initUI({ onReset, onGreet }) → { paused(), showGreet(v) }
+ui.js      initUI({ onReset, onGreet }) → { paused(), showGreet(v),
+           levelUp({axis, level}), tick(dt) }   # tick drives the popup queue
+                                                # (docs/08); pause freezes it
 
-progress.js  progress (singleton)
-           .value(axis) → 0..1                        # 1 − exp(−W/K), or URL override
-           .add(axis, amount), .reset()
+progress.js  progress (singleton) — docs/08 for the level layer
+           .value(axis) → 0..1     # the level's quantized step, bloom-eased over
+                                   # BLOOM_T after a level-up; URL override verbatim
+           .level(axis) → 0..30, .add(axis, amount), .reset()
+           .tick(dt)               # advances the bloom (main calls it per frame)
+           .consumeLevelUps() → [{axis, level}]   # one per level crossed, in order
            .dial({axis, threshold, curve, rampWidth, max}) → value
-           URL previews: ?light=0.7&life=0.2&worldmagic=0.5&eelmagic=1 (not persisted)
+           URL previews (not persisted): values > 1 = a level (?eelmagic=12),
+           ≤ 1 = a raw axis fraction (?life=0.35)
 
 veil.js    new Veil(el, worldH)
            .update(camY, light01)                     # translate; rebuild on LIGHT change

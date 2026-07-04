@@ -1,9 +1,13 @@
-// Pause menu (with the axis meters) + reset + the mobile action buttons
-// (see docs/04, docs/07). Everything lives under #ui; the input layer ignores
-// pointer-downs here.
+// Pause menu (with the axis level meters) + reset + the mobile action buttons
+// + the level-up popup queue (see docs/04, docs/07, docs/08). Menu/buttons live
+// under #ui (the input layer ignores pointer-downs there); popups live in
+// #levelups, pointer-events-free, so steering is unaffected.
 
 import { progress } from './progress.js';
-import { AXES } from './tuning.js';
+import { AXES, LEVELS, LEVEL_NOTES } from './tuning.js';
+import { clamp } from './math.js';
+
+const axisCss = axis => `rgb(${AXES[axis].color.map(c => Math.round(c * 255)).join(',')})`;
 
 export function initUI({ onReset, onGreet }) {
   const menu = document.getElementById('menu');
@@ -12,7 +16,7 @@ export function initUI({ onReset, onGreet }) {
   const resetBtn = document.getElementById('reset');
   const greetBtn = document.getElementById('btn-greet');
 
-  // Axis meters: the progression state, readable at a glance while paused.
+  // Axis meters: level + progress through it, readable at a glance while paused.
   const meters = document.getElementById('meters');
   const fills = {};
   for (const [axis, cfg] of Object.entries(AXES)) {
@@ -24,18 +28,61 @@ export function initUI({ onReset, onGreet }) {
     track.className = 'track';
     const fill = document.createElement('div');
     fill.className = 'fill';
-    fill.style.background = `rgb(${cfg.color.map(c => Math.round(c * 255)).join(',')})`;
+    fill.style.background = axisCss(axis);
     track.appendChild(fill);
-    row.append(label, track);
+    const lv = document.createElement('span');
+    lv.className = 'lv';
+    row.append(label, track, lv);
     meters.appendChild(row);
-    fills[axis] = { fill, label };
+    fills[axis] = { fill, label, lv };
   }
   const refreshMeters = () => {
     for (const [axis, m] of Object.entries(fills)) {
-      m.fill.style.width = `${(progress.value(axis) * 100).toFixed(1)}%`;
+      const preview = axis in progress.override;
+      const L = progress.level(axis);
+      // fill = progress through the current level (full when pinned/maxed)
+      const T = progress.T[axis];
+      const frac = (preview || L >= LEVELS.COUNT) ? 1
+        : clamp((progress.W[axis] - T[L]) / (T[L + 1] - T[L]), 0, 1);
+      m.fill.style.width = `${(frac * 100).toFixed(1)}%`;
+      m.lv.textContent = `LV ${L}`;
       // flag URL previews so a pinned axis is never mistaken for real progress
-      m.label.textContent = AXES[axis].label + (axis in progress.override ? ' (preview)' : '');
+      m.label.textContent = AXES[axis].label + (preview ? ' (preview)' : '');
     }
+  };
+
+  // Level-up popups (docs/08): chained, one per level, FIFO. tick() drives the
+  // queue from the frame loop, so pausing freezes the chain.
+  const luRoot = document.getElementById('levelups');
+  const luQueue = [];
+  let luEl = null, luAge = 0, luDur = 0;
+  const showNext = () => {
+    const { axis, level } = luQueue.shift();
+    const note = LEVEL_NOTES[axis] && LEVEL_NOTES[axis][level];
+    const guide = typeof note === 'object';
+    luDur = guide ? LEVELS.GUIDE_T : LEVELS.POP_T;
+    luAge = 0;
+    luEl = document.createElement('div');
+    luEl.className = 'levelup';
+    luEl.style.color = axisCss(axis);
+    luEl.style.animationDuration = `${luDur}s`;
+    const inner = document.createElement('div');
+    inner.className = 'lu-inner';
+    const pop = document.createElement('div');
+    pop.className = 'lu-pop';
+    pop.textContent = 'Level Up!';
+    const label = document.createElement('div');
+    label.className = 'lu-axis';
+    label.textContent = `${AXES[axis].label} · LV ${level}`;
+    inner.append(pop, label);
+    if (note) {
+      const line = document.createElement('div');
+      line.className = 'lu-note';
+      line.textContent = guide ? note.text : note;
+      inner.appendChild(line);
+    }
+    luEl.appendChild(inner);
+    luRoot.appendChild(luEl);
   };
 
   let paused = false;
@@ -84,6 +131,14 @@ export function initUI({ onReset, onGreet }) {
         greetShown = want;
         greetBtn.hidden = !want;
       }
+    },
+    levelUp(ev) { luQueue.push(ev); },
+    tick(dt) {
+      if (luEl) {
+        luAge += dt;
+        if (luAge >= luDur) { luEl.remove(); luEl = null; }
+      }
+      if (!luEl && luQueue.length) showNext();
     },
   };
 }

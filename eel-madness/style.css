@@ -189,6 +189,7 @@ body {
   color: rgba(210, 235, 225, 0.65);
 }
 .meter span { width: 92px; text-align: right; }
+.meter .lv { width: 44px; text-align: left; opacity: 0.85; }
 .meter .track {
   width: 150px;
   height: 6px;
@@ -202,6 +203,55 @@ body {
   width: 0;
 }
 #meters { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+
+/* Level-up popups (docs/08): chained, axis-colored (inline), snappy but subtle.
+   Opacity rides one keyframe animation on the outer element (duration set
+   inline from LEVELS.POP_T / GUIDE_T); the pop-in overshoot is a separate
+   fixed-length transform animation on the inner, so the snap never stretches
+   with dwell time. */
+#levelups {
+  position: fixed;
+  top: 14%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  font: 14px/1.3 system-ui, sans-serif;
+  text-align: center;
+}
+.levelup {
+  animation: lu-life 1.6s linear both;
+  text-shadow: 0 0 14px rgba(2, 10, 14, 0.9), 0 1px 2px rgba(2, 10, 14, 0.8);
+}
+.lu-inner { animation: lu-in 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+.lu-pop {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.lu-axis {
+  margin-top: 2px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  opacity: 0.9;
+}
+.lu-note {
+  margin-top: 7px;
+  font-size: 15px;
+  color: rgba(235, 245, 240, 0.95);
+}
+@keyframes lu-life {
+  0% { opacity: 0; }
+  9% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes lu-in {
+  from { transform: scale(0.6) translateY(12px); }
+  to { transform: scale(1) translateY(0); }
+}
 
 /* Translucent greet button (touch devices; docs/07 — wired in P1) */
 #btn-greet {

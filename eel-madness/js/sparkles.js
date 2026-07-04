@@ -52,7 +52,7 @@ export class Sparkles {
 
   spawn(kind, x, y, worldH) {
     const p = this.pool.find(p => p.age >= p.life);
-    if (!p) return;
+    if (!p) return null;
     p.kind = kind;
     p.age = 0;
     p.x = x; p.y = y;
@@ -80,6 +80,23 @@ export class Sparkles {
     }
     p.el.setAttribute('fill', `hsl(${p.hue.toFixed(0)}, ${AMB_SAT}%, ${AMB_LUM}%)`);
     void worldH;
+    return p;
+  }
+
+  // Level-up confetti (docs/08): a brief radial scatter of axis-colored motes,
+  // riding the ambient-sparkle spiral/envelope on the shared pool.
+  burst(x, y, rgb, n) {
+    const fill = `rgb(${rgb.map(c => Math.round(c * 255)).join(',')})`;
+    for (let i = 0; i < n; i++) {
+      const p = this.spawn(0, x, y, 0);
+      if (!p) return;
+      const a = Math.random() * TAU, sp = 40 + Math.random() * 90;
+      p.vx = Math.cos(a) * sp;
+      p.vy = Math.sin(a) * sp - 24;   // a little lift — celebration, not debris
+      p.life = 0.9 + Math.random() * 0.8;
+      p.size = 1.5 + Math.random() * 1.8;
+      p.el.setAttribute('fill', fill);
+    }
   }
 
   update(dt, cam, viewW, viewH, eel, worldW, worldH) {

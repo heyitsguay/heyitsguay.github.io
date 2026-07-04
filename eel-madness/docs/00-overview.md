@@ -49,12 +49,15 @@ swimming through a living underwater scene, controlled by keyboard or touch.
 - [06-food.md](06-food.md) — falling food: spawning, drift, the auto-mouth, eating.
 - [07-progression.md](07-progression.md) — the game: dark→vibrant progression axes,
   critters, effects catalog, phases.
+- [08-levels.md](08-levels.md) — the discrete level system: 30 levels per axis,
+  chained level-up popups, quantization over the continuous axes.
 
 ## Current scope
 
 The game (see [07-progression](07-progression.md)): food falls from the surface, the
 auto-mouth eats it, and eating drives four persistent progression axes that transform
 a dark barren sea into a bright living one — critters, flora, magic effects, and eel
-powers all dial in continuously. P0–P2 are implemented; no sound yet. The original
-M0 bar still applies underneath it all: swimming has to feel good enough that you
-idle in it.
+powers all dial in as each axis climbs its 30 levels, celebrated with level-up popups
+([08-levels](08-levels.md)). P0–P2 and the level system are implemented; no sound yet.
+The original M0 bar still applies underneath it all: swimming has to feel good enough
+that you idle in it.

@@ -1,9 +1,11 @@
 # Roadmap
 
 > **Status:** the game has moved past this page's milestones — the progression game
-> (docs/07) is the live roadmap: P0–P2 implemented, P3+ (catalog expansion, rare
-> events, companion, remaining eel powers, sound) next. This page keeps the original
-> M0/M1 framing and the mobile checklist, which still applies every phase.
+> (docs/07) is the live roadmap: P0–P2 and the level system (docs/08) implemented;
+> next is the P3 kickoff list at the end of docs/07 (more critters, closer greet
+> follows, an in-focus front kelp plane, fairies + subtle jelly hues, background
+> seafloor). This page keeps the original M0/M1 framing and the mobile checklist,
+> which still applies every phase.
 
 ## M0 — Wiggling Eel Sandbox  (done)
 
