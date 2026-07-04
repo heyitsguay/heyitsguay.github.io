@@ -88,7 +88,7 @@ body {
 /* Greet-range highlight (docs/07): critters that would answer a greeting get
    a soft pulsing contour glow. Toggled by class; CSS animates the pulse. */
 #critters .greetable {
-  stroke: rgb(228, 255, 248);
+  stroke: #ff9db8;   /* the eel-heart pink */
   stroke-width: 2.6;
   animation: greet-pulse 0.9s ease-in-out infinite;
 }

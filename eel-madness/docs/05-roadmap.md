@@ -1,6 +1,11 @@
 # Roadmap
 
-## M0 — Wiggling Eel Sandbox  ← current
+> **Status:** the game has moved past this page's milestones — the progression game
+> (docs/07) is the live roadmap: P0–P2 implemented, P3+ (catalog expansion, rare
+> events, companion, remaining eel powers, sound) next. This page keeps the original
+> M0/M1 framing and the mobile checklist, which still applies every phase.
+
+## M0 — Wiggling Eel Sandbox  (done)
 
 One screen, one eel, living water. Everything in docs 01–04.
 

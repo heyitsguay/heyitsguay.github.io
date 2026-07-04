@@ -263,8 +263,12 @@ via one shared heart-emitter parameterized per species — count, palette, size,
 pattern (fan / ring / scatter), delay. Per-critter cooldown. Once greeting is
 unlocked, critters that would respond get a **pulsing contour highlight** (a soft
 stroke glow, class-toggled with a CSS keyframe pulse) whenever they're in range and
-off cooldown — you can see who's listening. Greeting hooks special outcomes later
-(companion, octopus color-shift).
+off cooldown — you can see who's listening (highlight color = the eel-heart pink).
+**A greeted critter befriends you briefly:** minnows leave their school and swarm in
+orbit around the eel for ~5 s (at cruise speed — you can outrun the fan club, and
+they don't spook while following); jellies lean their pulses toward you for ~7 s, a
+gentle hopeless chase that mostly never catches up. Greeting hooks bigger outcomes
+later (companion, octopus color-shift).
 
 ## Parameterization
 

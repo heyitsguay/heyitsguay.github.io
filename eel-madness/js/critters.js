@@ -30,6 +30,8 @@ const M_ORBIT_F = 0.35;         // rad/s — slots slowly circulate
 const M_SEP = 14;               // px — neighbor separation distance
 const M_FLEE_R = 170;           // px — flee a faster-than-this eel inside this
 const M_FLEE_SPEED = 0.35;      // eel speed01 that spooks
+const M_FOLLOW_T = 5;           // s — a greeted minnow swarms around the eel
+const M_FOLLOW_R = 46;          // px — its orbit radius around you
 const M_BAND = [0.06, 0.5];     // minnows live in this world-height band
 const M_XPAD = 200;
 const L_SPEED = 42;             // leader wander speed
@@ -52,6 +54,9 @@ const J_TENT_PTS = 6;
 const J_TENT_SEG = 9;           // px per tentacle segment
 const J_TENT_SWAY = 6;          // px/s ambient tentacle sway
 const J_TENT_TAU = 1.4;         // s — rest pull toward hanging down
+const J_FOLLOW_T = 7;           // s — a greeted jelly drifts your way
+const J_FOLLOW_TURN = 1.3;      // rad/s — how hard it leans toward you
+const J_FOLLOW_NEAR = 90;       // px — close enough; resume ambient wander
 const J_GLOW_DARK = 0.9;        // inner-glow opacity in the dark (a lantern)...
 const J_GLOW_LIGHT = 0.25;      // ...and in full light
 const J_GLOW_SCALE = 2.6;       // glow radius vs the bell — long soft halo
@@ -393,11 +398,21 @@ export class Critters {
       if (!L || !L.active) { m.school = this.nearestLeader(m.x, m.y); L = this.leaders[m.school]; }
       const si = slotIdx[m.school]++;
 
-      const slotA = t * M_ORBIT_F + si * (TAU / 7) + m.phase * 0.3;
-      let txp = L.x + Math.cos(slotA) * (M_ORBIT_R + si * M_ORBIT_STEP);
-      let typ = L.y + Math.sin(slotA) * (M_ORBIT_R + si * M_ORBIT_STEP) * 0.6;
+      // Greeted minnows swarm the eel for a while (docs/07) — at cruise
+      // speed, so a swimming eel can outrun its fan club.
+      m.followT = Math.max(0, (m.followT || 0) - dt);
+      const following = m.followT > 0;
+      const slotA = t * M_ORBIT_F * (following ? 1.7 : 1) + si * (TAU / 7) + m.phase * 0.3;
+      let txp, typ;
+      if (following) {
+        txp = eel.x + Math.cos(slotA) * (M_FOLLOW_R + si * 3);
+        typ = eel.y + Math.sin(slotA) * (M_FOLLOW_R + si * 3) * 0.7;
+      } else {
+        txp = L.x + Math.cos(slotA) * (M_ORBIT_R + si * M_ORBIT_STEP);
+        typ = L.y + Math.sin(slotA) * (M_ORBIT_R + si * M_ORBIT_STEP) * 0.6;
+      }
       // WORLD MAGIC feast: swarm toward nearby falling food (never eat it)
-      if (this.feast > 0 && foodPts.length) {
+      if (!following && this.feast > 0 && foodPts.length) {
         let fb = null, fd = M_FEAST_R;
         for (const f of foodPts) {
           const d = Math.hypot(f.x - m.x, f.y - m.y);
@@ -424,7 +439,7 @@ export class Critters {
         m.hl = hl;
         m.el.setAttribute('class', hl ? 'minnow greetable' : 'minnow');
       }
-      if (ed < M_FLEE_R && eel.speedSm > M_FLEE_SPEED) {
+      if (!following && ed < M_FLEE_R && eel.speedSm > M_FLEE_SPEED) {
         txp = m.x + (ex / ed) * 200;
         typ = m.y + (ey / ed) * 200;
         speedT = M_DART;
@@ -465,9 +480,22 @@ export class Critters {
       const dp = Math.max(0, p - j.prevP);
       j.prevP = p;
       j.hd += Math.sin(t * J_WANDER_F + j.phase * 1.7) * 0.35 * dt;
-      const yf = j.y / worldH;
-      if (yf < J_BAND[0]) j.hd = expApproach(j.hd, Math.PI / 2, dt, 0.8);
-      if (yf > J_BAND[1]) j.hd = expApproach(j.hd, -Math.PI / 2, dt, 0.8);
+      // a greeted jelly leans its pulses toward you — a gentle, hopeless chase
+      j.followT = Math.max(0, (j.followT || 0) - dt);
+      if (j.followT > 0) {
+        const jd = Math.hypot(eel.x - j.x, eel.y - j.y);
+        if (jd > J_FOLLOW_NEAR) {
+          const want = Math.atan2(eel.y - j.y, eel.x - j.x);
+          j.hd += clamp(angleDiff(want, j.hd), -J_FOLLOW_TURN * dt, J_FOLLOW_TURN * dt);
+        }
+      }
+      // band-keeping, suspended while following — a smitten jelly may
+      // briefly leave its comfort zone to chase you
+      if (j.followT <= 0) {
+        const yf = j.y / worldH;
+        if (yf < J_BAND[0]) j.hd = expApproach(j.hd, Math.PI / 2, dt, 0.8);
+        if (yf > J_BAND[1]) j.hd = expApproach(j.hd, -Math.PI / 2, dt, 0.8);
+      }
       j.vx += Math.cos(j.hd) * J_KICK * dp;
       j.vy += Math.sin(j.hd) * J_KICK * dp;
       const drag = Math.exp(-dt * J_DRAG);
@@ -503,12 +531,14 @@ export class Critters {
       if (!m.alive || m.greetCd > 0) continue;
       if (Math.hypot(m.x - eel.x, m.y - eel.y) > GREET.RANGE) continue;
       m.greetCd = CRITTER_GREET_CD;
+      m.followT = M_FOLLOW_T;
       hearts.emit(m.x, m.y - 8, { ...MINNOW_HEART, delay: 0.15 + Math.random() * 0.5 });
     }
     for (const j of this.jellies) {
       if (!j.alive || j.greetCd > 0) continue;
       if (Math.hypot(j.x - eel.x, j.y - eel.y) > GREET.RANGE) continue;
       j.greetCd = CRITTER_GREET_CD;
+      j.followT = J_FOLLOW_T;
       hearts.emit(j.x, j.y - J_R, JELLY_HEART);
     }
   }

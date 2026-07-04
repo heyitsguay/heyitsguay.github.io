@@ -24,6 +24,9 @@ intent = { active, dirX, dirY, throttle, mouth }   # dir unit-length, throttle �
 - **Speed burst (hold Shift, or a second finger on touch):** `intent.boost`, gated by
   the `speedBurst` EEL MAGIC dial in main.js. The eel handles stamina/easing itself
   (see docs/07); input just reports "boost wanted" via `getBoost()`.
+- **Greet (I, or the touch greet button):** edge-triggered via `consumeGreet()`;
+  main.js gates it on the `greet` dial and its cooldown (docs/07).
+- **Esc** toggles the pause menu (ui.js listens for it directly).
 - **UI guard:** pointer-downs on `#ui` (pause button, menu, greet button) never reach
   steering — the window listener ignores targets inside it.
 - **Pointer** (tap/click and hold, drag to steer): direction = head → pointer.

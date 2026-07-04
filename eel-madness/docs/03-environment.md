@@ -4,7 +4,7 @@ Everything behind the eel is one WebGL canvas. Goal: a scene that feels *inhabit
 on its own and it reacts to the eel — while holding 60 fps (or a clean 30) on a medium-end
 modern phone.
 
-## Layers (three draw calls + a few pulse quads)
+## Layers (~a dozen small draw calls)
 
 ### 0. Parallax planes — both behind the main forest (tuning.LAYERS)
 
@@ -119,10 +119,11 @@ bothers.
 
 | Item | Cost |
 |---|---|
-| Draw calls | 3 (bg, kelp, points) + 1 SVG path update + ~10 SVG attribute updates |
-| Fragment load | bg shader is the ceiling: ~10 ALU ops/pixel, no textures |
+| GL draw calls | ~12–16 small: bg + parallax blur taps (far ×3, near ×2) + plane fauna (≤4) + kelp + seagrass + points + pulses |
+| Fragment load | bg shader is the ceiling: ~10 ALU ops/pixel, no textures; blur taps are silhouette-sized |
 | devicePixelRatio | capped at 2 (a 3× phone screen pays 2.25× fragments for invisible gain) |
-| Per-frame JS | spine sim (44 pts), outline build (~90 pts → string), particle update (~160) |
+| SVG per frame | eel (~30 attrs) + in-view critters/food/hearts/sparkles — everything offscreen skips its DOM writes (vicinity principle, docs/07) |
+| Per-frame JS | spine sim (44 pts), outline build (~90 pts → string), particles (~250), fauna sims |
 
 Degradation levers if a target device struggles, in order: drop dpr cap to 1.5 → halve motes
 → drop far kelp layer → simplify god rays to one sine. All are constants at the top of

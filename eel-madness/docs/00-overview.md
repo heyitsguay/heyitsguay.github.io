@@ -50,8 +50,11 @@ swimming through a living underwater scene, controlled by keyboard or touch.
 - [07-progression.md](07-progression.md) — the game: dark→vibrant progression axes,
   critters, effects catalog, phases.
 
-## Current scope (Milestone 0)
+## Current scope
 
-The sandbox: one eel, one screen, WASD + tap-and-hold, living kelp/motes/bubbles environment.
-No goals, no collectibles, no sound. Success = "I opened it on my phone and just swam around
-for a minute because it felt nice."
+The game (see [07-progression](07-progression.md)): food falls from the surface, the
+auto-mouth eats it, and eating drives four persistent progression axes that transform
+a dark barren sea into a bright living one — critters, flora, magic effects, and eel
+powers all dial in continuously. P0–P2 are implemented; no sound yet. The original
+M0 bar still applies underneath it all: swimming has to feel good enough that you
+idle in it.

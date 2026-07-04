@@ -11,7 +11,7 @@ eelmadness/
     main.js         boot, resize, frame loop — owns the order of operations
     input.js        keyboard + pointer → the intent struct (see 02)
     eel.js          spine sim, outline build, SVG rendering, decorations (see 01, 02)
-    food.js         food items: spawn, drift, floor pile, eat/bounce (see 06)
+    food.js         falling food: spawn, drift, auto-mouth probe, eat/bounce (see 06)
     water.js        WebGL: background, kelp, particles (see 03)
     tuning.js       THE experiment surface: axes, food economy, light palettes, dials (see 07)
     progress.js     axis accumulators, localStorage persistence, URL overrides, dial eval
@@ -39,8 +39,9 @@ github.io.
     <g id="hearts">         greet hearts, topmost
   <div id="veil">           the illumination multiply layer (docs/03), camera-translated
   <svg id="glow-layer">     emissive sprites above the veil — viewBox synced per frame
-    <g id="glows">          jelly inner glows (later: eel glow, anglerfish lure)
+    <g id="glows">          jelly inner glows, ambient sparkles + deep plankton
     <g id="hearts">         greet hearts — they shine in the dark
+  <div id="flash">          eat/greet screen flash — color set per event, opacity per frame
   <div id="hint">           "WASD / hold to swim", fades on first input (above the veil)
 ```
 
@@ -100,11 +101,13 @@ requestAnimationFrame:
   intent.mouth = food.probe(eel)           # auto-mouth: food ahead opens the jaw
   eel.update(dt, intent, W, H)             # physics: head, chain, phase, side factor
   eaten = food.update(dt, eel, W, H, water) # spawn/fall; eat/bounce; trails + plops
-  per eaten item: water.burst + water.pulse (axis color) + progress.add(axis, amount)
+  per eaten item: water.burst + water.pulse + screenFeedback (flash + camera shake)
+    + progress.add(axis, amount)
+  boost sparks stream off the body while eel.boost01 is up
   greet input (I / touch button, if unlocked): hearts.emit at the head +
-    critters.greet(eel, hearts) — in-range critters respond in their own style
-  critters.update(dt, eel, W, H, water)    # populations track their dials
-  hearts.update(dt)
+    critters.greet(eel, hearts) + a small rose screenFeedback
+  critters.update(...); hearts.update(dt); sparkles.update(...)
+  camera shake perturbs a render-only rcam; viewBox/veil/water.render use it
   water.update(dt, eel)                    # particles react to eel; bubbles spawn
   water.setLight(lightParams(light))       # only when LIGHT changed meaningfully
   veil.update(camY, light)                 # compositor-only translate (+ rare rebuild)
@@ -152,9 +155,15 @@ critters.js  new Critters(svgRoot, glowRoot)
                        # so stale geometry from a previous life can never show
            .greet(eel, hearts)                        # in-range critters respond
 
-hearts.js  new Hearts(svgRoot)
+hearts.js  new Hearts(glowRoot)
            .emit(x, y, spec)   # spec: {color, size, count, pattern, delay, spread}
            .update(dt) / .render()
+
+sparkles.js  new Sparkles(glowRoot)
+           .update(dt, cam, viewW, viewH, eel, worldW, worldH)   # dial-driven spawns
+           .render()
+
+food.js    also exposes .positions() → [{x, y}]   # live items, for the minnow feast
 
 ui.js      initUI({ onReset, onGreet }) → { paused(), showGreet(v) }
 
