@@ -5,7 +5,7 @@
 import { progress } from './progress.js';
 import { AXES } from './tuning.js';
 
-export function initUI({ onReset }) {
+export function initUI({ onReset, onGreet }) {
   const menu = document.getElementById('menu');
   const pauseBtn = document.getElementById('pause');
   const resumeBtn = document.getElementById('resume');
@@ -67,8 +67,23 @@ export function initUI({ onReset }) {
   });
 
   // The mouth is automatic (food.probe → intent.mouth, docs/02) — no eat
-  // button. Greet stays hidden until the greet system lands (P1).
-  void greetBtn;   // wired in P1
+  // button. The greet button appears on touch devices once the greet dial
+  // unlocks (main drives visibility via showGreet).
+  const coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+  let greetShown = false;
+  greetBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    onGreet && onGreet();
+  });
 
-  return { paused: () => paused };
+  return {
+    paused: () => paused,
+    showGreet(v) {
+      const want = !!v && coarse;
+      if (want !== greetShown) {
+        greetShown = want;
+        greetBtn.hidden = !want;
+      }
+    },
+  };
 }

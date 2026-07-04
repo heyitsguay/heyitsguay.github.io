@@ -53,23 +53,90 @@ export const DIALS = {
   // EEL MAGIC power track (docs/07): greet unlocks on the first magic food
   // (one chocolate → axis ≈ 0.12 > threshold).
   greet: { axis: 'eelMagic', threshold: 0.10, curve: 'linear', rampWidth: 0.01, max: 1 },
-  eelGlow: { axis: 'eelMagic', threshold: 0.45, curve: 'smoothstep', rampWidth: 0.25, max: 1 },
-  glowBurst: { axis: 'eelMagic', threshold: 0.75, curve: 'linear', rampWidth: 0.01, max: 1 },
-  // P1+ placeholders (spawn dials read these when their systems land)
-  minnows: { axis: 'life', threshold: 0.04, curve: 'sqrt', rampWidth: 0.7, max: 1 },
-  jellyfish: { axis: 'life', threshold: 0.25, curve: 'smoothstep', rampWidth: 0.5, max: 1 },
-  seagrass: { axis: 'life', threshold: 0.12, curve: 'quadratic', rampWidth: 0.8, max: 1 },
+  speedBurst: { axis: 'eelMagic', threshold: 0.28, curve: 'smoothstep', rampWidth: 0.6, max: 1 },
+  // (a baseline eel glow was built here and cut — looked bad; next EEL MAGIC
+  // power after speed burst is TBD, docs/07)
+  // EEL MAGIC cosmetics (docs/07): makeup fades in, then its hues start drifting
+  makeup: { axis: 'eelMagic', threshold: 0.15, curve: 'smoothstep', rampWidth: 0.45, max: 1 },
+  makeupHue: { axis: 'eelMagic', threshold: 0.60, curve: 'linear', rampWidth: 0.35, max: 1 },
+  // WORLD MAGIC: jelly light hues drawn from an expanding range around cyan
+  jellyHue: { axis: 'worldMagic', threshold: 0.12, curve: 'sqrt', rampWidth: 0.8, max: 1 },
+  // WORLD MAGIC: minnows swarm toward nearby falling food (no interaction)
+  minnowFeast: { axis: 'worldMagic', threshold: 0.20, curve: 'smoothstep', rampWidth: 0.6, max: 1 },
+  // WORLD MAGIC: ambient multicolor drift-sparkles (glow layer)
+  sparkles: { axis: 'worldMagic', threshold: 0.15, curve: 'sqrt', rampWidth: 0.7, max: 1 },
+  // Population dials: max IS the target head-count at full ramp.
+  minnows: { axis: 'life', threshold: 0.14, curve: 'sqrt', rampWidth: 0.7, max: 60 },
+  jellyfish: { axis: 'life', threshold: 0.45, curve: 'smoothstep', rampWidth: 0.5, max: 20 },
+  // P2+ placeholders (spawn dials read these when their systems land)
+  seagrass: { axis: 'life', threshold: 0.05, curve: 'quadratic', rampWidth: 0.8, max: 1 },
   plankton: { axis: 'worldMagic', threshold: 0.08, curve: 'sqrt', rampWidth: 0.6, max: 1 },
   pixelPulse: { axis: 'worldMagic', threshold: 0.40, curve: 'smoothstep', rampWidth: 0.4, max: 1 },
 };
 
+// ---- Eat feedback (docs/06): screen flash + shake, scaled by food amount ----
+export const EAT_FX = {
+  FLASH_A: 0.10,     // peak flash opacity at amount 0...
+  FLASH_A_AMT: 0.045, // ...plus this per progression amount (capped 0.22)
+  FLASH_TAU: 0.18,   // s — flash fade
+  SHAKE_BASE: 4,     // px shake amplitude at amount 0...
+  SHAKE_AMT: 3,      // ...plus this per progression amount
+  SHAKE_TAU: 0.12,   // s — shake decay
+  SHAKE_F1: 31, SHAKE_F2: 37,   // rad/s — incommensurate x/y wobble
+};
+
+// ---- Greeting (docs/07) ------------------------------------------------------
+export const GREET = {
+  RANGE: 260,   // px — critters this close to the eel's head respond
+  CD: 1.6,      // s — eel greet cooldown
+  // a tiny rose flash + shake on a successful greet (~1/3 of the eat feedback)
+  FLASH_A: 0.045,
+  SHAKE: 2.0,
+  COLOR: [1.0, 0.616, 0.722],   // #ff9db8 — the eel-heart pink
+};
+
+// ---- Speed burst (docs/07): base values + ramps along the speedBurst dial ----
+export const BOOST = {
+  AMT_BASE: 0.20,   // +20% top speed at dial 0...
+  AMT_RAMP: 0.25,   // ...up to +45% at dial 1
+  DUR_BASE: 1.5,    // s of full boost (stamina capacity)...
+  DUR_RAMP: 1.5,    // ...up to 3 s
+  SPARK_BASE: 10,   // electric sparks/s while boosting...
+  SPARK_RAMP: 26,   // ...ramping with the dial
+};
+
+// ---- Minnow flocking (docs/07) ------------------------------------------------
+export const FLOCK = {
+  JOIN_BIAS: 0.7,    // 0 = new minnows enter uniformly from any offscreen point,
+                     // 1 = always appear near an existing school
+  MAX_SCHOOLS: 3,    // wander-leader cap
+  SPLIT_SIZE: 16,    // a school past this many buds a new leader beside it
+  MERGE_D: 140,      // px — leaders closer than this merge into one school
+  RETARGET: 0.25,    // per-second chance a minnow re-picks its nearest leader
+};
+
+// ---- Parallax planes (docs/03): both BEHIND the main scene ------------------
+// Blur is faked with jittered semi-transparent re-draws (no framebuffers).
+export const LAYERS = {
+  NEAR: { PF: 0.72, BLUR: 1.6, TAPS: 2, ALPHA: 0.8 },   // just behind the forest
+  FAR: { PF: 0.40, BLUR: 4.5, TAPS: 3, ALPHA: 0.65 },   // deep background
+};
+
+// Kelp growth with the LIFE axis: at LIFE = 1 the forest is denser and taller.
+export const KELP_GROWTH = {
+  DENSITY: 0.6,   // +60% strand count at full LIFE (all planes)
+  HEIGHT: 0.35,   // +35% strand height at full LIFE
+};
+
 // ---- Light endpoints (docs/03) ---------------------------------------------
-// The scene lerps between these as LIGHT grows. LIGHT1 ≈ today, a touch
-// brighter; LIGHT0 is the barren sea — the deep end is genuinely black.
+// Unified lighting: the GL palettes carry HUE; the veil (below) is the single
+// authority on depth-brightness for GL and sprites alike. So LIGHT0 is a dim
+// but *formed* blue scene — the veil multiplies it (and everything else) down
+// to black at depth.
 const LIGHT0 = {
-  deep: [0.000, 0.001, 0.002],
-  surface: [0.035, 0.075, 0.090],
-  ray: 0.04, shim: 0.015, kelpDim: 0.22,
+  deep: [0.008, 0.038, 0.055],
+  surface: [0.140, 0.300, 0.340],
+  ray: 0.10, shim: 0.03, kelpDim: 0.55,
 };
 const LIGHT1 = {
   deep: [0.012, 0.055, 0.080],
@@ -78,8 +145,12 @@ const LIGHT1 = {
 };
 const lerp3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 
+// Gamma on the GL palette response: the scene warms slowly through most of the
+// LIGHT axis and blooms late, instead of lightening linearly.
+export const LIGHT_GAMMA = 1.7;
+
 export function lightParams(light01) {
-  const t = light01;
+  const t = Math.pow(light01, LIGHT_GAMMA);
   return {
     deep: lerp3(LIGHT0.deep, LIGHT1.deep, t),
     surface: lerp3(LIGHT0.surface, LIGHT1.surface, t),
@@ -94,14 +165,28 @@ export const MOBILE = {
   ZOOM: 0.5,   // camera zoom on coarse-pointer devices: view spans W/ZOOM world px
 };
 
-// ---- The darkness veil (docs/03) -------------------------------------------
+// ---- The illumination veil (docs/03) ----------------------------------------
+// A multiply layer over the whole scene: white at the surface (no-op) falling
+// toward TINT at depth — one depth-darkness function shared by GL and sprites.
 export const VEIL = {
-  TINT: '1, 6, 10',        // rgb of the dark water
-  SURF_A: 0.30,            // alpha at the surface when LIGHT = 0
+  MODE: 'multiply',        // 'multiply' (true multiplicative color) | 'alpha'
+                           // ('alpha' = tinted overlay fallback if a browser's
+                           // mix-blend-mode compositing ever misbehaves)
+  TINT: [6, 20, 30],       // rgb the deep water multiplies toward (near-black blue)
+  SURF_A: 0.30,            // darkness at the surface when LIGHT = 0
   CLEAR_D: 0.06,           // depth fraction where darkening starts
-  BLACK_D0: 0.55,          // depth of full black at LIGHT = 0...
+  BLACK_D0: 0.55,          // depth of full darkness at LIGHT = 0...
   BLACK_D1: 1.60,          // ...receding past the floor as LIGHT grows
-  FADE_EXP: 1.4,           // veil strength ∝ (1 − LIGHT)^this
+  GAMMA: 2.2,              // LIGHT response: darkness clears ∝ 1 − light^GAMMA,
+                           // and the black line recedes on the same curve — the
+                           // deep stays dark through most of the progression
+                           // and only opens up late (no linear lightening)
+  DEPTH_EXP: 0.7,          // <1 = darkness arrives faster as you descend
+  // The abyss never fully clears: a permanent depth-darkness floor that even
+  // LIGHT = 1 can't lift — the world floor sits at ~10% max brightness.
+  END_A: 0.93,             // darkness at the very bottom at LIGHT = 1
+  END_START: 0.30,         // depth fraction where the permanent floor begins
+                           // (low start = a long, gentle ramp into the dark)
   STOPS: 8,                // gradient sample count
   REBUILD_EPS: 0.01,       // LIGHT delta that triggers a gradient rebuild
 };

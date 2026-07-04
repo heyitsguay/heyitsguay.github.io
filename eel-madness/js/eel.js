@@ -49,6 +49,14 @@ const WALL_PUSH = 1.2;        // strength of the inward steer blended in at a wa
 const GLIDE_STEER_MIN = 10;   // px/s — gliding faster than this still steers off walls
 const EDGE_CLAMP = 10;        // px — hard position clamp inside the world edge
 
+// Speed burst (docs/07): strength/duration arrive via setMagic; feel lives here
+const BOOST_MIN_START = 0.35; // stamina needed to (re)start a burst
+const BOOST_RECHARGE = 4.0;   // s to refill stamina from empty
+const TAU_BOOST_UP = 0.22;    // s — burst ease-in
+const TAU_BOOST_DOWN = 0.5;   // s — ease back to normal
+const BOOST_WIG_F = 0.5;      // extra wave frequency at full burst
+const BOOST_WIG_A = 0.45;     // extra wave amplitude at full burst
+
 // Side roll (which side of the spine the face is on)
 const SIDE_FLIP_MIN = 0.15;   // |heading·x| needed before the face picks a side
 const TAU_SIDE = 0.18;        // s — how fast the eye/wig roll across on a turn
@@ -136,15 +144,23 @@ const SHINE_R = 0.75;
 const SHINE_OFF = 0.8;        // highlight offset from the pupil, up-and-back
 const SHINE_BACK = 0.3;       // how much that offset leans back from the heading
 
-// Eyelashes
+// Eyelashes — length is an EEL MAGIC cosmetic (4 → 8 via setMagic, docs/07)
 const LASHES = 8;
 const LASH_FAN_START = -0.2;  // first lash direction blend (up-back)
 const LASH_FAN_SPAN = 1.6;    // ...sweeping to up-forward across the fan
-const LASH_LEN = 2.1;         // first (backmost) lash length
-const LASH_LEN_STEP = 0.07;   // shorter per lash across the fan
+const LASH_TAPER = 0.005;     // fractionally shorter per lash across the fan
 const LASH_RIM = 0.95;        // base sits at this fraction of the eye's up-radius
 const LASH_CTRL = 0.7;        // curve control point, fraction along the lash
 const LASH_SWEEP = 0.3;       // tip drift toward the tail
+
+// Makeup (EEL MAGIC cosmetics — opacity/hue range arrive via setMagic)
+const SHADOW_HUE = 275;       // deg — base purple
+const SHADOW_R_OUT = 1.55;    // crescent outer radius, fraction of eye up-radius
+const SHADOW_R_IN = 0.95;     // crescent inner radius
+const SHADOW_ARC = 1.05;      // rad — half-angle of the crescent about "up"
+const SHADOW_PTS = 7;         // samples per crescent edge
+const LIP_HUE = 352;          // deg — base red
+const HUE_F1 = 0.21; const HUE_F2 = 0.047;  // rad/s — slow makeup hue-drift sines
 
 function gauss() {
   const u = 1 - Math.random(), v = Math.random();
@@ -181,6 +197,10 @@ export class Eel {
     this.body = svgRoot.querySelector('#eel-body');
     this.mouthEl = svgRoot.querySelector('#eel-mouth');
     this.damage = svgRoot.querySelector('#eel-damage');
+    this.lipEl = svgRoot.querySelector('#eel-lip');
+    this.shadowEl = svgRoot.querySelector('#eel-shadow');
+    this.sx = new Float64Array(2 * SHADOW_PTS);   // eyeshadow crescent scratch
+    this.sy = new Float64Array(2 * SHADOW_PTS);
     this.eye = svgRoot.querySelector('#eel-eye');
     this.pupil = svgRoot.querySelector('#eel-pupil');
     this.shine = svgRoot.querySelector('#eel-shine');
@@ -234,6 +254,16 @@ export class Eel {
     this.time = 0;   // wall-clock-ish time for slow drifts (independent of wave phase)
     this.sideTarget = 1; this.sideSm = 1;   // which side of the spine faces world-up
     this.placed = false;
+    // EEL MAGIC package (docs/07), pushed by main via setMagic as the axis moves
+    this.magic = { lashLen: 4, shadowA: 0, lipA: 0, hueRange: 0, boostAmt: 0.2, boostDur: 1.5 };
+    this.stamina = 1;       // speed-burst fuel, 0..1
+    this.boost01 = 0;       // eased burst factor (main reads it for sparks)
+    this.boostOn = false;
+    this.makeupOn = false;
+  }
+
+  setMagic(m) {
+    Object.assign(this.magic, m);
   }
 
   resize(worldW, worldH) {
@@ -291,17 +321,32 @@ export class Eel {
     this.mouth = expApproach(this.mouth, mouthTarget, dt,
       mouthTarget > this.mouth ? TAU_MOUTH_OPEN : TAU_MOUTH_CLOSE);
 
+    // Speed burst (docs/07): a fresh press starts a burst (given reserve);
+    // it runs while held until the stamina empties, then eases out and
+    // recharges — holding through empty never self-retriggers.
+    const freshPress = intent.boost && !this.prevBoostIntent;
+    this.prevBoostIntent = !!intent.boost;
+    if (this.boostOn) this.boostOn = !!intent.boost && this.stamina > 0;
+    else if (freshPress && this.stamina > BOOST_MIN_START) this.boostOn = true;
+    this.boost01 = expApproach(this.boost01, this.boostOn ? 1 : 0, dt,
+      this.boostOn ? TAU_BOOST_UP : TAU_BOOST_DOWN);
+    if (this.boostOn) this.stamina = Math.max(0, this.stamina - dt / this.magic.boostDur);
+    else this.stamina = Math.min(1, this.stamina + dt / BOOST_RECHARGE);
+
     // Speed: asymmetric easing = swim-up ramp vs glide-down momentum.
     // An open mouth drags — swimming while gaping is slower.
-    const maxSpeed = this.len * MAX_SPEED_BL * (1 - MOUTH_DRAG * this.mouth);
+    const maxSpeed = this.len * MAX_SPEED_BL * (1 - MOUTH_DRAG * this.mouth)
+      * (1 + this.magic.boostAmt * this.boost01);
     const speedTarget = maxSpeed * this.effort;
     this.speed = expApproach(this.speed, speedTarget, dt,
       speedTarget > this.speed ? TAU_SPEED_UP : TAU_SPEED_DOWN);
     this.speed01 = this.speed / maxSpeed;
     this.speedSm = expApproach(this.speedSm, this.speed01, dt, TAU_SPEED_SM);
 
-    // Undulation phase: always ticking (idle sway), faster with speed.
-    this.phase += (FREQ_BASE + FREQ_SLOPE * this.speedSm) * TAU * dt;
+    // Undulation phase: always ticking (idle sway), faster with speed — and
+    // faster still mid-burst (the eel visibly works harder).
+    this.phase += (FREQ_BASE + FREQ_SLOPE * this.speedSm)
+      * (1 + BOOST_WIG_F * this.boost01) * TAU * dt;
 
     // Integrate the head, injecting lateral wiggle as a sine *delta* (no net
     // drift) so the chain records a genuinely sinuous path.
@@ -352,8 +397,10 @@ export class Eel {
   render() {
     const { px, py, rx, ry, nx, ny, ox, oy } = this;
 
-    // Rendered spine = chain + traveling wave along chain normals.
-    const amp = this.ws * (AMP_BASE + AMP_SLOPE * this.speedSm);
+    // Rendered spine = chain + traveling wave along chain normals (the wave
+    // swells during a speed burst).
+    const amp = this.ws * (AMP_BASE + AMP_SLOPE * this.speedSm)
+      * (1 + BOOST_WIG_A * this.boost01);
     for (let i = 0; i < N; i++) {
       const j0 = Math.max(i - 1, 0), j1 = Math.min(i + 1, N - 1);
       let tx = px[j1] - px[j0], ty = py[j1] - py[j0];
@@ -410,8 +457,40 @@ export class Eel {
     }
     this.body.setAttribute('d', closedLoopPath(ox, oy, 2 * N + HEAD_N));
     this.renderMouth(flip);
+    this.renderMakeup(flip);
     this.renderEye();
     this.renderWig();
+  }
+
+  // EEL MAGIC makeup (docs/01, docs/07): lipstick stroked along the lip
+  // contour points (already placed in render), and the eyeshadow crescent is
+  // drawn in renderEye where the eye frame lives. Hues drift slowly once the
+  // makeupHue dial opens the range.
+  makeupHue(base, scale) {
+    const off = (Math.sin(this.time * HUE_F1) * 0.6 + Math.sin(this.time * HUE_F2) * 0.4)
+      * this.magic.hueRange * scale;
+    return base + off;
+  }
+
+  renderMakeup(flip) {
+    const on = this.magic.lipA > 0.01 || this.magic.shadowA > 0.01;
+    if (!on) {
+      if (this.makeupOn) {
+        this.makeupOn = false;
+        this.lipEl.setAttribute('opacity', '0');
+        this.shadowEl.setAttribute('opacity', '0');
+      }
+      return;
+    }
+    this.makeupOn = true;
+    const pt = idx => {
+      const k = 2 * N + (flip ? HEAD_N - 1 - idx : idx);
+      return `${this.ox[k].toFixed(1)} ${this.oy[k].toFixed(1)}`;
+    };
+    // lower lip along chin → lip front → lip top; upper lip front → nose
+    this.lipEl.setAttribute('d', `M${pt(1)}L${pt(2)}L${pt(3)}M${pt(5)}L${pt(6)}`);
+    this.lipEl.setAttribute('stroke', `hsl(${this.makeupHue(LIP_HUE, 0.7).toFixed(0)}, 68%, 52%)`);
+    this.lipEl.setAttribute('opacity', this.magic.lipA.toFixed(2));
   }
 
   // Mouth interior: a dark polygon under the body that shows through the open
@@ -452,7 +531,7 @@ export class Eel {
     this.shine.setAttribute('r', (SHINE_R * ws).toFixed(1));
 
     // Eyelashes: short strokes fanning over the upper-forward rim, tips swept
-    // gently back toward the tail.
+    // gently back toward the tail. Length is the EEL MAGIC cosmetic (4 → 8).
     const um = Math.hypot(ux, uy) || 1;
     const uxn = ux / um, uyn = uy / um;
     for (let k = 0; k < LASHES; k++) {
@@ -460,13 +539,31 @@ export class Eel {
       let dx = uxn + this.hx * blend, dy = uyn + this.hy * blend;
       const dm = Math.hypot(dx, dy) || 1;
       dx /= dm; dy /= dm;
-      const len = (LASH_LEN - k * LASH_LEN_STEP) * ws;
+      const len = this.magic.lashLen * (1 - k * LASH_TAPER) * ws;
       const bx = ex + dx * rUp * LASH_RIM, by = ey + dy * rUp * LASH_RIM;
       const cxp = bx + dx * len * LASH_CTRL, cyp = by + dy * len * LASH_CTRL;
       const txp = bx + dx * len + p.tx * len * LASH_SWEEP;
       const typ = by + dy * len + p.ty * len * LASH_SWEEP;
       this.lashes[k].setAttribute('d',
         `M${bx.toFixed(1)} ${by.toFixed(1)}Q${cxp.toFixed(1)} ${cyp.toFixed(1)} ${txp.toFixed(1)} ${typ.toFixed(1)}`);
+    }
+
+    // Eyeshadow: a soft crescent over the lid, between the lash roots and the
+    // eye rim, fading in with the makeup dial and drifting in hue (docs/07).
+    if (this.makeupOn && this.magic.shadowA > 0.01) {
+      const sx = this.sx, sy = this.sy;
+      for (let k = 0; k < SHADOW_PTS; k++) {
+        const th = -SHADOW_ARC + (2 * SHADOW_ARC * k) / (SHADOW_PTS - 1);
+        const dx = uxn * Math.cos(th) + this.hx * Math.sin(th);
+        const dy = uyn * Math.cos(th) + this.hy * Math.sin(th);
+        sx[k] = ex + dx * rUp * SHADOW_R_OUT;
+        sy[k] = ey + dy * rUp * SHADOW_R_OUT;
+        sx[2 * SHADOW_PTS - 1 - k] = ex + dx * rUp * SHADOW_R_IN;
+        sy[2 * SHADOW_PTS - 1 - k] = ey + dy * rUp * SHADOW_R_IN;
+      }
+      this.shadowEl.setAttribute('d', closedLoopPath(sx, sy, 2 * SHADOW_PTS));
+      this.shadowEl.setAttribute('fill', `hsl(${this.makeupHue(SHADOW_HUE, 1).toFixed(0)}, 48%, 62%)`);
+      this.shadowEl.setAttribute('opacity', this.magic.shadowA.toFixed(2));
     }
   }
 

@@ -13,6 +13,21 @@ const KEYMAP = {
 
 const keys = new Set();
 const pointer = { active: false, x: 0, y: 0 };
+const activePtrs = new Set();
+let greetQueued = false;
+let shiftHeld = false;
+
+// Edge-triggered greet (I key / the touch button via ui.js → main).
+export function consumeGreet() {
+  const g = greetQueued;
+  greetQueued = false;
+  return g;
+}
+
+// Speed-burst want (docs/02): Shift held, or a second finger on touch.
+export function getBoost() {
+  return shiftHeld || activePtrs.size >= 2;
+}
 
 export function initInput(onFirstInput) {
   let first = false;
@@ -25,16 +40,27 @@ export function initInput(onFirstInput) {
       keys.add(e.code);
       firstInput();
       e.preventDefault();
+    } else if (e.code === 'KeyI') {
+      greetQueued = true;
+      firstInput();
+    } else if (e.key === 'Shift') {
+      shiftHeld = true;
     }
   });
   window.addEventListener('keyup', e => {
     keys.delete(e.code);
+    if (e.key === 'Shift') shiftHeld = false;
   });
-  window.addEventListener('blur', () => keys.clear());
+  window.addEventListener('blur', () => {
+    keys.clear();
+    shiftHeld = false;
+    activePtrs.clear();
+  });
 
   window.addEventListener('pointerdown', e => {
     // UI touches (pause, menu, action buttons) never reach steering.
     if (e.target && e.target.closest && e.target.closest('#ui')) return;
+    activePtrs.add(e.pointerId);   // a second finger = boost want
     pointer.active = true;
     pointer.x = e.clientX;
     pointer.y = e.clientY;
@@ -43,7 +69,10 @@ export function initInput(onFirstInput) {
   window.addEventListener('pointermove', e => {
     if (pointer.active) { pointer.x = e.clientX; pointer.y = e.clientY; }
   });
-  const release = () => { pointer.active = false; };
+  const release = e => {
+    activePtrs.delete(e.pointerId);
+    if (activePtrs.size === 0) pointer.active = false;
+  };
   window.addEventListener('pointerup', release);
   window.addEventListener('pointercancel', release);
 }

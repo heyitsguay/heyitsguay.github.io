@@ -13,14 +13,14 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-#water, #eel-layer {
+#water, #eel-layer, #glow-layer {
   position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-#eel-layer { pointer-events: none; }
+#eel-layer, #glow-layer { pointer-events: none; }
 
 /* Darkness veil (docs/03, docs/07): world-height gradient above the sprites,
    translated with the camera each frame — height + gradient set from js. */
@@ -33,6 +33,7 @@ body {
   will-change: transform;
 }
 
+
 #eel-body {
   fill: #0b0b0e;
   stroke: rgba(35, 40, 51, 0.9);   /* fins: near-black, a whisper of blue */
@@ -41,6 +42,15 @@ body {
 }
 
 #eel-mouth { fill: #45141f; }   /* mouth interior, shows through the open jaw */
+
+/* EEL MAGIC makeup (docs/01, docs/07) — colors and opacity are set per frame
+   as ATTRIBUTES (a CSS opacity property here would override them and hide
+   the makeup entirely — that was a real bug, don't reintroduce it) */
+#eel-lip {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
 #eel-eye { fill: #f5efe2; }
 #eel-pupil { fill: #141312; }
 #eel-shine { fill: #ffffff; opacity: 0.9; }
@@ -57,6 +67,48 @@ body {
    region (wig paths under-invalidate and leave residue) — see docs/04.
    0.4% alpha ≈ 1/255: the minimum that still paints. */
 #eel-damage { fill: rgb(11 11 14 / 0.4%); }
+
+/* Critters (docs/07) — minnow fill is set per-frame (silver shimmer) */
+#critters .minnow { stroke: rgba(232, 244, 248, 0.35); stroke-width: 0.4; }
+#critters .minnow-eye { fill: #10181c; opacity: 0.8; }
+#critters .jelly-bell {
+  fill: rgba(255, 183, 214, 0.34);
+  stroke: rgba(255, 208, 228, 0.55);
+  stroke-width: 1;
+}
+/* jelly inner glows live on the glow layer (above the veil — docs/03);
+   fill comes from a per-jelly gradient attribute (WORLD MAGIC hues) */
+#critters .jelly-tent {
+  stroke: rgba(255, 199, 224, 0.5);
+  stroke-width: 1.4;
+  fill: none;
+  stroke-linecap: round;
+}
+
+/* Greet-range highlight (docs/07): critters that would answer a greeting get
+   a soft pulsing contour glow. Toggled by class; CSS animates the pulse. */
+#critters .greetable {
+  stroke: rgb(228, 255, 248);
+  stroke-width: 2.6;
+  animation: greet-pulse 0.9s ease-in-out infinite;
+}
+#critters .jelly-bell.greetable { stroke-width: 3.4; }
+@keyframes greet-pulse {
+  0%, 100% { stroke-opacity: 0.45; }
+  50% { stroke-opacity: 1; }
+}
+
+/* Eat flash (docs/06): fullscreen tint above the veil, opacity driven per frame */
+#flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity;
+}
+
+/* Greet hearts — fill set per emitter */
+#hearts path { stroke: rgba(255, 255, 255, 0.35); stroke-width: 0.6; }
 
 /* Hair color knobs (lock thickness/length/count are in js/eel.js) */
 #eel-wig path {

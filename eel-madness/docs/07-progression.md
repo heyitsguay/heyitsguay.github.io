@@ -6,7 +6,23 @@ beautiful. We get there by stacking *many* bespoke, low-cost effects — most of
 conventional (little light blooms, particle trails, things drifting in parallax
 planes) — combined tastefully. The god rays set the tone: subtle, cheap, lovely.
 
-Status: **P0 complete.** Landed: tuning.js + progress.js (axes, persistence, URL
+Status: **P2 landed** — phosphorescent plankton (deep water, brightens near the eel)
+and ambient WORLD MAGIC drift-sparkles (multicolor, spiraling, all on the glow layer
+so they shine in the dark); the food pixelation pulse (precomputed levels, eased
+1→8px pulses, WORLD MAGIC-gated); seagrass along the floor growing denser/taller
+with LIFE. The eel baseline glow was built and **cut** (looked bad) — the EEL MAGIC
+power after speed burst is open again, and glow burst (J) is shelved with it. Speed
+burst verified working — it *unlocks at EEL MAGIC ≥ 0.28* (`DIALS.speedBurst`);
+below that, Shift is intentionally inert. Previously: **P1 + unified lighting** — the veil is now a multiplicative
+illumination layer over the whole scene (GL palettes carry hue only) and emissive
+sprites (jelly glow, hearts; later eel glow) live on a glow layer above it — light
+sources punch through the dark (docs/03). Also in P1 — far parallax silhouettes
+(rock spires + LIFE-gated kelp wall)
+and near-foreground fronds; minnow school (dial-driven count, mini spine chains,
+wander-leader flocking, heading-catch silver shimmer, eel-flee darts); jellyfish
+(pulsing bell, chain tentacles, dark-water glow); greet on I / touch button (unlocks
+with the EEL MAGIC dial; eel heart + per-species responses via the shared heart
+emitter); food bubble trails + surface-entry plops. Previously (P0): Landed: tuning.js + progress.js (axes, persistence, URL
 overrides, dials); parameterized light + darkness veil (docs/03); food v2 with all
 7 foods, contact tumbling, suck-in + axis-colored eat pulse (docs/06); marine snow;
 pause menu with two-step reset and per-axis progress meters (Esc / ⏸; URL-preview
@@ -102,17 +118,50 @@ lottery moments**, not a steady grind.
   sparse trail; big swayers = lazy scattered bubbles). Shared GL pool, per-source
   emitter spec.
 
+## Liveliness: the vicinity principle
+
+Fauna is simulated **around the camera, not globally**. A vicinity rect (the view
+plus `VIC_PAD`) is the world that matters:
+
+- **Population dials are in-vicinity targets**, scaled by how much of the visible
+  water column lies inside the species' depth band — deep down you see jellies, not
+  minnows, and the numbers always match what the progression level implies.
+- **Spawns happen just outside the view** (inside the vicinity), so critters swim in
+  rather than pop in.
+- **Culling:** a critter outside the vicinity for `CULL_T` seconds despawns silently.
+  Swim two screens away and back — you meet statistically-equivalent critters, not
+  the same individuals, and nobody can tell.
+- **No pops, ever:** spawns are *strictly* offscreen — if no valid offscreen point
+  exists this frame, the spawn just waits. Over-target despawns only ever remove
+  offscreen critters; visible ones are left to drift out and cull naturally. The
+  population converges statistically; the player never sees an appearance or
+  disappearance.
+- **Render LOD:** critters outside the view (+ a pad) skip their DOM writes entirely;
+  only visible fauna costs per-frame SVG updates. This is what lets head-counts like
+  60 minnows read as *dense* — they're all near you, and all of the budget is spent
+  where you're looking.
+
+The minnow school's wander-leader is confined to the vicinity (snapped to a fresh
+offscreen point if the camera outruns it), so the school re-forms wherever you go.
+
 ## Phase-1 critters
 
 - **Minnows** — appear solo at low LIFE; group size is itself a dial, growing into
-  schools. Wiggly little swim (mini spine chain, 5–7 points). Simple flocking
-  approximation once schools exist (cohesion/alignment/separation on a few neighbors,
-  plus a shared wander leader). **Silvery shimmer without filters:** each minnow's fill
-  interpolates between dark-silver and bright-silver as a function of its heading ×
-  a slow time sine — they "catch the light" when they turn. One fill update per minnow
-  per frame, ≤ a few dozen minnows: trivial.
+  schools. Wiggly little swim (mini spine chain), a subtle 1–1.5px dark eye dot, and
+  the **silver shimmer**: each minnow's fill interpolates dark→bright silver as a
+  function of heading × a slow time sine — they catch the light when they turn.
+  **Schools split and join:** up to `FLOCK.MAX_SCHOOLS` wander-leaders; a school past
+  `SPLIT_SIZE` members buds a new leader beside it, leaders that drift within
+  `MERGE_D` merge, and minnows occasionally re-target their nearest leader, so fish
+  trade between passing schools organically. New minnows join near an existing school
+  with probability `FLOCK.JOIN_BIAS` (0 = enter uniformly from anywhere offscreen,
+  1 = always beside a school), else spawn uniformly — always offscreen either way.
 - **Jellyfish** — pulsing bell (scale/squash on a beat) + wig-chain tentacles; drifts;
-  inner glow that reads beautifully in the dark zone (WORLD MAGIC synergy).
+  inner glow that reads beautifully in the dark zone. The glow falls off nonlinearly —
+  fast near the core, then a long soft tail pushing the halo outward — and **dims as
+  the eel approaches** (shy light). **WORLD MAGIC example:** each jelly's light hue is
+  drawn from a range around cyan that *expands* with the `jellyHue` dial — a magic sea
+  has rainbow lanterns.
 
 ## Eel magic track
 
@@ -121,15 +170,23 @@ itself by granting a power on your first EEL MAGIC food. Since those foods are r
 the unlock threshold is tiny (raw W ≤ 1.0, i.e., one chocolate or one burger grants
 it). Then, along the axis:
 
-1. **Baseline glow** — a subtle, shimmery halo (two detuned slow sines on radius and
-   alpha so it breathes); doubles as a hole in the darkness veil, so it's *useful*
-   deep down — earning it changes the early "lost food" pressure.
-2. **Glow burst (J)** — a brief expanding flash + temporarily larger veil hole, on a
-   cooldown. Great for blind dives.
-3. Further powers TBD later (deliberately open).
+1. **Speed burst (hold Shift / second finger)** — the eel wiggles faster and harder
+   and its top speed ramps +20% (eased in and out), draining a stamina bar; on empty
+   or release it eases back and recharges. Electric-blue spark particles stream off
+   the body while boosting. Boost strength, stamina duration, and spark intensity all
+   ramp with the `speedBurst` dial (base +20% → up to +45%).
+2. Further powers TBD (deliberately open). A baseline glow + veil-hole was built and
+   cut — it looked bad in practice; if a "see in the dark" power returns it needs a
+   different visual treatment.
 
-Cosmetic ramps along the same axis: heart palette richness, wig sparkle glints, warmer
-eye catchlight.
+Cosmetic ramps along the same axis (the eel gets glamorous as it gets magical):
+
+- **Lashes** grow from length 4 at EEL MAGIC 0 to 8 at 1.
+- **Makeup** fades in with the `makeup` dial: tasteful purple eyeshadow (a soft
+  crescent over the lid) and red lipstick along the lip contour.
+- Past the `makeupHue` threshold, the makeup shades **hue-shift** slowly around
+  their base hues, in a range that widens as EEL MAGIC grows.
+- Later: heart palette richness, wig sparkle glints, warmer eye catchlight.
 
 ## The effects catalog
 
@@ -198,11 +255,16 @@ amplitude, long periods, never everything pulsing at once.
 
 ## Saying hello
 
-Greet key **I** / mobile greet button: a small heart pops from the eel's head, floats
-up with a wobble, fades ~1 s. Critters in range respond via one shared heart-emitter
-parameterized per species — count, palette, size, motion pattern (fan / ring / spiral
-/ zigzag), delay — each species gets a signature response for a few config lines.
-Per-critter cooldown. Greeting hooks special outcomes (companion, octopus color-shift).
+Greet key **I** / mobile greet button: a fan of three big hearts pops from the eel's
+head; hearts spring in with a boing, rise, wobble, and lean into their wobble before
+fading (~1.5 s). A successful greet also gives a tiny rose flash + shake (~⅓ of the
+eat feedback; `GREET.FLASH_A` / `GREET.SHAKE`). **Everyone in the greet radius responds at once** (no responder cap)
+via one shared heart-emitter parameterized per species — count, palette, size, motion
+pattern (fan / ring / scatter), delay. Per-critter cooldown. Once greeting is
+unlocked, critters that would respond get a **pulsing contour highlight** (a soft
+stroke glow, class-toggled with a CSS keyframe pulse) whenever they're in range and
+off cooldown — you can see who's listening. Greeting hooks special outcomes later
+(companion, octopus color-shift).
 
 ## Parameterization
 

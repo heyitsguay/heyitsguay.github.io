@@ -9,11 +9,14 @@
 <body>
 <canvas id="water"></canvas>
 <svg id="eel-layer" xmlns="http://www.w3.org/2000/svg">
+  <g id="critters"></g>
   <g id="food"></g>
   <g id="eel">
     <rect id="eel-damage"/>
     <path id="eel-mouth"/>
     <path id="eel-body"/>
+    <path id="eel-lip"/>
+    <path id="eel-shadow"/>
     <ellipse id="eel-eye"/>
     <circle id="eel-pupil"/>
     <circle id="eel-shine"/>
@@ -22,6 +25,18 @@
   </g>
 </svg>
 <div id="veil"></div>
+<svg id="glow-layer" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow-grad">
+      <stop offset="0%" stop-color="#bfeeff" stop-opacity="0.85"/>
+      <stop offset="55%" stop-color="#bfeeff" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#bfeeff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g id="glows"></g>
+  <g id="hearts"></g>
+</svg>
+<div id="flash"></div>
 <div id="hint">WASD / arrows to swim &mdash; or press &amp; hold</div>
 <div id="ui">
   <button id="pause" aria-label="Pause">&#10074;&#10074;</button>

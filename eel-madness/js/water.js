@@ -4,7 +4,8 @@
 //   2. kelp — one degenerate triangle strip, all sway + eel-push in the vertex shader
 //   3. particles — motes (eel-repelled) + bubbles (eel-emitted), one dynamic point buffer
 
-import { TAU } from './math.js';
+import { TAU, lerp, clamp, curves } from './math.js';
+import { LAYERS, KELP_GROWTH, DIALS } from './tuning.js';
 
 // JS-side sim knobs live here; shape/color numbers inside the shader strings
 // below deliberately stay next to the effect they control (see docs/03).
@@ -20,6 +21,53 @@ const KELP_FAR_W_MIN = 6, KELP_FAR_W_VAR = 4;         // base half-widths, px
 const KELP_NEAR_W_MIN = 9, KELP_NEAR_W_VAR = 7;
 const PUSH_BASE = 0.25;        // kelp-part strength at rest...
 const PUSH_SLOPE = 0.75;       // ...plus this at full eel speed
+const KELP_COL_FAR = [0.055, 0.165, 0.125];   // main kelp palette (was in the shader)
+const KELP_COL_NEAR = [0.012, 0.070, 0.052];
+const KELP_TIP_LIGHT = 3.5;   // per-vertex depth lighting gain: strands brighten
+                              // with the water's own gradient curve (1 + gain ×
+                              // surfaceness). Flat-colored strands read far too
+                              // dark where their tips reach bright water, and a
+                              // small gain is invisible on near-black greens.
+
+// Parallax planes (docs/03): both behind the main forest, drawn with the kelp
+// program at reduced camera factors + jitter-tap fake blur (tuning.LAYERS).
+const ROCK_COUNT = 26;
+const ROCK_W_MIN = 60, ROCK_W_VAR = 110;      // half-width at the base, px
+const ROCK_H_MIN = 260, ROCK_H_VAR = 620;     // spire height, px
+const ROCK_FOG = 0.14;      // rock tone: this far from deep-water color toward surface
+const WALL_COUNT = 34;      // far-plane kelp strands
+const WALL_H_MIN = 0.45, WALL_H_VAR = 0.45;   // heights, fraction of REF_H
+const WALL_W_MIN = 5, WALL_W_VAR = 5;         // base half-widths, px
+const WALL_FOG_BASE = 0.18;  // far kelp visibility above the water color...
+const WALL_FOG_LIFE = 0.45;  // ...plus this at full LIFE
+const NEAR_COUNT = 18;       // near-behind-plane kelp strands
+const NEAR_H_MIN = 0.5, NEAR_H_VAR = 0.5;
+const NEAR_W_MIN = 7, NEAR_W_VAR = 6;
+
+// Seagrass (docs/07, LIFE `seagrass` dial): short bright tufts along the
+// floor — sparse at first, denser and taller as LIFE grows.
+const GRASS_MAX = 130;       // blades at full dial
+const GRASS_H_MIN = 0.024, GRASS_H_VAR = 0.045;  // heights, fraction of REF_H
+const GRASS_W_MIN = 1.2, GRASS_W_VAR = 1.4;      // base half-widths, px
+const GRASS_COL_A = [0.10, 0.30, 0.17];          // brighter than kelp — grass
+const GRASS_COL_B = [0.045, 0.17, 0.10];
+const NEAR_FOG_BASE = 0.4;   // near plane sits closer to the true kelp tones
+const NEAR_FOG_LIFE = 0.4;
+// jitter directions for the fake blur taps (scaled by each plane's BLUR)
+const BLUR_JIT = [[0, 0], [0.8, 0.55], [-0.7, -0.6], [0.35, -0.9]];
+
+// Background plane fauna (docs/07): silhouette minnow-dot schools + soft jelly
+// blobs living in each parallax plane, wrapping around the plane-space camera
+// window like motes. Counts scale with the LIFE axis.
+const PLANE_MINNOWS = [10, 14];   // [near, far] dots at full LIFE
+const PLANE_JELLIES = [1, 2];
+const PLANE_DOT_SIZE = [5.5, 4.0]; // dark silhouette dots — small vs a real
+const PLANE_DOT_ALPHA = [0.55, 0.40];  // minnow (~22px), but clearly *there*
+const PLANE_JELLY_R = [34, 24];
+const PLANE_JELLY_ALPHA = [0.22, 0.11];
+const PLANE_SCHOOL_SPEED = 26;    // px/s anchor wander
+const PLANE_ORBIT = 30;           // px dot orbit radius around the anchor
+const PLANE_WRAP_PAD = 60;
 
 // Motes
 const MOTE_COUNT = 120;
@@ -40,14 +88,24 @@ const SNOW_SIZE_MIN = 1.0, SNOW_SIZE_VAR = 1.2;  // px
 const SNOW_ALPHA = 0.10, SNOW_TWINKLE = 0.05;
 const SNOW_WANDER = 4;         // px/s lateral sine drift
 
+// Boost sparks (docs/07): electric-blue jitter motes streamed off the eel
+const SPARK_POOL = 48;
+const SPARK_LIFE = 0.55;       // s
+const SPARK_SIZE_MIN = 2.6, SPARK_SIZE_VAR = 2.0;   // px
+const SPARK_JITTER = 260;      // px/s² random fizz
+const SPARK_DRAG = 2.2;        // 1/s
+const SPARK_ALPHA = 0.9;
+
 // Light pulses: a small pool of expanding additive glows (eat flourish, docs/06)
 const PULSE_POOL = 6;
 const PULSE_R_BASE = 130, PULSE_R_AMT = 90;      // px radius vs progression amount
 const PULSE_A_BASE = 0.70, PULSE_A_AMT = 0.30;   // peak alpha vs amount (capped 1)
 const PULSE_T_BASE = 0.85, PULSE_T_AMT = 0.30;   // s duration vs amount
 
-// Bubbles
-const BUBBLE_POOL = 40;
+// Bubbles (one pool shared by the mouth, food trails, plops, bursts, critters)
+const BUBBLE_POOL = 90;
+const RING_MIN_SIZE = 2.5;     // px — smaller bubbles draw as discs: the ring
+                               // pattern can't resolve inside a ~3px point sprite
 const BUBBLE_MIN_EFFORT = 0.4; // eel effort needed to emit
 const BUBBLE_RATE_BASE = 4, BUBBLE_RATE_SLOPE = 14;  // per second, vs effort
 const BUBBLE_MOUTH_OFF = 8;    // px ahead of the head at spawn
@@ -112,15 +170,21 @@ attribute vec2 a_xy;       // world position, device px
 attribute vec3 a_aux;      // frac up the strand, phase, shade
 uniform vec2 u_res;
 uniform vec2 u_cam;        // camera top-left, device px
+uniform float u_pf;        // parallax factor (1 = the main plane)
+uniform vec2 u_jit;        // blur-tap jitter offset, device px
 uniform vec2 u_eel;        // world position, device px
 uniform float u_t;
 uniform float u_dpr;
-uniform float u_push;      // eel speed factor
+uniform float u_push;      // eel speed factor (0 disables for silhouette passes)
+uniform float u_worldH;    // world height, device px (depth lighting)
 varying float v_shade;
+varying float v_bright;    // "surfaceness" on the water's own gradient curve
 void main() {
   float frac = a_aux.x, ph = a_aux.y;
   v_shade = a_aux.z;
-  vec2 p = a_xy;
+  // match the background shader: water brightness ~ 1 - depth^0.85
+  v_bright = 1.0 - pow(clamp(a_xy.y / u_worldH, 0.0, 1.0), 0.85);
+  vec2 p = a_xy + u_jit;
   // ambient sway: bases planted, tips waving
   p.x += (sin(u_t * 0.55 + ph + frac * 2.6) * 14.0
         + sin(u_t * 0.23 + ph * 1.7 + frac * 1.3) * 9.0) * pow(frac, 1.3) * u_dpr;
@@ -131,7 +195,7 @@ void main() {
   float r = 100.0 * u_dpr;
   float bend = (d.x / (abs(d.x) + 24.0 * u_dpr)) * exp(-(dl * dl) / (r * r));
   p.x += bend * 30.0 * u_dpr * frac * u_push;
-  vec2 clip = (p - u_cam) / u_res * 2.0 - 1.0;
+  vec2 clip = (p - u_cam * u_pf) / u_res * 2.0 - 1.0;
   gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
 }
 `;
@@ -139,11 +203,16 @@ void main() {
 const KELP_FS = `
 precision mediump float;
 varying float v_shade;
+varying float v_bright;
 uniform float u_dim;   // LIGHT-axis dim so plants don't glow against dark water
+uniform float u_tip;   // depth-lighting gain toward the surface
+uniform float u_alpha; // <1 for the blurred parallax taps
+uniform vec3 u_colFar; // per-pass palette (kelp greens, rock darks, plane fog)
+uniform vec3 u_colNear;
 void main() {
-  vec3 far = vec3(0.055, 0.165, 0.125);
-  vec3 near = vec3(0.012, 0.070, 0.052);
-  gl_FragColor = vec4(mix(far, near, v_shade) * u_dim, 1.0);
+  // strands sit in the water's light: brighten toward the surface like it does
+  float dl = 1.0 + u_tip * v_bright;
+  gl_FragColor = vec4(mix(u_colFar, u_colNear, v_shade) * u_dim * dl, u_alpha);
 }
 `;
 
@@ -152,10 +221,11 @@ attribute vec2 a_pos;      // world position, device px
 attribute vec3 a_aux;      // size (device px), alpha, kind (0 mote / 1 bubble)
 uniform vec2 u_res;
 uniform vec2 u_cam;
+uniform float u_pf;        // parallax factor (1 = main plane)
 varying float v_alpha;
 varying float v_kind;
 void main() {
-  vec2 clip = (a_pos - u_cam) / u_res * 2.0 - 1.0;
+  vec2 clip = (a_pos - u_cam * u_pf) / u_res * 2.0 - 1.0;
   gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
   gl_PointSize = a_aux.x;
   v_alpha = a_aux.y;
@@ -166,14 +236,25 @@ void main() {
 const POINT_FS = `
 precision mediump float;
 varying float v_alpha;
-varying float v_kind;
+varying float v_kind;   // 0 mote/snow, 1 bubble ring, 2 spark, 3 plane-fauna silhouette
 void main() {
   float d = length(gl_PointCoord - 0.5);
-  float disc = smoothstep(0.5, 0.12, d);
-  float ring = smoothstep(0.5, 0.40, d) * smoothstep(0.20, 0.30, d);
-  float a = mix(disc, ring, v_kind) * v_alpha;
-  vec3 col = mix(vec3(0.60, 0.80, 0.82), vec3(0.78, 0.93, 0.95), v_kind);
-  gl_FragColor = vec4(col, a);
+  vec3 col;
+  float a;
+  if (v_kind < 0.5) {
+    col = vec3(0.60, 0.80, 0.82);
+    a = smoothstep(0.5, 0.12, d);
+  } else if (v_kind < 1.5) {
+    col = vec3(0.78, 0.93, 0.95);
+    a = smoothstep(0.5, 0.40, d) * smoothstep(0.20, 0.30, d);
+  } else if (v_kind < 2.5) {
+    col = vec3(0.38, 0.85, 1.0);   // electric blue
+    a = pow(smoothstep(0.5, 0.0, d), 1.6);
+  } else {
+    col = vec3(0.07, 0.13, 0.15);  // distant-fauna silhouette, dark against water
+    a = smoothstep(0.5, 0.18, d);
+  }
+  gl_FragColor = vec4(col, a * v_alpha);
 }
 `;
 
@@ -181,12 +262,13 @@ const PULSE_VS = `
 attribute vec2 a_pos;      // the fullscreen triangle, reused as a unit-space quad
 uniform vec2 u_res;
 uniform vec2 u_cam;
+uniform float u_pf;        // parallax factor (1 = main plane)
 uniform vec2 u_center;     // world position, device px
 uniform float u_radius;    // device px
 varying vec2 v_uv;
 void main() {
   v_uv = a_pos;
-  vec2 clip = (u_center + a_pos * u_radius - u_cam) / u_res * 2.0 - 1.0;
+  vec2 clip = (u_center + a_pos * u_radius - u_cam * u_pf) / u_res * 2.0 - 1.0;
   gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
 }
 `;
@@ -257,18 +339,27 @@ export class Water {
               aux: gl.getAttribLocation(this.kelpProg, 'a_aux'),
               res: gl.getUniformLocation(this.kelpProg, 'u_res'),
               cam: gl.getUniformLocation(this.kelpProg, 'u_cam'),
+              pf: gl.getUniformLocation(this.kelpProg, 'u_pf'),
+              jit: gl.getUniformLocation(this.kelpProg, 'u_jit'),
               eel: gl.getUniformLocation(this.kelpProg, 'u_eel'),
               t: gl.getUniformLocation(this.kelpProg, 'u_t'),
               dpr: gl.getUniformLocation(this.kelpProg, 'u_dpr'),
               push: gl.getUniformLocation(this.kelpProg, 'u_push'),
-              dim: gl.getUniformLocation(this.kelpProg, 'u_dim') },
+              dim: gl.getUniformLocation(this.kelpProg, 'u_dim'),
+              alpha: gl.getUniformLocation(this.kelpProg, 'u_alpha'),
+              worldH: gl.getUniformLocation(this.kelpProg, 'u_worldH'),
+              tip: gl.getUniformLocation(this.kelpProg, 'u_tip'),
+              colFar: gl.getUniformLocation(this.kelpProg, 'u_colFar'),
+              colNear: gl.getUniformLocation(this.kelpProg, 'u_colNear') },
       point: { pos: gl.getAttribLocation(this.pointProg, 'a_pos'),
                aux: gl.getAttribLocation(this.pointProg, 'a_aux'),
                res: gl.getUniformLocation(this.pointProg, 'u_res'),
-               cam: gl.getUniformLocation(this.pointProg, 'u_cam') },
+               cam: gl.getUniformLocation(this.pointProg, 'u_cam'),
+               pf: gl.getUniformLocation(this.pointProg, 'u_pf') },
       pulse: { pos: gl.getAttribLocation(this.pulseProg, 'a_pos'),
                res: gl.getUniformLocation(this.pulseProg, 'u_res'),
                cam: gl.getUniformLocation(this.pulseProg, 'u_cam'),
+               pf: gl.getUniformLocation(this.pulseProg, 'u_pf'),
                center: gl.getUniformLocation(this.pulseProg, 'u_center'),
                radius: gl.getUniformLocation(this.pulseProg, 'u_radius'),
                color: gl.getUniformLocation(this.pulseProg, 'u_color'),
@@ -281,9 +372,39 @@ export class Water {
 
     this.kelpBuf = gl.createBuffer();
     this.kelpVerts = 0;
+    this.rockBuf = gl.createBuffer();
+    this.rockVerts = 0;
+    this.wallBuf = gl.createBuffer();
+    this.wallVerts = 0;
+    this.nearBuf = gl.createBuffer();
+    this.nearVerts = 0;
+    this.grassBuf = gl.createBuffer();
+    this.grassVerts = 0;
+    this.faunaBuf = gl.createBuffer();
+    this.lifeV = 0;         // LIFE axis value, set by main
+    this.builtLife = -1;    // kelp geometry rebuilds when LIFE moves enough
+
+    // Background plane fauna: one dot-school anchor + jelly blobs per plane,
+    // living in plane space, wrapping around the plane camera window.
+    this.planes = [LAYERS.NEAR, LAYERS.FAR].map((cfg, pi) => ({
+      cfg, pi,
+      school: { x: Math.random() * 3000, y: 400 + Math.random() * 800, hd: Math.random() * TAU, seed: Math.random() * TAU },
+      dots: Array.from({ length: PLANE_MINNOWS[pi] }, () => ({
+        seed: Math.random() * TAU, r: PLANE_ORBIT * (0.4 + Math.random()),
+      })),
+      jellies: Array.from({ length: PLANE_JELLIES[pi] }, () => ({
+        x: Math.random() * 3000, y: 500 + Math.random() * 1000,
+        phase: Math.random() * TAU, seed: Math.random() * TAU,
+      })),
+    }));
+    this.faunaScratch = new Float32Array(Math.max(...PLANE_MINNOWS) * 5);
 
     this.pointBuf = gl.createBuffer();
-    this.pointData = new Float32Array((MOTE_COUNT + BUBBLE_POOL + SNOW_COUNT) * 5);
+    this.pointData = new Float32Array((MOTE_COUNT + BUBBLE_POOL + SNOW_COUNT + SPARK_POOL) * 5);
+    this.sparks = [];
+    for (let i = 0; i < SPARK_POOL; i++) {
+      this.sparks.push({ x: 0, y: 0, vx: 0, vy: 0, life: 0, size: 2, seed: Math.random() * TAU });
+    }
 
     // Particle sim lives in CSS px; converted to device px on upload.
     this.motes = [];
@@ -306,15 +427,21 @@ export class Water {
     this.canvas.height = Math.round(H * dpr);
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     this.buildKelp();
+    this.buildSilhouettes();
+    this.builtLife = this.lifeV;
     this.motesSeeded = false;   // reseed around the camera on next update
     this.snowSeeded = false;
   }
 
   // Kelp lines the whole world floor; sizes are in reference-screen units so
-  // the forest looks identical regardless of window size.
+  // the forest looks identical regardless of window size. Density and height
+  // grow with the LIFE axis (tuning.KELP_GROWTH) — geometry rebuilds when
+  // LIFE has moved enough (see setLife).
   buildKelp() {
     const { dpr, worldW, worldH } = this;
-    const count = Math.round(KELP_PER_SCREEN * worldW / REF_W);
+    const dens = 1 + KELP_GROWTH.DENSITY * this.lifeV;
+    const tall = 1 + KELP_GROWTH.HEIGHT * this.lifeV;
+    const count = Math.round(KELP_PER_SCREEN * worldW / REF_W * dens);
     const farCount = Math.round(count * KELP_FAR_FRAC);
     const verts = [];
     const push = (x, y, frac, ph, shade) => verts.push(x * dpr, y * dpr, frac, ph, shade);
@@ -322,7 +449,7 @@ export class Water {
       const far = k < farCount;
       const x = Math.random() * worldW;
       const h = (far ? KELP_FAR_H_MIN + Math.random() * KELP_FAR_H_VAR
-                     : KELP_NEAR_H_MIN + Math.random() * KELP_NEAR_H_VAR) * REF_H;
+                     : KELP_NEAR_H_MIN + Math.random() * KELP_NEAR_H_VAR) * REF_H * tall;
       const hw = far ? KELP_FAR_W_MIN + Math.random() * KELP_FAR_W_VAR
                      : KELP_NEAR_W_MIN + Math.random() * KELP_NEAR_W_VAR;
       const ph = Math.random() * TAU;
@@ -345,6 +472,149 @@ export class Water {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.kelpBuf);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
     this.kelpVerts = verts.length / 5;
+  }
+
+  // Parallax silhouettes (docs/03): rock spires + kelp strands for the far
+  // plane, and a kelp buffer for the near-behind plane — all in the kelp
+  // vertex layout with degenerate joins. Strand counts/heights grow with LIFE.
+  buildSilhouettes() {
+    const { dpr, worldW, worldH } = this;
+    const floor = worldH + 4;
+    const dens = 1 + KELP_GROWTH.DENSITY * this.lifeV;
+    const tall = 1 + KELP_GROWTH.HEIGHT * this.lifeV;
+
+    const strands = (verts, count, hMin, hVar, wMin, wVar) => {
+      const push = (x, y, frac, ph, shade) => verts.push(x * dpr, y * dpr, frac, ph, shade);
+      for (let k = 0; k < count; k++) {
+        const x = Math.random() * worldW;
+        const h = (hMin + Math.random() * hVar) * REF_H * tall;
+        const hw = wMin + Math.random() * wVar;
+        const ph = Math.random() * TAU;
+        const shade = Math.random() * 0.5;
+        for (let j = 0; j <= KELP_SEGS; j++) {
+          const frac = j / KELP_SEGS;
+          const y = floor - h * frac;
+          const wj = hw * (1 - frac * 0.85) + 0.5;
+          if (j === 0 && verts.length) {
+            const p = verts.length;
+            verts.push(verts[p - 5], verts[p - 4], verts[p - 3], verts[p - 2], verts[p - 1]);
+            push(x - wj, y, frac, ph, shade);
+          }
+          push(x - wj, y, frac, ph, shade);
+          push(x + wj, y, frac, ph, shade);
+        }
+      }
+    };
+
+    const rocks = [];
+    const pushR = (x, y, shade) => rocks.push(x * dpr, y * dpr, 0, 0, shade);
+    for (let k = 0; k < ROCK_COUNT; k++) {
+      const x = Math.random() * worldW;
+      const hw = ROCK_W_MIN + Math.random() * ROCK_W_VAR;
+      const h = ROCK_H_MIN + Math.random() * ROCK_H_VAR;
+      const tip = x + (Math.random() - 0.5) * hw * 0.8;
+      const shade = Math.random();
+      if (k > 0) {   // degenerate join between spires
+        const p = rocks.length;
+        rocks.push(rocks[p - 5], rocks[p - 4], 0, 0, rocks[p - 1]);
+        pushR(x - hw, floor, shade);
+      }
+      pushR(x - hw, floor, shade);
+      pushR(x + hw, floor, shade);
+      pushR(tip, floor - h, shade);
+    }
+
+    const wall = [];
+    strands(wall, Math.round(WALL_COUNT * dens), WALL_H_MIN, WALL_H_VAR, WALL_W_MIN, WALL_W_VAR);
+    const near = [];
+    strands(near, Math.round(NEAR_COUNT * dens), NEAR_H_MIN, NEAR_H_VAR, NEAR_W_MIN, NEAR_W_VAR);
+    // seagrass: count from its own LIFE dial, height stretching with the dial too
+    const gd = DIALS.seagrass;
+    const grassAmt = gd.max * curves[gd.curve](clamp((this.lifeV - gd.threshold) / gd.rampWidth, 0, 1));
+    const grass = [];
+    if (grassAmt > 0) {
+      const stretch = 0.55 + 0.7 * grassAmt;
+      strands(grass, Math.round(GRASS_MAX * grassAmt),
+        GRASS_H_MIN * stretch, GRASS_H_VAR * stretch, GRASS_W_MIN, GRASS_W_VAR);
+    }
+
+    const gl = this.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.rockBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(rocks), gl.STATIC_DRAW);
+    this.rockVerts = rocks.length / 5;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.wallBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(wall), gl.STATIC_DRAW);
+    this.wallVerts = wall.length / 5;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.nearBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(near), gl.STATIC_DRAW);
+    this.nearVerts = near.length / 5;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.grassBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(grass), gl.STATIC_DRAW);
+    this.grassVerts = grass.length / 5;
+  }
+
+  // Silhouette fauna for one parallax plane (docs/07): a school of dim dots
+  // around the wandering anchor + soft pulsing jelly blobs. Counts scale with
+  // LIFE. Blend is already enabled by the plane pass.
+  drawPlaneFauna(pi, cfg, rw, rh, camX, camY, t) {
+    const gl = this.gl, dpr = this.dpr, pl = this.planes[pi === 0 ? 0 : 1];
+    const nDots = Math.round(PLANE_MINNOWS[pi] * this.lifeV);
+    if (nDots > 0) {
+      const pd = this.faunaScratch;
+      let n = 0;
+      for (let k = 0; k < nDots; k++) {
+        const d = pl.dots[k];
+        const a = t * 0.5 + d.seed;
+        pd[n++] = (pl.school.x + Math.cos(a) * d.r) * dpr;
+        pd[n++] = (pl.school.y + Math.sin(a) * d.r * 0.55) * dpr;
+        pd[n++] = PLANE_DOT_SIZE[pi] * dpr;
+        pd[n++] = PLANE_DOT_ALPHA[pi] * (0.7 + 0.3 * Math.sin(t * 1.1 + d.seed * 3));
+        pd[n++] = 3;   // dark silhouette kind — not a mote
+      }
+      gl.useProgram(this.pointProg);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.faunaBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, pd.subarray(0, n), gl.DYNAMIC_DRAW);
+      gl.enableVertexAttribArray(this.loc.point.pos);
+      gl.enableVertexAttribArray(this.loc.point.aux);
+      gl.vertexAttribPointer(this.loc.point.pos, 2, gl.FLOAT, false, 20, 0);
+      gl.vertexAttribPointer(this.loc.point.aux, 3, gl.FLOAT, false, 20, 8);
+      gl.uniform2f(this.loc.point.res, rw, rh);
+      gl.uniform2f(this.loc.point.cam, camX, camY);
+      gl.uniform1f(this.loc.point.pf, cfg.PF);
+      gl.drawArrays(gl.POINTS, 0, n / 5);
+    }
+    const nJel = Math.round(PLANE_JELLIES[pi] * this.lifeV);
+    if (nJel > 0) {
+      gl.blendFunc(gl.ONE, gl.ONE);   // the pulse shader is additive
+      gl.useProgram(this.pulseProg);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuf);
+      gl.enableVertexAttribArray(this.loc.pulse.pos);
+      gl.vertexAttribPointer(this.loc.pulse.pos, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform2f(this.loc.pulse.res, rw, rh);
+      gl.uniform2f(this.loc.pulse.cam, camX, camY);
+      gl.uniform1f(this.loc.pulse.pf, cfg.PF);
+      for (let k = 0; k < nJel; k++) {
+        const b = pl.jellies[k];
+        const pulse = 0.5 + 0.5 * Math.sin(t * TAU / 3.4 + b.phase);
+        gl.uniform2f(this.loc.pulse.center, b.x * dpr, b.y * dpr);
+        gl.uniform1f(this.loc.pulse.radius, PLANE_JELLY_R[pi] * dpr * (0.85 + 0.2 * pulse));
+        gl.uniform3f(this.loc.pulse.color, 0.45, 0.75, 0.8);
+        gl.uniform1f(this.loc.pulse.alpha, PLANE_JELLY_ALPHA[pi] * (0.6 + 0.4 * pulse));
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);   // planes need this back
+    }
+  }
+
+  // LIFE axis value: plane fog + kelp growth. Geometry rebuilds when LIFE has
+  // moved enough that density/height visibly changed (cheap, rare).
+  setLife(v) {
+    this.lifeV = v;
+    if (this.ok && Math.abs(v - this.builtLife) > 0.08) {
+      this.builtLife = v;
+      this.buildKelp();
+      this.buildSilhouettes();
+    }
   }
 
   update(dt, eel, cam) {
@@ -395,6 +665,40 @@ export class Water {
 
     // Light pulses just age.
     for (const p of this.pulses) p.age += dt;
+
+    // Background plane fauna: the dot-school anchor wanders and the jelly
+    // blobs bob, all wrapping around their plane's camera window so the
+    // planes always read as inhabited (density scales with LIFE at render).
+    for (const pl of this.planes) {
+      const pf = pl.cfg.PF;
+      const px0 = cam.x * pf - PLANE_WRAP_PAD, py0 = cam.y * pf - PLANE_WRAP_PAD;
+      const spanX = this.W + 2 * PLANE_WRAP_PAD, spanY = this.H + 2 * PLANE_WRAP_PAD;
+      const wrap = o => {
+        if (o.x < px0) o.x += spanX; else if (o.x > px0 + spanX) o.x -= spanX;
+        if (o.y < py0) o.y += spanY; else if (o.y > py0 + spanY) o.y -= spanY;
+      };
+      const s = pl.school;
+      s.hd += Math.sin(t * 0.19 + s.seed) * 0.5 * dt;
+      s.x += Math.cos(s.hd) * PLANE_SCHOOL_SPEED * dt;
+      s.y += Math.sin(s.hd) * PLANE_SCHOOL_SPEED * 0.5 * dt;
+      wrap(s);
+      for (const b of pl.jellies) {
+        b.x += Math.sin(t * 0.11 + b.seed) * 8 * dt;
+        b.y += (-4 + Math.sin(t * 0.23 + b.seed * 2) * 6) * dt;
+        wrap(b);
+      }
+    }
+
+    // Sparks: fizzing electric motes — jitter, drag, die fast.
+    for (const s of this.sparks) {
+      if (s.life <= 0) continue;
+      s.vx += (Math.random() - 0.5) * SPARK_JITTER * dt;
+      s.vy += (Math.random() - 0.5) * SPARK_JITTER * dt;
+      const damp = Math.exp(-dt * SPARK_DRAG);
+      s.vx *= damp; s.vy *= damp;
+      s.x += s.vx * dt; s.y += s.vy * dt;
+      s.life -= dt;
+    }
 
     // Motes: lazy wander + scatter away from a fast eel.
     for (const m of this.motes) {
@@ -460,11 +764,36 @@ export class Water {
     p.a = Math.min(1, PULSE_A_BASE + PULSE_A_AMT * amount);
   }
 
+  // One electric boost spark (docs/07), inheriting some source velocity.
+  spark(x, y, vx, vy) {
+    if (!this.ok) return;
+    const s = this.sparks.find(s => s.life <= 0);
+    if (!s) return;
+    s.x = x; s.y = y;
+    s.vx = vx + (Math.random() - 0.5) * 60;
+    s.vy = vy + (Math.random() - 0.5) * 60;
+    s.life = SPARK_LIFE * (0.7 + Math.random() * 0.6);
+    s.size = SPARK_SIZE_MIN + Math.random() * SPARK_SIZE_VAR;
+  }
+
+  // One small bubble (food trails, critter darts). Pool-shared; may no-op.
+  emitBubble(x, y, size = 2.4, life = 1.2) {
+    if (!this.ok) return;
+    const b = this.bubbles.find(b => b.life <= 0);
+    if (!b) return;
+    b.x = x; b.y = y;
+    b.vx = (Math.random() - 0.5) * 16;
+    b.vy = -12 - Math.random() * 14;
+    b.life = life * (0.75 + Math.random() * 0.5);
+    b.size = size * (0.8 + Math.random() * 0.5);
+    b.seed = Math.random() * TAU;
+  }
+
   // A one-shot puff of bubbles at a world point (the eat flourish). Draws
   // from the same pool as mouth bubbles; silently emits fewer if it's busy.
-  burst(x, y) {
+  burst(x, y, count = BURST_COUNT) {
     if (!this.ok) return;
-    for (let k = 0; k < BURST_COUNT; k++) {
+    for (let k = 0; k < count; k++) {
       const b = this.bubbles.find(b => b.life <= 0);
       if (!b) break;
       b.x = x + (Math.random() - 0.5) * BURST_SCATTER;
@@ -502,21 +831,79 @@ export class Water {
     gl.uniform1f(this.loc.bg.shim, lp.shim);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-    // 2. kelp
+    // 2. parallax planes (both BEHIND the forest, docs/03) then the main kelp.
+    //    Plane "blur" = jittered semi-transparent re-draws (no framebuffers).
     gl.useProgram(this.kelpProg);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.kelpBuf);
     gl.enableVertexAttribArray(this.loc.kelp.xy);
     gl.enableVertexAttribArray(this.loc.kelp.aux);
-    gl.vertexAttribPointer(this.loc.kelp.xy, 2, gl.FLOAT, false, 20, 0);
-    gl.vertexAttribPointer(this.loc.kelp.aux, 3, gl.FLOAT, false, 20, 8);
     gl.uniform2f(this.loc.kelp.res, rw, rh);
     gl.uniform2f(this.loc.kelp.cam, camX, camY);
     gl.uniform2f(this.loc.kelp.eel, this.eelX * dpr, this.eelY * dpr);
     gl.uniform1f(this.loc.kelp.t, t);
     gl.uniform1f(this.loc.kelp.dpr, dpr);
-    gl.uniform1f(this.loc.kelp.push, this.eelPush);
-    gl.uniform1f(this.loc.kelp.dim, this.lightP.kelpDim);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.kelpVerts);
+    gl.uniform1f(this.loc.kelp.worldH, this.worldH * dpr);
+    gl.uniform1f(this.loc.kelp.tip, KELP_TIP_LIGHT);
+    const strip = (buf, verts, pf, push, dim, colFar, colNear, alpha, jx, jy) => {
+      if (!verts) return;
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.vertexAttribPointer(this.loc.kelp.xy, 2, gl.FLOAT, false, 20, 0);
+      gl.vertexAttribPointer(this.loc.kelp.aux, 3, gl.FLOAT, false, 20, 8);
+      gl.uniform1f(this.loc.kelp.pf, pf);
+      gl.uniform2f(this.loc.kelp.jit, jx || 0, jy || 0);
+      gl.uniform1f(this.loc.kelp.push, push);
+      gl.uniform1f(this.loc.kelp.dim, dim);
+      gl.uniform1f(this.loc.kelp.alpha, alpha);
+      gl.uniform3f(this.loc.kelp.colFar, colFar[0], colFar[1], colFar[2]);
+      gl.uniform3f(this.loc.kelp.colNear, colNear[0], colNear[1], colNear[2]);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, verts);
+    };
+    // fog tones: silhouettes sit between the water color and their own hue
+    // (lp was set for the bg pass above)
+    const mix3 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+    const rockA = mix3(lp.deep, lp.surface, ROCK_FOG);
+    const rockB = mix3(lp.deep, lp.surface, ROCK_FOG * 0.45);
+    const wallVis = WALL_FOG_BASE + WALL_FOG_LIFE * this.lifeV;
+    const wallA = mix3(lp.deep, KELP_COL_FAR, wallVis);
+    const wallB = mix3(lp.deep, KELP_COL_NEAR, wallVis);
+    const nearVis = NEAR_FOG_BASE + NEAR_FOG_LIFE * this.lifeV;
+    const nearA = mix3(lp.deep, KELP_COL_FAR, nearVis);
+    const nearB = mix3(lp.deep, KELP_COL_NEAR, nearVis);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    const planeStrips = (cfg, bufs) => {
+      const a = cfg.ALPHA / cfg.TAPS;
+      for (let k = 0; k < cfg.TAPS; k++) {
+        const jx = BLUR_JIT[k][0] * cfg.BLUR * dpr, jy = BLUR_JIT[k][1] * cfg.BLUR * dpr;
+        for (const [buf, verts, cA, cB] of bufs) {
+          strip(buf, verts, cfg.PF, 0, lp.kelpDim, cA, cB, a, jx, jy);
+        }
+      }
+    };
+    // far plane first (deepest), then its fauna; then the near-behind plane
+    planeStrips(LAYERS.FAR, [[this.rockBuf, this.rockVerts, rockA, rockB],
+                             [this.wallBuf, this.wallVerts, wallA, wallB]]);
+    this.drawPlaneFauna(1, LAYERS.FAR, rw, rh, camX, camY, t);
+    gl.useProgram(this.kelpProg);   // fauna switched programs
+    gl.enableVertexAttribArray(this.loc.kelp.xy);
+    gl.enableVertexAttribArray(this.loc.kelp.aux);
+    planeStrips(LAYERS.NEAR, [[this.nearBuf, this.nearVerts, nearA, nearB]]);
+    this.drawPlaneFauna(0, LAYERS.NEAR, rw, rh, camX, camY, t);
+
+    // main forest: opaque, eel-parted, unblurred
+    gl.disable(gl.BLEND);
+    gl.useProgram(this.kelpProg);
+    gl.enableVertexAttribArray(this.loc.kelp.xy);
+    gl.enableVertexAttribArray(this.loc.kelp.aux);
+    gl.uniform2f(this.loc.kelp.res, rw, rh);
+    gl.uniform2f(this.loc.kelp.cam, camX, camY);
+    gl.uniform2f(this.loc.kelp.eel, this.eelX * dpr, this.eelY * dpr);
+    gl.uniform1f(this.loc.kelp.t, t);
+    gl.uniform1f(this.loc.kelp.dpr, dpr);
+    gl.uniform1f(this.loc.kelp.worldH, this.worldH * dpr);
+    gl.uniform1f(this.loc.kelp.tip, KELP_TIP_LIGHT);
+    strip(this.kelpBuf, this.kelpVerts, 1, this.eelPush, lp.kelpDim, KELP_COL_FAR, KELP_COL_NEAR, 1, 0, 0);
+    strip(this.grassBuf, this.grassVerts, 1, this.eelPush, lp.kelpDim, GRASS_COL_A, GRASS_COL_B, 1, 0, 0);
 
     // 3. particles
     let n = 0;
@@ -538,7 +925,14 @@ export class Water {
       pd[n++] = b.x * dpr; pd[n++] = b.y * dpr;
       pd[n++] = b.size * dpr;
       pd[n++] = Math.min(1, b.life / BUBBLE_FADE) * BUBBLE_ALPHA;
-      pd[n++] = 1;
+      pd[n++] = b.size < RING_MIN_SIZE ? 0 : 1;   // micro-bubbles read as discs
+    }
+    for (const s of this.sparks) {
+      if (s.life <= 0) continue;
+      pd[n++] = s.x * dpr; pd[n++] = s.y * dpr;
+      pd[n++] = s.size * dpr;
+      pd[n++] = (s.life / SPARK_LIFE) * SPARK_ALPHA;
+      pd[n++] = 2;
     }
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -551,6 +945,7 @@ export class Water {
     gl.vertexAttribPointer(this.loc.point.aux, 3, gl.FLOAT, false, 20, 8);
     gl.uniform2f(this.loc.point.res, rw, rh);
     gl.uniform2f(this.loc.point.cam, camX, camY);
+    gl.uniform1f(this.loc.point.pf, 1);   // main plane (fauna draws changed it)
     gl.drawArrays(gl.POINTS, 0, n / 5);
 
     // 4. light pulses — additive expanding glows, one small draw each
@@ -564,6 +959,7 @@ export class Water {
       gl.vertexAttribPointer(this.loc.pulse.pos, 2, gl.FLOAT, false, 0, 0);
       gl.uniform2f(this.loc.pulse.res, rw, rh);
       gl.uniform2f(this.loc.pulse.cam, camX, camY);
+      gl.uniform1f(this.loc.pulse.pf, 1);   // main plane
       for (const p of this.pulses) {
         if (p.age >= p.dur) continue;
         const u = p.age / p.dur;

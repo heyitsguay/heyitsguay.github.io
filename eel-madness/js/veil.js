@@ -1,10 +1,12 @@
-// The darkness veil (see docs/03, docs/07): a single world-height div above the
-// SVG layer holding a fixed vertical gradient (dark alpha rising with world
-// depth). Per frame it only gets a compositor-only translateY to follow the
-// camera; the gradient string is rebuilt only when LIGHT moves meaningfully.
-// At LIGHT = 0 the deep world is genuinely unreadable — that's gameplay.
+// The illumination veil (see docs/03): the single depth-brightness authority
+// for the whole scene. A world-height div above the SVG layer holding a fixed
+// vertical gradient — in 'multiply' mode a true multiplicative color ramp
+// (white at the surface → deep tint at depth), in 'alpha' mode a tinted
+// overlay fallback. Per frame it only gets a compositor-only translateY; the
+// gradient string is rebuilt only when LIGHT moves meaningfully. At LIGHT = 0
+// the deep world multiplies to ~black — that's gameplay.
 
-import { clamp } from './math.js';
+import { clamp, lerp } from './math.js';
 import { VEIL } from './tuning.js';
 
 const smooth = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
@@ -15,22 +17,38 @@ export class Veil {
     this.worldH = worldH;
     this.zoom = zoom;
     el.style.height = `${worldH * zoom}px`;   // world depth in screen px
+    el.style.mixBlendMode = VEIL.MODE === 'multiply' ? 'multiply' : 'normal';
     this.lastLight = -1;
   }
 
-  // Darkness alpha at depth fraction d (0 surface .. 1 floor) for a LIGHT value.
+  // Darkness alpha at depth fraction d (0 surface .. 1 floor) for a LIGHT
+  // value. Gamma-shaped (docs/03): a linear response lightened the deep far
+  // too early — with light^GAMMA the dark clears slowly and blooms late, and
+  // DEPTH_EXP < 1 brings the darkness on faster as you descend.
   alpha(d, light) {
-    const strength = Math.pow(1 - light, VEIL.FADE_EXP);
-    const blackD = VEIL.BLACK_D0 + (VEIL.BLACK_D1 - VEIL.BLACK_D0) * light;
-    const a = VEIL.SURF_A + (1 - VEIL.SURF_A) * smooth((d - VEIL.CLEAR_D) / (blackD - VEIL.CLEAR_D));
-    return clamp(a * strength, 0, 1);
+    const lg = Math.pow(clamp(light, 0, 1), VEIL.GAMMA);
+    const strength = 1 - lg;
+    const blackD = VEIL.BLACK_D0 + (VEIL.BLACK_D1 - VEIL.BLACK_D0) * lg;
+    const a = VEIL.SURF_A + (1 - VEIL.SURF_A)
+      * Math.pow(smooth((d - VEIL.CLEAR_D) / (blackD - VEIL.CLEAR_D)), VEIL.DEPTH_EXP);
+    // the permanent abyss floor: even at LIGHT = 1 the bottom stays dim
+    const aEnd = VEIL.END_A * smooth((d - VEIL.END_START) / (1 - VEIL.END_START));
+    return clamp(Math.max(a * strength, aEnd), 0, 1);
   }
 
   rebuild(light) {
+    const [tr, tg, tb] = VEIL.TINT;
     const stops = [];
     for (let i = 0; i <= VEIL.STOPS; i++) {
       const d = i / VEIL.STOPS;
-      stops.push(`rgba(${VEIL.TINT}, ${this.alpha(d, light).toFixed(3)}) ${(d * 100).toFixed(1)}%`);
+      const a = this.alpha(d, light);
+      const pct = `${(d * 100).toFixed(1)}%`;
+      if (VEIL.MODE === 'multiply') {
+        // multiplier ramps white (no-op) → tint (deep water)
+        stops.push(`rgb(${Math.round(lerp(255, tr, a))}, ${Math.round(lerp(255, tg, a))}, ${Math.round(lerp(255, tb, a))}) ${pct}`);
+      } else {
+        stops.push(`rgba(${tr}, ${tg}, ${tb}, ${a.toFixed(3)}) ${pct}`);
+      }
     }
     this.el.style.background = `linear-gradient(to bottom, ${stops.join(', ')})`;
   }

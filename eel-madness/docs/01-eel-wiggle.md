@@ -125,7 +125,10 @@ up, which is exactly what a real fish-shaped thing would do. No pop.
   so it sits on the face, offset `normal * sideSm` above the spine. Slightly elliptical
   — wider than tall (long axis along the heading), large pupil leading toward the heading (the eel looks
   where it's going), a small highlight, and short eyelashes fanning over the upper rim with
-  tail-swept tips.
+  tail-swept tips. **Lash length is an EEL MAGIC cosmetic** (4 → 8 across the axis,
+  via `setMagic`), as is the **makeup**: a purple eyeshadow crescent over the lid and
+  red lipstick stroked along the lip contour points, both fading in with the makeup
+  dial and hue-shifting slowly once the `makeupHue` threshold passes (docs/07).
 - **Wig**: long platinum-blonde *locks* (thick filled ribbons, not stroked strands) rooted
   along a mammal-skull hairline over the back of the head (see below). Each lock is its own
   tiny trailing chain (the same follow-the-leader trick

@@ -16,7 +16,10 @@ eelmadness/
     tuning.js       THE experiment surface: axes, food economy, light palettes, dials (see 07)
     progress.js     axis accumulators, localStorage persistence, URL overrides, dial eval
     veil.js         the darkness veil overlay (see 03)
-    ui.js           pause menu + reset, mobile action buttons (eat / greet)
+    critters.js     fauna: minnow schools + jellyfish, greet responses (see 07)
+    hearts.js       pooled heart-emitter (greets; pattern/color/size per species)
+    sparkles.js     glow-layer particles: WORLD MAGIC drift-sparkles + deep plankton
+    ui.js           pause menu + reset, greet button (touch)
     math.js         clamp / lerp / expApproach / angleDiff / curves (curve01 library)
 ```
 
@@ -28,10 +31,16 @@ github.io.
 ```
 <body>                      position:fixed, inset:0 on the fullscreen layers
   <canvas id="water">       WebGL — environment, behind
-  <svg id="eel-layer">      food + eel — in front, pointer-events:none
+  <svg id="eel-layer">      world sprites — in front of the canvas, pointer-events:none
+    <g id="critters">       minnows, jellyfish — behind the food
     <g id="food">           food <image> pool, behind the eel
     <g id="eel">            the eel
-  <div id="veil">           darkness veil — world-height gradient, camera-translated
+    <g id="fg">             near-foreground parallax fronds (pans faster than the camera)
+    <g id="hearts">         greet hearts, topmost
+  <div id="veil">           the illumination multiply layer (docs/03), camera-translated
+  <svg id="glow-layer">     emissive sprites above the veil — viewBox synced per frame
+    <g id="glows">          jelly inner glows (later: eel glow, anglerfish lure)
+    <g id="hearts">         greet hearts — they shine in the dark
   <div id="hint">           "WASD / hold to swim", fades on first input (above the veil)
 ```
 
@@ -90,14 +99,17 @@ requestAnimationFrame:
   intent = getIntent(eel.x, eel.y)         # input → intent
   intent.mouth = food.probe(eel)           # auto-mouth: food ahead opens the jaw
   eel.update(dt, intent, W, H)             # physics: head, chain, phase, side factor
-  eaten = food.update(dt, eel, W, H)       # spawn/fall; eat & bounce vs the eel
+  eaten = food.update(dt, eel, W, H, water) # spawn/fall; eat/bounce; trails + plops
   per eaten item: water.burst + water.pulse (axis color) + progress.add(axis, amount)
+  greet input (I / touch button, if unlocked): hearts.emit at the head +
+    critters.greet(eel, hearts) — in-range critters respond in their own style
+  critters.update(dt, eel, W, H, water)    # populations track their dials
+  hearts.update(dt)
   water.update(dt, eel)                    # particles react to eel; bubbles spawn
   water.setLight(lightParams(light))       # only when LIGHT changed meaningfully
   veil.update(camY, light)                 # compositor-only translate (+ rare rebuild)
-  eel.render()                             # spine → path d + decoration transforms
-  food.render()                            # one transform per live item
-  water.render(t)                          # 3 GL draw calls
+  eel.render(); critters.render(); food.render(); hearts.render()
+  water.render(t)   # bg + 2 blurred parallax planes (with fauna) + kelp + points (+ pulses)
 ```
 
 Update fully precedes render; `water.update` reads the eel *after* its physics step so
@@ -111,8 +123,9 @@ input.js   initInput(onFirstInput)                    # once
 
 eel.js     new Eel(svgRoot)
            .resize(worldW, worldH)                    # body length fixed (375 world units)
-           .update(dt, intent, worldW, worldH)
-           .render()
+           .update(dt, intent, worldW, worldH)        # intent.boost drives the speed burst
+           .setMagic({lashLen, shadowA, lipA, hueRange, boostAmt, boostDur})
+           .render()                                  # incl. makeup; exposes boost01, stamina
            exposes: x, y, hx, hy, speed01, speedSm, effort, mouth   # read by main/water
                     px, py, wArr (spine points + half-widths)       # read by food collision
 
@@ -125,11 +138,25 @@ water.js   new Water(canvas)
            .resize(W, H, dpr, worldW, worldH)         # rebuilds kelp geometry
            .update(dt, eel, cam)
            .render(cam)
-           .burst(x, y)                               # bubble burst at a world point
-           .pulse(x, y, color, amount)                # additive light pulse (eat flourish)
+           .burst(x, y, count?)                       # bubble burst at a world point
+           .emitBubble(x, y, size, life)              # one trail bubble
+           .spark(x, y, vx, vy)                       # one electric boost spark
+           .pulse(x, y, color, amount)                # additive light pulse
            .setLight(params)                          # from tuning.lightParams(light01)
 
-ui.js      initUI({ onReset }) → { paused() }         # pause menu, reset, greet button (P1)
+critters.js  new Critters(svgRoot, glowRoot)
+           .update(dt, eel, worldW, worldH, water, cam, viewW, viewH, foodPts)
+               # dial-driven in-vicinity populations (docs/07: vicinity principle);
+               # foodPts = food.positions() for the WORLD MAGIC minnow feast
+           .render()   # owns element visibility: reveal/hide only on in-pad writes,
+                       # so stale geometry from a previous life can never show
+           .greet(eel, hearts)                        # in-range critters respond
+
+hearts.js  new Hearts(svgRoot)
+           .emit(x, y, spec)   # spec: {color, size, count, pattern, delay, spread}
+           .update(dt) / .render()
+
+ui.js      initUI({ onReset, onGreet }) → { paused(), showGreet(v) }
 
 progress.js  progress (singleton)
            .value(axis) → 0..1                        # 1 − exp(−W/K), or URL override

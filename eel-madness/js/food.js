@@ -8,7 +8,8 @@
 // chases the mouth while shrinking. The economy lives in tuning.js (FOODS).
 
 import { TAU, clamp, expApproach } from './math.js';
-import { FOODS, FALL_MAP, SWAY_MAP } from './tuning.js';
+import { FOODS, FALL_MAP, SWAY_MAP, DIALS } from './tuning.js';
+import { progress } from './progress.js';
 
 // Interaction knobs (economy/motion scales are tuning.js's job)
 const SPAWN_BASE = 0.03;      // Poisson rate per rarity unit, per second
@@ -29,11 +30,21 @@ const EAT_MOUTH_MIN = 0.5;    // gape needed to eat
 const EAT_RADIUS = 26;        // px around the mouth point
 const MOUTH_FWD = 8;          // px — mouth point sits ahead of the head
 const PROBE_START = 4;       // px — nose probe begins this far ahead of the head
-const PROBE_LEN = 120;         // px — probe segment length: food on it opens the jaw
+const PROBE_LEN = 120;         // px — probe length: food on it opens the jaw
+const PROBE_WIDTH_FRAC = 0.10; // probe max full width (at the far tip) as a fraction
+                               // of its length — the probe is an isosceles triangle
+                               // with its apex at the nose
 const EAT_T = 0.30;           // s — suck-in duration
 const EAT_SHRINK = 0.12;      // final suck-in scale
 const EAT_CHASE = 0.05;       // s — how tightly the dying sprite tracks the mouth
 const EAT_FADE = 0.7;         // fraction of EAT_T where the fade-out starts
+const TRAIL_PER_100 = 2.0;    // trail bubbles/s per 100 px/s of fall speed
+const PLOP_COLOR = [0.45, 0.75, 0.80];   // surface-entry ring tint
+// Pixelation pulse (docs/06, docs/07 — WORLD MAGIC): precomputed levels,
+// swapped by an eased pulse. Pixel size sweeps 1 → PIX_MAX_PX and back.
+const PIX_LEVELS = 6;         // precomputed pixelation steps per sprite
+const PIX_MAX_PX = 8;         // pixel size at the deepest level
+const PIX_F = 0.45;           // rad/s — pulse rate (per-item phase offsets)
 
 const smooth = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 
@@ -63,8 +74,39 @@ export class Food {
         });
       }
       this.makeWhite(key, cfg.asset);
+      this.makePixels(key, cfg.asset);
     }
+    this.pixels = this.pixels || {};
     this.time = 0;
+    this.pixDial = 0;
+  }
+
+  // Precompute the pixelation-pulse levels (docs/06): nearest-neighbor
+  // down/up-scales at load — the pulse is pure href swaps, no filters.
+  makePixels(key, src) {
+    this.pixels = this.pixels || {};
+    try {
+      const img = new Image();
+      img.onload = () => {
+        const levels = [src];
+        for (let L = 1; L <= PIX_LEVELS; L++) {
+          const block = 1 + (PIX_MAX_PX - 1) * (L / PIX_LEVELS);
+          const small = document.createElement('canvas');
+          small.width = Math.max(2, Math.round(img.width / block));
+          small.height = Math.max(2, Math.round(img.height / block));
+          small.getContext('2d').drawImage(img, 0, 0, small.width, small.height);
+          const big = document.createElement('canvas');
+          big.width = img.width;
+          big.height = img.height;
+          const g = big.getContext('2d');
+          g.imageSmoothingEnabled = false;
+          g.drawImage(small, 0, 0, big.width, big.height);
+          levels.push(big.toDataURL());
+        }
+        this.pixels[key] = levels;
+      };
+      img.src = src;
+    } catch { /* headless */ }
   }
 
   // Precompute the suck-in's white-tinted sprite (docs/06) — an offscreen
@@ -99,7 +141,9 @@ export class Food {
     slot.vx = 0;
     slot.vy = FALL_MAP(cfg.fall) * ENTRY_SPEED;
     slot.rot = 0; slot.vrot = 0;
+    slot.entered = false;   // surface plop fires when it crosses y = 0
     slot.phase = Math.random() * TAU;
+    slot.pixLvl = 0;
     slot.el.setAttribute('href', cfg.asset);
     slot.el.setAttribute('opacity', '1');
     slot.el.setAttribute('display', 'inline');
@@ -110,25 +154,37 @@ export class Food {
     it.el.setAttribute('display', 'none');
   }
 
+  // Live falling items, for the minnow feast (docs/07) — read-only positions.
+  positions() {
+    const out = [];
+    for (const it of this.items) if (it.alive && it.eating === 0) out.push({ x: it.x, y: it.y });
+    return out;
+  }
+
   // The auto-mouth (docs/02, docs/06): true while any live item touches the
-  // probe segment off the nose tip. main.js feeds this in as intent.mouth.
+  // probe — a narrow isosceles triangle off the nose tip (apex at the nose,
+  // widening to PROBE_WIDTH_FRAC of its length at the far end). main.js feeds
+  // this in as intent.mouth.
   probe(eel) {
     const ax = eel.x + eel.hx * PROBE_START, ay = eel.y + eel.hy * PROBE_START;
     for (const it of this.items) {
       if (!it.alive || it.eating > 0) continue;
-      // point-segment distance via projection onto the heading
+      // project onto the heading; allowed lateral reach grows with distance
       const dx = it.x - ax, dy = it.y - ay;
       const s = clamp(dx * eel.hx + dy * eel.hy, 0, PROBE_LEN);
       const px = dx - eel.hx * s, py = dy - eel.hy * s;
-      if (px * px + py * py <= it.r * it.r) return true;
+      const allowed = it.r + s * PROBE_WIDTH_FRAC * 0.5;
+      if (px * px + py * py <= allowed * allowed) return true;
     }
     return false;
   }
 
   // Runs after eel.update. Returns eat events ({x, y, key}) for the flourish.
-  update(dt, eel, worldW, worldH) {
+  // fx (the water instance) receives trail bubbles and surface plops; optional.
+  update(dt, eel, worldW, worldH, fx) {
     const eaten = [];
     const t = (this.time += dt);
+    this.pixDial = progress.dial(DIALS.pixelPulse);
     const mouthOpen = eel.mouth > EAT_MOUTH_MIN;
     const mx = eel.x + eel.hx * MOUTH_FWD, my = eel.y + eel.hy * MOUTH_FWD;
 
@@ -161,6 +217,17 @@ export class Food {
       it.y += it.vy * dt;
       it.rot += it.vrot * dt;
       it.vrot *= Math.exp(-dt * TUMBLE_DAMP);
+
+      // splash-in at the surface, then a bubble trail keyed to fall speed
+      if (fx) {
+        if (!it.entered && it.y > it.r * 0.5) {
+          it.entered = true;
+          fx.pulse(it.x, 4, PLOP_COLOR, 0.25);
+          fx.burst(it.x, 6, 3);
+        } else if (it.entered && Math.random() < TRAIL_PER_100 * (it.vy / 100) * dt) {
+          fx.emitBubble(it.x, it.y - it.r * 0.5, 2.8, 1.1);
+        }
+      }
 
       if (it.x < it.r) { it.x = it.r; it.vx = 0; }
       else if (it.x > worldW - it.r) { it.x = worldW - it.r; it.vx = 0; }
@@ -214,6 +281,14 @@ export class Food {
         const u = it.eating / EAT_T;
         scale = 1 - smooth(u) * (1 - EAT_SHRINK);
         opacity = u > EAT_FADE ? 1 - (u - EAT_FADE) / (1 - EAT_FADE) : 1;
+      } else if (this.pixDial > 0 && this.pixels[it.key]) {
+        // the pixelation pulse: eased sweeps into blockiness and back
+        const w = Math.max(0, Math.sin(this.time * PIX_F + it.phase * 1.7));
+        const lvl = Math.round(smooth(w) * PIX_LEVELS * this.pixDial);
+        if (lvl !== it.pixLvl) {
+          it.pixLvl = lvl;
+          it.el.setAttribute('href', lvl === 0 ? it.cfg.asset : this.pixels[it.key][lvl]);
+        }
       }
       const deg = it.rot * 180 / Math.PI;
       it.el.setAttribute('transform',

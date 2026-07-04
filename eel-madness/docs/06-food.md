@@ -40,9 +40,10 @@ skipped and retried by the process.
 
 ## Eat, bounce, flourish
 
-- **Probe** — the segment runs from `PROBE_START` px ahead of the head to
-  `PROBE_START + PROBE_LEN` along the heading; any live item whose radius touches it
-  requests the mouth. Longer `PROBE_LEN` = earlier, more forgiving jaw.
+- **Probe** — an isosceles triangle from `PROBE_START` px ahead of the head, running
+  `PROBE_LEN` along the heading, apex at the nose and widening to
+  `PROBE_LEN × PROBE_WIDTH_FRAC` at the far end; any live item whose radius touches
+  it requests the mouth. Longer = earlier jaw; wider fraction = more forgiving aim.
 - **Eat** — mouth open past `EAT_MOUTH_MIN` (the probe got it there), item within
   `EAT_RADIUS` of the mouth point, in front of the head. Grants
   `progress.add(axis, amount × AMOUNT_SCALE)` — the global damper (tuning.js, 0.25)
@@ -55,6 +56,11 @@ skipped and retried by the process.
 - **Light pulse** — the eel emits an additive radial pulse (`water.pulse`): color =
   the food's axis signature (`AXES[axis].color`), radius/alpha scale with the food's
   progression amount. A cheeseburger flashes big and rose-pink.
+- **Flash + shake** (`tuning.EAT_FX`) — a gentle fullscreen tint in the same axis
+  color (peak ~0.10–0.22 opacity, ~0.18 s fade; the div sits above the veil so depth
+  can't mute it) and a small decaying camera shake (4–14 px, τ ≈ 0.12 s) applied to
+  the rendering camera only — every visual layer shakes together, the sim camera
+  stays clean.
 - **Bounce** — otherwise the spine chain is solid: push-out along the contact normal,
   restitution `BOUNCE_REST`, a kick scaling with eel speed, plus the contact tumble.
 

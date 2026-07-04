@@ -18,6 +18,11 @@ swimming through a living underwater scene, controlled by keyboard or touch.
 4. **Dual input from day one** — keyboard (WASD/arrows = swim direction) and pointer
    (tap-and-hold a point = swim toward it) are both first-class, unified behind one intent
    abstraction so the physics never knows which was used.
+5. **Statistically alive** — the goal is a convincing, densely active world of clever
+   animated SVGs *around the camera*. Fauna is not tracked globally: critters that stay
+   distant are culled and fresh ones spawn just offscreen, so what you see always matches
+   the spawn rates the current progression level implies (see [07](07-progression.md)).
+   Density where you look, statistics everywhere else.
 
 ## Locked decisions
 
@@ -41,6 +46,9 @@ swimming through a living underwater scene, controlled by keyboard or touch.
 - [04-architecture.md](04-architecture.md) — file layout, frame loop, coordinate system,
   module APIs.
 - [05-roadmap.md](05-roadmap.md) — milestones and the mobile testing checklist.
+- [06-food.md](06-food.md) — falling food: spawning, drift, the auto-mouth, eating.
+- [07-progression.md](07-progression.md) — the game: dark→vibrant progression axes,
+  critters, effects catalog, phases.
 
 ## Current scope (Milestone 0)
 
