@@ -2,7 +2,6 @@
 // (see docs/04, docs/07). Everything lives under #ui; the input layer ignores
 // pointer-downs here.
 
-import { setMouth } from './input.js';
 import { progress } from './progress.js';
 import { AXES } from './tuning.js';
 
@@ -11,7 +10,6 @@ export function initUI({ onReset }) {
   const pauseBtn = document.getElementById('pause');
   const resumeBtn = document.getElementById('resume');
   const resetBtn = document.getElementById('reset');
-  const eatBtn = document.getElementById('btn-eat');
   const greetBtn = document.getElementById('btn-greet');
 
   // Axis meters: the progression state, readable at a glance while paused.
@@ -44,7 +42,7 @@ export function initUI({ onReset }) {
   const setPaused = p => {
     paused = p;
     menu.hidden = !p;
-    if (p) { setMouth(false); refreshMeters(); }   // fresh meters each open
+    if (p) refreshMeters();   // fresh meters each open
     resetBtn.textContent = 'Reset progress';
     resetBtn.dataset.armed = '';
   };
@@ -68,16 +66,8 @@ export function initUI({ onReset }) {
     }
   });
 
-  // Action buttons only exist on touch devices. Greet stays hidden until the
-  // greet system lands (P1) — the dial gating is wired there.
-  if (window.matchMedia && matchMedia('(pointer: coarse)').matches) {
-    eatBtn.hidden = false;
-    const off = () => setMouth(false);
-    eatBtn.addEventListener('pointerdown', e => { e.preventDefault(); setMouth(true); });
-    eatBtn.addEventListener('pointerup', off);
-    eatBtn.addEventListener('pointercancel', off);
-    eatBtn.addEventListener('pointerleave', off);
-  }
+  // The mouth is automatic (food.probe → intent.mouth, docs/02) — no eat
+  // button. Greet stays hidden until the greet system lands (P1).
   void greetBtn;   // wired in P1
 
   return { paused: () => paused };

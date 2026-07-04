@@ -11,7 +11,7 @@ import { TAU, clamp, expApproach } from './math.js';
 import { FOODS, FALL_MAP, SWAY_MAP } from './tuning.js';
 
 // Interaction knobs (economy/motion scales are tuning.js's job)
-const SPAWN_BASE = 0.006;     // Poisson rate per rarity unit, per second
+const SPAWN_BASE = 0.03;      // Poisson rate per rarity unit, per second
 const SPAWN_XPAD = 60;        // keep spawns off the side walls
 const SPAWN_CLEAR = 220;      // px — skip spawns this close to the eel
 const ENTRY_SPEED = 0.5;      // initial vy as a fraction of terminal
@@ -28,6 +28,8 @@ const TUMBLE_DAMP = 0.6;      // 1/s — water damping on spin
 const EAT_MOUTH_MIN = 0.5;    // gape needed to eat
 const EAT_RADIUS = 26;        // px around the mouth point
 const MOUTH_FWD = 8;          // px — mouth point sits ahead of the head
+const PROBE_START = 4;       // px — nose probe begins this far ahead of the head
+const PROBE_LEN = 120;         // px — probe segment length: food on it opens the jaw
 const EAT_T = 0.30;           // s — suck-in duration
 const EAT_SHRINK = 0.12;      // final suck-in scale
 const EAT_CHASE = 0.05;       // s — how tightly the dying sprite tracks the mouth
@@ -106,6 +108,21 @@ export class Food {
   despawn(it) {
     it.alive = false;
     it.el.setAttribute('display', 'none');
+  }
+
+  // The auto-mouth (docs/02, docs/06): true while any live item touches the
+  // probe segment off the nose tip. main.js feeds this in as intent.mouth.
+  probe(eel) {
+    const ax = eel.x + eel.hx * PROBE_START, ay = eel.y + eel.hy * PROBE_START;
+    for (const it of this.items) {
+      if (!it.alive || it.eating > 0) continue;
+      // point-segment distance via projection onto the heading
+      const dx = it.x - ax, dy = it.y - ay;
+      const s = clamp(dx * eel.hx + dy * eel.hy, 0, PROBE_LEN);
+      const px = dx - eel.hx * s, py = dy - eel.hy * s;
+      if (px * px + py * py <= it.r * it.r) return true;
+    }
+    return false;
   }
 
   // Runs after eel.update. Returns eat events ({x, y, key}) for the flourish.

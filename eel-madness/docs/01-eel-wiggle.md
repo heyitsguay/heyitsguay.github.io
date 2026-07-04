@@ -83,8 +83,9 @@ Per frame:
 
    **The mouth** is a notch in this contour: the mouth-corner point is a pivot, and each
    contour point carries a weight for how much it rotates about that pivot when the mouth
-   opens (lower-jaw points swing down, upper-snout points counter-tilt up). Holding the
-   open-wide key eases `mouth` 0→1 (snap open ~70 ms, close ~120 ms), a dark interior
+   opens (lower-jaw points swing down, upper-snout points counter-tilt up). The mouth is
+   automatic — food on the nose probe (docs/02) eases `mouth` 0→1 (snap open ~70 ms,
+   close ~120 ms), a dark interior
    polygon under the body shows through the notch, and an open mouth adds drag (−30% top
    speed). Contour verticals scale by `sideSm`, so the head squashes flat mid-roll — exactly
    when the traversal order mirrors — and the flip never pops.

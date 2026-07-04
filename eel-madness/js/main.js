@@ -11,7 +11,7 @@ import { Water } from './water.js';
 import { Veil } from './veil.js';
 import { initUI } from './ui.js';
 import { progress } from './progress.js';
-import { AXES, FOODS, MOBILE, lightParams } from './tuning.js';
+import { AXES, FOODS, MOBILE, AMOUNT_SCALE, lightParams } from './tuning.js';
 import { clamp, expApproach } from './math.js';
 
 // Fixed world: 2x3 screens of a 1920x1080 reference, independent of window size.
@@ -76,14 +76,15 @@ function frame(now) {
 
   // Pointer input is screen-space; the eel's screen position keeps them aligned.
   const intent = getIntent((eel.x - cam.x) * ZOOM, (eel.y - cam.y) * ZOOM);
+  intent.mouth = food.probe(eel);   // auto-mouth: food ahead opens the jaw
   eel.update(dt, intent, WORLD_W, WORLD_H);
   const eaten = food.update(dt, eel, WORLD_W, WORLD_H);
   for (const e of eaten) {
     water.burst(e.x, e.y);
     const f = FOODS[e.key];
     if (f) {
-      progress.add(f.axis, f.amount);
-      water.pulse(eel.x, eel.y, AXES[f.axis].color, f.amount);
+      progress.add(f.axis, f.amount * AMOUNT_SCALE);
+      water.pulse(eel.x, eel.y, AXES[f.axis].color, f.amount);   // flourish keeps raw scale
     }
   }
 

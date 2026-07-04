@@ -88,6 +88,7 @@ requestAnimationFrame:
   if ui.paused: skip everything, keep the loop alive
   dt = clamp(now - last, ≤ 50 ms)          # tab-switch protection
   intent = getIntent(eel.x, eel.y)         # input → intent
+  intent.mouth = food.probe(eel)           # auto-mouth: food ahead opens the jaw
   eel.update(dt, intent, W, H)             # physics: head, chain, phase, side factor
   eaten = food.update(dt, eel, W, H)       # spawn/fall; eat & bounce vs the eel
   per eaten item: water.burst + water.pulse (axis color) + progress.add(axis, amount)
@@ -116,7 +117,8 @@ eel.js     new Eel(svgRoot)
                     px, py, wArr (spine points + half-widths)       # read by food collision
 
 food.js    new Food(svgRoot)
-           .update(dt, eel, worldW, worldH) → [{x, y}]   # eat events for the flourish
+           .probe(eel) → bool                            # food on the nose probe?
+           .update(dt, eel, worldW, worldH) → [{x, y, key}]  # eat events
            .render()
 
 water.js   new Water(canvas)
@@ -127,8 +129,7 @@ water.js   new Water(canvas)
            .pulse(x, y, color, amount)                # additive light pulse (eat flourish)
            .setLight(params)                          # from tuning.lightParams(light01)
 
-ui.js      initUI({ onReset }) → { paused() }         # pause menu, reset, mobile buttons
-input.js   also exports setMouth(held)                # mobile eat button drives the flag
+ui.js      initUI({ onReset }) → { paused() }         # pause menu, reset, greet button (P1)
 
 progress.js  progress (singleton)
            .value(axis) → 0..1                        # 1 − exp(−W/K), or URL override

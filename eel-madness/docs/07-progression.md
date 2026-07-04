@@ -10,8 +10,9 @@ Status: **P0 complete.** Landed: tuning.js + progress.js (axes, persistence, URL
 overrides, dials); parameterized light + darkness veil (docs/03); food v2 with all
 7 foods, contact tumbling, suck-in + axis-colored eat pulse (docs/06); marine snow;
 pause menu with two-step reset and per-axis progress meters (Esc / ⏸; URL-preview
-axes show "(preview)"); mobile 0.5× zoom + translucent eat button
-(greet button exists, wired in P1); eel spawns near the surface. Next: P1 — parallax,
+axes show "(preview)"); mobile 0.5× zoom; auto-mouth via the nose probe — no eat key
+or button on any platform (greet button exists, wired in P1); eel spawns near the
+surface. Next: P1 — parallax,
 minnows, jellyfish, greet/hearts, food bubble trails.
 
 ## Decisions made

@@ -13,12 +13,15 @@ intent = { active, dirX, dirY, throttle, mouth }   # dir unit-length, throttle �
 ```
 
 - **Keyboard** (WASD + arrows): pressed keys sum to a direction, normalized; `throttle = 1`.
-- **Mouth** (Space, hold — or the translucent on-screen eat button on touch devices,
-  which drives the same flag via `setMouth`): `intent.mouth` is true while held. The eel's
-  `mouth` state snaps open (τ ≈ 70 ms) and eases shut (τ ≈ 120 ms); an open mouth costs
-  30% of top speed (drag).
-- **UI guard:** pointer-downs on `#ui` (pause button, menu, mobile action buttons) never
-  reach steering — the window listener ignores targets inside it.
+- **Mouth (automatic — no key, no button):** `intent.mouth` is set by the game, not a
+  device: main.js feeds it `food.probe(eel)` — true while any food item intersects a
+  probe segment extending from the nose tip forward along the heading
+  (`PROBE_START` → `PROBE_START + PROBE_LEN`, knobs in food.js). Aim at food and the
+  mouth opens by itself, staying open until the food is eaten or the probe misses.
+  The eel's `mouth` state still snaps open (τ ≈ 70 ms) and eases shut (τ ≈ 120 ms);
+  an open mouth costs 30% of top speed (drag), so lining up a catch has a real cost.
+- **UI guard:** pointer-downs on `#ui` (pause button, menu, greet button) never reach
+  steering — the window listener ignores targets inside it.
 - **Pointer** (tap/click and hold, drag to steer): direction = head → pointer.
   `throttle = min(1, dist / 150)` — an *arrive* behavior, so the eel decelerates smoothly
   and settles at the held point instead of orbiting it. Within 14 px the intent goes

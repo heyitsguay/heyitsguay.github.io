@@ -13,12 +13,6 @@ const KEYMAP = {
 
 const keys = new Set();
 const pointer = { active: false, x: 0, y: 0 };
-let mouthHeld = false;
-
-// The mobile eat button drives the same flag the Space key does (see ui.js).
-export function setMouth(held) {
-  mouthHeld = held;
-}
 
 export function initInput(onFirstInput) {
   let first = false;
@@ -31,17 +25,12 @@ export function initInput(onFirstInput) {
       keys.add(e.code);
       firstInput();
       e.preventDefault();
-    } else if (e.code === 'Space') {
-      mouthHeld = true;
-      firstInput();
-      e.preventDefault();
     }
   });
   window.addEventListener('keyup', e => {
     keys.delete(e.code);
-    if (e.code === 'Space') mouthHeld = false;
   });
-  window.addEventListener('blur', () => { keys.clear(); mouthHeld = false; });
+  window.addEventListener('blur', () => keys.clear());
 
   window.addEventListener('pointerdown', e => {
     // UI touches (pause, menu, action buttons) never reach steering.
@@ -59,14 +48,14 @@ export function initInput(onFirstInput) {
   window.addEventListener('pointercancel', release);
 }
 
-// Returns { active, dirX, dirY, throttle, mouth } — dir unit-length,
-// throttle in [0,1], mouth true while the open-wide key is held.
+// Returns { active, dirX, dirY, throttle, mouth } — dir unit-length, throttle
+// in [0,1]. mouth is a placeholder: the game sets it (auto-mouth, docs/02).
 export function getIntent(headX, headY) {
   let dx = 0, dy = 0;
   for (const k of keys) { dx += KEYMAP[k][0]; dy += KEYMAP[k][1]; }
   if (dx || dy) {
     const m = Math.hypot(dx, dy);
-    return { active: true, dirX: dx / m, dirY: dy / m, throttle: 1, mouth: mouthHeld };
+    return { active: true, dirX: dx / m, dirY: dy / m, throttle: 1, mouth: false };
   }
   if (pointer.active) {
     const tx = pointer.x - headX, ty = pointer.y - headY;
@@ -74,8 +63,8 @@ export function getIntent(headX, headY) {
     // Arrive behavior: throttle eases down near the held point so the eel
     // settles there instead of orbiting. Small deadzone against jitter.
     if (d > POINTER_DEADZONE) {
-      return { active: true, dirX: tx / d, dirY: ty / d, throttle: Math.min(1, d / POINTER_ARRIVE), mouth: mouthHeld };
+      return { active: true, dirX: tx / d, dirY: ty / d, throttle: Math.min(1, d / POINTER_ARRIVE), mouth: false };
     }
   }
-  return { active: false, dirX: 0, dirY: 0, throttle: 0, mouth: mouthHeld };
+  return { active: false, dirX: 0, dirY: 0, throttle: 0, mouth: false };
 }

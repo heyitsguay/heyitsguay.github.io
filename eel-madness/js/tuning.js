@@ -39,8 +39,12 @@ export const FOODS = {
 };
 
 // 1–10 scale → world units (food v2 consumes these; see docs/07)
-export const FALL_MAP = s => lerp(12, 90, (s - 1) / 9);   // px/s terminal
+export const FALL_MAP = s => lerp(24, 180, (s - 1) / 9);  // px/s terminal
 export const SWAY_MAP = s => lerp(4, 50, (s - 1) / 9);    // px lateral amplitude
+
+// Global progression damper: axis grants are amount × this (the CSV amounts
+// above stay authored as-is; lots of food falls, each bite counts for less).
+export const AMOUNT_SCALE = 0.25;
 
 // ---- Progression dials -----------------------------------------------------
 // One shape everywhere: value = max * curve01((axis − threshold) / rampWidth),

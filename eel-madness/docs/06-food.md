@@ -1,9 +1,10 @@
 # Food v2: fall from the surface, eat or lose it
 
 Food drops in from above the surface, sinks by its nature, and is gone if it falls out
-the bottom of the world — no floor, no pile. The eel eats by meeting an item headfirst
-with its mouth open (Space / the mobile eat button); with the mouth closed the whole
-body is solid and the item takes an elastic bounce. Eating grants the food's
+the bottom of the world — no floor, no pile. **The mouth is automatic:** a probe
+segment off the nose tip (`food.probe(eel)` → `intent.mouth`; see docs/02) opens the
+jaw whenever food lies ahead, and the eel eats what it meets headfirst. With the mouth
+closed (nothing ahead) the whole body is solid and items take an elastic bounce. Eating grants the food's
 progression weight (docs/07) and fires the flourish: bubbles + an axis-colored light
 pulse + the suck-in animation.
 
@@ -28,7 +29,7 @@ skipped and retried by the process.
 ## Falling
 
 - Vertical: velocity eases (τ ≈ 0.9 s) toward the type's terminal speed
-  (`FALL_MAP(fall)`: 1→12 px/s, 10→90 px/s).
+  (`FALL_MAP(fall)`: 1→24 px/s, 10→180 px/s).
 - Sway: lateral velocity tracks the derivative of a sine with the type's amplitude
   (`SWAY_MAP(sway)`) at a shared slow frequency, per-item phase — pinecones flutter
   wide and slow, chocolate drops nearly straight.
@@ -39,8 +40,14 @@ skipped and retried by the process.
 
 ## Eat, bounce, flourish
 
-- **Eat** — mouth open past `EAT_MOUTH_MIN`, item within `EAT_RADIUS` of the mouth
-  point, in front of the head. Grants `progress.add(axis, amount)`.
+- **Probe** — the segment runs from `PROBE_START` px ahead of the head to
+  `PROBE_START + PROBE_LEN` along the heading; any live item whose radius touches it
+  requests the mouth. Longer `PROBE_LEN` = earlier, more forgiving jaw.
+- **Eat** — mouth open past `EAT_MOUTH_MIN` (the probe got it there), item within
+  `EAT_RADIUS` of the mouth point, in front of the head. Grants
+  `progress.add(axis, amount × AMOUNT_SCALE)` — the global damper (tuning.js, 0.25)
+  balances the high spawn rate: lots falls, each bite counts for less. The eat
+  pulse still scales with the raw amount.
 - **Suck-in** — the sprite swaps to a white-tinted copy (precomputed per type at load
   via an offscreen canvas — no CSS/SVG filters), then chases the moving mouth point
   while shrinking to `EAT_SHRINK` over `EAT_T` ≈ 0.3 s, fading at the tail. The food

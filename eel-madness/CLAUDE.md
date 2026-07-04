@@ -55,8 +55,9 @@ Currently at Milestone 0+ (the swim sandbox with a follow-cam world); gameplay c
   - `js/main.js` top: world size, camera feel
 - Matt tunes constants directly between requests — expect the file to have changed since you
   last saw it; his values are intentional, keep them.
-- **Controls:** WASD/arrows or press-and-hold pointer to swim, Space (hold) to open the
-  mouth. Mobile mouth input doesn't exist yet.
+- **Controls:** WASD/arrows or press-and-hold pointer to swim. The mouth is automatic —
+  food crossing a nose probe opens the jaw (`food.probe`, docs/02 + docs/06). Esc or ⏸
+  pauses (meters + reset). Greet (I) arrives in P1.
 - Cartoon over realism: proportions (big head, huge gape, flowing wig) deliberately deviate
   from real eels for visual effect. Cute > accurate.
 - Perf target: mid-range phone at 60fps. No SVG filters, no GL textures/framebuffers —

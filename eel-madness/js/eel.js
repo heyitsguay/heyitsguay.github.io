@@ -79,7 +79,7 @@ const HEAD_PTS = [
 ];
 const HEAD_N = HEAD_PTS.length;
 const MOUTH_PIVOT = [0.8, -2.0];
-const MOUTH_MAX = 1.8;        // rad — full gape
+const MOUTH_MAX = 1.4;        // rad — full gape
 const TAU_MOUTH_OPEN = 0.07;  // s — snap open
 const TAU_MOUTH_CLOSE = 0.12; // s
 // contour indices of the mouth-interior polygon (pivot, lower lip, nose, upper lip)

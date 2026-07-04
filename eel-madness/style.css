@@ -151,13 +151,12 @@ body {
 }
 #meters { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
 
-/* Translucent action buttons (touch devices; docs/07): eat right, greet left */
-#btn-eat, #btn-greet {
+/* Translucent greet button (touch devices; docs/07 — wired in P1) */
+#btn-greet {
   position: fixed;
   bottom: max(18px, env(safe-area-inset-bottom));
+  left: max(18px, env(safe-area-inset-left));
   width: 64px;
   height: 64px;
   font-size: 26px;
 }
-#btn-eat { right: max(18px, env(safe-area-inset-right)); }
-#btn-greet { left: max(18px, env(safe-area-inset-left)); }
