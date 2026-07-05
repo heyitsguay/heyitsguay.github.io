@@ -148,7 +148,7 @@ export const LEVELS = {
 // {text, guide: true} = an instructional unlock popup (longer dwell).
 export const LEVEL_NOTES = {
   light: {
-    1: 'The water warms',
+    1: 'Slightly brighter',
     5: 'God rays reach deeper',
     9: 'Caustics shimmer above',
     13: 'The mid-water brightens',
@@ -161,7 +161,7 @@ export const LEVEL_NOTES = {
     1: 'Kelp takes root',
     2: 'Seagrass sprouts below',
     4: 'Minnows arrive',
-    7: 'The minnows school up',
+    7: 'The minnow schools grow',
     8: 'A flash of color — reef fish',
     10: 'The kelp grows denser',
     11: 'Seahorses curl into the kelp',
@@ -189,11 +189,11 @@ export const LEVEL_NOTES = {
     30: 'An enchanted sea',
   },
   eelMagic: {
-    1: { text: 'GREET unlocked — press I (or tap ♡) when critters are near', guide: true },
+    1: { text: 'GREET — press I (or tap ♡) when critters are near', guide: true },
     4: 'A touch of makeup',
-    8: { text: 'SPEED BURST — hold Shift (or a second finger). Fast, but wide turns!', guide: true },
+    8: { text: 'SPEED BURST — hold Shift (or a second finger) to sprint!', guide: true },
     12: 'Longer lashes',
-    18: 'Makeup hues begin to drift',
+    18: 'Makeup hues start dancing',
     30: 'Fully fabulous',
   },
 };
