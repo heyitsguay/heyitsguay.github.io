@@ -58,7 +58,12 @@ generator, drawn after the kelp with its own greens and the eel-push.
 - Faint large-scale shimmer (product of two slow sines) for water volume.
 - Soft vignette.
 
-All procedural, zero textures, one fullscreen triangle.
+All procedural, zero textures, one fullscreen triangle. **`precision highp`
+is load-bearing**: mediump is fp16 on mobile GPUs (desktop silently promotes
+to fp32), and the fragment world-x reaches ~80k device px — fp16 quantized it
+in 32+ px steps, which shipped as "low-res god rays" on phones. The camera x
+arrives pre-wrapped (BG_WRAP) and the clock pre-wrapped (T_WRAP, an exact
+common period of every shader frequency), so highp stays precise forever.
 
 ### 2. Kelp — one triangle strip, vertex-shader sway
 

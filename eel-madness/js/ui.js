@@ -9,10 +9,11 @@ import { clamp } from './math.js';
 
 const axisCss = axis => `rgb(${AXES[axis].color.map(c => Math.round(c * 255)).join(',')})`;
 
-export function initUI({ onReset, onGreet, onStart, onSkip, skipTitle }) {
+export function initUI({ onReset, onGreet, onStart, onSkip, onMenu, skipTitle }) {
   const menu = document.getElementById('menu');
   const pauseBtn = document.getElementById('pause');
   const resumeBtn = document.getElementById('resume');
+  const menuBtn = document.getElementById('tomenu');
   const resetBtn = document.getElementById('reset');
   const greetBtn = document.getElementById('btn-greet');
   const uiRoot = document.getElementById('ui');
@@ -110,17 +111,26 @@ export function initUI({ onReset, onGreet, onStart, onSkip, skipTitle }) {
       lead.textContent = 'looks like a Eel has been here';
       titleSave.appendChild(lead);
       const row = document.createElement('div');
+      // portrait phones: drop "LV" and abbreviate the magic axes, or the
+      // four levels overflow the screen edge
+      const portrait = window.matchMedia && matchMedia('(orientation: portrait)').matches;
+      const short = { 'WORLD MAGIC': 'W.MAGIC', 'EEL MAGIC': 'E.MAGIC' };
       for (const [axis, cfg] of Object.entries(AXES)) {
         const s = document.createElement('span');
         s.className = 'axis-lv';
         s.style.color = axisCss(axis);
-        s.textContent = `${cfg.label} LV ${progress.level(axis)}`;
+        s.textContent = portrait
+          ? `${short[cfg.label] || cfg.label} ${progress.level(axis)}`
+          : `${cfg.label} LV ${progress.level(axis)}`;
         row.appendChild(s);
       }
       titleSave.appendChild(row);
     }
   };
   refreshTitle();
+  if (window.matchMedia) {   // re-fit the footer when the phone rotates
+    matchMedia('(orientation: portrait)').addEventListener('change', refreshTitle);
+  }
   const leaveTitle = () => {
     titleShown = false;
     title.hidden = true;
@@ -128,6 +138,7 @@ export function initUI({ onReset, onGreet, onStart, onSkip, skipTitle }) {
   };
   tStart.addEventListener('click', () => {
     leaveTitle();
+    resetBtn.hidden = false;   // (a sandbox visit may have hidden it)
     onStart && onStart();
   });
   // Skip To The End (docs/08): a maxed-out sandbox — nothing it does is saved,
@@ -158,6 +169,16 @@ export function initUI({ onReset, onGreet, onStart, onSkip, skipTitle }) {
 
   pauseBtn.addEventListener('click', () => { pauseBtn.blur(); setPaused(!paused); });
   resumeBtn.addEventListener('click', () => { resumeBtn.blur(); setPaused(false); });
+  // back to the title (docs/08): unpause, re-raise the title over the sea
+  menuBtn.addEventListener('click', () => {
+    menuBtn.blur();
+    setPaused(false);
+    titleShown = true;
+    title.hidden = false;
+    uiRoot.hidden = true;
+    refreshTitle();
+    onMenu && onMenu();
+  });
   window.addEventListener('keydown', e => {
     if (titleShown) {
       if (e.code === 'Enter' || e.code === 'Space') tStart.click();

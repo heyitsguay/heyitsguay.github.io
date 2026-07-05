@@ -226,6 +226,11 @@ body {
 }
 #title-save .axis-lv { margin: 0 10px; white-space: nowrap; }
 #title-save[hidden] { display: none; }
+@media (orientation: portrait) {
+  /* tighter footer on phones (ui.js also abbreviates the labels) */
+  #title-save { font-size: 12px; letter-spacing: 0.08em; }
+  #title-save .axis-lv { margin: 0 5px; }
+}
 
 #hint {
   position: fixed;

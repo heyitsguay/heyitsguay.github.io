@@ -135,7 +135,9 @@ retune (T(L≥2) rides the universal ladder untouched). The greet threshold
 
 Meters are level readouts: `LIGHT · LV 12` plus a fill bar of progress through
 the current level, `(W − T(L)) / (T(L+1) − T(L))`. URL-pinned axes show the
-pinned level, a full bar, and the "(preview)" tag.
+pinned level, a full bar, and the "(preview)" tag. **Main Menu** returns to
+the title (place remembered and saved, unless leaving the sandbox — Start
+resumes it).
 
 ## Title screen & attract mode
 

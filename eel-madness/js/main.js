@@ -107,6 +107,22 @@ const ui = initUI({
     cam.x = tx; cam.y = ty;
     hint.classList.remove('hidden');
   },
+  // Main Menu from the pause panel (docs/08): raise the title back over the
+  // sea. The player's place is remembered so Start resumes it — unless we're
+  // leaving the sandbox, which never touches the save.
+  onMenu: () => {
+    if (!progress.sandbox) {
+      bootPos.x = eel.x;
+      bootPos.y = eel.y;
+      try {
+        localStorage.setItem(POS_KEY, JSON.stringify({ x: Math.round(eel.x), y: Math.round(eel.y) }));
+      } catch { /* private mode */ }
+    }
+    titleMode = true;
+    progress.demo = true;
+    progress.sandbox = false;
+    lastLight = -1; lastLife = -1; lastEelMagic = -1;
+  },
   skipTitle: SKIP_TITLE,
 });
 let lastLight = -1;   // push light/life/magic values only when they actually move

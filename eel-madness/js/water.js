@@ -24,6 +24,13 @@ const REF_W = 1920, REF_H = 1080;  // world sizing is in reference-screen units
 // both god-ray sines AND the shimmer invariant (docs/09) — (20π/3) · REF_W.
 const BG_WRAP = (20 * Math.PI / 3) * REF_W;
 
+// Shader time wrap: 200π is an exact common period of every u_t frequency in
+// the bg (0.10/0.07/0.23/0.19) and kelp (0.55/0.23) shaders — all become
+// integer multiples of 2π — so the GPU never sees a large timestamp. (The
+// plane-fauna jelly pulse isn't commensurate; it takes one imperceptible
+// phase hop per ~10.5 min wrap.)
+const T_WRAP = 200 * Math.PI;
+
 // Chunk windows: how far past the view strips extend before a rebuild is due.
 const CHUNK_PAD = 480;         // px (plane space)
 
@@ -128,7 +135,10 @@ void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
 `;
 
 const BG_FS = `
-precision mediump float;
+// highp is REQUIRED here, not a nicety: mediump is fp16 on mobile GPUs, and
+// wx below reaches ~80k device px — fp16 quantizes that in 32+ px steps,
+// which renders the god rays as low-res blocks (a real shipped bug).
+precision highp float;
 uniform vec2 u_res;
 uniform vec2 u_ref;        // reference screen size, device px (world-fixed scale)
 uniform vec2 u_cam;        // camera top-left, device px; x pre-wrapped (docs/09)
@@ -794,7 +804,10 @@ export class Water {
 
   render(cam) {
     if (!this.ok) return;
-    const gl = this.gl, t = this.t, dpr = this.dpr;
+    const gl = this.gl, dpr = this.dpr;
+    // shader clock wrapped to its exact common period — a raw long-session
+    // timestamp loses precision on the GPU (fp16/fp32) and stutters the rays
+    const t = this.t % T_WRAP;
     const rw = this.canvas.width, rh = this.canvas.height;
 
     gl.disable(gl.BLEND);

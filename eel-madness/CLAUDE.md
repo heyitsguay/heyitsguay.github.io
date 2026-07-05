@@ -107,3 +107,7 @@ system are implemented.
     stale-raster bug — it looks like dead code and isn't.
   - Perceptual scaling wants gamma, not linear (light curves use `light^2.2`-shaped
     responses; linear lightened the deep far too early).
+  - **`mediump` is fp16 on mobile GPUs** (desktop silently gives fp32, hiding the
+    bug): any fragment shader touching world-scale coordinates or a growing clock
+    needs `highp` + wrapped uniforms (BG_WRAP / T_WRAP in water.js) — mediump
+    world-x quantized in 32 px steps and shipped as "low-res god rays".
