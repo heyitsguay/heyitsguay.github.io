@@ -107,7 +107,6 @@ const ui = initUI({
     cam.x = tx; cam.y = ty;
     hint.classList.remove('hidden');
   },
-  onQuit: () => { location.href = '/'; },
   skipTitle: SKIP_TITLE,
 });
 let lastLight = -1;   // push light/life/magic values only when they actually move
@@ -136,6 +135,8 @@ const cam = { x: 0, y: 0 };
 
 function cameraTarget() {
   const tx = eel.x + eel.hx * CAM_LOOKAHEAD * eel.speedSm - viewW / 2;
+  // the eel anchors mid-view — the title composition hangs off that same
+  // 50vh line (style.css #title-head / #title-buttons)
   const ty = eel.y + eel.hy * CAM_LOOKAHEAD * eel.speedSm - viewH / 2;
   return [tx, clamp(ty, 0, Math.max(0, WORLD_H - viewH))];   // x unbounded
 }

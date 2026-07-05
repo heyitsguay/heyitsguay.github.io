@@ -150,9 +150,12 @@ save left it; **Skip To The End** enters `progress.sandbox` — a separate,
 fully-maxed instance where `add()` and position persistence are inert (the
 pause menu hides its reset there, since that one WOULD wipe the real save);
 **Reset** (shown only when a save exists, two-step) wipes the save from the
-title — the saved sea's per-axis levels are listed in the header; **Quit**
-returns to the site root. Enter/Space also starts. **URL preview parameters
-skip the title entirely** and load straight into the pinned state.
+title — the saved sea's per-axis levels are listed along the bottom edge
+("looks like a Eel has been here"). Enter/Space
+also starts. **URL preview parameters skip the title entirely** and load
+straight into the pinned state. Composition anchors to the **attract eel's
+swim line at mid-view (50vh)**: the title + tagline end 9vh above that line,
+the buttons begin 9vh below it — symmetric around the swimmer.
 
 **Reset is a blank slate**: axes and levels zero, popup queue dropped, the eel
 returned to the origin (position persistence cleared), the camera snapped home,

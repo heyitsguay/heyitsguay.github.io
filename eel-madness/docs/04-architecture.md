@@ -204,7 +204,7 @@ fgplane.js new FrontPlane(svgRoot)
 
 food.js    also exposes .positions() → [{x, y}]   # live items, for the minnow feast
 
-ui.js      initUI({ onReset, onGreet, onStart, onQuit }) → { paused(),
+ui.js      initUI({ onReset, onGreet, onStart, onSkip, skipTitle }) → { paused(),
            showGreet(v), levelUp({axis, level}), tick(dt) }
                # tick drives the popup queue (docs/08); pause freezes it.
                # Also owns the title screen (#title, docs/08): boots visible

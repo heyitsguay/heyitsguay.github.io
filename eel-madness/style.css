@@ -160,7 +160,16 @@ body {
   z-index: 5;
 }
 #title[hidden] { display: none; }
-#title-card { text-align: center; }
+/* composition: everything anchors to the ATTRACT EEL'S swim line at 50vh
+   (the camera centers the eel) — title + tagline sit a symmetric gap above
+   it, buttons the same gap below */
+#title-card { position: absolute; inset: 0; text-align: center; }
+#title-head {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 59vh;   /* block ends 9vh above the eel line */
+}
 #title-name {
   font-size: clamp(44px, 9vw, 88px);
   font-weight: 600;
@@ -180,7 +189,10 @@ body {
   text-shadow: 0 1px 4px rgba(2, 10, 14, 0.8);
 }
 #title-buttons {
-  margin-top: 34px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 59vh;   /* block starts 9vh below the eel line */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -200,10 +212,10 @@ body {
 }
 #title-buttons button:hover { background: rgba(16, 44, 52, 0.7); }
 #title-buttons button[hidden] { display: none; }
-/* saved-sea header: the four axis levels, up top and out of the way */
+/* saved-sea footer: the four axis levels, along the bottom edge */
 #title-save {
   position: fixed;
-  top: max(16px, env(safe-area-inset-top));
+  bottom: max(16px, env(safe-area-inset-bottom));
   left: 0;
   right: 0;
   text-align: center;

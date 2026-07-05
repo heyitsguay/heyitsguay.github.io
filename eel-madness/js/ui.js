@@ -9,7 +9,7 @@ import { clamp } from './math.js';
 
 const axisCss = axis => `rgb(${AXES[axis].color.map(c => Math.round(c * 255)).join(',')})`;
 
-export function initUI({ onReset, onGreet, onStart, onSkip, onQuit, skipTitle }) {
+export function initUI({ onReset, onGreet, onStart, onSkip, skipTitle }) {
   const menu = document.getElementById('menu');
   const pauseBtn = document.getElementById('pause');
   const resumeBtn = document.getElementById('resume');
@@ -21,7 +21,6 @@ export function initUI({ onReset, onGreet, onStart, onSkip, onQuit, skipTitle })
   const tStart = document.getElementById('t-start');
   const tSkip = document.getElementById('t-skip');
   const tReset = document.getElementById('t-reset');
-  const tQuit = document.getElementById('t-quit');
 
   // Axis meters: level + progress through it, readable at a glance while paused.
   const meters = document.getElementById('meters');
@@ -108,7 +107,7 @@ export function initUI({ onReset, onGreet, onStart, onSkip, onQuit, skipTitle })
     if (has) {
       titleSave.textContent = '';
       const lead = document.createElement('span');
-      lead.textContent = 'a saved sea sleeps here';
+      lead.textContent = 'looks like a Eel has been here';
       titleSave.appendChild(lead);
       const row = document.createElement('div');
       for (const [axis, cfg] of Object.entries(AXES)) {
@@ -148,8 +147,6 @@ export function initUI({ onReset, onGreet, onStart, onSkip, onQuit, skipTitle })
       tReset.textContent = 'Really reset?';
     }
   });
-  tQuit.addEventListener('click', () => { onQuit && onQuit(); });
-
   let paused = false;
   const setPaused = p => {
     paused = p;
