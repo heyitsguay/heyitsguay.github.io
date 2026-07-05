@@ -1,7 +1,7 @@
 // progress.js is headless-safe by design (localStorage/location wrapped in try).
 // Covers the level quantization layer (docs/08) plus curves/light/veil.
 import { progress } from '../js/progress.js';
-import { AXES, FOODS, DIALS, LEVELS, LEVEL_NOTES, AMOUNT_SCALE, lightParams } from '../js/tuning.js';
+import { AXES, FOODS, DIALS, SPECIES, LEVELS, LEVEL_NOTES, AMOUNT_SCALE, lightParams } from '../js/tuning.js';
 import { Veil } from '../js/veil.js';
 import { curves } from '../js/math.js';
 
@@ -38,11 +38,15 @@ check('speedBurst still locked', progress.dial(DIALS.speedBurst) === 0);
 let ups = progress.consumeLevelUps();
 check('level-up event queued', ups.length === 1 && ups[0].axis === 'eelMagic' && ups[0].level === 1);
 
-// multi-level jumps chain one event per level, in order
-progress.add('eelMagic', FOODS.burger.amount * AMOUNT_SCALE);   // → level 2
-progress.add('eelMagic', FOODS.burger.amount * AMOUNT_SCALE);   // → level 4 (a jump)
+// multi-level jumps chain one event per level, in order (post-K-retune
+// economy: two burgers land level 2; a triple-burger windfall jumps to 6)
+progress.add('eelMagic', FOODS.burger.amount * AMOUNT_SCALE);
+progress.add('eelMagic', FOODS.burger.amount * AMOUNT_SCALE);
 ups = progress.consumeLevelUps();
-check('chained multi-level events', ups.map(u => u.level).join(',') === '2,3,4');
+check('burgers land level 2', ups.map(u => u.level).join(',') === '2');
+progress.add('eelMagic', FOODS.burger.amount * AMOUNT_SCALE * 3);
+ups = progress.consumeLevelUps();
+check('chained multi-level events', ups.map(u => u.level).join(',') === '3,4,5,6');
 
 // bloom: value() eases from the old step to the new one over BLOOM_T
 progress.reset();
@@ -56,13 +60,14 @@ progress.tick(LEVELS.BLOOM_T);
 check('bloom settles on the new step', Math.abs(progress.value('light') - v1) < 1e-9);
 
 // pacing (docs/08): expected per-session intake lands the band boundaries
-// exactly — levels 16 / 24 / 28 / 30 after sessions 1–4 (25 eats/session at
-// authored amounts, spawn share ∝ rarity ⇔ ~100 scaled eats in-game).
+// exactly — levels 16 / 24 / 28 / 30 after sessions 1–4 (37.5 eats/session at
+// authored amounts since the +50% K retune, spawn share ∝ rarity ⇔ ~150
+// scaled eats in-game).
 progress.reset();
 progress.consumeLevelUps();
 const totalRarity = Object.values(FOODS).reduce((s, f) => s + f.rarity, 0);
 const eatSession = () => {
-  for (const f of Object.values(FOODS)) progress.add(f.axis, f.amount * 25 * (f.rarity / totalRarity));
+  for (const f of Object.values(FOODS)) progress.add(f.axis, f.amount * 37.5 * (f.rarity / totalRarity));
 };
 const bandEnds = [16, 24, 28, 30];
 for (let s = 0; s < 4; s++) {
@@ -90,10 +95,40 @@ for (const [name, dial] of Object.entries(DIALS)) {
   check(`${name} unlocks at a noted level (${dial.axis} ${L})`,
     L <= LEVELS.COUNT && LEVEL_NOTES[dial.axis][L] !== undefined);
 }
+// species arrivals (docs/09) get the same note discipline as dials
+for (const [name, sp] of Object.entries(SPECIES)) {
+  const L = unlockLevel(sp.arrive);
+  check(`${name} arrives at a noted level (${sp.arrive.axis} ${L})`,
+    L <= LEVELS.COUNT && LEVEL_NOTES[sp.arrive.axis][L] !== undefined);
+}
 check('greet is the level-1 unlock', unlockLevel(DIALS.greet) === 1);
 check('speed burst unlocks at level 8', unlockLevel(DIALS.speedBurst) === 8);
 check('unlock guides are marked', typeof LEVEL_NOTES.eelMagic[1] === 'object'
   && LEVEL_NOTES.eelMagic[1].guide && LEVEL_NOTES.eelMagic[8].guide);
+
+// demo (the title's attract mode, docs/08): values read fully alive EXCEPT
+// EEL MAGIC (the powers stay the game's surprise); levels and W stay real.
+progress.reset();
+check('no save after reset', progress.hasSave() === false);
+progress.add('light', 0.3);
+check('hasSave sees real W', progress.hasSave() === true);
+progress.demo = true;
+check('demo forces values to 1 (except eelMagic)', Object.keys(AXES)
+  .every(a => progress.value(a) === (a === 'eelMagic' ? 0 : 1)));
+check('demo leaves levels real', progress.level('light') < 10 && progress.level('life') === 0);
+progress.demo = false;
+check('demo off restores real values', progress.value('life') === 0);
+
+// sandbox ("Skip To The End", docs/08): everything maxed, nothing saved
+progress.sandbox = true;
+const wBefore = progress.W.light;
+progress.add('light', 5);
+check('sandbox: values and levels maxed', progress.value('eelMagic') === 1
+  && progress.level('life') === LEVELS.COUNT);
+check('sandbox: add() never touches the save', progress.W.light === wBefore);
+progress.sandbox = false;
+check('sandbox off restores real state', progress.W.light === wBefore
+  && progress.level('life') === 0);
 
 // overrides: fractions pass through verbatim (dial-tuning pins), level derived
 progress.reset();

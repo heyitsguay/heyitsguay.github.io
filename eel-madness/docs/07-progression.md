@@ -6,14 +6,24 @@ beautiful. We get there by stacking *many* bespoke, low-cost effects — most of
 conventional (little light blooms, particle trails, things drifting in parallax
 planes) — combined tastefully. The god rays set the tone: subtle, cheap, lovely.
 
-Status: **Levels landed** (docs/08) — the four axes are quantized into 30 discrete
+Status: **P3 landed** (docs/09) — the sea is now procedurally **infinite along x**
+(seeded chunks; deterministic flora, terrain, and spawn hotspots), all fauna spawns
+through the factored spawn tensor (depth bands × x hotspots × LIFE-scaled damping —
+population caps retired), and five new species arrived: reef fish, seahorses,
+octopuses, a very rare giant octopus, and anglerfish. Also in P3: greet-follow
+rubberbanding (the fan club keeps pace), the sharp front kelp plane, WORLD MAGIC
+fairies, jelly hue *pulses* (replacing the static rainbow spread), background
+seafloor terrain with LIFE corals and WORLD MAGIC lights, and the plankton palette
+rework (medium-light greens + sporadic scoots). Previously: **Levels landed**
+(docs/08) — the four axes are quantized into 30 discrete
 levels each with chained, axis-colored "Level Up!" popups (guide popups for the
 greet and speed-burst unlocks), a ~1.5 s bloom ease into each new step, and
 axis-colored confetti sparks; pacing retuned from 5 sessions to 4; speed burst
 buffed to +50%→+150% with a proportional turn-rate penalty. Previously: **P2
 landed** — phosphorescent plankton (deep water, brightens near the eel)
 and ambient WORLD MAGIC drift-sparkles (multicolor, spiraling, all on the glow layer
-so they shine in the dark); the food pixelation pulse (precomputed levels, eased
+so they shine in the dark); the food pixelation pulse (precomputed levels, eased —
+**cut in P3, looked bad**
 1→8px pulses, WORLD MAGIC-gated); seagrass along the floor growing denser/taller
 with LIFE. The eel baseline glow was built and **cut** (looked bad) — the EEL MAGIC
 power after speed burst is open again, and glow burst (J) is shelved with it. Speed
@@ -41,7 +51,8 @@ minnows, jellyfish, greet/hearts, food bubble trails.
 - **Persistence:** localStorage. Reset lives in a **minimal pause menu** (also the
   natural home for future options); minimal version ships with P0 alongside
   persistence itself. Timescales span sessions.
-- **Timescale targets:** one session ≈ **5 minutes**; **4 sessions** to "sea fully
+- **Timescale targets** (retuned +50% in P3 — leveling felt too fast): one
+  session ≈ **7–8 minutes**; **4 sessions** to "sea fully
   alive" (level 30 on every axis — sessions land levels 1–16 / 17–24 / 25–28 /
   29–30, docs/08).
 - **Darkness is gameplay:** early on, food that sinks into the deep dark is genuinely
@@ -67,7 +78,7 @@ minnows, jellyfish, greet/hearts, food bubble trails.
 |---|---|
 | **LIGHT** | ambient depth-light curve (start near-black at depth, end a touch brighter than today), god-ray richness, caustics, visibility depth |
 | **LIFE** | flora dials (kelp, seagrass, corals, anemones…) and fauna dials (per-critter spawn probability, population, school size) |
-| **WORLD MAGIC** | environmental enchantment: phosphorescence, particle effects, pulses (incl. food pixelation), glowing flora, ambient events |
+| **WORLD MAGIC** | environmental enchantment: phosphorescence, particle effects, pulses, glowing flora, fairies, ambient events |
 | **EEL MAGIC** | the eel's own powers and cosmetics: greet → baseline glow → glow burst (J) → further powers TBD later |
 
 **Earning:** each food drives exactly one axis by its progression amount (table below).
@@ -86,7 +97,9 @@ value = max * curve01((axis − threshold) / rampWidth)   # 0 until threshold
 ```
 
 `curve01` from a small shared library: linear, smoothstep, sigmoid, sqrt, quadratic,
-log. Spawn probabilities, population caps, effect intensities, glow radii — all dials.
+log. Effect intensities, glow radii, arrival gates — all dials. (Fauna populations
+are no longer capped dials: species arrival is a dial gate, but population size
+emerges from the spawn tensor's damping factor — docs/09.)
 
 **Dev ergonomics:** URL overrides — values > 1 pin a level (`?eelmagic=12`), ≤ 1 pin a
 raw axis fraction (`?light=0.35`) — so any state of the sea is reachable instantly while
@@ -123,9 +136,8 @@ lottery moments**, not a steady grind.
 - **Eat suck-in:** sprite swaps to a precomputed white-tinted copy (offscreen canvas at
   load — no filters), shrinks/translates into the mouth ~0.3 s; food layer is behind
   the eel so occlusion is free. Plays together with the light pulse.
-- **Pixelation pulse** (WORLD MAGIC dial): ~8 precomputed pixelation levels per sprite
-  (nearest-neighbor, blob URLs); pulses ease the level 1→~8→1 smoothly. Href swaps
-  only.
+- ~~Pixelation pulse~~ built in P2, **cut in P3** — the blocky sweep read as a
+  glitch, not enchantment.
 - **Bubble trails** on falling food, character keyed to the food (fast fallers = tight
   sparse trail; big swayers = lazy scattered bubbles). Shared GL pool, per-source
   emitter spec.
@@ -142,7 +154,9 @@ plus `VIC_PAD`) is the world that matters:
   rather than pop in.
 - **Culling:** a critter outside the vicinity for `CULL_T` seconds despawns silently.
   Swim two screens away and back — you meet statistically-equivalent critters, not
-  the same individuals, and nobody can tell.
+  the same individuals, and nobody can tell — *except* where the spawn field says
+  otherwise: hotspots are deterministic in x (docs/09), so a rare creature's
+  territory survives the culling. Statistically the same octopus.
 - **No pops, ever:** spawns are *strictly* offscreen — if no valid offscreen point
   exists this frame, the spawn just waits. Over-target despawns only ever remove
   offscreen critters; visible ones are left to drift out and cull naturally. The
@@ -172,10 +186,10 @@ offscreen point if the camera outruns it), so the school re-forms wherever you g
   inner glow that reads beautifully in the dark zone. The glow falls off nonlinearly —
   fast near the core, then a long soft tail pushing the halo outward — and **dims as
   the eel approaches** (shy light). **WORLD MAGIC example:** each jelly's light hue is
-  drawn from a range around cyan that *expands* with the `jellyHue` dial — a magic sea
-  has rainbow lanterns. **Planned rework (Next up, below):** subtler — jellies keep
-  their standard coloring and *pulse* hue shifts whose magnitude and frequency both
-  grow with WORLD MAGIC, instead of a static rainbow spread.
+  a *pulse* away from cyan and back (shaped so lanterns dwell at cyan and bloom into
+  color), with both the pulse's magnitude and frequency growing with the `jellyHue`
+  dial — per-jelly phase and period, pulse discipline applies. (Replaced the original
+  static expanding-range coloring, which read as a rainbow and was reworked in P3.)
 
 ## Eel magic track
 
@@ -187,12 +201,14 @@ Then, along the axis:
 
 1. **Speed burst (hold Shift / second finger)** — the eel wiggles faster and harder
    and its top speed ramps +50% (eased in and out), draining a stamina bar; on empty
-   or release it eases back and recharges. Electric-blue spark particles stream off
-   the body while boosting. Boost strength, stamina duration, and spark intensity all
-   ramp with the `speedBurst` dial (base +50% → up to +150% — a real charge, unlocks
-   at EEL MAGIC level 8). The same factor that multiplies top speed *divides* the
-   turn rate (docs/02) — bursting trades agility for speed, committing the eel to
-   wide arcs.
+   or release it eases back and recharges. **Electric-blue bolts shed continuously
+   along the body, at a rate proportional to the eel's forward speed** (no pulsed
+   waves — the shower thickens as the burst winds up), shooting off in the wake —
+   glow-layer particles (sparkles.js), so the crackle burns through the dark.
+   Boost strength, stamina duration, and crackle intensity all ramp with the
+   `speedBurst` dial (base +50% → up to +150% — a real charge, unlocks at EEL MAGIC
+   level 8). The same factor that multiplies top speed *divides* the turn rate
+   (docs/02) — bursting trades agility for speed, committing the eel to wide arcs.
 2. Further powers TBD (deliberately open). A baseline glow + veil-hole was built and
    cut — it looked bad in practice; if a "see in the dark" power returns it needs a
    different visual treatment.
@@ -223,7 +239,15 @@ Each is a dial on some axis. Costs: ✚ = GL points/quad pass, ◐ = SVG element
 - Jellyfish inner glow, pulsing with the bell beat ◐
 - Anglerfish lure — a genuine point light with its own small veil hole ✚
 - Greeting glow rings — expanding circle from the greeted critter ◐
-- Lantern kelp — bulbs lighting in sequence up a strand (high WORLD MAGIC) ◐
+- **Lantern kelp — LANDED** (sparkles.Lanterns, WORLD MAGIC level 17): a seeded
+  fraction (~22%) of main-plane kelp strands grow soft glow-layer bulbs. The
+  aesthetic contract: **gentle, lively, not too saturated** — pale gold first,
+  the palette widening into seafoam/blush/lavender as the dial climbs; each
+  bulb is a soft-edged radial gradient (bright core → nothing); bulbs kindle
+  progressively with the dial (fade in, never pop), and once lit, a slow light
+  packet climbs each strand bottom→top (~5.5 s, per-strand phase — pulse
+  discipline). Bulbs replicate the kelp shader's sway + eel-push in JS so they
+  ride their strands exactly. ◐
 - Moonbeam shaft — rare slow diagonal beam event ●
 - Golden-hour event — palette warms for ~20 s, rare, high LIGHT ●
 - Aurora bands near the surface, late game — slow sinusoid ribbons, hue drift ●
@@ -267,7 +291,7 @@ Each is a dial on some axis. Costs: ✚ = GL points/quad pass, ◐ = SVG element
 - Minnow school trails the eel briefly after a greet ◐
 
 **Pulse discipline:** one shared eased-pulse helper (smooth in-out between min/max,
-per-instance period and phase detune) drives pixelation, glows, bells, lanterns,
+per-instance period and phase detune) drives glows, bells, lanterns,
 shimmer — everything breathes on related-but-unsynchronized rhythms. Tasteful = low
 amplitude, long periods, never everything pulsing at once.
 
@@ -275,18 +299,31 @@ amplitude, long periods, never everything pulsing at once.
 
 Greet key **I** / mobile greet button: a fan of three big hearts pops from the eel's
 head; hearts spring in with a boing, rise, wobble, and lean into their wobble before
-fading (~1.5 s). A successful greet also gives a tiny rose flash + shake (~⅓ of the
-eat feedback; `GREET.FLASH_A` / `GREET.SHAKE`). **Everyone in the greet radius responds at once** (no responder cap)
+fading (~1.5 s). **A greeting needs a subject**: the greet only fires when someone
+greetable is in range (`critters.anyGreetable` gates it in main) — pressing I into
+empty water does nothing, no heart, no cooldown. A successful greet also gives a
+tiny rose flash + shake (~⅓ of the eat feedback; `GREET.FLASH_A` / `GREET.SHAKE`).
+**Everyone in the greet radius responds at once** (no responder cap)
 via one shared heart-emitter parameterized per species — count, palette, size, motion
 pattern (fan / ring / scatter), delay. Per-critter cooldown. Once greeting is
-unlocked, critters that would respond get a **pulsing contour highlight** (a soft
-stroke glow, class-toggled with a CSS keyframe pulse) whenever they're in range and
-off cooldown — you can see who's listening (highlight color = the eel-heart pink).
-**A greeted critter befriends you briefly:** minnows leave their school and swarm in
-orbit around the eel for ~5 s (at cruise speed — you can outrun the fan club, and
-they don't spook while following); jellies lean their pulses toward you for ~7 s, a
-gentle hopeless chase that mostly never catches up. Greeting hooks bigger outcomes
-later (companion, octopus color-shift).
+unlocked, critters that would respond get **pulsing corner brackets** — a
+bounding-box corner set in the eel-heart pink, framed from the critter's live
+geometry (chain vertex min/max + width margins) on the glow layer — whenever
+they're in range and off cooldown, so you can see who's listening. (Replaced
+the old CSS contour stroke, which traced whatever outline a critter happened
+to have and flattered none of them.)
+**A greeted critter befriends you briefly:** minnows and reef fish leave their
+routine and swarm in orbit around the eel (`FOLLOW.T` ≈ 9 s), **rubberbanding** to
+your pace — slightly faster than you when they've fallen behind, easing to slightly
+slower once they're close — so a cruising eel keeps its fan club and only a speed
+burst sheds it. They don't spook while following, and band-keeping suspends for every
+followed species, so friends will chase you to any depth. The rest respond in
+place, each in character: **jellies** suspend their shy-dim and beat their lanterns
+like a heart — th-thump (pause) th-thump — while leaning gently your way;
+**seahorses** spin a delighted clockwise pirouette (slow → fast → slow);
+**octopuses** vanish — their fill repaints to the sampled water color behind them
+(a true color match, no transparency) and fades back; **anglerfish** flare their
+lures.
 
 ## Parameterization
 
@@ -307,27 +344,24 @@ their modules; anything you'd tune to shape the game lives here.
   pulse, seagrass + first flora growth, kelp-tip glints.
 - **P3+ —** catalog expansion, rare events, companion, remaining powers, sound.
 
-### Next up (P3 kickoff, agreed 2026-07-04)
+### P3 kickoff (agreed 2026-07-04) — LANDED, see docs/09
 
-1. **More critter types** — extend the catalog (octopus, crab, seahorse, anglerfish…);
-   each rides the existing vicinity/dial machinery and the shared greet emitter.
-2. **Greeted critters follow closer** — raise the befriended-swarm follow speed so
-   the fan club actually keeps pace with a cruising eel ("Saying hello" above).
-3. **In-focus front parallax plane** — a new layer slightly in front of the player
-   (camera factor > 1, *sharp* — unlike the blurred near-foreground fronds), kelp
-   only to start. It occludes the eel and must respect the veil's single lighting
-   authority (docs/03).
-4. **WORLD MAGIC: fairies + subtle jelly hues** — little glowing "fairies" (glow
-   layer) that wander and shed an ephemeral particle trail; and the jellyfish hue
-   rework above (standard coloring with hue *pulses* growing in magnitude and
-   frequency with WORLD MAGIC, replacing the static expanding range). Pulse
-   discipline applies.
-5. **Seafloor in the background parallax planes** — visible land in the far layers,
-   populated with corals and other flora/fauna as LIFE grows, and lights and other
-   pretty things as WORLD MAGIC grows (pairs with the sunken-ruin catalog idea).
+All five items shipped, with the scope expanded mid-flight into the infinite
+procedural sea (docs/09 is the authoritative spec):
+
+1. **More critter types** — reef fish, seahorse, octopus + giant octopus,
+   anglerfish (crab deferred); each on the spawn tensor and the shared greet emitter.
+2. **Greeted critters follow closer** — rubberbanding follow ("Saying hello" above).
+3. **In-focus front parallax plane** — sharp SVG kelp at camera factor 1.22,
+   occludes the eel, under the veil (docs/03).
+4. **WORLD MAGIC: fairies + jelly hue pulses** — both landed (fairies at WORLD MAGIC
+   level 8; jelly pulse spec in "Phase-1 critters" above).
+5. **Seafloor in the background parallax planes** — seeded terrain silhouettes,
+   LIFE corals, WORLD MAGIC seafloor lights on the glow layer (docs/03, docs/09).
 
 ## Still open (deliberately)
 
-1. Relative display sizes for the 7 food sprites (a visual pass with Matt).
-2. EEL MAGIC powers beyond glow burst — decided later, the track stays open-ended.
-3. Later-phase critter sequencing and which catalog effects land in P2 vs P3.
+1. EEL MAGIC powers beyond glow burst — decided later, the track stays open-ended.
+2. Later-phase critter sequencing and which catalog effects land next (crab,
+   whale/manta crossing, sunken ruin, Very Rare far-apart WORLD MAGIC events the
+   infinite sea now makes possible).

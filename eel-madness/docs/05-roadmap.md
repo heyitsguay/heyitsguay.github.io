@@ -1,11 +1,11 @@
 # Roadmap
 
 > **Status:** the game has moved past this page's milestones — the progression game
-> (docs/07) is the live roadmap: P0–P2 and the level system (docs/08) implemented;
-> next is the P3 kickoff list at the end of docs/07 (more critters, closer greet
-> follows, an in-focus front kelp plane, fairies + subtle jelly hues, background
-> seafloor). This page keeps the original M0/M1 framing and the mobile checklist,
-> which still applies every phase.
+> (docs/07) is the live roadmap. P0–P2, the level system (docs/08), and the P3
+> kickoff are implemented: the infinite procedural sea + spawn tensor (docs/09),
+> five new species, greet-follow rubberbanding, the front kelp plane, fairies +
+> jelly hue pulses, and the background seafloor. This page keeps the original M0/M1
+> framing and the mobile checklist, which still applies every phase.
 
 ## M0 — Wiggling Eel Sandbox  (done)
 

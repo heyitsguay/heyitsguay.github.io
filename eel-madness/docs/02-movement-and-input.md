@@ -78,10 +78,12 @@ Why this shape:
 
 ## Boundaries
 
-Fixed-camera tank, soft walls: within a 70 px margin, an inward push vector is blended into
-the desired direction (stronger the deeper into the margin), so the eel *steers away* from
-walls rather than hitting them. A hard clamp 10 px from the edge backstops it; on clamp,
-the outward velocity component is killed so it slides along the wall instead of pinning.
+The sea is infinite along x (docs/09) — there are no side walls. The surface and the
+floor keep the original soft-wall treatment: within a 70 px margin, an inward push
+vector is blended into the desired direction (stronger the deeper into the margin), so
+the eel *steers away* rather than hitting them. A hard clamp 10 px inside the edge
+backstops it; on clamp, the outward velocity component is killed so it slides along
+the boundary instead of pinning.
 
 ## Tuning table
 
@@ -97,4 +99,4 @@ All of these are named constants at the top of `eel.js` (steering/speed group) o
 | turn ÷ (1 + `boostAmt`·boost01) | ÷1.5 → ÷2.5 | burst arcs widen with the speed gain (BOOST in tuning.js) |
 | `POINTER_ARRIVE` (input.js) | 150 px | how early it brakes for a held point |
 | `POINTER_DEADZONE` (input.js) | 14 px | jitter deadzone around a held point |
-| `WALL_MARGIN` / `WALL_PUSH` | 70 px / 1.2 | how soon / how hard it shies from edges |
+| `WALL_MARGIN` / `WALL_PUSH` | 70 px / 1.2 | how soon / how hard it shies from the surface/floor |

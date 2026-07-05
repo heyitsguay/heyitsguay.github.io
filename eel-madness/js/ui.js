@@ -9,12 +9,19 @@ import { clamp } from './math.js';
 
 const axisCss = axis => `rgb(${AXES[axis].color.map(c => Math.round(c * 255)).join(',')})`;
 
-export function initUI({ onReset, onGreet }) {
+export function initUI({ onReset, onGreet, onStart, onSkip, onQuit, skipTitle }) {
   const menu = document.getElementById('menu');
   const pauseBtn = document.getElementById('pause');
   const resumeBtn = document.getElementById('resume');
   const resetBtn = document.getElementById('reset');
   const greetBtn = document.getElementById('btn-greet');
+  const uiRoot = document.getElementById('ui');
+  const title = document.getElementById('title');
+  const titleSave = document.getElementById('title-save');
+  const tStart = document.getElementById('t-start');
+  const tSkip = document.getElementById('t-skip');
+  const tReset = document.getElementById('t-reset');
+  const tQuit = document.getElementById('t-quit');
 
   // Axis meters: level + progress through it, readable at a glance while paused.
   const meters = document.getElementById('meters');
@@ -85,6 +92,64 @@ export function initUI({ onReset, onGreet }) {
     luRoot.appendChild(luEl);
   };
 
+  // Title screen (docs/08): shown at boot over the attract-mode sea. Start
+  // hands off to main's onStart; Reset is two-step and stays on the title;
+  // the saved-sea header lists real per-axis levels (demo only fakes values).
+  // URL preview parameters skip the ceremony and load straight in (docs/08).
+  let titleShown = !skipTitle;
+  uiRoot.hidden = titleShown;
+  title.hidden = !titleShown;
+  const refreshTitle = () => {
+    const has = progress.hasSave();
+    tReset.hidden = !has;
+    titleSave.hidden = !has;
+    tReset.textContent = 'Reset';
+    tReset.dataset.armed = '';
+    if (has) {
+      titleSave.textContent = '';
+      const lead = document.createElement('span');
+      lead.textContent = 'a saved sea sleeps here';
+      titleSave.appendChild(lead);
+      const row = document.createElement('div');
+      for (const [axis, cfg] of Object.entries(AXES)) {
+        const s = document.createElement('span');
+        s.className = 'axis-lv';
+        s.style.color = axisCss(axis);
+        s.textContent = `${cfg.label} LV ${progress.level(axis)}`;
+        row.appendChild(s);
+      }
+      titleSave.appendChild(row);
+    }
+  };
+  refreshTitle();
+  const leaveTitle = () => {
+    titleShown = false;
+    title.hidden = true;
+    uiRoot.hidden = false;
+  };
+  tStart.addEventListener('click', () => {
+    leaveTitle();
+    onStart && onStart();
+  });
+  // Skip To The End (docs/08): a maxed-out sandbox — nothing it does is saved,
+  // so the pause menu's reset is hidden there (it would wipe the REAL save).
+  tSkip.addEventListener('click', () => {
+    leaveTitle();
+    resetBtn.hidden = true;
+    onSkip && onSkip();
+  });
+  tReset.addEventListener('click', () => {
+    tReset.blur();
+    if (tReset.dataset.armed) {
+      onReset();
+      refreshTitle();
+    } else {
+      tReset.dataset.armed = '1';
+      tReset.textContent = 'Really reset?';
+    }
+  });
+  tQuit.addEventListener('click', () => { onQuit && onQuit(); });
+
   let paused = false;
   const setPaused = p => {
     paused = p;
@@ -97,6 +162,10 @@ export function initUI({ onReset, onGreet }) {
   pauseBtn.addEventListener('click', () => { pauseBtn.blur(); setPaused(!paused); });
   resumeBtn.addEventListener('click', () => { resumeBtn.blur(); setPaused(false); });
   window.addEventListener('keydown', e => {
+    if (titleShown) {
+      if (e.code === 'Enter' || e.code === 'Space') tStart.click();
+      return;   // the title owns the keyboard — no pause toggles behind it
+    }
     if (e.code === 'Escape') setPaused(!paused);
   });
 
@@ -104,6 +173,8 @@ export function initUI({ onReset, onGreet }) {
   resetBtn.addEventListener('click', () => {
     resetBtn.blur();
     if (resetBtn.dataset.armed) {
+      luQueue.length = 0;   // a blank slate has no queued fanfare
+      if (luEl) { luEl.remove(); luEl = null; }
       onReset();
       refreshMeters();
       setPaused(false);

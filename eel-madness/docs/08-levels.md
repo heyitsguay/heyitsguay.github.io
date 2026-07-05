@@ -53,11 +53,12 @@ doubles each band**. In units: band costs 1/2/4/8, total 64 units across the
 
 - **`K` stays THE per-axis timescale knob** (as always): the unit cost is
   `3K/64`, so `T(30) = 3K` and level 30 lands at `1 − e⁻³ ≈ 0.95`. K is
-  calibrated to 4 sessions now: `K = (expected 4-session W) / 3`, i.e.
-  `(4/3) × per-session W` — light 6.6 · life 9.0 · worldMagic 1.8 ·
-  eelMagic 6.1 (per-session W from the food economy: ~100 scaled eats/session,
-  spawn share ∝ rarity). By construction, one expected session of W lands
-  exactly one band.
+  calibrated to 4 sessions: `K = (expected 4-session W) / 3` — light 9.9 ·
+  life 13.5 · worldMagic 2.7 · eelMagic 9.15 (all ×1.5 in the 2026-07 pacing
+  retune: everything leveled too quickly, so every level's requirement grew
+  50% — ~150 scaled eats per session-equivalent now). The ladder's *shape* is
+  K-independent, so no dial/note alignment moved. By construction, one
+  expected session of W lands exactly one band.
 - **`LEVELS.FIRST_CAP` guardrail:** eelMagic's `T(1)` is clamped to 0.25 — one
   chocolate's scaled grant — so the **first magic food is always level 1**,
   which is where greet unlocks (the axis teaching itself, docs/07). Found
@@ -101,27 +102,65 @@ threshold — while notes are authored by hand. The quantized ladder is the same
 for every axis (`V(L) = 1 − e^(−3·units(L)/64)`, K cancels), so dial
 thresholds map to universal levels:
 
+**One eelMagic quirk**: FIRST_CAP clamps its T(1) to an absolute W (one
+chocolate), so K retunes shift its V(1) alone — .027 since the ×1.5 pacing
+retune (T(L≥2) rides the universal ladder untouched). The greet threshold
+(.02) sits under that.
+
 | level | V(L) | unlocks there |
 |---|---|---|
-| 1 | .046 (eelMagic .040) | greet (.03) |
+| 1 | .046 (eelMagic .027) | greet (.02), kelp (.03) |
 | 2 | .089 | seagrass (.05), plankton (.08) |
 | 3 | .131 | jellyHue (.12) |
-| 4 | .171 | minnows (.14), sparkles (.15), makeup (.15) |
+| 4 | .171 | minnows arrive (.14), sparkles (.15), makeup (.15) |
 | 5 | .209 | minnowFeast (.20) |
-| 8 | .313 | speedBurst (.30 — nudged from .28, which sat 0.0003 under V(7)) |
-| 11 | .403 | pixelPulse (.40) |
-| 13 | .456 | jellyfish (.45) |
+| 8 | .313 | speedBurst (.30), reef fish arrive (.29), fairies (.30) |
+| 9 | .344 | reefPulse (.33) |
+| 11 | .403 | seahorses arrive (.39) |
+| 12 | .430 | salmon arrive (.42) |
+| 13 | .456 | jellyfish arrive (.45) |
+| 14 | .481 | bgLights (.47) |
+| 16 | .528 | octopus arrives (.51) |
+| 17 | .570 | barracuda arrives (.55), lanternKelp (.55) |
 | 18 | .608 | makeupHue (.60) |
+| 21 | .704 | anglerfish arrives (.69) |
+| 26 | .847 | the giant octopus arrives (.83) |
+| 27 | .873 | swordfish arrives (.86) |
 
-**check-progress pins this:** every dial's computed unlock level must have a
-`LEVEL_NOTES` entry, so retuning `K` or a threshold can't silently desync the
-announcement from the mechanic.
+**check-progress pins this:** every dial's — and every species arrival's
+(docs/09) — computed unlock level must have a `LEVEL_NOTES` entry, so retuning
+`K` or a threshold can't silently desync the announcement from the mechanic.
 
 ## Pause menu
 
 Meters are level readouts: `LIGHT · LV 12` plus a fill bar of progress through
 the current level, `(W − T(L)) / (T(L+1) − T(L))`. URL-pinned axes show the
 pinned level, a full bar, and the "(preview)" tag.
+
+## Title screen & attract mode
+
+Boot lands on the title (`#title`): "Eel Madness / eat the Eel's favorite
+meals" over the sea **playing itself at full dials** — `progress.demo` forces
+every axis *value* to 1 **except EEL MAGIC, which stays 0** (the eel's powers
+are the game's surprise; levels and W stay real) — the eel cruises steadily
+right at half throttle, food falls, and the auto-mouth eats. Attract bites are
+theater: no `progress.add`, no position saves. **Start** clears the demo world
+(blank-slate eviction), restores real dials, and returns the eel to where the
+save left it; **Skip To The End** enters `progress.sandbox` — a separate,
+fully-maxed instance where `add()` and position persistence are inert (the
+pause menu hides its reset there, since that one WOULD wipe the real save);
+**Reset** (shown only when a save exists, two-step) wipes the save from the
+title — the saved sea's per-axis levels are listed in the header; **Quit**
+returns to the site root. Enter/Space also starts. **URL preview parameters
+skip the title entirely** and load straight into the pinned state.
+
+**Reset is a blank slate**: axes and levels zero, popup queue dropped, the eel
+returned to the origin (position persistence cleared), the camera snapped home,
+and every live world object evicted — critters, food, hearts, glow particles,
+bubbles, pulses. The spawn tensor (docs/09) has no population targets, so
+without the explicit eviction the old sea's fauna would linger around a
+"reset" player indefinitely — that shipped as a bug once; the `clear()`
+methods exist because of it.
 
 ## Where things live
 

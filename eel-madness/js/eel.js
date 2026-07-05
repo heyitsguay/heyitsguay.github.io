@@ -16,7 +16,6 @@ const N = 44;                 // spine points
 const REF_LEN = 260;          // body length (px) the width profile is authored at
 const EEL_LEN = 375;          // actual body length, world px
 const MAX_BEND = 0.26;        // rad per segment — lower = stiffer body
-const START_X_FRAC = 0.5;     // spawn: fraction across the world
 const START_DEPTH = 486;      // spawn: world px below the surface (food falls from up there)
 
 // Traveling wave (render-time undulation)
@@ -42,7 +41,8 @@ const TURN_RATE_SLOPE = 2.2;  // extra rad/s at full speed (turns tighter with f
 const TAU_EFFORT_UP = 0.30;   // s — swim startup gather
 const TAU_EFFORT_DOWN = 0.55; // s — throttle release
 const TAU_SPEED_UP = 0.50;    // s — acceleration ramp
-const TAU_SPEED_DOWN = 0.90;  // s — glide / momentum carry
+const TAU_SPEED_DOWN = 0.45;  // s — glide / momentum carry (halved 2026-07:
+                              // stopping took too long)
 const TAU_SPEED_SM = 0.4;     // s — smoothed speed signal driving wave/hair feel
 const WALL_MARGIN = 70;       // px — soft-steer away from edges inside this band
 const WALL_PUSH = 1.2;        // strength of the inward steer blended in at a wall
@@ -266,33 +266,36 @@ export class Eel {
     Object.assign(this.magic, m);
   }
 
-  resize(worldW, worldH) {
+  resize(worldH) {
     // Fixed size in world units (the world itself is window-independent).
     this.len = EEL_LEN;
     this.seg = this.len / (N - 1);
     this.ws = this.len / REF_LEN;
     for (let i = 0; i < N; i++) this.wArr[i] = halfWidth(i / (N - 1)) * this.ws;
-    if (!this.placed) {
-      // start near the surface, mid-world — where the light and the food are
-      this.x = worldW * START_X_FRAC;
-      this.y = START_DEPTH;
-      for (let i = 0; i < N; i++) {
-        this.px[i] = this.x - i * this.seg;
-        this.py[i] = this.y;
-      }
-      this.placed = true;
-    }
+    if (!this.placed) this.place(0, START_DEPTH);   // origin, near the surface
+    void worldH;
   }
 
-  update(dt, intent, W, H) {
+  // Teleport (persisted spawn, progress reset): straighten the chain in place.
+  place(x, y) {
+    this.x = x;
+    this.y = y;
+    for (let i = 0; i < N; i++) {
+      this.px[i] = this.x - i * this.seg;
+      this.py[i] = this.y;
+    }
+    this.placed = true;
+  }
+
+  update(dt, intent, worldH) {
     this.dt = dt;   // wig physics runs in render(), after the spine exists
     this.time += dt;
-    // Soft wall avoidance: an inward push blended into the desired direction.
-    let pushX = 0, pushY = 0;
-    if (this.x < WALL_MARGIN) pushX += (WALL_MARGIN - this.x) / WALL_MARGIN;
-    if (this.x > W - WALL_MARGIN) pushX -= (this.x - (W - WALL_MARGIN)) / WALL_MARGIN;
+    // Soft wall avoidance at the surface and floor — the sea is infinite in x
+    // (docs/09), so there are no side walls.
+    let pushY = 0;
+    const pushX = 0;
     if (this.y < WALL_MARGIN) pushY += (WALL_MARGIN - this.y) / WALL_MARGIN;
-    if (this.y > H - WALL_MARGIN) pushY -= (this.y - (H - WALL_MARGIN)) / WALL_MARGIN;
+    if (this.y > worldH - WALL_MARGIN) pushY -= (this.y - (worldH - WALL_MARGIN)) / WALL_MARGIN;
 
     let steerX = 0, steerY = 0, steering = false;
     if (intent.active) {
@@ -358,8 +361,7 @@ export class Eel {
     this.prevSin = s;
     this.x += hx * this.speed * dt - hy * dLat;
     this.y += hy * this.speed * dt + hx * dLat;
-    this.x = clamp(this.x, EDGE_CLAMP, W - EDGE_CLAMP);
-    this.y = clamp(this.y, EDGE_CLAMP, H - EDGE_CLAMP);
+    this.y = clamp(this.y, EDGE_CLAMP, worldH - EDGE_CLAMP);
 
     // Chain: each point trails the previous at fixed length, bend-limited.
     this.px[0] = this.x; this.py[0] = this.y;

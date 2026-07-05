@@ -6,26 +6,48 @@ modern phone.
 
 ## Layers (~a dozen small draw calls)
 
-### 0. Parallax planes — both behind the main forest (tuning.LAYERS)
+### 0. Parallax planes — behind the main forest (tuning.LAYERS) + one in front
 
 Two depth planes between the background and the main kelp, panning slower than the
-camera (per-pass `u_pf`): a **near-behind plane** (factor ≈ 0.72, lightly blurred)
-with its own kelp strands, and a **far plane** (factor ≈ 0.40, heavily blurred)
-holding the rock spires + a denser kelp wall. Plane **blur is faked** — no
-framebuffers — by drawing each plane 2–3 times with small jitter offsets at reduced
-alpha (`BLUR`/`TAPS`/`ALPHA` per plane); at silhouette contrast it reads as soft
-focus. Palettes are fogged toward the water color per plane, more for the far one.
+camera (per-pass parallax factor): a **near-behind plane** (factor ≈ 0.72, lightly
+blurred) with its own kelp strands, and a **far plane** (factor ≈ 0.40, heavily
+blurred) holding a denser kelp wall — both rooted on their **seafloor terrain**: a
+seeded rolling silhouette heightfield per plane (docs/09), smooth swells only (the
+rock spires were cut — they read as bad triangles), mostly hugging the floor with
+occasional rises to about half the view height, anchored so the plane floor meets
+the window bottom when the camera rests on the world floor
+(`planeFloorY = viewH + (worldH − viewH)·pf` — geometry anchored at the raw world
+floor with `pf < 1` would sit forever below the window). **Corals** — short,
+wide strand-tufts in warmer silhouette tones — grow on the terrain as LIFE climbs,
+and tiny **seafloor lights** kindle with WORLD MAGIC (`bgLights` dial) — those are
+emissive, so they live in a counter-transformed `#bg-glows` group on the glow layer,
+not in GL. Plane **blur is faked** — no framebuffers — by drawing each plane 2–3
+times with small jitter offsets at reduced alpha (`BLUR`/`TAPS`/`ALPHA` per plane);
+at silhouette contrast it reads as soft focus. Palettes are fogged toward the water
+color per plane, more for the far one.
 
-Each plane is **inhabited**: a school of dim silhouette minnow-dots orbiting a
-wandering anchor (the point shader with the plane's `u_pf`) and one or two soft
-pulsing jelly blobs (the pulse shader, additive) — all wrapping around the
-plane-space camera window like motes, with counts scaling on the LIFE axis.
+The **front plane** (`LAYERS.FRONT`, factor ≈ 1.22) is SVG, not GL: a *sharp* kelp
+plane in `<g id="fg">` after the eel (js/fgplane.js) — it occludes the eel and sits
+under the veil, so the single lighting authority holds by construction. Pooled path
+elements, chunk-seeded strands, sway = a small per-frame rotation about the root.
 
-**Kelp grows with LIFE** (tuning.KELP_GROWTH): +60% strand density and +35% height
-at full LIFE, on every plane; geometry rebuilds when LIFE has moved > 0.08.
-**Seagrass** (the LIFE `seagrass` dial): short bright tufts along the floor in the
-main plane, sparse at first, denser and taller with LIFE — same strand generator,
-drawn after the kelp with its own greens and the eel-push.
+Each behind-plane is **inhabited**: a school of dim silhouette minnow-dots orbiting a
+wandering anchor (the point shader) and one or two soft pulsing jelly blobs (the
+pulse shader, additive) — all wrapping around the plane-space camera window like
+motes, with counts scaling on the LIFE axis.
+
+**All strip geometry is chunked and seeded** (docs/09): strands/terrain generate per
+960-px chunk from deterministic streams (worldgen.js), and each layer's vertex buffer
+covers the chunks around the camera, rebuilding only when the chunk window shifts,
+LIFE moves > 0.08, or the window resizes. **Kelp grows with LIFE**
+(tuning.KELP_GROWTH): +60% strand density and +35% height at full LIFE, on every
+plane — a chunk always generates its full-LIFE strand set and shows the first
+`round(max·dial)`, so growth adds strands without reshuffling. **Kelp is gated on
+LIFE** (`DIALS.kelp`, unlocking at life level 1): the barren sea starts near-bare
+on every plane — main, wall, near-behind, and the SVG front plane all share the
+dial. **Seagrass** (the LIFE `seagrass` dial): short bright tufts along the floor
+in the main plane, sparse at first, denser and taller with LIFE — same strand
+generator, drawn after the kelp with its own greens and the eel-push.
 
 ### 1. Water background — fullscreen fragment shader
 
@@ -66,10 +88,11 @@ All motion happens in the vertex shader — no per-frame uploads:
   switches disc → ring).
 - **Marine snow** (~50): sparse pale specks sinking slowly through the view, wrapping
   around the camera rect — the barren sea's first texture, present from LIGHT = 0.
-- **Boost sparks** (pool of ~48): electric-blue jittering motes streamed off the eel's
-  body during a speed burst (docs/07); a third `kind` in the same point shader.
+- **Boost sparks live on the glow layer, not here** (sparkles.js): GL points sit
+  under the veil and were multiplied to black in deep water — the electric crackle
+  has to shine in the dark, so it's emissive by definition (docs/07).
 
-One buffer upload per frame (~210 points × 5 floats — trivial), one draw call.
+One buffer upload per frame (~260 points × 5 floats — trivial), one draw call.
 
 ### 4. Light pulses — a handful of additive quads
 
@@ -119,10 +142,10 @@ bothers.
 
 | Item | Cost |
 |---|---|
-| GL draw calls | ~12–16 small: bg + parallax blur taps (far ×3, near ×2) + plane fauna (≤4) + kelp + seagrass + points + pulses |
+| GL draw calls | ~14–20 small: bg + parallax blur taps (far ×3, near ×2, each incl. terrain+corals) + plane fauna (≤4) + kelp + seagrass + points + pulses |
 | Fragment load | bg shader is the ceiling: ~10 ALU ops/pixel, no textures; blur taps are silhouette-sized |
 | devicePixelRatio | capped at 2 (a 3× phone screen pays 2.25× fragments for invisible gain) |
-| SVG per frame | eel (~30 attrs) + in-view critters/food/hearts/sparkles — everything offscreen skips its DOM writes (vicinity principle, docs/07) |
+| SVG per frame | eel (~30 attrs) + in-view critters/food/hearts/sparkles + front-plane strands (~10 transforms) — everything offscreen skips its DOM writes (vicinity principle, docs/07) |
 | Per-frame JS | spine sim (44 pts), outline build (~90 pts → string), particles (~250), fauna sims |
 
 Degradation levers if a target device struggles, in order: drop dpr cap to 1.5 → halve motes

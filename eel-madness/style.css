@@ -85,17 +85,43 @@ body {
   stroke-linecap: round;
 }
 
-/* Greet-range highlight (docs/07): critters that would answer a greeting get
-   a soft pulsing contour glow. Toggled by class; CSS animates the pulse. */
-#critters .greetable {
+/* P3 species (docs/09) — fills that vary per critter (reef band gradient,
+   octopus camouflage, seahorse tint) are set as ATTRIBUTES per frame; only
+   fixed styling lives here (the CSS-beats-attributes gotcha — keep fill and
+   opacity out of these) */
+#critters .reef { stroke: rgba(255, 255, 255, 0.28); stroke-width: 0.6; }
+#critters .reef-eye { fill: #1a1216; }
+#critters .seahorse { stroke: rgba(255, 233, 200, 0.4); stroke-width: 0.5; }
+#critters .seahorse-stripes { stroke: rgba(255, 250, 235, 0.35); stroke-width: 1.1; fill: none; stroke-linecap: round; }
+#critters .seahorse-eye { fill: #14100e; }
+/* octopus: fills AND the tentacle edge stroke are per-frame attributes (the
+   camouflage repaints them all) — only widths live here. The dark edge keeps
+   overlapping tentacles readable. */
+#critters .octo-body { stroke: none; }
+#critters .octo-tent { stroke-width: 1.6; stroke-linejoin: round; }
+#critters .octo-pupil { fill: #100d14; }
+#critters .angler { fill: #11151c; stroke: rgba(160, 190, 210, 0.35); stroke-width: 0.8; }
+#critters .angler-teeth { stroke: #dfe9ee; stroke-width: 0.9; fill: none; stroke-linejoin: round; }
+#critters .angler-stalk { stroke: #2a3542; stroke-width: 1.2; fill: none; stroke-linecap: round; }
+#critters .angler-eye { fill: #cfd8dd; opacity: 0.75; }
+
+/* (surface drift-vines were cut — their styles went with them) */
+
+/* The front kelp plane (docs/09) — fill set per strand from js/fgplane.js */
+#fg path { stroke: none; }
+
+/* Roaming fish (salmon / barracuda / swordfish) — fills shimmer per frame */
+#critters .roamer { stroke: rgba(255, 255, 255, 0.22); stroke-width: 0.6; }
+#critters .roamer-eye { fill: #14100e; }
+
+/* Greet-range highlight (docs/07): pulsing bounding-box corner BRACKETS in
+   the eel-heart pink frame anyone who would answer — glow layer, d/opacity
+   written per frame (keep opacity/stroke-width overrides out of here). */
+#glows .greet-bracket {
   stroke: #ff9db8;   /* the eel-heart pink */
-  stroke-width: 2.6;
-  animation: greet-pulse 0.9s ease-in-out infinite;
-}
-#critters .jelly-bell.greetable { stroke-width: 3.4; }
-@keyframes greet-pulse {
-  0%, 100% { stroke-opacity: 0.45; }
-  50% { stroke-opacity: 1; }
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  fill: none;
 }
 
 /* Eat flash (docs/06): fullscreen tint above the veil, opacity driven per frame */
@@ -117,6 +143,77 @@ body {
   stroke-width: 0.5;
   stroke-linejoin: round;
 }
+
+/* Title screen (docs/08): a tasteful card over the attract-mode sea. The
+   attract world stays visible through a soft vignette; type leans serif and
+   airy, tinted by the sea's own palette. */
+#title {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center,
+    rgba(2, 10, 14, 0.18) 30%, rgba(2, 10, 14, 0.62) 100%);
+  font-family: Palatino, 'Palatino Linotype', Georgia, serif;
+  z-index: 5;
+}
+#title[hidden] { display: none; }
+#title-card { text-align: center; }
+#title-name {
+  font-size: clamp(44px, 9vw, 88px);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: #e8f4ee;
+  text-shadow: 0 0 26px rgba(120, 220, 200, 0.45),
+               0 0 60px rgba(255, 157, 184, 0.30),
+               0 2px 6px rgba(2, 10, 14, 0.85);
+}
+#title-tag {
+  margin-top: 10px;
+  font-style: italic;
+  font-size: clamp(16px, 2.6vw, 24px);
+  line-height: 1.45;
+  letter-spacing: 0.06em;
+  color: rgba(226, 240, 234, 0.85);
+  text-shadow: 0 1px 4px rgba(2, 10, 14, 0.8);
+}
+#title-buttons {
+  margin-top: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+#title-buttons button {
+  font: 17px Palatino, 'Palatino Linotype', Georgia, serif;
+  letter-spacing: 0.12em;
+  color: rgba(226, 240, 234, 0.9);
+  background: rgba(8, 24, 30, 0.55);
+  border: 1px solid rgba(210, 235, 225, 0.3);
+  border-radius: 22px;
+  padding: 10px 44px;
+  min-width: 190px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#title-buttons button:hover { background: rgba(16, 44, 52, 0.7); }
+#title-buttons button[hidden] { display: none; }
+/* saved-sea header: the four axis levels, up top and out of the way */
+#title-save {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 13px/1.7 Palatino, 'Palatino Linotype', Georgia, serif;
+  letter-spacing: 0.14em;
+  color: rgba(226, 240, 234, 0.8);
+  text-shadow: 0 1px 4px rgba(2, 10, 14, 0.8);
+}
+#title-save .axis-lv { margin: 0 10px; white-space: nowrap; }
+#title-save[hidden] { display: none; }
 
 #hint {
   position: fixed;

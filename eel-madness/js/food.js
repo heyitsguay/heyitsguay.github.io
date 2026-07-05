@@ -8,12 +8,13 @@
 // chases the mouth while shrinking. The economy lives in tuning.js (FOODS).
 
 import { TAU, clamp, expApproach } from './math.js';
-import { FOODS, FALL_MAP, SWAY_MAP, DIALS } from './tuning.js';
-import { progress } from './progress.js';
+import { FOODS, FALL_MAP, SWAY_MAP } from './tuning.js';
 
 // Interaction knobs (economy/motion scales are tuning.js's job)
 const SPAWN_BASE = 0.03;      // Poisson rate per rarity unit, per second
-const SPAWN_XPAD = 60;        // keep spawns off the side walls
+const SPAWN_XPAD = 300;       // spawn band extends this far past the view sides
+                              // (the sea is infinite in x — food falls where
+                              // you are, docs/09)
 const SPAWN_CLEAR = 220;      // px — skip spawns this close to the eel
 const ENTRY_SPEED = 0.5;      // initial vy as a fraction of terminal
 const TAU_FALL = 0.9;         // s — ease toward terminal fall speed
@@ -40,11 +41,7 @@ const EAT_CHASE = 0.05;       // s — how tightly the dying sprite tracks the m
 const EAT_FADE = 0.7;         // fraction of EAT_T where the fade-out starts
 const TRAIL_PER_100 = 2.0;    // trail bubbles/s per 100 px/s of fall speed
 const PLOP_COLOR = [0.45, 0.75, 0.80];   // surface-entry ring tint
-// Pixelation pulse (docs/06, docs/07 — WORLD MAGIC): precomputed levels,
-// swapped by an eased pulse. Pixel size sweeps 1 → PIX_MAX_PX and back.
-const PIX_LEVELS = 6;         // precomputed pixelation steps per sprite
-const PIX_MAX_PX = 8;         // pixel size at the deepest level
-const PIX_F = 0.45;           // rad/s — pulse rate (per-item phase offsets)
+// (the WORLD MAGIC pixelation pulse was cut — looked bad)
 
 const smooth = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 
@@ -74,39 +71,8 @@ export class Food {
         });
       }
       this.makeWhite(key, cfg.asset);
-      this.makePixels(key, cfg.asset);
     }
-    this.pixels = this.pixels || {};
     this.time = 0;
-    this.pixDial = 0;
-  }
-
-  // Precompute the pixelation-pulse levels (docs/06): nearest-neighbor
-  // down/up-scales at load — the pulse is pure href swaps, no filters.
-  makePixels(key, src) {
-    this.pixels = this.pixels || {};
-    try {
-      const img = new Image();
-      img.onload = () => {
-        const levels = [src];
-        for (let L = 1; L <= PIX_LEVELS; L++) {
-          const block = 1 + (PIX_MAX_PX - 1) * (L / PIX_LEVELS);
-          const small = document.createElement('canvas');
-          small.width = Math.max(2, Math.round(img.width / block));
-          small.height = Math.max(2, Math.round(img.height / block));
-          small.getContext('2d').drawImage(img, 0, 0, small.width, small.height);
-          const big = document.createElement('canvas');
-          big.width = img.width;
-          big.height = img.height;
-          const g = big.getContext('2d');
-          g.imageSmoothingEnabled = false;
-          g.drawImage(small, 0, 0, big.width, big.height);
-          levels.push(big.toDataURL());
-        }
-        this.pixels[key] = levels;
-      };
-      img.src = src;
-    } catch { /* headless */ }
   }
 
   // Precompute the suck-in's white-tinted sprite (docs/06) — an offscreen
@@ -129,10 +95,10 @@ export class Food {
     } catch { /* headless */ }
   }
 
-  spawnOne(key, cfg, eel, worldW) {
+  spawnOne(key, cfg, eel, cam, viewW) {
     const slot = this.items.find(it => !it.alive && it.key === key);
     if (!slot) return;
-    const x = SPAWN_XPAD + Math.random() * (worldW - 2 * SPAWN_XPAD);
+    const x = cam.x - SPAWN_XPAD + Math.random() * (viewW + 2 * SPAWN_XPAD);
     const y = -cfg.size[1] / 2 - 4;
     if (Math.hypot(x - eel.x, y - eel.y) < SPAWN_CLEAR) return;  // retried later
     slot.alive = true;
@@ -143,7 +109,6 @@ export class Food {
     slot.rot = 0; slot.vrot = 0;
     slot.entered = false;   // surface plop fires when it crosses y = 0
     slot.phase = Math.random() * TAU;
-    slot.pixLvl = 0;
     slot.el.setAttribute('href', cfg.asset);
     slot.el.setAttribute('opacity', '1');
     slot.el.setAttribute('display', 'inline');
@@ -152,6 +117,11 @@ export class Food {
   despawn(it) {
     it.alive = false;
     it.el.setAttribute('display', 'none');
+  }
+
+  // Blank-slate reset (docs/08): everything falling vanishes.
+  clear() {
+    for (const it of this.items) if (it.alive) this.despawn(it);
   }
 
   // Live falling items, for the minnow feast (docs/07) — read-only positions.
@@ -181,10 +151,9 @@ export class Food {
 
   // Runs after eel.update. Returns eat events ({x, y, key}) for the flourish.
   // fx (the water instance) receives trail bubbles and surface plops; optional.
-  update(dt, eel, worldW, worldH, fx) {
+  update(dt, eel, cam, viewW, worldH, fx) {
     const eaten = [];
     const t = (this.time += dt);
-    this.pixDial = progress.dial(DIALS.pixelPulse);
     const mouthOpen = eel.mouth > EAT_MOUTH_MIN;
     const mx = eel.x + eel.hx * MOUTH_FWD, my = eel.y + eel.hy * MOUTH_FWD;
 
@@ -193,7 +162,7 @@ export class Food {
       let pop = 0;
       for (const it of this.items) if (it.alive && it.key === key) pop++;
       const rate = SPAWN_BASE * cfg.rarity * Math.max(0, 1 - pop / cfg.rarity);
-      if (rate > 0 && Math.random() < rate * dt) this.spawnOne(key, cfg, eel, worldW);
+      if (rate > 0 && Math.random() < rate * dt) this.spawnOne(key, cfg, eel, cam, viewW);
     }
 
     for (const it of this.items) {
@@ -229,8 +198,6 @@ export class Food {
         }
       }
 
-      if (it.x < it.r) { it.x = it.r; it.vx = 0; }
-      else if (it.x > worldW - it.r) { it.x = worldW - it.r; it.vx = 0; }
       if (it.y > worldH + it.r + EXIT_PAD) { this.despawn(it); continue; }
 
       // Eat check: headfirst (in front of the head) into an open mouth.
@@ -281,14 +248,6 @@ export class Food {
         const u = it.eating / EAT_T;
         scale = 1 - smooth(u) * (1 - EAT_SHRINK);
         opacity = u > EAT_FADE ? 1 - (u - EAT_FADE) / (1 - EAT_FADE) : 1;
-      } else if (this.pixDial > 0 && this.pixels[it.key]) {
-        // the pixelation pulse: eased sweeps into blockiness and back
-        const w = Math.max(0, Math.sin(this.time * PIX_F + it.phase * 1.7));
-        const lvl = Math.round(smooth(w) * PIX_LEVELS * this.pixDial);
-        if (lvl !== it.pixLvl) {
-          it.pixLvl = lvl;
-          it.el.setAttribute('href', lvl === 0 ? it.cfg.asset : this.pixels[it.key][lvl]);
-        }
       }
       const deg = it.rot * 180 / Math.PI;
       it.el.setAttribute('transform',

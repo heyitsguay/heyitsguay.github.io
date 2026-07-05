@@ -23,7 +23,10 @@ system are implemented.
    failures are auto-retried and flagged FLAKY rather than FAIL — a recurring FLAKY is a
    real intermittent bug). Extend the suites when you add mechanics; when one hard-fails,
    check whether the test hardcodes constants Matt has since retuned before suspecting
-   the code.
+   the code. **Prefer `tests/run.sh` over ad-hoc checks** — don't hand-roll `node --check`
+   loops or one-off sim snippets for things the suite already covers (syntax across all
+   of `js/`, spawn/population behavior, progression math, no-pops discipline, boost,
+   food); add a `check-<name>.mjs` if a case is missing, then run the suite.
 5. **ASK QUESTIONS, DO NOT MAKE ASSUMPTIONS.** You are instruction-tuned to be confident
    in your ability to make assumptions and guess user intent, but you are NOT capable of
    it. When observed behavior, a diagnosis, or Matt's intent is uncertain or has more than
@@ -44,13 +47,16 @@ system are implemented.
 | `docs/06-food.md` | falling food: Poisson spawner, drift, the auto-mouth probe, eat effects |
 | `docs/07-progression.md` | the game: dark→vibrant progression axes, tuning.js plan, critter/FX catalog, phases |
 | `docs/08-levels.md` | discrete level system: 30 levels/axis, chained level-up popups, quantization layer |
+| `docs/09-infinite-sea.md` | the infinite procedural sea: seeded chunks/worldgen, the spawn tensor (bands × hotspots × damping), P3 species, GL precision scheme |
 
 ## Facts you'll want at zero context
 
 - **No build step.** ES modules, open `index.html` or `python3 -m http.server`. Deploy = push
   (this is a github.io subdirectory site).
-- **World is fixed 3840×3240** (2×3 screens of a 1920×1080 reference); the window is a
-  viewport. Everything is authored in world units; the SVG `viewBox` is the camera.
+- **World is 3240 deep and infinite along x** (seeded procedural chunks, docs/09; was
+  a fixed 3840×3240 box). The window is a viewport. Everything is authored in world
+  units; the SVG `viewBox` is the camera. GL only ever sees camera-relative
+  coordinates (float precision — docs/09).
 - **The eel is one SVG path** regenerated every frame from a simulated spine chain, plus
   composed decorations (eye/lashes/wig locks/mouth interior). The environment is one WebGL
   canvas behind it (3 draw calls). This hybrid is a locked decision.
@@ -60,9 +66,11 @@ system are implemented.
   - `js/food.js` top: food types table (sizes, spawn bands, populations, drift), eat/bounce
   - `js/tuning.js`: THE game-shaping surface — axes (K, colors), level bands + level-up
     notes/popup timing, food economy CSV, progression dials, light palettes, veil shape,
-    boost/greet/eat-feedback numbers
-  - `js/critters.js` top: minnow/jelly feel, flocking, follow, greet signatures;
-    `js/sparkles.js` + `js/hearts.js` tops: particle and heart feel
+    boost/greet/eat-feedback numbers, SEA (seed/chunks/cells) + SPECIES spawn records
+    (bands, hotspots, damping) + FOLLOW rubberband
+  - `js/critters.js` top: per-species feel (minnow/jelly/reef/seahorse/octopus/angler/
+    drift-vines), flocking, follow, greet signatures;
+    `js/sparkles.js` + `js/hearts.js` tops: particle, fairy, and heart feel
   - `style.css`: eel body/fin colors, **hair color** (`#eel-wig path`), eye colors
   - `js/main.js` top: world size, camera feel
 - Matt tunes constants directly between requests — expect the file to have changed since you

@@ -14,12 +14,16 @@ eel-madness/
     eel.js          spine sim, outline build, SVG rendering, decorations (see 01, 02)
     food.js         falling food: spawn, drift, auto-mouth probe, eat/bounce (see 06)
     water.js        WebGL: background, kelp, particles (see 03)
+    worldgen.js     the seeded infinite sea (see 09): hashes, chunk RNG, kelp strand
+                    streams, terrain heights, spawn hotspot field
+    fgplane.js      the sharp front kelp plane (SVG, camera factor > 1 — see 03, 09)
     tuning.js       THE experiment surface: axes, levels + level-up notes, food economy,
-                    light palettes, dials (see 07, 08)
+                    light palettes, dials, species spawn records (see 07, 08, 09)
     progress.js     axis accumulators, level quantization + bloom (see 08), localStorage
                     persistence, URL overrides, dial eval
     veil.js         the darkness veil overlay (see 03)
-    critters.js     fauna: minnow schools + jellyfish, greet responses (see 07)
+    critters.js     fauna: minnows, jellies, reef fish, seahorses, octopuses (+ giant),
+                    anglerfish — spawn tensor, greet responses (see 07, 09)
     hearts.js       pooled heart-emitter (greets; pattern/color/size per species)
     sparkles.js     glow-layer particles: WORLD MAGIC drift-sparkles + deep plankton
                     + level-up confetti bursts
@@ -37,14 +41,17 @@ github.io.
 <body>                      position:fixed, inset:0 on the fullscreen layers
   <canvas id="water">       WebGL — environment, behind
   <svg id="eel-layer">      world sprites — in front of the canvas, pointer-events:none
-    <g id="critters">       minnows, jellyfish — behind the food
+    <g id="critters">       all fauna — behind the food
     <g id="food">           food <image> pool, behind the eel
     <g id="eel">            the eel
-    <g id="fg">             near-foreground parallax fronds (pans faster than the camera)
+    <g id="fg">             the front kelp plane (fgplane.js): sharp, occludes the eel,
+                            counter-transformed to pan FASTER than the camera (docs/03)
     <g id="hearts">         greet hearts, topmost
   <div id="veil">           the illumination multiply layer (docs/03), camera-translated
   <svg id="glow-layer">     emissive sprites above the veil — viewBox synced per frame
-    <g id="glows">          jelly inner glows, ambient sparkles + deep plankton
+    <g id="bg-glows">       seafloor lights in the behind-planes, counter-transformed to
+                            their parallax factor (emissive can't live in GL, docs/03)
+    <g id="glows">          jelly inner glows, anglerfish lures, fairies, sparkles + plankton
     <g id="hearts">         greet hearts — they shine in the dark
   <div id="flash">          eat/greet screen flash — color set per event, opacity per frame
   <div id="hint">           "WASD / hold to swim", fades on first input (above the veil)
@@ -73,14 +80,18 @@ Chromium bug is ever fixed upstream, the rect and its bookkeeping can be deleted
 
 ## Coordinate system & camera
 
-**World units = CSS pixels of a 1920×1080 reference screen; the world is a fixed
-`3840 × 3240`** — window size only changes how much of it you see. The eel (fixed 375-unit
-body), kelp heights, and god-ray scale are all authored in reference units so the world looks
-identical on every device. Everything simulates in world coordinates; only rendering knows
-about the camera:
+**World units = CSS pixels of a 1920×1080 reference screen; the world is `3240` deep
+and infinite along x** (docs/09 — seeded procedural chunks; x may be any float64,
+negative included). Window size only changes how much of it you see. The eel (fixed
+375-unit body), kelp heights, and god-ray scale are all authored in reference units so
+the world looks identical on every device. Everything simulates in float64 world
+coordinates; only rendering knows about the camera — and the GL side only ever sees
+camera-relative numbers (per-buffer origin uniforms + a wrapped background camera,
+docs/09), so nothing jitters far from the origin:
 
 - Camera: top-left `(camX, camY)`, eased toward centering the eel (τ = 0.3 s) with a small
-  speed-scaled lookahead along the heading, clamped to world bounds, snapped on resize.
+  speed-scaled lookahead along the heading, clamped to world bounds in y only, snapped on
+  resize. The eel's position persists across sessions (`eel-madness:pos:v1`).
 - **Zoom:** on coarse-pointer (touch) devices the camera is zoomed out to `MOBILE.ZOOM`
   (0.5×): the view spans `W/zoom × H/zoom` world px. Implementation: the viewBox uses the
   view span; water gets `(viewW, viewH, dpr·zoom)` — its canvas backing store stays
@@ -106,8 +117,8 @@ requestAnimationFrame:
   dt = clamp(now - last, ≤ 50 ms)          # tab-switch protection
   intent = getIntent(eel.x, eel.y)         # input → intent
   intent.mouth = food.probe(eel)           # auto-mouth: food ahead opens the jaw
-  eel.update(dt, intent, W, H)             # physics: head, chain, phase, side factor
-  eaten = food.update(dt, eel, W, H, water) # spawn/fall; eat/bounce; trails + plops
+  eel.update(dt, intent, worldH)           # physics: head, chain, phase, side factor
+  eaten = food.update(dt, eel, cam, viewW, worldH, water) # spawn/fall; eat/bounce; trails
   per eaten item: water.burst + water.pulse + screenFeedback (flash + camera shake)
     + progress.add(axis, amount)
   boost sparks stream off the body while eel.boost01 is up
@@ -115,11 +126,14 @@ requestAnimationFrame:
     critters.greet(eel, hearts) + a small rose screenFeedback
   critters.update(...); hearts.update(dt); sparkles.update(...)
   camera shake perturbs a render-only rcam; viewBox/veil/water.render use it
-  water.update(dt, eel)                    # particles react to eel; bubbles spawn
+  water.update(dt, eel, cam)               # particles react to eel; bubbles spawn
   water.setLight(lightParams(light))       # only when LIGHT changed meaningfully
   veil.update(camY, light)                 # compositor-only translate (+ rare rebuild)
-  eel.render(); critters.render(); food.render(); hearts.render()
-  water.render(t)   # bg + 2 blurred parallax planes (with fauna) + kelp + points (+ pulses)
+  persist eel position (throttled ~1.5 s)
+  eel.render(); critters.render(); food.render(); fg.render(rcam)
+  bgLights.render(rcam); hearts.render(); sparkles.render()
+  water.render(rcam)  # bg + 2 blurred parallax planes (terrain/corals/fauna) + kelp
+                      # + seagrass + points (+ pulses)
 ```
 
 Update fully precedes render; `water.update` reads the eel *after* its physics step so
@@ -132,8 +146,9 @@ input.js   initInput(onFirstInput)                    # once
            getIntent(screenX, screenY) → intent       # per frame; eel's SCREEN position
 
 eel.js     new Eel(svgRoot)
-           .resize(worldW, worldH)                    # body length fixed (375 world units)
-           .update(dt, intent, worldW, worldH)        # intent.boost drives the speed burst
+           .resize(worldH)                            # body length fixed (375 world units)
+           .place(x, y)                               # teleport (persisted spawn, reset)
+           .update(dt, intent, worldH)                # intent.boost drives the speed burst
            .setMagic({lashLen, shadowA, lipA, hueRange, boostAmt, boostDur})
            .render()                                  # incl. makeup; exposes boost01, stamina
            exposes: x, y, hx, hy, speed01, speedSm, effort, mouth   # read by main/water
@@ -141,11 +156,11 @@ eel.js     new Eel(svgRoot)
 
 food.js    new Food(svgRoot)
            .probe(eel) → bool                            # food on the nose probe?
-           .update(dt, eel, worldW, worldH) → [{x, y, key}]  # eat events
+           .update(dt, eel, cam, viewW, worldH, fx) → [{x, y, key}]  # eat events
            .render()
 
 water.js   new Water(canvas)
-           .resize(W, H, dpr, worldW, worldH)         # rebuilds kelp geometry
+           .resize(W, H, dpr, worldH)                 # rebuilds chunk windows
            .update(dt, eel, cam)
            .render(cam)
            .burst(x, y, count?)                       # bubble burst at a world point
@@ -155,11 +170,13 @@ water.js   new Water(canvas)
            .setLight(params)                          # from tuning.lightParams(light01)
 
 critters.js  new Critters(svgRoot, glowRoot)
-           .update(dt, eel, worldW, worldH, water, cam, viewW, viewH, foodPts)
-               # dial-driven in-vicinity populations (docs/07: vicinity principle);
+           .update(dt, eel, worldH, water, cam, viewW, viewH, foodPts)
+               # spawn-tensor populations (docs/09: bands × hotspots × damping,
+               # vicinity principle unchanged);
                # foodPts = food.positions() for the WORLD MAGIC minnow feast
-           .render()   # owns element visibility: reveal/hide only on in-pad writes,
-                       # so stale geometry from a previous life can never show
+           .render(hearts)   # owns element visibility: reveal/hide only on in-pad
+                             # writes, so stale geometry from a previous life can
+                             # never show; hearts pops the seahorse pair vignette
            .greet(eel, hearts)                        # in-range critters respond
 
 hearts.js  new Hearts(glowRoot)
@@ -167,15 +184,31 @@ hearts.js  new Hearts(glowRoot)
            .update(dt) / .render()
 
 sparkles.js  new Sparkles(glowRoot)
-           .update(dt, cam, viewW, viewH, eel, worldW, worldH)   # dial-driven spawns
-           .render()
+           .update(dt, cam, viewW, viewH, eel, worldH)   # dial-driven spawns; also
+           .render()                                     # fairies + their trails
            .burst(x, y, rgb, n)   # level-up confetti in the axis color (docs/08)
+           new BgLights(glowRoot)                     # seafloor lights (docs/03, 09)
+           .render(dt, rcam, viewW, viewH, worldH)    # counter-transform + twinkle
+           new Lanterns(glowRoot)                     # lantern kelp bulbs (docs/07)
+           .render(dt, rcam, viewW, viewH, worldH, eel, kelpLife)
+               # kelpLife = water.builtLife, so bulbs sit on strands that exist
+
+worldgen.js  pure seeded functions (docs/09): hash01(i, salt), chunkRng(chunk, salt),
+           kelpStrands(chunk, dens) / kelpAnchors(x0, x1, dens) (water + seahorses),
+           strandsInChunk(chunk, spec), terrain01(x, salt) → heightfield,
+           xWeight(x, sp) → hotspot f_x, bandW(bands, yFrac), dampC(sp, arrive01)
+
+fgplane.js new FrontPlane(svgRoot)
+           .resize(viewW, viewH, worldH)              # re-anchors the plane floor
+           .render(dt, rcam)                          # assign pooled strands + sway
 
 food.js    also exposes .positions() → [{x, y}]   # live items, for the minnow feast
 
-ui.js      initUI({ onReset, onGreet }) → { paused(), showGreet(v),
-           levelUp({axis, level}), tick(dt) }   # tick drives the popup queue
-                                                # (docs/08); pause freezes it
+ui.js      initUI({ onReset, onGreet, onStart, onQuit }) → { paused(),
+           showGreet(v), levelUp({axis, level}), tick(dt) }
+               # tick drives the popup queue (docs/08); pause freezes it.
+               # Also owns the title screen (#title, docs/08): boots visible
+               # over attract mode, hands off to onStart, gates Escape/keys.
 
 progress.js  progress (singleton) — docs/08 for the level layer
            .value(axis) → 0..1     # the level's quantized step, bloom-eased over

@@ -22,9 +22,10 @@ rate_i = SPAWN_BASE * rarity_i * max(0, 1 − pop_i / cap_i)     # per second
 ```
 
 Common foods (pinecone 8) are frequent and plentiful; chocolate (1) is a rare event.
-Spawn position: x uniform across the world (padded off the walls), y just above the
-surface, with a small entry speed. Attempts within `SPAWN_CLEAR` of the eel are
-skipped and retried by the process.
+Spawn position: x uniform across the camera window plus a pad (`SPAWN_XPAD` beyond
+each side — the world is infinite in x, docs/09, so food falls where you are), y just
+above the surface, with a small entry speed. Attempts within `SPAWN_CLEAR` of the eel
+are skipped and retried by the process.
 
 ## Falling
 

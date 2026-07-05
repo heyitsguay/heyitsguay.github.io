@@ -9,11 +9,121 @@ import { lerp } from './math.js';
 // K sets the axis timescale. Calibration (docs/07+08): spawn share ∝ rarity/27,
 // K ≈ (expected 4-session W) / 3 so level 30 (= 3K of W) hits ~0.95 at session 4.
 // color: the axis signature (eat pulse, level-ups, milestone sparks) — approved palette.
+// K values ×1.5 (2026-07: everything leveled too quickly — the requirement
+// for every level grew 50%; the ladder shape is K-independent, docs/08).
 export const AXES = {
-  light: { K: 6.6, color: [1.00, 0.83, 0.42], label: 'LIGHT' },       // warm gold
-  life: { K: 9.0, color: [0.48, 0.90, 0.50], label: 'LIFE' },         // spring green
-  worldMagic: { K: 1.8, color: [0.55, 0.50, 0.95], label: 'WORLD MAGIC' }, // violet-teal
-  eelMagic: { K: 6.1, color: [1.00, 0.55, 0.75], label: 'EEL MAGIC' },     // rose-pink
+  light: { K: 9.9, color: [1.00, 0.83, 0.42], label: 'LIGHT' },       // warm gold
+  life: { K: 13.5, color: [0.48, 0.90, 0.50], label: 'LIFE' },        // spring green
+  worldMagic: { K: 2.7, color: [0.55, 0.50, 0.95], label: 'WORLD MAGIC' }, // violet-teal
+  eelMagic: { K: 9.15, color: [1.00, 0.55, 0.75], label: 'EEL MAGIC' },    // rose-pink
+};
+
+// ---- The infinite sea (docs/09) --------------------------------------------
+// One seed, deterministic everywhere: flora chunks, terrain, spawn hotspots.
+export const SEA = {
+  SEED: 20260704,   // change for a different sea; same seed = same sea forever
+  CHUNK_W: 960,     // px — flora/terrain generation chunk width
+  CELL_W: 512,      // px — spawn-hotspot cell width (x factor of the tensor)
+  RETIRE: 0.012,    // per-second chance an OFFSCREEN critter quietly retires —
+                    // keeps population flux alive under an idle camera
+  CATCHUP: 18,      // fast-travel backfill (docs/09): seconds' worth of spawn
+                    // attempts owed per view-width of freshly swept water, so
+                    // outrunning the ambient rate doesn't mean empty ocean
+};
+
+// Depth-band rarity tiers (docs/09): bands say where a species prefers to be.
+export const TIERS = { common: 1, uncommon: 0.3, rare: 0.06, vrare: 0.012 };
+
+// The species spawn records (docs/09). Populations are NOT capped dials:
+// arrival gates on LIFE (`arrive`, a dial record), place comes from depth
+// bands × the x hotspot field, and size emerges from the damping factor —
+// each live member multiplies the next spawn's acceptance by c, and LIFE
+// walks c toward 1 on a log scale (damp: [c at arrival, c at LIFE = 1]).
+//   pool     — preallocated elements, the hard ceiling
+//   rate     — candidate spawn attempts/s at full arrival dial
+//   bands    — [[y0, y1, tier], ...] world-height fractions
+//   hotEvery — mean px between hotspot cells (0 = uniform); baseW = weight
+//              off-hotspot. For the rarest species the x field IS the rarity:
+//              near-certain at home, near-impossible elsewhere.
+//   kelp     — spawn beside seeded kelp strands instead of using bands
+export const SPECIES = {
+  minnow: {
+    pool: 110, salt: 11, rate: 6,
+    bands: [[0.00, 0.33, 'common'], [0.33, 0.60, 'uncommon']],
+    hotEvery: 0, baseW: 1, damp: [0.82, 0.99],
+    arrive: { axis: 'life', threshold: 0.14, curve: 'sqrt', rampWidth: 0.7, max: 1 },
+  },
+  reef: {   // colorful banded reef fish (docs/09); flocks loosely
+    pool: 16, salt: 12, rate: 1.8,
+    bands: [[0.05, 0.40, 'common'], [0.40, 0.70, 'uncommon']],
+    hotEvery: 3500, baseW: 0.3, damp: [0.60, 0.90],
+    arrive: { axis: 'life', threshold: 0.29, curve: 'smoothstep', rampWidth: 0.6, max: 1 },
+  },
+  seahorse: {
+    pool: 10, salt: 13, rate: 0.9, kelp: true,
+    bands: [], hotEvery: 0, baseW: 1, damp: [0.45, 0.85],
+    arrive: { axis: 'life', threshold: 0.39, curve: 'smoothstep', rampWidth: 0.55, max: 1 },
+  },
+  // (drifter — surface vine tangles — was built and CUT: read as another
+  // jellyfish. Surface flora is an open slot; salt 18 is retired with it.)
+  jelly: {
+    pool: 20, salt: 14, rate: 4,
+    bands: [[0.50, 0.80, 'rare'], [0.80, 1.00, 'uncommon']],
+    hotEvery: 6000, baseW: 0.25, damp: [0.50, 0.88],
+    arrive: { axis: 'life', threshold: 0.45, curve: 'smoothstep', rampWidth: 0.5, max: 1 },
+  },
+  // For the hotspot species below: attempts are cheap, so rarity lives in a
+  // HIGH rate × a TINY baseW — at the hotspot spawns land in seconds, away
+  // from it they almost never do. (A low rate instead would make even the
+  // hotspot slow: only ~340 px of a hot cell can sit offscreen-in-vicinity
+  // at once, so few candidates hit it — the rate compensates.)
+  octopus: {
+    pool: 7, salt: 15, rate: 2,
+    bands: [[0.20, 0.60, 'uncommon'], [0.60, 0.80, 'rare']],
+    hotEvery: 9000, baseW: 0.05, damp: [0.30, 0.70],
+    arrive: { axis: 'life', threshold: 0.51, curve: 'smoothstep', rampWidth: 0.45, max: 1 },
+  },
+  salmon: {   // the honest average fish — muted pinkish silver; FLOCKS
+    pool: 14, salt: 19, rate: 2.2,
+    bands: [[0.12, 0.55, 'common'], [0.55, 0.75, 'uncommon']],
+    hotEvery: 0, baseW: 1, damp: [0.50, 0.95],
+    arrive: { axis: 'life', threshold: 0.42, curve: 'smoothstep', rampWidth: 0.5, max: 1 },
+  },
+  barracuda: {   // long, skinny, bold — knifes through the mid-water
+    pool: 6, salt: 20, rate: 1.0,
+    bands: [[0.08, 0.50, 'uncommon']],
+    hotEvery: 3000, baseW: 0.25, damp: [0.25, 0.9],
+    arrive: { axis: 'life', threshold: 0.55, curve: 'smoothstep', rampWidth: 0.4, max: 1 },
+  },
+  swordfish: {   // the late-game patroller: big, billed, fast
+    pool: 3, salt: 21, rate: 1.2,
+    bands: [[0.05, 0.50, 'uncommon']],
+    hotEvery: 4000, baseW: 0.15, damp: [0.12, 0.75],
+    arrive: { axis: 'life', threshold: 0.86, curve: 'smoothstep', rampWidth: 0.14, max: 1 },
+  },
+  angler: {   // "too good to make this rare" — 3× common, 2× size
+    pool: 4, salt: 16, rate: 10.5,
+    bands: [[0.80, 1.00, 'uncommon']],   // overall rarity carried by the x field
+    hotEvery: 6000, baseW: 0.05, damp: [0.10, 0.70],
+    arrive: { axis: 'life', threshold: 0.69, curve: 'smoothstep', rampWidth: 0.3, max: 1 },
+  },
+  giantOcto: {   // THE octopus: essentially one, living at its seeded hotspot
+    pool: 2, salt: 17, rate: 16,
+    bands: [[0.80, 1.00, 'uncommon']],   // vrare-ness lives in hotEvery/baseW
+    hotEvery: 80000, baseW: 0.0002, damp: [0.02, 0.1],
+    arrive: { axis: 'life', threshold: 0.83, curve: 'smoothstep', rampWidth: 0.17, max: 1 },
+  },
+};
+
+// Befriended-follow rubberbanding (docs/07 "Saying hello"): followers run
+// slightly faster than the eel when far, easing to slightly slower up close.
+export const FOLLOW = {
+  T: 9,          // s of following after a greet
+  NEAR: 90,      // px — at/inside this, speed target is SLOW × eel speed
+  FAR: 260,      // px — at/beyond this, FAST × eel speed
+  SLOW: 0.90, FAST: 1.05,   // gentle rubberband — drifting escorts, not darts
+  MIN: 60,       // px/s floor so followers never stall around an idle eel
+  TURN: 1.4,     // × the species turn rate while following (attentive, not snappy)
 };
 
 // ---- Levels (docs/08) -------------------------------------------------------
@@ -48,21 +158,33 @@ export const LEVEL_NOTES = {
     30: 'The sea shines',
   },
   life: {
-    2: 'Seagrass takes root',
+    1: 'Kelp takes root',
+    2: 'Seagrass sprouts below',
     4: 'Minnows arrive',
     7: 'The minnows school up',
+    8: 'A flash of color — reef fish',
     10: 'The kelp grows denser',
+    11: 'Seahorses curl into the kelp',
+    12: 'Salmon run the midwater',
     13: 'Jellyfish drift in',
+    16: 'An octopus takes up residence',
+    17: 'A barracuda knifes past',
     18: 'The schools multiply',
+    21: 'A pale light prowls the abyss',
     24: 'A crowded sea',
+    26: 'Something vast stirs below',
+    27: 'A swordfish patrols the blue',
     30: 'The sea teems with life',
   },
   worldMagic: {
     2: 'Plankton glow in the deep',
-    3: 'Jelly lanterns tint strange colors',
+    3: 'Jelly lanterns pulse strange colors',
     4: 'Sparkles drift on the current',
     5: 'Minnows mob falling food',
-    11: 'Food pulses with enchantment',
+    8: 'Fairies dance on the current',
+    9: 'Reef fish shimmer with enchantment',
+    14: 'Distant lights kindle on the seafloor',
+    17: 'Lanterns bloom in the kelp',
     20: 'The magic thickens',
     30: 'An enchanted sea',
   },
@@ -112,28 +234,39 @@ export const AMOUNT_SCALE = 0.25;
 export const DIALS = {
   // EEL MAGIC power track (docs/07+08): greet unlocks at level 1 — the first
   // magic food (LEVELS.FIRST_CAP guarantees one chocolate reaches level 1,
-  // whose value is 0.040; the threshold sits inside it).
-  greet: { axis: 'eelMagic', threshold: 0.03, curve: 'linear', rampWidth: 0.01, max: 1 },
-  // speed burst = level 8 (0.30 sits between V(7)=0.280 and V(8)=0.313)
+  // whose value is 0.027 since the K retune; the threshold sits inside it).
+  greet: { axis: 'eelMagic', threshold: 0.02, curve: 'linear', rampWidth: 0.01, max: 1 },
+  // speed burst = level 8 (0.30 sits between V(7)=0.280 and V(8)=0.313 —
+  // only eelMagic's V(1) shifts under K retunes; T(L≥2) rides the universal
+  // ladder, FIRST_CAP clamps T(1) alone)
   speedBurst: { axis: 'eelMagic', threshold: 0.30, curve: 'smoothstep', rampWidth: 0.6, max: 1 },
   // (a baseline eel glow was built here and cut — looked bad; next EEL MAGIC
   // power after speed burst is TBD, docs/07)
   // EEL MAGIC cosmetics (docs/07): makeup fades in, then its hues start drifting
   makeup: { axis: 'eelMagic', threshold: 0.15, curve: 'smoothstep', rampWidth: 0.45, max: 1 },
   makeupHue: { axis: 'eelMagic', threshold: 0.60, curve: 'linear', rampWidth: 0.35, max: 1 },
-  // WORLD MAGIC: jelly light hues drawn from an expanding range around cyan
+  // WORLD MAGIC: jelly hue PULSES away from cyan — magnitude and frequency
+  // both grow with this dial (docs/09; replaced the static expanded range)
   jellyHue: { axis: 'worldMagic', threshold: 0.12, curve: 'sqrt', rampWidth: 0.8, max: 1 },
   // WORLD MAGIC: minnows swarm toward nearby falling food (no interaction)
   minnowFeast: { axis: 'worldMagic', threshold: 0.20, curve: 'smoothstep', rampWidth: 0.6, max: 1 },
   // WORLD MAGIC: ambient multicolor drift-sparkles (glow layer)
   sparkles: { axis: 'worldMagic', threshold: 0.15, curve: 'sqrt', rampWidth: 0.7, max: 1 },
-  // Population dials: max IS the target head-count at full ramp.
-  minnows: { axis: 'life', threshold: 0.14, curve: 'sqrt', rampWidth: 0.7, max: 60 },
-  jellyfish: { axis: 'life', threshold: 0.45, curve: 'smoothstep', rampWidth: 0.5, max: 20 },
-  // P2+ placeholders (spawn dials read these when their systems land)
+  // WORLD MAGIC: wandering glow-fairies shedding sparkle trails (docs/09)
+  fairies: { axis: 'worldMagic', threshold: 0.30, curve: 'sqrt', rampWidth: 0.7, max: 1 },
+  // WORLD MAGIC: reef-fish shimmer pulses (docs/09)
+  reefPulse: { axis: 'worldMagic', threshold: 0.33, curve: 'smoothstep', rampWidth: 0.6, max: 1 },
+  // WORLD MAGIC: seafloor lights in the background planes (glow layer, docs/03)
+  bgLights: { axis: 'worldMagic', threshold: 0.47, curve: 'sqrt', rampWidth: 0.5, max: 1 },
+  // WORLD MAGIC: lantern kelp — bulbs kindling in sequence up seeded strands
+  lanternKelp: { axis: 'worldMagic', threshold: 0.55, curve: 'smoothstep', rampWidth: 0.45, max: 1 },
+  // LIFE: kelp density — the barren sea starts near-bare (docs/09); this dial
+  // gates every kelp plane (main, wall, near-behind, front) plus seahorse homes
+  kelp: { axis: 'life', threshold: 0.03, curve: 'sqrt', rampWidth: 0.9, max: 1 },
+  // (fauna populations moved to SPECIES above — spawn tensor, docs/09)
   seagrass: { axis: 'life', threshold: 0.05, curve: 'quadratic', rampWidth: 0.8, max: 1 },
   plankton: { axis: 'worldMagic', threshold: 0.08, curve: 'sqrt', rampWidth: 0.6, max: 1 },
-  pixelPulse: { axis: 'worldMagic', threshold: 0.40, curve: 'smoothstep', rampWidth: 0.4, max: 1 },
+  // (pixelPulse was cut — the food pixelation effect looked bad)
 };
 
 // ---- Eat feedback (docs/06): screen flash + shake, scaled by food amount ----
@@ -150,7 +283,7 @@ export const EAT_FX = {
 
 // ---- Greeting (docs/07) ------------------------------------------------------
 export const GREET = {
-  RANGE: 260,   // px — critters this close to the eel's head respond
+  RANGE: 128,   // px — critters this close to the eel's head respond
   CD: 1.6,      // s — eel greet cooldown
   // a tiny rose flash + shake on a successful greet (~1/3 of the eat feedback)
   FLASH_A: 0.045,
@@ -179,17 +312,31 @@ export const FLOCK = {
   RETARGET: 0.25,    // per-second chance a minnow re-picks its nearest leader
 };
 
-// ---- Parallax planes (docs/03): both BEHIND the main scene ------------------
-// Blur is faked with jittered semi-transparent re-draws (no framebuffers).
+// ---- Parallax planes (docs/03): two BEHIND the main scene (GL, fake-blurred)
+// plus one sharp SVG plane IN FRONT of the eel (fgplane.js, docs/09).
 export const LAYERS = {
   NEAR: { PF: 0.72, BLUR: 1.6, TAPS: 2, ALPHA: 0.8 },   // just behind the forest
   FAR: { PF: 0.40, BLUR: 4.5, TAPS: 3, ALPHA: 0.65 },   // deep background
+  FRONT: { PF: 1.22 },                                  // occludes the eel, sharp
 };
 
 // Kelp growth with the LIFE axis: at LIFE = 1 the forest is denser and taller.
 export const KELP_GROWTH = {
   DENSITY: 0.6,   // +60% strand count at full LIFE (all planes)
   HEIGHT: 0.35,   // +35% strand height at full LIFE
+};
+
+// ---- Background seafloor terrain (docs/03, docs/09) -------------------------
+// Per behind-plane silhouette terrain: undulation amplitude and base lift
+// above the plane floor. Lives here because it's shared between water.js
+// (GL geometry) and the glow-layer seafloor lights (sparkles.BgLights).
+export const TERRAIN = {
+  // Rolling floor only — no spires (they read badly and were cut). Heights
+  // are FRACTIONS OF THE VIEW HEIGHT; worldgen.terrainShape keeps the roll
+  // mostly low with occasional tall swells (floor→75% usually, 50% rarely).
+  AMP: [0.34, 0.5],   // max rise [0 = near-behind plane, 1 = far plane]
+  BASE: [8, 12],      // px minimum rise above the plane floor
+  SALT: [23, 24],     // worldgen noise salts per plane
 };
 
 // ---- Light endpoints (docs/03) ---------------------------------------------

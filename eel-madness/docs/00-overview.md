@@ -22,7 +22,9 @@ swimming through a living underwater scene, controlled by keyboard or touch.
    animated SVGs *around the camera*. Fauna is not tracked globally: critters that stay
    distant are culled and fresh ones spawn just offscreen, so what you see always matches
    the spawn rates the current progression level implies (see [07](07-progression.md)).
-   Density where you look, statistics everywhere else.
+   Density where you look, statistics everywhere else — and the statistics are
+   *deterministic in space* (seeded spawn fields, [09](09-infinite-sea.md)), so rare
+   creatures live at findable places in an infinite sea.
 
 ## Locked decisions
 
@@ -32,7 +34,7 @@ swimming through a living underwater scene, controlled by keyboard or touch.
 | Vibe | Moody kelp forest | Green-teal mid-depth water, kelp silhouettes, dappled god rays. Atmospheric but readable. |
 | Eel look | Black and slender, cartoon head | Dark silhouette body with a near-black bluish fin-fringe stroke. Slender body, but the head is deliberately oversized with a deep-hinged jaw and huge gape — cute > accurate (a deliberate deviation from real eel proportions). |
 | Stack | Vanilla JS, ES modules, no build step | Static hosting on github.io; open `index.html` and it runs. |
-| Camera | Smoothed follow-cam in a 2×3-screen world | The world is two screens wide, three tall. Depth = light: the surface is bright aqua, the floor keeps the original deep palette. Kelp lines the whole floor. The SVG viewBox is the camera. |
+| Camera | Smoothed follow-cam in an infinite-x world | The sea is procedurally infinite along x (seeded, deterministic — [09](09-infinite-sea.md)), three reference screens deep. Depth = light: the surface is bright aqua, the floor keeps the original deep palette. Kelp lines the whole floor. The SVG viewBox is the camera. |
 | View convention | Side view | One eye, wig on top of the head, dorsal-fin fringe. The eel swims freely in 2D (a side-on water column), and decorations smoothly swap sides when it turns to face the other way — a "roll" rather than a mirror pop. See [01-eel-wiggle](01-eel-wiggle.md). |
 
 ## Documents
@@ -51,6 +53,8 @@ swimming through a living underwater scene, controlled by keyboard or touch.
   critters, effects catalog, phases.
 - [08-levels.md](08-levels.md) — the discrete level system: 30 levels per axis,
   chained level-up popups, quantization over the continuous axes.
+- [09-infinite-sea.md](09-infinite-sea.md) — the procedurally infinite world: seeded
+  chunks, the spawn tensor (depth bands × x hotspots × damping), P3 critters.
 
 ## Current scope
 

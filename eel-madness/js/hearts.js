@@ -72,6 +72,16 @@ export class Hearts {
     h.el.setAttribute('display', 'inline');
   }
 
+  // Blank-slate reset (docs/08): drop queued and airborne hearts.
+  clear() {
+    this.pending.length = 0;
+    for (const h of this.pool) {
+      if (h.age >= DUR) continue;
+      h.age = DUR;
+      h.el.setAttribute('display', 'none');
+    }
+  }
+
   update(dt) {
     for (let i = this.pending.length - 1; i >= 0; i--) {
       const p = this.pending[i];

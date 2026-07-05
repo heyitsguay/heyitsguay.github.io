@@ -74,6 +74,7 @@ class Progress {
 
   // Current level; a preview override reports the level its pin sits at.
   level(axis) {
+    if (this.sandbox) return LEVELS.COUNT;
     if (axis in this.override) {
       let L = LEVELS.COUNT;
       while (L > 0 && this.levelValue(axis, L) > this.override[axis] + 1e-9) L--;
@@ -83,12 +84,24 @@ class Progress {
   }
 
   // Axis value in 0..1: the bloom-eased step, or the URL preview verbatim.
+  // demo = the title screen's attract mode (docs/08): the sea reads fully
+  // alive — EXCEPT EEL MAGIC, which stays 0 (the powers are the game's
+  // surprise) — while levels/W stay real (the title header shows them).
+  // sandbox = "Skip To The End" (docs/08): everything maxed, nothing saved.
   value(axis) {
+    if (this.sandbox) return 1;
+    if (this.demo) return axis === 'eelMagic' ? 0 : 1;
     if (axis in this.override) return this.override[axis];
     return this.disp[axis];
   }
 
+  // Is there a saved sea? (drives the title screen's Reset button + header)
+  hasSave() {
+    return Object.values(this.W).some(w => w > 0);
+  }
+
   add(axis, amount) {
+    if (this.sandbox) return;   // the sandbox never touches the save
     if (!(axis in this.W)) return;
     this.W[axis] += amount;
     const to = this.levelFromW(axis);
