@@ -186,6 +186,14 @@ try {
 resize();
 bootPos.x = eel.x;   // Start returns here after the attract cruise
 bootPos.y = eel.y;
+if (titleMode) {
+  // the title camera must be able to CENTER the eel: a fresh spawn (486 px
+  // deep) is shallower than half a zoomed-out phone view, which pinned the
+  // camera at the surface and hung the eel high over the title line
+  eel.place(eel.x, clamp(eel.y, viewH / 2 + 40, WORLD_H - viewH / 2 - 40));
+  const [tx, ty] = cameraTarget();
+  cam.x = tx; cam.y = ty;
+}
 window.addEventListener('resize', resize);
 
 const hint = document.getElementById('hint');
@@ -207,10 +215,17 @@ function frame(now) {
 
   // Pointer input is screen-space; the eel's screen position keeps them
   // aligned. In title mode the eel drives itself: a gentle constant cruise
-  // rightward at half throttle while the menu floats over the attract sea.
-  const intent = titleMode
-    ? { active: true, dirX: 1, dirY: 0, throttle: 0.5, mouth: false, boost: false }
-    : getIntent((eel.x - cam.x) * ZOOM, (eel.y - cam.y) * ZOOM);
+  // rightward at half throttle, easing toward a depth the camera can center
+  // (rotation, resizes, and shallow Main-Menu returns all self-correct).
+  let intent;
+  if (titleMode) {
+    const wantY = clamp(eel.y, viewH / 2 + 40, WORLD_H - viewH / 2 - 40);
+    const dy = clamp((wantY - eel.y) / 240, -0.6, 0.6);
+    const m = Math.hypot(1, dy);
+    intent = { active: true, dirX: 1 / m, dirY: dy / m, throttle: 0.5, mouth: false, boost: false };
+  } else {
+    intent = getIntent((eel.x - cam.x) * ZOOM, (eel.y - cam.y) * ZOOM);
+  }
   intent.mouth = food.probe(eel);   // auto-mouth: food ahead opens the jaw
   const burstDial = progress.dial(DIALS.speedBurst);
   intent.boost = !titleMode && burstDial > 0 && getBoost();
