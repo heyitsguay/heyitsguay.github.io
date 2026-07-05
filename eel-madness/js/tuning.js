@@ -189,7 +189,7 @@ export const LEVEL_NOTES = {
     30: 'An enchanted sea',
   },
   eelMagic: {
-    1: { text: 'GREET unlocked — press I (or tap ♡)', guide: true },
+    1: { text: 'GREET unlocked — press I (or tap ♡) when critters are near', guide: true },
     4: 'A touch of makeup',
     8: { text: 'SPEED BURST — hold Shift (or a second finger). Fast, but wide turns!', guide: true },
     12: 'Longer lashes',

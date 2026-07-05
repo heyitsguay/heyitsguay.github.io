@@ -214,12 +214,16 @@ export function initUI({ onReset, onGreet, onStart, onSkip, onMenu, skipTitle })
 
   return {
     paused: () => paused,
-    showGreet(v) {
+    // v: the dial has unlocked greeting; enabled: someone is actually in
+    // range right now (the button grays out over empty water)
+    showGreet(v, enabled = true) {
       const want = !!v && coarse;
       if (want !== greetShown) {
         greetShown = want;
         greetBtn.hidden = !want;
       }
+      const en = !!enabled;
+      if (want && greetBtn.disabled !== !en) greetBtn.disabled = !en;
     },
     levelUp(ev) { luQueue.push(ev); },
     tick(dt) {

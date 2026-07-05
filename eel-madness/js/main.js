@@ -87,7 +87,7 @@ const ui = initUI({
     eel.place(bootPos.x, bootPos.y);
     const [tx, ty] = cameraTarget();
     cam.x = tx; cam.y = ty;
-    hint.classList.remove('hidden');
+    showHint();
   },
   // Skip To The End (docs/08): a separate, maxed-out instance — sandbox mode
   // forces every value/level to full and progress.add/persistence are inert,
@@ -105,7 +105,7 @@ const ui = initUI({
     eel.place(0, 486);
     const [tx, ty] = cameraTarget();
     cam.x = tx; cam.y = ty;
-    hint.classList.remove('hidden');
+    showHint();
   },
   // Main Menu from the pause panel (docs/08): raise the title back over the
   // sea. The player's place is remembered so Start resumes it — unless we're
@@ -196,9 +196,16 @@ if (titleMode) {
 }
 window.addEventListener('resize', resize);
 
+// The control hint fades on first input OR after 5 s regardless — touch
+// players may never trip the input callback (it shipped stuck on mobile).
 const hint = document.getElementById('hint');
-if (SKIP_TITLE) hint.classList.remove('hidden');
-initInput(() => hint.classList.add('hidden'));
+let hintT = -1;
+const showHint = () => {
+  hint.classList.remove('hidden');
+  hintT = 5;
+};
+if (SKIP_TITLE) showHint();
+initInput(() => { hint.classList.add('hidden'); hintT = -1; });
 
 let last = performance.now();
 function frame(now) {
@@ -212,6 +219,11 @@ function frame(now) {
 
   progress.tick(dt);   // level-up bloom easing (docs/08)
   ui.tick(dt);         // level-up popup queue
+
+  if (hintT > 0) {     // the hint's 5 s timer (pause freezes it with dt)
+    hintT -= dt;
+    if (hintT <= 0) hint.classList.add('hidden');
+  }
 
   // Pointer input is screen-space; the eel's screen position keeps them
   // aligned. In title mode the eel drives itself: a gentle constant cruise
@@ -278,9 +290,10 @@ function frame(now) {
   const greetWanted = (consumeGreet() || uiGreet) && !titleMode;
   uiGreet = false;
   const greetUnlocked = progress.dial(DIALS.greet) > 0;
-  ui.showGreet(greetUnlocked && !titleMode);
+  const greetable = critters.anyGreetable(eel);
+  ui.showGreet(greetUnlocked && !titleMode, greetable);
   // a greeting needs someone to greet: no subject in range, no greet
-  if (greetWanted && greetUnlocked && greetCd === 0 && critters.anyGreetable(eel)) {
+  if (greetWanted && greetUnlocked && greetCd === 0 && greetable) {
     greetCd = GREET.CD;
     hearts.emit(eel.x + eel.hx * 6, eel.y - 18, EEL_HEART);
     critters.greet(eel, hearts);
