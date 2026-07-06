@@ -203,7 +203,12 @@ export function initUI({ onReset, onGreet, onFlare, onSprint, onStart, onSkip, o
   };
   setLeft.addEventListener('click', () => setStick('left'));
   setRight.addEventListener('click', () => setStick('right'));
-  document.getElementById('t-settings').addEventListener('click', () => { setPanel.hidden = false; });
+  document.getElementById('t-settings').addEventListener('click', e => {
+    e.currentTarget.blur();      // Space/Enter must not re-trigger it
+    setPanel.hidden = false;
+    tReset.textContent = 'Reset';   // disarm a half-armed reset, like the
+    tReset.dataset.armed = '';      // pause menu does on open
+  });
   document.getElementById('settings-done').addEventListener('click', () => { setPanel.hidden = true; });
   let paused = false;
   const setPaused = p => {
@@ -228,6 +233,12 @@ export function initUI({ onReset, onGreet, onFlare, onSprint, onStart, onSkip, o
   });
   window.addEventListener('keydown', e => {
     if (titleShown) {
+      if (!setPanel.hidden) {
+        // the open settings panel owns the keyboard — Enter/Space must not
+        // start the game behind it
+        if (e.code === 'Escape') setPanel.hidden = true;
+        return;
+      }
       if (e.code === 'Enter' || e.code === 'Space') tStart.click();
       return;   // the title owns the keyboard — no pause toggles behind it
     }

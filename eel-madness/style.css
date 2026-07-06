@@ -446,18 +446,19 @@ body.stick-right #btn-flare {
   background: rgba(160, 205, 220, 0.07);
   border: 1.5px solid rgba(190, 225, 240, 0.22);
   touch-action: none;
+  /* flex-centers the nub exactly (borders included) — the left/top+margin
+     hack sat it a border-width off center */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 body.stick-right #joypad {
   left: auto;
   right: max(18px, env(safe-area-inset-right));
 }
 #joynub {
-  position: absolute;
-  left: 50%;
-  top: 50%;
   width: 54px;
   height: 54px;
-  margin: -27px 0 0 -27px;
   border-radius: 50%;
   background: rgba(190, 230, 250, 0.20);
   border: 1.5px solid rgba(200, 240, 255, 0.38);
@@ -517,7 +518,9 @@ body.stick-right #joypad {
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
 }
-.set-seg button.on {
+/* the ID above outweighs a class-only selector — match its specificity or
+   the selected state silently never shows */
+#settings-panel .set-seg button.on {
   color: rgba(16, 34, 40, 0.95);
   background: rgba(210, 235, 225, 0.8);
 }
