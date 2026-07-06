@@ -4,12 +4,12 @@
 // #levelups, pointer-events-free, so steering is unaffected.
 
 import { progress } from './progress.js';
-import { AXES, LEVELS, LEVEL_NOTES } from './tuning.js';
+import { AXES, LEVELS, LEVEL_NOTES, COMBO } from './tuning.js';
 import { clamp } from './math.js';
 
 const axisCss = axis => `rgb(${AXES[axis].color.map(c => Math.round(c * 255)).join(',')})`;
 
-export function initUI({ onReset, onGreet, onStart, onSkip, onMenu, skipTitle }) {
+export function initUI({ onReset, onGreet, onFlare, onStart, onSkip, onMenu, skipTitle }) {
   const menu = document.getElementById('menu');
   const pauseBtn = document.getElementById('pause');
   const resumeBtn = document.getElementById('resume');
@@ -64,33 +64,53 @@ export function initUI({ onReset, onGreet, onStart, onSkip, onMenu, skipTitle })
   const luQueue = [];
   let luEl = null, luAge = 0, luDur = 0;
   const showNext = () => {
-    const { axis, level } = luQueue.shift();
-    const note = LEVEL_NOTES[axis] && LEVEL_NOTES[axis][level];
-    const guide = typeof note === 'object';
-    luDur = guide ? LEVELS.GUIDE_T : LEVELS.POP_T;
+    const ev = luQueue.shift();
     luAge = 0;
     luEl = document.createElement('div');
     luEl.className = 'levelup';
-    luEl.style.color = axisCss(axis);
-    luEl.style.animationDuration = `${luDur}s`;
     const inner = document.createElement('div');
     inner.className = 'lu-inner';
     const pop = document.createElement('div');
     pop.className = 'lu-pop';
-    pop.textContent = 'Level Up!';
-    const label = document.createElement('div');
-    label.className = 'lu-axis';
-    label.textContent = `${AXES[axis].label} · LV ${level}`;
-    inner.append(pop, label);
-    if (note) {
-      const line = document.createElement('div');
-      line.className = 'lu-note';
-      line.textContent = guide ? note.text : note;
-      inner.appendChild(line);
+    if (ev.notice) {
+      // an item/event announcement (docs/10) — the level-up frame, custom text
+      luDur = ev.notice.dur || LEVELS.GUIDE_T;
+      luEl.style.color = ev.notice.color;
+      pop.textContent = ev.notice.title;
+      inner.appendChild(pop);
+      if (ev.notice.note) {
+        const line = document.createElement('div');
+        line.className = 'lu-note';
+        line.textContent = ev.notice.note;
+        inner.appendChild(line);
+      }
+    } else {
+      const { axis, level } = ev;
+      const note = LEVEL_NOTES[axis] && LEVEL_NOTES[axis][level];
+      const guide = typeof note === 'object';
+      luDur = guide ? LEVELS.GUIDE_T : LEVELS.POP_T;
+      luEl.style.color = axisCss(axis);
+      pop.textContent = 'Level Up!';
+      const label = document.createElement('div');
+      label.className = 'lu-axis';
+      label.textContent = `${AXES[axis].label} · LV ${level}`;
+      inner.append(pop, label);
+      if (note) {
+        const line = document.createElement('div');
+        line.className = 'lu-note';
+        line.textContent = guide ? note.text : note;
+        inner.appendChild(line);
+      }
     }
+    luEl.style.animationDuration = `${luDur}s`;
     luEl.appendChild(inner);
     luRoot.appendChild(luEl);
   };
+
+  // The combo counter (docs/10): "2x" "3x" "4x", "5x!"+ — a counter, not a
+  // queue: a fresh link REPLACES the popup immediately.
+  const comboRoot = document.getElementById('combo');
+  let comboEl = null, comboAge = 0;
 
   // Title screen (docs/08): shown at boot over the attract-mode sea. Start
   // hands off to main's onStart; Reset is two-step and stays on the title;
@@ -212,6 +232,18 @@ export function initUI({ onReset, onGreet, onStart, onSkip, onMenu, skipTitle })
     onGreet && onGreet();
   });
 
+  // The flare button (docs/10) is press-and-HOLD, like the flare key.
+  const flareBtn = document.getElementById('btn-flare');
+  let flareShown = false;
+  flareBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    onFlare && onFlare(true);
+  });
+  const flareOff = () => { onFlare && onFlare(false); };
+  flareBtn.addEventListener('pointerup', flareOff);
+  flareBtn.addEventListener('pointercancel', flareOff);
+  flareBtn.addEventListener('pointerleave', flareOff);
+
   return {
     paused: () => paused,
     // v: the dial has unlocked greeting; enabled: someone is actually in
@@ -225,13 +257,40 @@ export function initUI({ onReset, onGreet, onStart, onSkip, onMenu, skipTitle })
       const en = !!enabled;
       if (want && greetBtn.disabled !== !en) greetBtn.disabled = !en;
     },
+    // v: the eelLight dial has unlocked the flare (touch devices only).
+    showFlare(v) {
+      const want = !!v && coarse;
+      if (want !== flareShown) {
+        flareShown = want;
+        flareBtn.hidden = !want;
+      }
+    },
     levelUp(ev) { luQueue.push(ev); },
+    // An announcement popup in the level-up style (docs/10 — the shaker).
+    notice(title, note, color, dur) {
+      luQueue.push({ notice: { title, note, color, dur } });
+    },
+    // The combo counter popup (docs/10). color = the eaten food's axis.
+    combo(n, color) {
+      if (comboEl) comboEl.remove();
+      comboEl = document.createElement('div');
+      comboEl.className = 'combo-pop';
+      comboEl.style.color = color;
+      comboEl.style.animationDuration = `${COMBO.POP_T}s`;
+      comboEl.textContent = `${n}x${n >= COMBO.BANG_AT ? '!' : ''}`;
+      comboRoot.appendChild(comboEl);
+      comboAge = 0;
+    },
     tick(dt) {
       if (luEl) {
         luAge += dt;
         if (luAge >= luDur) { luEl.remove(); luEl = null; }
       }
       if (!luEl && luQueue.length) showNext();
+      if (comboEl) {
+        comboAge += dt;
+        if (comboAge >= COMBO.POP_T) { comboEl.remove(); comboEl = null; }
+      }
     },
   };
 }

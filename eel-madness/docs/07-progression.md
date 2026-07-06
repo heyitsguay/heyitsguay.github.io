@@ -80,8 +80,11 @@ minnows, jellyfish, greet/hearts, food bubble trails.
 | **LIFE** | flora dials (kelp, seagrass, corals, anemones…) and fauna dials (per-critter spawn probability, population, school size) |
 | **WORLD MAGIC** | environmental enchantment: phosphorescence, particle effects, pulses, glowing flora, fairies, ambient events |
 | **EEL MAGIC** | the eel's own powers and cosmetics: greet → baseline glow → glow burst (J) → further powers TBD later |
+| **LOVE** (P4, docs/10) | the bond with your sea friends — charged by *greeting*, not food (warm coral-red); first effect: nearby critters spontaneously greet you (`spontGreet` dial), more later |
 
-**Earning:** each food drives exactly one axis by its progression amount (table below).
+**Earning:** each food drives exactly one axis by its progression amount (table
+below) — except LOVE, which earns from successful greets (`GREET.LOVE_PER` per
+responder, capped per greet; docs/10).
 Axis accumulators `W` squash to a 0–1 value with diminishing returns:
 `axis = 1 − exp(−W / K_axis)`, **quantized into 30 levels** (docs/08). Calibration:
 pick each `K ≈ (expected 4-session W for that axis) / 3`, since `1 − e⁻³ ≈ 0.95` —
@@ -358,6 +361,112 @@ procedural sea (docs/09 is the authoritative spec):
    level 8; jelly pulse spec in "Phase-1 critters" above).
 5. **Seafloor in the background parallax planes** — seeded terrain silhouettes,
    LIFE corals, WORLD MAGIC seafloor lights on the glow layer (docs/03, docs/09).
+
+### P4 ideation (jotted 2026-07-05 — BUILD IN PROGRESS, spec in docs/10)
+
+Matt's idea dump for the next round. Items 2–5 and 7–8 plus the seafloor/rocks/
+shaker fold (items 3+4+6) are being built against docs/10; the combo's real
+reward and the picture-based new foods (item 1's basics) remain open.
+
+1. **More foods.** A few basic new types (Matt will supply pictures). The exciting
+   one: **red beans and rice** — not a single sprite but a *small patch* of
+   individual beans and rice grains hanging in the water, which the eel swoops
+   through like a whale guzzling krill. Rare (low spawn rarity) so the many-particle
+   rendering never overstresses a frame, but eating a swath of it should feel
+   deeply satisfying. Rendering note: the current food pool is one `<image>` per
+   item — a patch wants a different shape (many tiny cheap sprites or GL points
+   with a shared eat test along the eel's path).
+
+2. **Food grades (common / rare / legendary).** Every spawned item rolls a
+   **grade** (settled term, 2026-07-05) that *scales its leveling impact*
+   (progression-amount multiplier). This is **independent of the existing
+   `rarity` column** (which stays the spawn-frequency knob — higher = more
+   common); a given falling pinecone has some chance of being
+   common/rare/legendary. Tells while falling:
+   - **Rare — "buzz":** random positional jitter, lightly smoothed.
+   - **Legendary — buzz + "throb":** a slight size pulse that is **not a sine** —
+     inactive for the larger part of its period, then a rise-and-fall over a
+     shorter window. Same family as the `sin³`-shaped jelly hue pulse — dwell,
+     then bloom; the shared pulse helper is the home for the shaping (agreed).
+
+3. **Seafloor on every plane.** The background-plane terrain (docs/09) looks
+   great — extend it to *all* planes, with **average terrain height increasing the
+   further back the plane sits**: the front kelp plane (pf 1.22) gets a sliver of
+   floor with average height very close to max depth, the main plane a little
+   higher, the near-behind plane higher still, and the far background highest —
+   plus depth-of-field blur on the farthest floor and a tiny bit on the shallow
+   background plane. **Blur plan (2026-07-05): one small framebuffer total** — a
+   deliberate, single exception to the no-FBO rule in docs/03. Blur =
+   render-at-low-res + bilinear upsample: one small RGBA texture, reused twice a
+   frame — deep plane drawn into a heavily downscaled viewport (~⅙–⅛ res) and
+   composited to screen (strong soft blur from magnification), shallow plane at
+   ~½ res (faint blur). If the box-filter look bothers, add a few sample-offset
+   taps in the *upsample* shader — still one FBO, no ping-pong; a true two-pass
+   Gaussian (2 FBOs) should never be needed for silhouettes. Clear to
+   transparent + premultiplied-alpha composite. Degradation lever: skip the FBO
+   and draw the planes sharp. The main-plane
+   floor is a big deal: the eel can finally *be at* the bottom, and it opens the
+   door to seafloor creatures, anemones, and the like — note for later phases.
+
+4. **Shatterable rocks.** Rocks on the (new main-plane) seafloor that the eel can
+   **shatter by charging into them at high speed with the boost mechanic** —
+   speed burst finally gets a collision payoff. A shattered rock reveals some item,
+   to be specified later. Seeded placement (worldgen chunk streams) so rocks are
+   deterministic in x like everything else. **Persistence (decided 2026-07-05):**
+   localStorage keeps a list of (spawn x, shatter timestamp) pairs; a shattered
+   rock reappears after **24 hours**, or immediately on game reset (which clears
+   the list along with everything else).
+
+5. **LOVE axis.** A fifth progression axis, **charged by greeting your sea
+   friends** (and maybe other things eventually). First effect of progressing it:
+   a chance for nearby creatures to **spontaneously greet you** — more effects
+   down the line. Structural touch-points: `AXES` (K, color, persistence key),
+   30-level quantization + level notes (docs/08), pause meters, URL override
+   (`?love=...`), and it breaks the current "each food drives exactly one axis"
+   symmetry — LOVE earns from *behavior*, not food, which needs its own K
+   calibration story.
+
+6. **Hidden items on the seafloor.** Items deliberately tucked behind plants and
+   terrain — and maybe even tunnels, possibly *hidden* tunnels??? First item:
+   a **shaker of dressing** that temporarily boosts the effectiveness of the
+   greens food (a timed amount-multiplier buff on one food type). Seeded
+   placement, like the rocks.
+
+7. **More kelp types.** Cheap flora variety on the existing strand tech:
+   - a **longer, more sinuous** kelp;
+   - a **very tall, narrow, spindly** one with periodic growths along the stalk,
+     each sprouting lots of little wavy grassy projections.
+   And the seafloor itself is a flora bonanza — rocks and smaller debris, stuff
+   growing on the rocks, corals, starfish, many great possibilities.
+
+8. **Food combos.** Steering to snag a run of food in quick succession is tricky
+   and satisfying — the game should notice, make it feel *viscerally* satisfying,
+   and reward it. Eats within a short window of each other charge a **combo
+   meter**; what it does is TBD (**Matt: revisit this — flagged for reminder**).
+   Threads so far, all open:
+   - **Reward:** boost stamina is the natural target (refill or overcharge past
+     the cap — and note the loop this creates: nail a combo → charged boost →
+     shatter a rock). Axis composition could matter too: a same-axis run is a
+     "flavor run" (bonus to that axis?), a run spanning all four axes is a
+     "feast" (something special?). Or a temporary amount multiplier, stacking
+     with grades (item 2). Open to ideas.
+   - **Feel (agreed 2026-07-05):** escalate the existing eat feedback as the
+     combo grows — the flash/shake (`EAT_FX`) and axis-colored light pulse
+     already scale with amount and have a level-up multiplier precedent
+     (`LEVELUP_MUL`), so a combo-tier multiplier slots right in; higher tiers
+     add confetti sparks (sparkles.js), a brief eel wiggle-amplitude surge, wig
+     glints. **No meter.** Instead, each combo link briefly pops a **counter
+     text** — "2x", "3x", "4x", then "5x!", "6x!", … (exclamation mark from 5x
+     onward) — styled in keeping with the established popup UI (docs/08
+     level-up popups are the pattern to match).
+   - Combo definition: probably just time-between-eats (a per-link window),
+     no aim/steering judgment — the steering difficulty is already what gates it.
+
+9. ~~Food spawns at the viewport, not the surface~~ — considered and **decided
+   against (2026-07-05)**: viewport-following spawns would soften the "darkness
+   is gameplay / food lost to the deep" decision. Food keeps spawning at the
+   surface; the depths get interesting through new elements instead (seafloor,
+   rocks, hidden items, tunnels — items 3, 4, 6 above).
 
 ## Still open (deliberately)
 

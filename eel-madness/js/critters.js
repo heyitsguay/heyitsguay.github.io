@@ -14,7 +14,7 @@
 // over-population only ever resolves offscreen.
 
 import { TAU, clamp, lerp, expApproach, angleDiff } from './math.js';
-import { GREET, FLOCK, FOLLOW, SPECIES, SEA, KELP_GROWTH, DIALS, lightParams } from './tuning.js';
+import { GREET, SPONT, FLOCK, FOLLOW, SPECIES, SEA, KELP_GROWTH, DIALS, lightParams } from './tuning.js';
 import { progress } from './progress.js';
 import { xWeight, bandW, dampC, kelpAnchors } from './worldgen.js';
 
@@ -58,7 +58,7 @@ const J_TENT_PTS = 6;
 const J_TENT_SEG = 9;           // px per tentacle segment
 const J_TENT_SWAY = 6;          // px/s ambient tentacle sway
 const J_TENT_TAU = 1.4;         // s — rest pull toward hanging down
-const J_FOLLOW_T = 7;           // s — a greeted jelly leans your way
+const J_FOLLOW_T = 9.3;         // s — a greeted jelly leans your way (+33%, 2026-07-05)
 const J_FOLLOW_TURN = 1.3;      // rad/s — how hard it leans toward you
 const J_FOLLOW_NEAR = 90;       // px — close enough; resume ambient wander
 const J_GLOW_DARK = 0.9;        // inner-glow opacity in the dark (a lantern)...
@@ -82,11 +82,12 @@ const J_PULSE_F1 = 0.85;        // ...and at dial = 1
 const J_HUE_SAT = 95;           // % — vivid, not pastel
 const J_HUE_LUM = 70;           // %
 // greeted: the shy-dim suspends and the lantern beats like a heart —
-// th-thump (pause) th-thump (pause) — for a while (docs/07)
-const J_BEAT_T = 6;             // s of heartbeat after a greet
+// th-thump (pause) th-thump (pause) — for a while (docs/07).
+// Brighter + longer per Matt (2026-07-05): greet responses should LAND.
+const J_BEAT_T = 8;             // s of heartbeat after a greet (+33%)
 const J_BEAT_P = 1.5;           // s per beat cycle
-const J_BEAT_A = 0.6;           // opacity swell per thump...
-const J_BEAT_R = 0.12;          // ...and radius
+const J_BEAT_A = 1.1;           // opacity swell per thump (brighter)...
+const J_BEAT_R = 0.2;           // ...and radius
 
 // ---- Reef fish (docs/09): solo, banded color, minnow-style wiggle ----
 const R_N = 8;                  // spine points
@@ -123,7 +124,7 @@ const S_PAIR_D = 16;            // px — a pair drifts to this separation
 const S_PAIR_HEART = 0.03;      // per-second chance a curled pair pops a heart
 const S_HUE = [40, 95];         // deg range — golds into soft greens
 // greeted: a delighted pirouette — clockwise, slow → fast → slow (docs/07)
-const S_SPIN_T = 2.6;           // s
+const S_SPIN_T = 3.5;           // s (+33%, 2026-07-05)
 const S_SPIN_TURNS = 2;         // full clockwise rotations
 
 // ---- Octopuses (docs/09) ----
@@ -155,7 +156,7 @@ const O_HUE = 335;              // deg — pinkish octopus, ±22 per individual
 const O_SAT = 48, O_LUM = 46;
 // greeted: octo-camouflage — the body paints itself the color of the water
 // right behind it (a true color match, not transparency) and fades back
-const O_CAMO_T = 3.5;           // s (the giant takes its time: ×1.6)
+const O_CAMO_T = 4.7;           // s (+33%, 2026-07-05; the giant: ×1.6)
 // a fast eel in its space startles it: it jets away in a puff of bubbles
 // (the ink CLOUD was cut — looked bad; the dodge stays, docs/07)
 const O_STARTLE_R = 120;        // px
@@ -205,7 +206,7 @@ const A_LURE_R = 8;             // px glow radius — a light you can FIND
 const A_LURE_DARK = 0.95;       // lure opacity in the dark...
 const A_LURE_LIGHT = 0.35;      // ...and in full light
 const A_LURE_PULSE_F = 1.4;     // rad/s slow throb
-const A_FLARE_T = 1.5;          // s — greeted lure flare
+const A_FLARE_T = 2.0;          // s — greeted lure flare (+33%, 2026-07-05)
 const A_BODY = 'M14 1 C12 -5, 6 -8, -2 -7.4 C-8 -7, -12 -3.6, -13.5 0 '
   + 'C-12 3.9, -7 7, 0 6.8 C7 6.6, 12 4.6, 14 1 Z '
   + 'M-13.5 0 L-19.5 -4.5 C-20.8 -0.2, -20.8 0.6, -19.3 4.6 Z';
@@ -635,7 +636,9 @@ export class Critters {
       for (let tries = 0; tries < 6; tries++) {
         const a = anchors[(Math.random() * anchors.length) | 0];
         if (!a) break;
-        const perch = worldH + 4 - a.h * REF_H * tall * (0.35 + Math.random() * 0.5);
+        // the home strand roots on the TERRAIN now (docs/10)
+        const rootY = (this.fl ? this.fl(a.x) : worldH + 4) + 6;
+        const perch = rootY - a.h * REF_H * tall * (0.35 + Math.random() * 0.5);
         const x = a.x + (Math.random() - 0.5) * 26;
         if (perch < this.vic.y0 || perch > this.vic.y1) continue;   // stay in the vicinity
         if (this.inView(x, perch)) continue;
@@ -910,9 +913,14 @@ export class Critters {
     return false;
   }
 
-  update(dt, eel, worldH, water, cam, viewW, viewH, foodPts) {
+  // floorAt (optional, docs/10): the solid main-terrain surface — species
+  // bottom clamps ride it (each keeps its old clearance margin), so deep
+  // dwellers cruise over the dunes instead of through them.
+  update(dt, eel, worldH, water, cam, viewW, viewH, foodPts, floorAt) {
     const t = (this.time += dt);
     this.dt = dt;
+    this.fl = floorAt || (() => worldH);
+    const fl = this.fl;
     this.eelX = eel.x; this.eelY = eel.y;
     this.feast = progress.dial(DIALS.minnowFeast);
     this.jellyPulse = progress.dial(DIALS.jellyHue);
@@ -1098,7 +1106,7 @@ export class Critters {
       m.speed = expApproach(m.speed, speedT, dt, M_TAU_SPEED);
       m.x += Math.cos(m.hd) * m.speed * dt;
       m.y += Math.sin(m.hd) * m.speed * dt;
-      m.y = clamp(m.y, 20, worldH - 20);
+      m.y = clamp(m.y, 20, fl(m.x) - 20);
 
       m.px[0] = m.x; m.py[0] = m.y;
       const seg = M_LEN * (m.size || 1) / (M_N - 1);
@@ -1147,7 +1155,7 @@ export class Critters {
       const drag = Math.exp(-dt * J_DRAG);
       j.vx *= drag; j.vy *= drag;
       j.x += j.vx * dt;
-      j.y = clamp(j.y + j.vy * dt, 60, worldH - 60);
+      j.y = clamp(j.y + j.vy * dt, 60, fl(j.x) - 60);
       j.pulse = p;
 
       const pull = 1 - Math.exp(-dt / J_TENT_TAU);
@@ -1220,7 +1228,7 @@ export class Critters {
       // wiggle clock rides speed; amplitude stays damped (see render)
       r.wph = (r.wph || 0) + dt * R_WAVE_F * (0.6 + 0.9 * Math.min(2.6, r.speed / R_SPEED));
       r.x += Math.cos(r.hd) * r.speed * dt;
-      r.y = clamp(r.y + Math.sin(r.hd) * r.speed * dt, 20, worldH - 20);
+      r.y = clamp(r.y + Math.sin(r.hd) * r.speed * dt, 20, fl(r.x) - 20);
       // the spine trails the head — the wiggle rides this chain at render
       r.px[0] = r.x; r.py[0] = r.y;
       const seg = R_LEN * r.size / (R_N - 1);
@@ -1302,7 +1310,7 @@ export class Critters {
         const drag = Math.exp(-dt * O_DRAG);
         o.vx *= drag; o.vy *= drag;
         o.x += o.vx * dt;
-        o.y = clamp(o.y + o.vy * dt, 60, worldH - 40);
+        o.y = clamp(o.y + o.vy * dt, 60, fl(o.x) - 40);
 
         // tentacles: STIFF chains — advected with the body's motion (a diving
         // octopus takes its arms down with it), fast settle toward hanging,
@@ -1390,7 +1398,7 @@ export class Critters {
         // stays damped at speed — see the render wave
         f.wph = (f.wph || 0) + dt * vis.waveF * (0.6 + 0.9 * Math.min(2.6, f.speed / vis.speed));
         f.x += Math.cos(f.hd) * f.speed * dt;
-        f.y = clamp(f.y + Math.sin(f.hd) * f.speed * dt, 20, worldH - 20);
+        f.y = clamp(f.y + Math.sin(f.hd) * f.speed * dt, 20, fl(f.x) - 20);
         f.px[0] = f.x; f.py[0] = f.y;
         const seg = vis.len * f.size / (vis.N - 1);
         for (let jp = 1; jp < vis.N; jp++) {
@@ -1418,67 +1426,92 @@ export class Critters {
       const flat = Math.abs(angleDiff(a.hd, 0)) < Math.PI / 2 ? 0 : Math.PI;
       a.hd += angleDiff(flat, a.hd) * clamp(dt * 0.25, 0, 1);
       a.x += Math.cos(a.hd) * A_SPEED * dt;
-      a.y = clamp(a.y + Math.sin(a.hd) * A_SPEED * dt, 40, worldH - 30);
+      a.y = clamp(a.y + Math.sin(a.hd) * A_SPEED * dt, 40, fl(a.x) - 30);
     }
 
   }
 
+  // One critter answers a greeting: hearts + the species' in-character
+  // response. follow = false for SPONTANEOUS greets (docs/10) — the critter
+  // says hello first but doesn't drop its routine to escort you.
+  respond(kind, c, hearts, follow, vis) {
+    c.greetCd = CRITTER_GREET_CD;
+    switch (kind) {
+      case 'minnow':
+        if (follow) c.followT = FOLLOW.T;
+        hearts.emit(c.x, c.y - 8, { ...MINNOW_HEART, delay: 0.15 + Math.random() * 0.5 });
+        break;
+      case 'jelly':
+        if (follow) c.followT = J_FOLLOW_T;
+        c.beatT = J_BEAT_T;   // the lantern beats like a heart (render)
+        hearts.emit(c.x, c.y - J_R, JELLY_HEART);
+        break;
+      case 'reef':
+        if (follow) c.followT = FOLLOW.T;
+        hearts.emit(c.x, c.y - 10, {
+          ...REEF_HEART, color: `hsl(${c.hue.toFixed(0)}, 85%, 72%)`,
+        });
+        break;
+      case 'seahorse':
+        c.spinAge = 0;   // the delighted pirouette (render)
+        hearts.emit(c.x, c.y - 14, SEAHORSE_HEART);
+        break;
+      case 'octopus':
+        c.camoT = O_CAMO_T;   // vanishes into the water color (render)
+        hearts.emit(c.x, c.y - O_R * 1.4, OCTO_HEART);
+        break;
+      case 'giantOcto':
+        c.camoT = O_CAMO_T * 1.6;   // a long, deliberate vanishing
+        hearts.emit(c.x, c.y - O_R * GIANT_SCALE * 1.3, GIANT_HEART);
+        break;
+      case 'angler':
+        c.flareT = A_FLARE_T;   // the lure flares
+        hearts.emit(c.x, c.y - 16, ANGLER_HEART);
+        break;
+      default:   // roamers (salmon / barracuda / swordfish)
+        if (follow) c.followT = FOLLOW.T;
+        hearts.emit(c.x, c.y - 12, vis.heart);
+    }
+  }
+
+  // Returns the responder count — main grants LOVE per responder (docs/10).
   greet(eel, hearts) {
     const inRange = (c, extra = 0) =>
       c.alive && c.greetCd <= 0 && Math.hypot(c.x - eel.x, c.y - eel.y) <= GREET.RANGE + extra;
-    for (const m of this.minnows) {
-      if (!inRange(m)) continue;
-      m.greetCd = CRITTER_GREET_CD;
-      m.followT = FOLLOW.T;
-      hearts.emit(m.x, m.y - 8, { ...MINNOW_HEART, delay: 0.15 + Math.random() * 0.5 });
-    }
-    for (const j of this.jellies) {
-      if (!inRange(j)) continue;
-      j.greetCd = CRITTER_GREET_CD;
-      j.followT = J_FOLLOW_T;
-      j.beatT = J_BEAT_T;   // the lantern beats like a heart (render)
-      hearts.emit(j.x, j.y - J_R, JELLY_HEART);
-    }
-    for (const r of this.reefs) {
-      if (!inRange(r)) continue;
-      r.greetCd = CRITTER_GREET_CD;
-      r.followT = FOLLOW.T;
-      hearts.emit(r.x, r.y - 10, {
-        ...REEF_HEART, color: `hsl(${r.hue.toFixed(0)}, 85%, 72%)`,
-      });
-    }
-    for (const s of this.seahorses) {
-      if (!inRange(s)) continue;
-      s.greetCd = CRITTER_GREET_CD;
-      s.spinAge = 0;   // the delighted pirouette (render)
-      hearts.emit(s.x, s.y - 14, SEAHORSE_HEART);
-    }
-    for (const o of this.octos) {
-      if (!inRange(o)) continue;
-      o.greetCd = CRITTER_GREET_CD;
-      o.camoT = O_CAMO_T;   // vanishes into the water color (render)
-      hearts.emit(o.x, o.y - O_R * 1.4, OCTO_HEART);
-    }
-    for (const o of this.giants) {
-      if (!inRange(o, 60)) continue;
-      o.greetCd = CRITTER_GREET_CD;
-      o.camoT = O_CAMO_T * 1.6;   // a long, deliberate vanishing
-      hearts.emit(o.x, o.y - O_R * GIANT_SCALE * 1.3, GIANT_HEART);
-    }
-    for (const a of this.anglers) {
-      if (!inRange(a)) continue;
-      a.greetCd = CRITTER_GREET_CD;
-      a.flareT = A_FLARE_T;   // the lure flares
-      hearts.emit(a.x, a.y - 16, ANGLER_HEART);
-    }
+    let n = 0;
+    for (const m of this.minnows) if (inRange(m)) { this.respond('minnow', m, hearts, true); n++; }
+    for (const j of this.jellies) if (inRange(j)) { this.respond('jelly', j, hearts, true); n++; }
+    for (const r of this.reefs) if (inRange(r)) { this.respond('reef', r, hearts, true); n++; }
+    for (const s of this.seahorses) if (inRange(s)) { this.respond('seahorse', s, hearts, true); n++; }
+    for (const o of this.octos) if (inRange(o)) { this.respond('octopus', o, hearts, true); n++; }
+    for (const o of this.giants) if (inRange(o, 60)) { this.respond('giantOcto', o, hearts, true); n++; }
+    for (const a of this.anglers) if (inRange(a)) { this.respond('angler', a, hearts, true); n++; }
     for (const R of this.roamers) {
-      for (const f of R.list) {
-        if (!inRange(f)) continue;
-        f.greetCd = CRITTER_GREET_CD;
-        f.followT = FOLLOW.T;
-        hearts.emit(f.x, f.y - 12, R.vis.heart);
-      }
+      for (const f of R.list) if (inRange(f)) { this.respond(R.key, f, hearts, true, R.vis); n++; }
     }
+    return n;
+  }
+
+  // Spontaneous greeting (docs/10, the LOVE spontGreet dial): an on-screen,
+  // off-cooldown critter near the eel may greet FIRST — the full in-character
+  // response, but no befriend-follow (and main grants no LOVE for it).
+  spontaneous(dt, eel, hearts, dial) {
+    if (dial <= 0) return;
+    const p = SPONT.RATE * dial * dt;
+    const roll = (kind, c, vis, extra = 0) => {
+      if (!c.alive || c.greetCd > 0 || Math.random() >= p) return;
+      if (Math.hypot(c.x - eel.x, c.y - eel.y) > SPONT.RANGE + extra) return;
+      if (!this.inView(c.x, c.y)) return;   // hellos from offscreen are noise
+      this.respond(kind, c, hearts, false, vis);
+    };
+    for (const m of this.minnows) roll('minnow', m);
+    for (const j of this.jellies) roll('jelly', j);
+    for (const r of this.reefs) roll('reef', r);
+    for (const s of this.seahorses) roll('seahorse', s);
+    for (const o of this.octos) roll('octopus', o);
+    for (const o of this.giants) roll('giantOcto', o, null, 60);
+    for (const a of this.anglers) roll('angler', a);
+    for (const R of this.roamers) for (const f of R.list) roll(R.key, f, R.vis);
   }
 
   render(hearts) {

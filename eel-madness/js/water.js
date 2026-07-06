@@ -59,8 +59,19 @@ const GRASS_COL_B = [0.045, 0.17, 0.10];
 const CORAL_COL = [0.22, 0.10, 0.11];         // warm silhouette, fogged per plane
 const TERR_SEG = 48;         // px between terrain heightfield samples
 const TERR_SINK = 90;        // px the terrain fill extends below the plane floor
-// jitter directions for the fake blur taps (scaled by each plane's BLUR)
-const BLUR_JIT = [[0, 0], [0.8, 0.55], [-0.7, -0.6], [0.35, -0.9]];
+// (The P4 depth-of-field blur FBO lived here and was REMOVED — three
+// attempts all read badly. Planes draw sharp; LAYERS.FAR.FOG fakes the
+// depth by pulling the far palette toward the water color. docs/10.)
+
+// New kelp types (P4, docs/10 — geometry only; worldgen assigns the types):
+const SINUOUS_CURVE = 0.16;   // static S-curve amplitude, fraction of height
+const SINUOUS_W = 0.72;       // width factor — longer AND slimmer
+const SPINDLE_W = 3.2;        // px — the spindle stalk half-width
+const SPINDLE_NODES = [0.30, 0.48, 0.66, 0.84];   // growth nodes up the stalk
+const SPINDLE_BLADES = 6;     // grassy projections per node
+const SPINDLE_BLADE_L = [20, 36];   // px projection length range
+const SPINDLE_BLADE_W = 1.6;  // px projection half-width
+const SPINDLE_FRAC_SPREAD = 0.05;   // projections wave differentially vs the stalk
 
 // Background plane fauna (docs/07): silhouette minnow-dot schools + soft jelly
 // blobs living in each parallax plane, wrapping around the plane-space camera
@@ -374,12 +385,14 @@ export class Water {
     this.layers = {
       kelp: this.mkLayer(1, (v, c, o) => this.buildKelpChunk(v, c, o)),
       grass: this.mkLayer(1, (v, c, o) => this.buildGrassChunk(v, c, o)),
+      // main-plane seafloor (P4, docs/10): a low roll behind the eel
+      terrMain: this.mkLayer(1, (v, c, o) => this.buildTerrainChunk(v, c, o, 'main')),
       wall: this.mkLayer(LAYERS.FAR.PF, (v, c, o) => this.buildStrandChunk(v, c, o, WALL_SPEC, LAYERS.FAR.PF, true)),
       nearK: this.mkLayer(LAYERS.NEAR.PF, (v, c, o) => this.buildStrandChunk(v, c, o, NEAR_SPEC, LAYERS.NEAR.PF, true)),
-      terrFar: this.mkLayer(LAYERS.FAR.PF, (v, c, o) => this.buildTerrainChunk(v, c, o, 1)),
-      terrNear: this.mkLayer(LAYERS.NEAR.PF, (v, c, o) => this.buildTerrainChunk(v, c, o, 0)),
-      coralFar: this.mkLayer(LAYERS.FAR.PF, (v, c, o) => this.buildCoralChunk(v, c, o, 1)),
-      coralNear: this.mkLayer(LAYERS.NEAR.PF, (v, c, o) => this.buildCoralChunk(v, c, o, 0)),
+      terrFar: this.mkLayer(LAYERS.FAR.PF, (v, c, o) => this.buildTerrainChunk(v, c, o, 'far')),
+      terrNear: this.mkLayer(LAYERS.NEAR.PF, (v, c, o) => this.buildTerrainChunk(v, c, o, 'near')),
+      coralFar: this.mkLayer(LAYERS.FAR.PF, (v, c, o) => this.buildCoralChunk(v, c, o, 'far')),
+      coralNear: this.mkLayer(LAYERS.NEAR.PF, (v, c, o) => this.buildCoralChunk(v, c, o, 'near')),
     };
     this.lifeV = 0;         // LIFE axis value, set by main
 
@@ -424,9 +437,10 @@ export class Water {
     this.W = W; this.H = H; this.dpr = dpr;
     this.worldH = worldH;
     if (!this.ok) return;
+    const gl = this.gl;
     this.canvas.width = Math.round(W * dpr);
     this.canvas.height = Math.round(H * dpr);
-    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     for (const L of Object.values(this.layers)) L.dirty = true;   // floors moved
     this.motesSeeded = false;   // reseed around the camera on next update
     this.snowSeeded = false;
@@ -441,21 +455,24 @@ export class Water {
 
   // ---- chunk builders (vertex layout: xRel, y, frac, phase, shade) ---------
 
-  pushStrand(verts, xRel, floorY, hPx, hw, ph, shade) {
+  // curveFn (optional, docs/10): a static build-time lateral offset per
+  // height-fraction — the sinuous kelp's S-curve rides under the shader sway.
+  pushStrand(verts, xRel, floorY, hPx, hw, ph, shade, curveFn) {
     const dpr = this.dpr;
     const push = (x, y, frac) => verts.push(x * dpr, y * dpr, frac, ph, shade);
     for (let j = 0; j <= KELP_SEGS; j++) {
       const frac = j / KELP_SEGS;
       const y = floorY - hPx * frac;
+      const xc = xRel + (curveFn ? curveFn(frac) : 0);
       const wj = hw * (1 - frac * 0.85) + 0.6;
       if (j === 0 && verts.length) {
         // degenerate join: repeat previous strand's last vertex + this first
         const p = verts.length;
         verts.push(verts[p - 5], verts[p - 4], verts[p - 3], verts[p - 2], verts[p - 1]);
-        push(xRel - wj, y, frac);
+        push(xc - wj, y, frac);
       }
-      push(xRel - wj, y, frac);
-      push(xRel + wj, y, frac);
+      push(xc - wj, y, frac);
+      push(xc + wj, y, frac);
     }
   }
 
@@ -467,11 +484,62 @@ export class Water {
     return dial * (1 + KELP_GROWTH.DENSITY * this.lifeV);
   }
 
+  // One short grassy blade (the spindle's growth-node projections, docs/10):
+  // a thin two-point strip. frac is inherited from the STALK's height (± a
+  // small spread along the blade) so the blade rides the stalk's shader sway
+  // exactly and waves differentially against it — no separate sim.
+  pushBlade(verts, x0, y0, x1, y1, hw, frac0, frac1, ph, shade) {
+    const dpr = this.dpr;
+    let nx = -(y1 - y0), ny = x1 - x0;
+    const nm = Math.hypot(nx, ny) || 1;
+    nx = nx / nm * hw; ny = ny / nm * hw;
+    const quad = [
+      [x0 - nx, y0 - ny, frac0], [x0 + nx, y0 + ny, frac0],
+      [x1 - nx * 0.3, y1 - ny * 0.3, frac1], [x1 + nx * 0.3, y1 + ny * 0.3, frac1],
+    ];
+    if (verts.length) {   // degenerate join
+      const p = verts.length;
+      verts.push(verts[p - 5], verts[p - 4], verts[p - 3], verts[p - 2], verts[p - 1]);
+      verts.push(quad[0][0] * dpr, quad[0][1] * dpr, quad[0][2], ph, shade);
+    }
+    for (const [x, y, f] of quad) verts.push(x * dpr, y * dpr, f, ph, shade);
+  }
+
   buildKelpChunk(verts, chunk, origin) {
     const tall = 1 + KELP_GROWTH.HEIGHT * this.lifeV;
     const floor = this.planeFloor(1);
     for (const s of kelpStrands(chunk, this.kelpDens())) {
-      this.pushStrand(verts, s.x - origin, floor, s.h * REF_H * tall, s.hw, s.ph, s.shade);
+      const xr = s.x - origin;
+      // rooted ON the terrain surface (docs/10), sunk 6 px like the planes
+      const rootY = floor - this.terrainRise(s.x, 'main') + 6;
+      const hPx = s.h * REF_H * tall * (s.hMul || 1);
+      if (s.type === 'sinuous') {
+        // longer, slimmer, with a static build-time S-curve (docs/10)
+        this.pushStrand(verts, xr, rootY, hPx, s.hw * SINUOUS_W, s.ph, s.shade,
+          f => Math.sin(f * 4.2 + s.ph) * f * hPx * SINUOUS_CURVE);
+      } else if (s.type === 'spindle') {
+        // very tall, very narrow, with grassy growth nodes (docs/10)
+        this.pushStrand(verts, xr, rootY, hPx, SPINDLE_W, s.ph, s.shade);
+        for (let nI = 0; nI < SPINDLE_NODES.length; nI++) {
+          const nf = SPINDLE_NODES[nI];
+          const ny = rootY - hPx * nf;
+          for (let b = 0; b < SPINDLE_BLADES; b++) {
+            // a deterministic little fan: out and up from the node
+            const u = SPINDLE_BLADES === 1 ? 0.5 : b / (SPINDLE_BLADES - 1);
+            const spread = (u - 0.5) * 2;   // -1 .. 1
+            const wob = Math.sin(s.ph * 3.7 + nI * 2.1 + b * 1.3);
+            const len = SPINDLE_BLADE_L[0]
+              + (SPINDLE_BLADE_L[1] - SPINDLE_BLADE_L[0]) * (0.5 + 0.5 * wob);
+            const bx = xr + spread * len * 0.55;
+            const by = ny - len * (0.65 + 0.25 * Math.abs(wob));
+            this.pushBlade(verts, xr, ny, bx, by, SPINDLE_BLADE_W,
+              nf, nf + SPINDLE_FRAC_SPREAD * (0.4 + 0.6 * u),
+              s.ph, Math.min(1, s.shade * 0.5 + 0.1));
+          }
+        }
+      } else {
+        this.pushStrand(verts, xr, rootY, hPx, s.hw, s.ph, s.shade);
+      }
     }
   }
 
@@ -485,40 +553,44 @@ export class Water {
     const n = Math.round(list.length * amt);
     for (let i = 0; i < n; i++) {
       const s = list[i];
-      this.pushStrand(verts, s.x - origin, floor, s.h * stretch * REF_H, s.hw, s.ph, s.shade * 0.5);
+      // seagrass rides the terrain surface too (docs/10)
+      const rootY = floor - this.terrainRise(s.x, 'main') + 6;
+      this.pushStrand(verts, s.x - origin, rootY, s.h * stretch * REF_H, s.hw, s.ph, s.shade * 0.5);
     }
   }
 
-  // Terrain height above a plane's floor (docs/09): a smooth shaped roll —
-  // mostly low, occasionally swelling tall. Fractions of the view height.
-  terrainRise(x, pi) {
-    return TERRAIN.BASE[pi] + terrainShape(x, TERRAIN.SALT[pi]) * TERRAIN.AMP[pi] * this.H;
+  // Terrain height above a plane's floor (docs/09, docs/10): a smooth shaped
+  // roll — mostly low, occasionally swelling. Keyed per plane; fractions of
+  // the view height.
+  terrainRise(x, pk) {
+    return TERRAIN.BASE[pk]
+      + terrainShape(x, TERRAIN.SALT[pk], TERRAIN.POW[pk]) * TERRAIN.AMP[pk] * this.H;
   }
 
   // Behind-plane kelp strands, rooted on that plane's terrain.
   buildStrandChunk(verts, chunk, origin, spec, pf, grow) {
     const dens = grow ? this.kelpDens() : 1;
     const tall = grow ? 1 + KELP_GROWTH.HEIGHT * this.lifeV : 1;
-    const pi = pf === LAYERS.FAR.PF ? 1 : 0;
+    const pk = pf === LAYERS.FAR.PF ? 'far' : 'near';
     const floor = this.planeFloor(pf);
     const full = strandsInChunk(chunk, spec, 1 + KELP_GROWTH.DENSITY);
     const n = Math.round(spec.perChunk * dens);
     for (let i = 0; i < Math.min(n, full.length); i++) {
       const s = full[i];
-      const rootY = floor - this.terrainRise(s.x, pi) + 6;
+      const rootY = floor - this.terrainRise(s.x, pk) + 6;
       this.pushStrand(verts, s.x - origin, rootY, s.h * REF_H * tall, s.hw, s.ph, s.shade * 0.5);
     }
   }
 
-  // Rolling seafloor silhouette (docs/09): heightfield strip over the chunk.
-  buildTerrainChunk(verts, chunk, origin, pi) {
+  // Rolling seafloor silhouette (docs/09, keyed per plane since docs/10).
+  buildTerrainChunk(verts, chunk, origin, pk) {
     const dpr = this.dpr;
-    const pf = pi === 1 ? LAYERS.FAR.PF : LAYERS.NEAR.PF;
+    const pf = pk === 'main' ? 1 : (pk === 'far' ? LAYERS.FAR.PF : LAYERS.NEAR.PF);
     const floor = this.planeFloor(pf);
     const x0 = chunk * SEA.CHUNK_W, x1 = (chunk + 1) * SEA.CHUNK_W;
     for (let x = x0; x <= x1 + 0.1; x += TERR_SEG) {
-      const top = floor - this.terrainRise(x, pi);
-      const shade = 0.25 + 0.3 * terrainShape(x * 0.31 + 999, TERRAIN.SALT[pi] + 3);
+      const top = floor - this.terrainRise(x, pk);
+      const shade = 0.25 + 0.3 * terrainShape(x * 0.31 + 999, TERRAIN.SALT[pk] + 3);
       const xr = (x - origin) * dpr;
       if (x === x0 && verts.length) {
         const p = verts.length;
@@ -532,16 +604,16 @@ export class Water {
 
   // Corals: short wide tufts on the terrain, growing in with LIFE (count
   // scales directly — the terrain is barren early, gardened late).
-  buildCoralChunk(verts, chunk, origin, pi) {
+  buildCoralChunk(verts, chunk, origin, pk) {
     const amt = Math.pow(this.lifeV, 1.2);
     if (amt <= 0) return;
-    const pf = pi === 1 ? LAYERS.FAR.PF : LAYERS.NEAR.PF;
+    const pf = pk === 'far' ? LAYERS.FAR.PF : LAYERS.NEAR.PF;
     const floor = this.planeFloor(pf);
     const list = strandsInChunk(chunk, CORAL_SPEC);
     const n = Math.round(list.length * amt);
     for (let i = 0; i < n; i++) {
       const s = list[i];
-      const rootY = floor - this.terrainRise(s.x, pi) + 4;
+      const rootY = floor - this.terrainRise(s.x, pk) + 4;
       this.pushStrand(verts, s.x - origin, rootY, s.h * REF_H, s.hw, s.ph, 0.8 + s.shade * 0.2);
     }
   }
@@ -565,7 +637,7 @@ export class Water {
   // Silhouette fauna for one parallax plane (docs/07): a school of dim dots
   // around the wandering anchor + soft pulsing jelly blobs. Counts scale with
   // LIFE. Blend is already enabled by the plane pass. Camera-relative upload.
-  drawPlaneFauna(pi, cfg, rw, rh, cam, t) {
+  drawPlaneFauna(pi, cfg, rw, rh, cam, t, sizeMul = 1) {
     const gl = this.gl, dpr = this.dpr, pl = this.planes[pi === 0 ? 0 : 1];
     const cx = cam.x * cfg.PF, cy = cam.y * cfg.PF;
     const nDots = Math.round(PLANE_MINNOWS[pi] * this.lifeV);
@@ -577,7 +649,7 @@ export class Water {
         const a = t * 0.5 + d.seed;
         pd[n++] = (pl.school.x + Math.cos(a) * d.r - cx) * dpr;
         pd[n++] = (pl.school.y + Math.sin(a) * d.r * 0.55 - cy) * dpr;
-        pd[n++] = PLANE_DOT_SIZE[pi] * dpr;
+        pd[n++] = Math.max(1, PLANE_DOT_SIZE[pi] * dpr * sizeMul);
         pd[n++] = PLANE_DOT_ALPHA[pi] * (0.7 + 0.3 * Math.sin(t * 1.1 + d.seed * 3));
         pd[n++] = 3;   // dark silhouette kind — not a mote
       }
@@ -802,6 +874,64 @@ export class Water {
     }
   }
 
+  bindKelpProg(cam, t, rw, rh) {
+    const gl = this.gl, dpr = this.dpr;
+    gl.useProgram(this.kelpProg);
+    gl.enableVertexAttribArray(this.loc.kelp.xy);
+    gl.enableVertexAttribArray(this.loc.kelp.aux);
+    gl.uniform2f(this.loc.kelp.res, rw, rh);
+    gl.uniform2f(this.loc.kelp.eel, (this.eelX - cam.x) * dpr, (this.eelY - cam.y) * dpr);
+    gl.uniform1f(this.loc.kelp.t, t);
+    gl.uniform1f(this.loc.kelp.dpr, dpr);
+    gl.uniform1f(this.loc.kelp.worldH, this.worldH * dpr);
+    gl.uniform1f(this.loc.kelp.tip, KELP_TIP_LIGHT);
+    gl.uniform2f(this.loc.kelp.jit, 0, 0);   // the jitter taps retired (docs/10)
+  }
+
+  strip(L, push, dim, colFar, colNear, alpha, cam) {
+    if (!L.verts) return;
+    const gl = this.gl, dpr = this.dpr;
+    gl.bindBuffer(gl.ARRAY_BUFFER, L.buf);
+    gl.vertexAttribPointer(this.loc.kelp.xy, 2, gl.FLOAT, false, 20, 0);
+    gl.vertexAttribPointer(this.loc.kelp.aux, 3, gl.FLOAT, false, 20, 8);
+    // float64 in JS: origin − planeCam stays view-sized forever (docs/09)
+    gl.uniform2f(this.loc.kelp.off,
+      (L.origin - cam.x * L.pf) * dpr, -cam.y * L.pf * dpr);
+    gl.uniform1f(this.loc.kelp.push, push);
+    gl.uniform1f(this.loc.kelp.dim, dim);
+    gl.uniform1f(this.loc.kelp.alpha, alpha);
+    gl.uniform3f(this.loc.kelp.colFar, colFar[0], colFar[1], colFar[2]);
+    gl.uniform3f(this.loc.kelp.colNear, colNear[0], colNear[1], colNear[2]);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, L.verts);
+  }
+
+  // One behind-plane's strips (terrain, corals, kelp) in its fog tones.
+  // The far plane takes an EXTRA pull toward the water color (LAYERS.FAR.FOG,
+  // docs/10) — depth reads as haze, not blur (the blur routine was removed).
+  drawPlaneEntries(key, cfg, cam, alpha) {
+    const lp = this.lightP;
+    const mix3 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+    const fog = c => (cfg.FOG ? mix3(c, lp.deep, cfg.FOG) : c);
+    const terrA = fog(mix3(lp.deep, lp.surface, TERR_FOG));
+    const terrB = fog(mix3(lp.deep, lp.surface, TERR_FOG * 0.45));
+    const Ls = this.layers;
+    let entries;
+    if (key === 'far') {
+      const vis = WALL_FOG_BASE + WALL_FOG_LIFE * this.lifeV;
+      const kA = fog(mix3(lp.deep, KELP_COL_FAR, vis));
+      const kB = fog(mix3(lp.deep, KELP_COL_NEAR, vis));
+      const cC = fog(mix3(lp.deep, CORAL_COL, vis + 0.15));
+      entries = [[Ls.terrFar, terrA, terrB], [Ls.coralFar, cC, cC], [Ls.wall, kA, kB]];
+    } else {
+      const vis = NEAR_FOG_BASE + NEAR_FOG_LIFE * this.lifeV;
+      const kA = mix3(lp.deep, KELP_COL_FAR, vis);
+      const kB = mix3(lp.deep, KELP_COL_NEAR, vis);
+      const cC = mix3(lp.deep, CORAL_COL, vis + 0.15);
+      entries = [[Ls.terrNear, terrA, terrB], [Ls.coralNear, cC, cC], [Ls.nearK, kA, kB]];
+    }
+    for (const [L, cA, cB] of entries) this.strip(L, 0, lp.kelpDim, cA, cB, alpha, cam);
+  }
+
   render(cam) {
     if (!this.ok) return;
     const gl = this.gl, dpr = this.dpr;
@@ -830,77 +960,31 @@ export class Water {
     gl.uniform1f(this.loc.bg.shim, lp.shim);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-    // 2. strips: behind-planes (terrain + corals + kelp, fake-blurred),
-    //    then the main forest. All placed via u_off (docs/09).
-    const bindKelpProg = () => {
-      gl.useProgram(this.kelpProg);
-      gl.enableVertexAttribArray(this.loc.kelp.xy);
-      gl.enableVertexAttribArray(this.loc.kelp.aux);
-      gl.uniform2f(this.loc.kelp.res, rw, rh);
-      gl.uniform2f(this.loc.kelp.eel, (this.eelX - cam.x) * dpr, (this.eelY - cam.y) * dpr);
-      gl.uniform1f(this.loc.kelp.t, t);
-      gl.uniform1f(this.loc.kelp.dpr, dpr);
-      gl.uniform1f(this.loc.kelp.worldH, this.worldH * dpr);
-      gl.uniform1f(this.loc.kelp.tip, KELP_TIP_LIGHT);
-    };
-    bindKelpProg();
-    const strip = (L, push, dim, colFar, colNear, alpha, jx, jy) => {
-      if (!L.verts) return;
-      gl.bindBuffer(gl.ARRAY_BUFFER, L.buf);
-      gl.vertexAttribPointer(this.loc.kelp.xy, 2, gl.FLOAT, false, 20, 0);
-      gl.vertexAttribPointer(this.loc.kelp.aux, 3, gl.FLOAT, false, 20, 8);
-      // float64 in JS: origin − planeCam stays view-sized forever (docs/09)
-      gl.uniform2f(this.loc.kelp.off,
-        (L.origin - cam.x * L.pf) * dpr, -cam.y * L.pf * dpr);
-      gl.uniform2f(this.loc.kelp.jit, jx || 0, jy || 0);
-      gl.uniform1f(this.loc.kelp.push, push);
-      gl.uniform1f(this.loc.kelp.dim, dim);
-      gl.uniform1f(this.loc.kelp.alpha, alpha);
-      gl.uniform3f(this.loc.kelp.colFar, colFar[0], colFar[1], colFar[2]);
-      gl.uniform3f(this.loc.kelp.colNear, colNear[0], colNear[1], colNear[2]);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, L.verts);
-    };
-    // fog tones: silhouettes sit between the water color and their own hue
-    const mix3 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
-    const terrA = mix3(lp.deep, lp.surface, TERR_FOG);
-    const terrB = mix3(lp.deep, lp.surface, TERR_FOG * 0.45);
-    const wallVis = WALL_FOG_BASE + WALL_FOG_LIFE * this.lifeV;
-    const wallA = mix3(lp.deep, KELP_COL_FAR, wallVis);
-    const wallB = mix3(lp.deep, KELP_COL_NEAR, wallVis);
-    const nearVis = NEAR_FOG_BASE + NEAR_FOG_LIFE * this.lifeV;
-    const nearA = mix3(lp.deep, KELP_COL_FAR, nearVis);
-    const nearB = mix3(lp.deep, KELP_COL_NEAR, nearVis);
-    const coralFarC = mix3(lp.deep, CORAL_COL, wallVis + 0.15);
-    const coralNearC = mix3(lp.deep, CORAL_COL, nearVis + 0.15);
-
+    // 2. strips: the behind-planes drawn sharp with their fog tones (far
+    //    first, deepest), then the main forest. All placed via u_off (docs/09).
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    const planeStrips = (cfg, entries) => {
-      const a = cfg.ALPHA / cfg.TAPS;
-      for (let k = 0; k < cfg.TAPS; k++) {
-        const jx = BLUR_JIT[k][0] * cfg.BLUR * dpr, jy = BLUR_JIT[k][1] * cfg.BLUR * dpr;
-        for (const [L, cA, cB] of entries) {
-          strip(L, 0, lp.kelpDim, cA, cB, a, jx, jy);
-        }
-      }
-    };
-    // far plane first (deepest), then its fauna; then the near-behind plane
-    const Ls = this.layers;
-    planeStrips(LAYERS.FAR, [[Ls.terrFar, terrA, terrB],
-                             [Ls.coralFar, coralFarC, coralFarC],
-                             [Ls.wall, wallA, wallB]]);
+    this.bindKelpProg(cam, t, rw, rh);
+    this.drawPlaneEntries('far', LAYERS.FAR, cam, LAYERS.FAR.ALPHA);
     this.drawPlaneFauna(1, LAYERS.FAR, rw, rh, cam, t);
-    bindKelpProg();   // fauna switched programs
-    planeStrips(LAYERS.NEAR, [[Ls.terrNear, nearA, nearB],
-                              [Ls.coralNear, coralNearC, coralNearC],
-                              [Ls.nearK, nearA, nearB]]);
+    this.bindKelpProg(cam, t, rw, rh);   // fauna switched programs
+    this.drawPlaneEntries('near', LAYERS.NEAR, cam, LAYERS.NEAR.ALPHA);
     this.drawPlaneFauna(0, LAYERS.NEAR, rw, rh, cam, t);
 
-    // main forest: opaque, eel-parted, unblurred
+    // main forest: opaque, eel-parted, sharp — the seafloor roll first
+    // (docs/10), then kelp and grass over it.
     gl.disable(gl.BLEND);
-    bindKelpProg();
-    strip(Ls.kelp, this.eelPush, lp.kelpDim, KELP_COL_FAR, KELP_COL_NEAR, 1, 0, 0);
-    strip(Ls.grass, this.eelPush, lp.kelpDim, GRASS_COL_A, GRASS_COL_B, 1, 0, 0);
+    this.bindKelpProg(cam, t, rw, rh);
+    const mix3 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+    // main floor gets its OWN visibility, well above the far-plane fog tones:
+    // the abyss veil eats most contrast down there, and a subtle water-mix
+    // read as no floor at all (Matt, 2026-07-05) — these are real dune tones
+    const terrMainA = mix3(lp.deep, lp.surface, 0.42);
+    const terrMainB = mix3(lp.deep, lp.surface, 0.20);
+    const Ls = this.layers;
+    this.strip(Ls.terrMain, 0, lp.kelpDim, terrMainA, terrMainB, 1, cam);
+    this.strip(Ls.kelp, this.eelPush, lp.kelpDim, KELP_COL_FAR, KELP_COL_NEAR, 1, cam);
+    this.strip(Ls.grass, this.eelPush, lp.kelpDim, GRASS_COL_A, GRASS_COL_B, 1, cam);
 
     // 3. particles — uploaded camera-relative (docs/09)
     let n = 0;

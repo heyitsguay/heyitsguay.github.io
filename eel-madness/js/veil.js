@@ -53,11 +53,31 @@ export class Veil {
     this.el.style.background = `linear-gradient(to bottom, ${stops.join(', ')})`;
   }
 
-  update(camY, light) {
+  update(camY, light, hole) {
     if (Math.abs(light - this.lastLight) > VEIL.REBUILD_EPS) {
       this.rebuild(light);
       this.lastLight = light;
     }
     this.el.style.transform = `translateY(${(-camY * this.zoom).toFixed(1)}px)`;
+
+    // The eel light (P4 follow-up, docs/10): a soft radial MASK HOLE in the
+    // veil around the eel — where the mask's alpha drops, the veil thins and
+    // the world underneath genuinely brightens (unlike the cut glow blob,
+    // which painted light on top of crushed pixels). hole = {x, y, r, a} in
+    // ELEMENT-LOCAL px (x = screen x, y = world y × zoom), a = core relief.
+    if (hole && hole.a > 0.005) {
+      const core = (1 - hole.a).toFixed(3);
+      const mid = (1 - hole.a * 0.55).toFixed(3);
+      const m = `radial-gradient(circle ${hole.r.toFixed(0)}px at `
+        + `${hole.x.toFixed(0)}px ${hole.y.toFixed(0)}px, `
+        + `rgba(0,0,0,${core}) 0%, rgba(0,0,0,${mid}) 55%, rgb(0,0,0) 100%)`;
+      this.el.style.webkitMaskImage = m;
+      this.el.style.maskImage = m;
+      this.holeOn = true;
+    } else if (this.holeOn) {
+      this.holeOn = false;
+      this.el.style.webkitMaskImage = '';
+      this.el.style.maskImage = '';
+    }
   }
 }

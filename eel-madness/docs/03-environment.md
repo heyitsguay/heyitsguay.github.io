@@ -31,10 +31,20 @@ plane in `<g id="fg">` after the eel (js/fgplane.js) — it occludes the eel and
 under the veil, so the single lighting authority holds by construction. Pooled path
 elements, chunk-seeded strands, sway = a small per-frame rotation about the root.
 
+**P4 amendment (docs/10):** plane BLUR is gone entirely — the jitter-tap fake was
+retired for an FBO depth-of-field pass, three variants of which all read badly
+(flicker, ghosting — the saga is logged in docs/10), so the whole routine was
+deleted and the no-framebuffer rule below stands unbroken. Depth is faked with
+**fog** instead: `LAYERS.FAR.FOG` pulls the far plane's palette an extra fraction
+toward the water color; planes draw sharp. Also P4: **every plane has seafloor
+terrain** — front (SVG sliver, lowest), main (GL, rolling dunes), near, far
+(highest) — per-plane amplitude/shape keyed in `tuning.TERRAIN` (`AMP`, `POW`).
+
 Each behind-plane is **inhabited**: a school of dim silhouette minnow-dots orbiting a
 wandering anchor (the point shader) and one or two soft pulsing jelly blobs (the
 pulse shader, additive) — all wrapping around the plane-space camera window like
-motes, with counts scaling on the LIFE axis.
+motes, with counts scaling on the LIFE axis. Plane fauna renders into the plane's
+offscreen pass, so it blurs with its plane.
 
 **All strip geometry is chunked and seeded** (docs/09): strands/terrain generate per
 960-px chunk from deterministic streams (worldgen.js), and each layer's vertex buffer
@@ -162,6 +172,8 @@ shader source strings next to the effect they shape.
 ## Deliberate exclusions (PoC)
 
 - No textures, no framebuffers/post-processing, no SVG filters (blur on an animated path is
-  the classic mobile perf trap).
+  the classic mobile perf trap). A P4 depth-of-field FBO briefly broke this rule
+  and was removed after three bad-looking variants (docs/10) — background depth
+  is fog, not blur. The rule stands.
 - Water does not distort the eel (would require rendering the SVG into the GL pipeline —
   revisit only if the hybrid layering ever feels flat).

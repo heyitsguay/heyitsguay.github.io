@@ -16,6 +16,10 @@ export const AXES = {
   life: { K: 13.5, color: [0.48, 0.90, 0.50], label: 'LIFE' },        // spring green
   worldMagic: { K: 2.7, color: [0.55, 0.50, 0.95], label: 'WORLD MAGIC' }, // violet-teal
   eelMagic: { K: 9.15, color: [1.00, 0.55, 0.75], label: 'EEL MAGIC' },    // rose-pink
+  // LOVE (P4, docs/10): charged by GREETING, not food — K is the least
+  // calibrated of the five (greeting is optional play): first guess assumes
+  // ~60 responder-greets/session at GREET.LOVE_PER.
+  love: { K: 20, color: [1.00, 0.40, 0.32], label: 'LOVE' },          // warm coral-red
 };
 
 // ---- The infinite sea (docs/09) --------------------------------------------
@@ -118,7 +122,8 @@ export const SPECIES = {
 // Befriended-follow rubberbanding (docs/07 "Saying hello"): followers run
 // slightly faster than the eel when far, easing to slightly slower up close.
 export const FOLLOW = {
-  T: 9,          // s of following after a greet
+  T: 12,         // s of following after a greet (+33%, 2026-07-05 — every
+                 // greet response lasts longer)
   NEAR: 90,      // px — at/inside this, speed target is SLOW × eel speed
   FAR: 260,      // px — at/beyond this, FAST × eel speed
   SLOW: 0.90, FAST: 1.05,   // gentle rubberband — drifting escorts, not darts
@@ -193,8 +198,18 @@ export const LEVEL_NOTES = {
     4: 'A touch of makeup',
     8: { text: 'SPEED BURST — hold Shift (or a second finger) to sprint!', guide: true },
     12: 'Longer lashes',
+    14: { text: 'EEL LIGHT — you glow softly; hold J (or ✦) to flare!', guide: true },
     18: 'Makeup hues start dancing',
     30: 'Fully fabulous',
+  },
+  love: {   // charged by greeting (docs/10) — flavor stays vague where no mechanic exists yet
+    1: 'The sea warms to you',
+    2: 'Friends greet you first sometimes',
+    6: 'Warm currents follow you',
+    12: 'The water feels friendlier',
+    18: 'Hearts come easier',
+    24: 'A sea full of friends',
+    30: 'Beloved by the sea',
   },
 };
 
@@ -218,6 +233,12 @@ export const FOODS = {
     rarity: 3, fall: 5, sway: 2, axis: 'light', amount: 1.0 },
   greens: { asset: 'assets/food_greens.png', size: [60, 40],
     rarity: 3, fall: 6, sway: 3, axis: 'life', amount: 1.1 },
+  // The red beans & rice PATCH (P4, docs/10): one spawn = a drifting cloud of
+  // individual grains the eel swoops through like a whale through krill.
+  // amount is PER GRAIN; grains are procedural SVG (no asset). Rare on
+  // purpose — the many-particle rendering stays an event, not a load.
+  beansrice: { size: [120, 74], rarity: 1, fall: 2, sway: 2, axis: 'life', amount: 0.09,
+    patch: { grains: 106, beanFrac: 0.45, rx: 66, ry: 41 } },   // dispersion +~13% (Matt)
 };
 
 // 1–10 scale → world units (food v2 consumes these; see docs/07)
@@ -227,6 +248,51 @@ export const SWAY_MAP = s => lerp(4, 50, (s - 1) / 9);    // px lateral amplitud
 // Global progression damper: axis grants are amount × this (the CSV amounts
 // above stay authored as-is; lots of food falls, each bite counts for less).
 export const AMOUNT_SCALE = 0.25;
+
+// ---- Food grades (P4, docs/10) ----------------------------------------------
+// Every spawned item rolls a grade, independent of the rarity spawn weight:
+// the grade multiplies the eat's progression grant (and with it the eat FX).
+// Tells while falling are RENDER-ONLY (physics/probe/eat use true positions):
+// rare+ buzzes (smoothed random jitter); legendary also throbs — a size pulse
+// that dwells at rest for most of its period, then swells and settles over a
+// shorter window (NOT a sine — docs/07 P4 item 2).
+export const GRADES = {
+  P: { rare: 0.10, legendary: 0.02 },   // common = the rest
+  MUL: { common: 1, rare: 2.5, legendary: 6 },
+  BUZZ_A: 2.4,        // px — jitter amplitude
+  BUZZ_TAU: 0.05,     // s — jitter smoothing (lightly smoothed, not teleporty)
+  THROB_T: 1.7,       // s — full throb period
+  THROB_DUTY: 0.28,   // fraction of the period that is the active swell
+  THROB_A: 0.14,      // peak size swell (fraction of rest size)
+};
+
+// ---- Food combos (P4, docs/10) -----------------------------------------------
+// Eats within WINDOW of each other chain; patch grains refresh the window but
+// don't increment. The reward is a PLACEHOLDER (charge boost stamina) — it
+// lives behind comboReward() in main.js and WILL change; the feel is settled:
+// counter popups ("2x".."4x", "5x!"+) + escalating eat FX + a wiggle surge.
+export const COMBO = {
+  WINDOW: 2.2,        // s between eats to keep the chain
+  BANG_AT: 5,         // exclamation mark from this tier up
+  FX_MUL: 0.18,       // extra eat flash/shake per link past the first...
+  FX_CAP: 2.2,        // ...capping the total multiplier
+  SPARKS: 5,          // confetti motes per combo tier (n × this, capped 30)
+  EXCITE: 0.5,        // eel wiggle surge added per link (eel.js eases it out)
+  POP_T: 0.9,         // s — counter popup dwell
+  STAMINA_PER: 0.34,  // placeholder reward: stamina refilled per link (from 2x)
+};
+
+// ---- Rocks + the dressing shaker (P4, docs/10) --------------------------------
+export const ROCKS = {
+  EVERY: 2100,        // px — mean spacing of seeded rocks along the floor
+  R: [48, 88],        // px — rock radius range (~2× — Matt, 2026-07-05)
+  SALT: 33,           // worldgen stream salt
+  SMASH_BOOST: 0.5,   // boost01 needed to shatter...
+  SMASH_SPEED: 250,   // ...at at least this speed (px/s)
+  RESPAWN_H: 24,      // hours until a shattered rock returns (reset also clears)
+  BUFF_T: 60,         // s — dressing buff duration
+  BUFF_MUL: 3,        // greens amount multiplier while buffed
+};
 
 // ---- Progression dials -----------------------------------------------------
 // One shape everywhere: value = max * curve01((axis − threshold) / rampWidth),
@@ -240,8 +306,11 @@ export const DIALS = {
   // only eelMagic's V(1) shifts under K retunes; T(L≥2) rides the universal
   // ladder, FIRST_CAP clamps T(1) alone)
   speedBurst: { axis: 'eelMagic', threshold: 0.30, curve: 'smoothstep', rampWidth: 0.6, max: 1 },
-  // (a baseline eel glow was built here and cut — looked bad; next EEL MAGIC
-  // power after speed burst is TBD, docs/07)
+  // EEL LIGHT (P4 follow-up, docs/10): ambient light radiating gently around
+  // the eel, flareable on J / the touch ✦ button. NOT the old cut glow-blob:
+  // this one is a soft MASK HOLE in the veil itself, so it genuinely reveals
+  // the dark instead of painting over it. Unlocks at EEL MAGIC level 14.
+  eelLight: { axis: 'eelMagic', threshold: 0.47, curve: 'smoothstep', rampWidth: 0.5, max: 1 },
   // EEL MAGIC cosmetics (docs/07): makeup fades in, then its hues start drifting
   makeup: { axis: 'eelMagic', threshold: 0.15, curve: 'smoothstep', rampWidth: 0.45, max: 1 },
   makeupHue: { axis: 'eelMagic', threshold: 0.60, curve: 'linear', rampWidth: 0.35, max: 1 },
@@ -260,6 +329,9 @@ export const DIALS = {
   bgLights: { axis: 'worldMagic', threshold: 0.47, curve: 'sqrt', rampWidth: 0.5, max: 1 },
   // WORLD MAGIC: lantern kelp — bulbs kindling in sequence up seeded strands
   lanternKelp: { axis: 'worldMagic', threshold: 0.55, curve: 'smoothstep', rampWidth: 0.45, max: 1 },
+  // LOVE (docs/10): nearby critters spontaneously greet the eel — full
+  // in-character response, no befriend-follow, no LOVE grant (no feedback loop)
+  spontGreet: { axis: 'love', threshold: 0.08, curve: 'sqrt', rampWidth: 0.8, max: 1 },
   // LIFE: kelp density — the barren sea starts near-bare (docs/09); this dial
   // gates every kelp plane (main, wall, near-behind, front) plus seahorse homes
   kelp: { axis: 'life', threshold: 0.03, curve: 'sqrt', rampWidth: 0.9, max: 1 },
@@ -289,6 +361,32 @@ export const GREET = {
   FLASH_A: 0.045,
   SHAKE: 2.0,
   COLOR: [1.0, 0.616, 0.722],   // #ff9db8 — the eel-heart pink
+  // LOVE earning (P4, docs/10): per responding critter, capped per greet —
+  // the per-critter greet cooldown (6 s) already bounds the farm rate.
+  LOVE_PER: 0.25,
+  LOVE_CAP: 5,   // responders counted per greet
+};
+
+// Spontaneous greeting (P4, docs/10): the LOVE spontGreet dial's mechanics —
+// an on-screen, off-cooldown critter inside RANGE greets the eel first.
+export const SPONT = {
+  RANGE: 200,   // px — a little wider than the player's greet reach
+  RATE: 0.04,   // per-second chance per eligible critter at full dial
+};
+
+// ---- Eel light (P4 follow-up, docs/10) ---------------------------------------
+// The ambient glow: a soft radial mask hole in the darkness veil around the
+// eel — strength/radius ramp with the eelLight dial, and holding the flare
+// swells both plus a cool halo on the glow layer. R in world px; HOLE is how
+// much of the veil the core clears (0..1).
+export const EEL_LIGHT = {
+  R_BASE: 180, R_RAMP: 150,      // ambient radius at unlock → full dial
+  HOLE_BASE: 0.45, HOLE_RAMP: 0.30,   // ambient veil relief at the core
+  FLARE_R: 1.7,                  // radius multiplier at full flare
+  FLARE_HOLE: 0.95,              // core relief at full flare (near-clear)
+  TAU_UP: 0.22, TAU_DOWN: 0.55,  // s — flare ease in/out
+  HALO_A: 0.16,                  // cool glow-layer halo peak opacity at flare
+  HALO_COLOR: 'hsl(190, 90%, 78%)',   // icy cyan — the boost-crackle family
 };
 
 // ---- Speed burst (docs/07): base values + ramps along the speedBurst dial ----
@@ -312,12 +410,19 @@ export const FLOCK = {
   RETARGET: 0.25,    // per-second chance a minnow re-picks its nearest leader
 };
 
-// ---- Parallax planes (docs/03): two BEHIND the main scene (GL, fake-blurred)
-// plus one sharp SVG plane IN FRONT of the eel (fgplane.js, docs/09).
+// ---- Parallax planes (docs/03): two BEHIND the main scene (GL) plus one
+// sharp SVG plane IN FRONT of the eel (fgplane.js, docs/09). RES is the
+// plane's offscreen render resolution (P4 blur FBO, docs/10): the plane
+// renders at RES × canvas size and is bilinearly upsampled — smaller RES =
+// stronger depth-of-field blur. ALPHA is applied at composite time.
+// Background planes draw SHARP. Depth is faked with FOG instead: the far
+// plane's colors pull toward the water color by this extra fraction (docs/10
+// — three blur attempts each read badly and the whole FBO routine was
+// removed, Matt 2026-07-05; the no-framebuffer rule of docs/03 is back).
 export const LAYERS = {
-  NEAR: { PF: 0.72, BLUR: 1.6, TAPS: 2, ALPHA: 0.8 },   // just behind the forest
-  FAR: { PF: 0.40, BLUR: 4.5, TAPS: 3, ALPHA: 0.65 },   // deep background
-  FRONT: { PF: 1.22 },                                  // occludes the eel, sharp
+  NEAR: { PF: 0.72, ALPHA: 0.8 },              // just behind the forest
+  FAR: { PF: 0.40, ALPHA: 0.65, FOG: 0.25 },   // deep background, fogged
+  FRONT: { PF: 1.22 },                         // occludes the eel, sharp
 };
 
 // Kelp growth with the LIFE axis: at LIFE = 1 the forest is denser and taller.
@@ -326,17 +431,23 @@ export const KELP_GROWTH = {
   HEIGHT: 0.35,   // +35% strand height at full LIFE
 };
 
-// ---- Background seafloor terrain (docs/03, docs/09) -------------------------
-// Per behind-plane silhouette terrain: undulation amplitude and base lift
-// above the plane floor. Lives here because it's shared between water.js
-// (GL geometry) and the glow-layer seafloor lights (sparkles.BgLights).
+// ---- Seafloor terrain on EVERY plane (docs/03, docs/09, docs/10) ------------
+// Per-plane silhouette terrain: undulation amplitude and base lift above the
+// plane floor, keyed by plane. Average heights are ordered front (a sliver)
+// → main (low) → near → far (highest, and blurred) — docs/07 P4 item 3.
+// Lives here because it's shared between water.js (GL geometry), fgplane.js
+// (the SVG front sliver), rocks.js (rocks sit ON the main terrain), and the
+// glow-layer seafloor lights (sparkles.BgLights).
 export const TERRAIN = {
   // Rolling floor only — no spires (they read badly and were cut). Heights
   // are FRACTIONS OF THE VIEW HEIGHT; worldgen.terrainShape keeps the roll
-  // mostly low with occasional tall swells (floor→75% usually, 50% rarely).
-  AMP: [0.34, 0.5],   // max rise [0 = near-behind plane, 1 = far plane]
-  BASE: [8, 12],      // px minimum rise above the plane floor
-  SALT: [23, 24],     // worldgen noise salts per plane
+  // mostly low with occasional tall swells. POW shapes the roll per plane:
+  // lower = more mid-height rolling variation (the main floor wants visible
+  // dunes — Matt, 2026-07-05), higher = mostly-flat with rare swells.
+  AMP: { front: 0.045, main: 0.34, near: 0.34, far: 0.5 },
+  BASE: { front: 3, main: 5, near: 8, far: 12 },   // px minimum rise
+  SALT: { front: 25, main: 22, near: 23, far: 24 },
+  POW: { front: 2.6, main: 1.4, near: 2.6, far: 2.6 },   // main: REAL dunes
 };
 
 // ---- Light endpoints (docs/03) ---------------------------------------------

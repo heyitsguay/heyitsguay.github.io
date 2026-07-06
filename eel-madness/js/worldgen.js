@@ -7,7 +7,7 @@
 // CELL_W px), so the world never has to exist anywhere the camera isn't.
 
 import { TAU, lerp } from './math.js';
-import { SEA, TIERS } from './tuning.js';
+import { SEA, TIERS, ROCKS, TERRAIN } from './tuning.js';
 
 // ---- Kelp strand streams (shared: water.js geometry + seahorse anchors) ----
 // Main-plane kelp, per chunk. perChunk is the FULL-LIFE strand count; callers
@@ -62,6 +62,25 @@ export function strandsInChunk(chunk, spec, densMul = 1) {
   return out;
 }
 
+// Kelp strand TYPES (P4, docs/10): drawn from a SIDE hash-stream keyed by
+// (chunk, index) — NOT extra chunk-RNG draws, so the strand stream (and with
+// it determinism, growth supersets, and seahorse anchors) stays byte-
+// identical to pre-P4. Types only land on near-layer strands (the far layer
+// is a dim backdrop). hMul scales the strand's height; every consumer must
+// use h · hMul (water geometry, lanterns skip typed strands entirely).
+const KELP_TYPE_SALT = 61;
+const KELP_SPINDLE_P = 0.08;    // very tall, very narrow, grassy growth nodes
+const KELP_SINUOUS_P = 0.18;    // longer, ribbony, static S-curve
+export const KELP_HMUL = { norm: 1, sinuous: 1.35, spindle: 1.6 };
+
+function strandType(chunk, k, far) {
+  if (far) return 'norm';
+  const t = hash01(chunk * 131 + k, KELP_TYPE_SALT);
+  if (t < KELP_SPINDLE_P) return 'spindle';
+  if (t < KELP_SPINDLE_P + KELP_SINUOUS_P) return 'sinuous';
+  return 'norm';
+}
+
 // Main-plane kelp for one chunk at a given LIFE density multiplier: the
 // full-growth set, sliced to round(base · dens). far = back layer strand.
 export function kelpStrands(chunk, dens = 1) {
@@ -72,6 +91,7 @@ export function kelpStrands(chunk, dens = 1) {
     const far = rng() < KELP_FAR_FRAC;
     const [hMin, hVar] = far ? KELP_H_FAR : KELP_H_NEAR;
     const [wMin, wVar] = far ? KELP_W_FAR : KELP_W_NEAR;
+    const type = strandType(chunk, k, far);
     all.push({
       x: (chunk + rng()) * SEA.CHUNK_W,
       far,
@@ -79,6 +99,8 @@ export function kelpStrands(chunk, dens = 1) {
       hw: wMin + rng() * wVar,
       ph: rng() * TAU,
       shade: far ? 0.15 + rng() * 0.2 : 0.75 + rng() * 0.25,
+      type,
+      hMul: KELP_HMUL[type],
     });
   }
   return all.slice(0, Math.max(0, Math.round(KELP_PER_CHUNK * dens)));
@@ -113,10 +135,38 @@ export function terrain01(x, salt) {
 }
 
 // The shaped floor profile: mostly a low roll, with occasional tall swells —
-// callers scale by their plane's TERRAIN.AMP (a fraction of the view height).
+// callers scale by their plane's TERRAIN.AMP (a fraction of the view height)
+// and shape it with their plane's TERRAIN.POW (docs/10 follow-up: the main
+// floor uses a lower pow for visible rolling dunes).
 const TERRAIN_SHAPE_POW = 2.6;
-export function terrainShape(x, salt) {
-  return Math.pow(terrain01(x, salt), TERRAIN_SHAPE_POW);
+export function terrainShape(x, salt, pow = TERRAIN_SHAPE_POW) {
+  return Math.pow(terrain01(x, salt), pow);
+}
+
+// The main-plane seafloor SURFACE (docs/10): world y of the terrain top at x.
+// The one authority — eel/fish collision, kelp/seagrass roots, lantern bulbs,
+// and rock resting all derive from this. Heights are fractions of the view
+// height (same as the rendering), so the surface shifts slightly on resize.
+export function mainFloorY(x, viewH, worldH) {
+  return worldH + 4 - TERRAIN.BASE.main
+    - terrainShape(x, TERRAIN.SALT.main, TERRAIN.POW.main) * TERRAIN.AMP.main * viewH;
+}
+
+// ---- Rocks on the main-plane seafloor (P4, docs/10) ------------------------
+// Seeded boulders, ~one per ROCKS.EVERY px: deterministic place/size/shape
+// per chunk from their own stream. rocks.js builds the polygon from `seed`
+// and keys shatter persistence by the (rounded) x.
+export function rocksInChunk(chunk) {
+  const rng = chunkRng(chunk, ROCKS.SALT);
+  const out = [];
+  if (rng() < SEA.CHUNK_W / ROCKS.EVERY) {
+    out.push({
+      x: (chunk + rng()) * SEA.CHUNK_W,
+      r: ROCKS.R[0] + rng() * (ROCKS.R[1] - ROCKS.R[0]),
+      seed: rng(),
+    });
+  }
+  return out;
 }
 
 // ---- The spawn tensor's x factor (docs/09) --------------------------------

@@ -1,6 +1,8 @@
 # Levels: discretizing the progression
 
-**Status: landed.** Each axis is quantized into **30 discrete levels** with
+**Status: landed.** (P4 adds a fifth axis, LOVE — greet-charged, docs/10 —
+which rides this whole layer unchanged: thresholds, popups, meters, URL
+`?love=`, and its own `LEVEL_NOTES.love`.) Each axis is quantized into **30 discrete levels** with
 chained "Level Up!" popups announcing material changes. This amends the
 "Continuous axes, no stages" decision in docs/07 — but only at the surface:
 the underlying math (W accumulators, the exp squash, dials, light curves) is

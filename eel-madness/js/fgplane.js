@@ -6,8 +6,8 @@
 // rotate-about-the-root transform per visible strand per frame.
 
 import { lerp } from './math.js';
-import { LAYERS, SEA, DIALS } from './tuning.js';
-import { strandsInChunk } from './worldgen.js';
+import { LAYERS, SEA, DIALS, TERRAIN } from './tuning.js';
+import { strandsInChunk, terrainShape } from './worldgen.js';
 import { progress } from './progress.js';
 
 const REF_H = 1080;            // reference screen height (world sizing unit)
@@ -25,11 +25,26 @@ const COL_A = [5, 18, 13];     // blade darks (rgb) — near-silhouette greens
 const COL_B = [11, 36, 26];
 const PAD = 140;               // px beyond the view before strands (de)pool
 const CACHE_MAX = 12;          // cached chunk strand lists
+// The front seafloor sliver (P4, docs/10): the lowest terrain of all the
+// planes — a thin dark roll occluding the eel's belly at the very bottom.
+const TERR_POOL = 8;           // pooled chunk-terrain paths (covers wide windows)
+const TERR_SEG = 60;           // px between heightfield samples
+const TERR_SINK = 70;          // px the fill extends below the plane floor
+const TERR_FILL = '#04100b';   // darkest silhouette — it's the closest plane
 
 export class FrontPlane {
   constructor(svgRoot) {
     const NS = 'http://www.w3.org/2000/svg';
     this.group = svgRoot.querySelector('#fg');
+    // terrain paths first: strands draw over the floor sliver
+    this.terr = [];
+    for (let i = 0; i < TERR_POOL; i++) {
+      const el = document.createElementNS(NS, 'path');
+      el.setAttribute('display', 'none');
+      el.setAttribute('fill', TERR_FILL);
+      this.group.appendChild(el);
+      this.terr.push({ el, chunk: null });
+    }
     this.pool = [];
     for (let i = 0; i < POOL; i++) {
       const el = document.createElementNS(NS, 'path');
@@ -41,15 +56,30 @@ export class FrontPlane {
     this.time = 0;
     this.floorY = 0;
     this.viewW = 0;
+    this.viewH = 0;
   }
 
   resize(viewW, viewH, worldH) {
     this.viewW = viewW;
+    this.viewH = viewH;
     // plane floor: meets the window bottom when the camera rests on the world
     // floor (docs/09) — depends on the view height, so strands re-path here
     this.floorY = viewH + (worldH - viewH) * LAYERS.FRONT.PF;
     for (const s of this.pool) s.key = null;   // force re-path with new floor
+    for (const tp of this.terr) tp.chunk = null;
     this.cache.clear();
+  }
+
+  // One chunk's floor sliver: a low heightfield polygon (docs/10).
+  terrainPath(chunk) {
+    const x0 = chunk * SEA.CHUNK_W, x1 = (chunk + 1) * SEA.CHUNK_W;
+    let d = `M${x0.toFixed(1)} ${(this.floorY + TERR_SINK).toFixed(1)}`;
+    for (let x = x0; x <= x1 + 0.1; x += TERR_SEG) {
+      const top = this.floorY - TERRAIN.BASE.front
+        - terrainShape(x, TERRAIN.SALT.front, TERRAIN.POW.front) * TERRAIN.AMP.front * this.viewH;
+      d += `L${x.toFixed(1)} ${top.toFixed(1)}`;
+    }
+    return d + `L${x1.toFixed(1)} ${(this.floorY + TERR_SINK).toFixed(1)}Z`;
   }
 
   chunkStrands(chunk) {
@@ -90,10 +120,28 @@ export class FrontPlane {
     this.group.setAttribute('transform',
       `translate(${((1 - pf) * rcam.x).toFixed(1)} ${((1 - pf) * rcam.y).toFixed(1)})`);
 
+    const x0 = rcam.x * pf - PAD, x1 = rcam.x * pf + this.viewW + PAD;
+
+    // the floor sliver (docs/10): one pooled path per visible chunk — static
+    // geometry, so a slot only re-paths when its chunk changes
+    const c0 = Math.floor(x0 / SEA.CHUNK_W), c1 = Math.floor(x1 / SEA.CHUNK_W);
+    for (let i = 0; i < this.terr.length; i++) {
+      const tp = this.terr[i];
+      const c = c0 + i;
+      if (c > c1) {
+        if (tp.chunk !== null) { tp.chunk = null; tp.el.setAttribute('display', 'none'); }
+        continue;
+      }
+      if (tp.chunk !== c) {
+        tp.chunk = c;
+        tp.el.setAttribute('d', this.terrainPath(c));
+        tp.el.setAttribute('display', 'inline');
+      }
+    }
+
     // visible strands in plane space — density gated on LIFE like every
     // other kelp plane (DIALS.kelp, docs/09): the barren sea starts bare
     const dial = progress.dial(DIALS.kelp);
-    const x0 = rcam.x * pf - PAD, x1 = rcam.x * pf + this.viewW + PAD;
     const want = new Map();   // key → strand
     for (let c = Math.floor(x0 / SEA.CHUNK_W); c * SEA.CHUNK_W < x1; c++) {
       const list = this.chunkStrands(c);

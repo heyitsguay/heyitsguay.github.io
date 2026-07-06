@@ -25,7 +25,9 @@ const idle = { active: false, dirX: 0, dirY: 0, throttle: 0, mouth: false };
 let fail = 0;
 const check = (name, ok) => { console.log(ok ? ' ok ' : 'FAIL', name); if (!ok) fail++; };
 
-check('pool sized to Σrarity', food.items.length === Object.values(FOODS).reduce((s, f) => s + f.rarity, 0));
+check('pool sized to Σrarity (patch foods pool separately — docs/10)',
+  food.items.length === Object.values(FOODS).filter(f => !f.patch).reduce((s, f) => s + f.rarity, 0)
+  && food.patches.length === Object.values(FOODS).filter(f => f.patch).reduce((s, f) => s + f.rarity, 0));
 check('eel spawns near surface', spawnedNearSurface);
 
 // 10 sim-minutes idle: spawn/fall/exit behavior
@@ -90,5 +92,37 @@ if (it2) {
   const ev2 = food.update(dt, eel, cam, VIEW_W, H);
   check('item behind head not eaten', it2.alive && ev2.length === 0);
 }
+
+// ---- The beans & rice patch (docs/10): swoop-through grain eating ----------
+const pcfg = FOODS.beansrice;
+check('beansrice is a patch food', !!(pcfg && pcfg.patch));
+const patch = food.patches[0];
+// force-spawn away from the eel, then park the (tightened) cloud on the mouth
+food.spawnPatch('beansrice', pcfg, eel, { x: eel.x + 3000, y: 0 }, VIEW_W);
+check('patch spawned with all grains alive',
+  patch.alive && patch.grains.every(g => g.alive));
+check('patch grade rolled', ['common', 'rare', 'legendary'].includes(patch.grade));
+// tighten the cloud so every grain sits inside the eat radius, ahead of the mouth
+for (const g of patch.grains) { g.ox *= 0.1; g.oy *= 0.1; }
+eel.mouth = 1;
+let grainEats = 0;
+for (let f = 0; f < 240 && patch.alive; f++) {
+  // keep the cloud pinned just ahead of the mouth: the sim pulls it down each tick
+  patch.x = eel.x + eel.hx * 14; patch.y = eel.y + eel.hy * 14;
+  patch.vy = 0;
+  for (const e of food.update(dt, eel, cam, VIEW_W, H)) {
+    if (e.grain) { grainEats++; if (e.key !== 'beansrice') grainEats = -1e9; }
+  }
+}
+check(`grains eaten individually through the cloud (${grainEats})`,
+  grainEats === pcfg.patch.grains);
+check('all grains eaten → the patch frees its slot', !patch.alive);
+
+// the probe sees grains: a fresh patch ahead of the nose opens the jaw
+food.clear();
+food.spawnPatch('beansrice', pcfg, eel, { x: eel.x + 3000, y: 0 }, VIEW_W);
+patch.x = eel.x + eel.hx * 60; patch.y = eel.y + eel.hy * 60;
+for (const g of patch.grains) { g.x = patch.x + g.ox * 0.2; g.y = patch.y + g.oy * 0.2; }
+check('probe sees patch grains', food.probe(eel) === true);
 
 process.exit(fail ? 1 : 0);

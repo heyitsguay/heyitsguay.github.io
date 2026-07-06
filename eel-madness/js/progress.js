@@ -8,7 +8,7 @@ import { clamp, lerp, curves } from './math.js';
 import { AXES, LEVELS } from './tuning.js';
 
 const STORE_KEY = 'eel-madness:progress:v1';
-const URL_KEYS = { light: 'light', life: 'life', worldmagic: 'worldMagic', eelmagic: 'eelMagic' };
+const URL_KEYS = { light: 'light', life: 'life', worldmagic: 'worldMagic', eelmagic: 'eelMagic', love: 'love' };
 
 // Cumulative W thresholds T[0..COUNT] for one axis (docs/08): the per-level
 // cost doubles each session band; one unit = 3K / total units, so the last

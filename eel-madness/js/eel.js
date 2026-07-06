@@ -57,6 +57,11 @@ const TAU_BOOST_DOWN = 0.5;   // s — ease back to normal
 const BOOST_WIG_F = 0.5;      // extra wave frequency at full burst
 const BOOST_WIG_A = 0.45;     // extra wave amplitude at full burst
 
+// Combo excitement (docs/10): excite() spikes this and it eases out — a brief
+// wiggle-amplitude surge so the eel itself looks thrilled by a food combo.
+const EXCITE_TAU = 0.8;       // s — surge decay
+const EXCITE_WIG_A = 0.5;     // extra wave amplitude at full excitement
+
 // Side roll (which side of the spine the face is on)
 const SIDE_FLIP_MIN = 0.15;   // |heading·x| needed before the face picks a side
 const TAU_SIDE = 0.18;        // s — how fast the eye/wig roll across on a turn
@@ -260,10 +265,16 @@ export class Eel {
     this.boost01 = 0;       // eased burst factor (main reads it for sparks)
     this.boostOn = false;
     this.makeupOn = false;
+    this.excite01 = 0;      // combo excitement (docs/10), eases out on its own
   }
 
   setMagic(m) {
     Object.assign(this.magic, m);
+  }
+
+  // A combo link landed (docs/10): surge the wiggle briefly.
+  excite(amt) {
+    this.excite01 = Math.min(1, this.excite01 + amt);
   }
 
   resize(worldH) {
@@ -287,15 +298,24 @@ export class Eel {
     this.placed = true;
   }
 
-  update(dt, intent, worldH) {
+  // floorAt (optional, docs/10): world y of the SOLID seafloor at an x — the
+  // main-plane terrain surface. Falls back to the flat world floor (headless
+  // tests, and any caller that doesn't care).
+  update(dt, intent, worldH, floorAt) {
+    if (typeof floorAt !== 'function') floorAt = null;   // legacy 4-arg callers
     this.dt = dt;   // wig physics runs in render(), after the spine exists
     this.time += dt;
     // Soft wall avoidance at the surface and floor — the sea is infinite in x
-    // (docs/09), so there are no side walls.
+    // (docs/09), so there are no side walls. The floor is the TERRAIN (docs/10):
+    // sampled under the head and a beat ahead of it, so the eel steers up a
+    // dune face before its nose meets it.
+    const floorLimit = floorAt
+      ? Math.min(floorAt(this.x), floorAt(this.x + this.hx * 80))
+      : worldH;
     let pushY = 0;
     const pushX = 0;
     if (this.y < WALL_MARGIN) pushY += (WALL_MARGIN - this.y) / WALL_MARGIN;
-    if (this.y > worldH - WALL_MARGIN) pushY -= (this.y - (worldH - WALL_MARGIN)) / WALL_MARGIN;
+    if (this.y > floorLimit - WALL_MARGIN) pushY -= (this.y - (floorLimit - WALL_MARGIN)) / WALL_MARGIN;
 
     let steerX = 0, steerY = 0, steering = false;
     if (intent.active) {
@@ -324,6 +344,7 @@ export class Eel {
     if (this.boostOn) this.stamina = Math.max(0, this.stamina - dt / this.magic.boostDur);
     else this.stamina = Math.min(1, this.stamina + dt / BOOST_RECHARGE);
     const boostF = 1 + this.magic.boostAmt * this.boost01;
+    this.excite01 *= Math.exp(-dt / EXCITE_TAU);   // combo surge fades on its own
 
     // Rate-limited turning: direction changes are arcs, never snaps. A burst
     // trades agility for speed — turn rate drops by the boost factor (docs/02).
@@ -361,7 +382,9 @@ export class Eel {
     this.prevSin = s;
     this.x += hx * this.speed * dt - hy * dLat;
     this.y += hy * this.speed * dt + hx * dLat;
-    this.y = clamp(this.y, EDGE_CLAMP, worldH - EDGE_CLAMP);
+    // hard clamp: surface above, the terrain surface below (docs/10)
+    const floorHard = floorAt ? floorAt(this.x) : worldH;
+    this.y = clamp(this.y, EDGE_CLAMP, floorHard - EDGE_CLAMP);
 
     // Chain: each point trails the previous at fixed length, bend-limited.
     this.px[0] = this.x; this.py[0] = this.y;
@@ -401,9 +424,9 @@ export class Eel {
     const { px, py, rx, ry, nx, ny, ox, oy } = this;
 
     // Rendered spine = chain + traveling wave along chain normals (the wave
-    // swells during a speed burst).
+    // swells during a speed burst, and briefly during a combo surge).
     const amp = this.ws * (AMP_BASE + AMP_SLOPE * this.speedSm)
-      * (1 + BOOST_WIG_A * this.boost01);
+      * (1 + BOOST_WIG_A * this.boost01 + EXCITE_WIG_A * this.excite01);
     for (let i = 0; i < N; i++) {
       const j0 = Math.max(i - 1, 0), j1 = Math.min(i + 1, N - 1);
       let tx = px[j1] - px[j0], ty = py[j1] - py[j0];

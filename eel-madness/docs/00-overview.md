@@ -55,6 +55,11 @@ swimming through a living underwater scene, controlled by keyboard or touch.
   chained level-up popups, quantization over the continuous axes.
 - [09-infinite-sea.md](09-infinite-sea.md) — the procedurally infinite world: seeded
   chunks, the spawn tensor (depth bands × x hotspots × damping), P3 critters.
+- [10-p4.md](10-p4.md) — the P4 build: food grades, combos + stamina bar, the
+  beans & rice patch, the LOVE axis, seafloor on every plane (far-plane fog),
+  rocks + the dressing shaker, new kelp types, the eel light.
+- [11-revamp-notes.md](11-revamp-notes.md) — initial direction notes (not a
+  spec) for the exploration/tunnels/light-management overhaul.
 
 ## Current scope
 

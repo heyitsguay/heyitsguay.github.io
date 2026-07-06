@@ -6,19 +6,22 @@
 // touch devices the camera is zoomed out (MOBILE.ZOOM): the view spans
 // W/zoom x H/zoom world px. The eel's position persists across sessions.
 
-import { initInput, getIntent, consumeGreet, getBoost } from './input.js';
+import { initInput, getIntent, consumeGreet, getBoost, getFlare } from './input.js';
 import { Eel } from './eel.js';
 import { Food } from './food.js';
 import { Water } from './water.js';
 import { Veil } from './veil.js';
 import { Critters } from './critters.js';
 import { Hearts } from './hearts.js';
-import { Sparkles, BgLights, Lanterns } from './sparkles.js';
+import { Sparkles, BgLights, Lanterns, StaminaBar, EelHalo } from './sparkles.js';
 import { FrontPlane } from './fgplane.js';
+import { Rocks } from './rocks.js';
 import { initUI } from './ui.js';
 import { progress } from './progress.js';
-import { AXES, FOODS, MOBILE, AMOUNT_SCALE, DIALS, GREET, BOOST, EAT_FX, LEVELS, lightParams } from './tuning.js';
+import { AXES, FOODS, MOBILE, AMOUNT_SCALE, DIALS, GREET, BOOST, EAT_FX, LEVELS,
+  GRADES, COMBO, ROCKS, EEL_LIGHT, lightParams } from './tuning.js';
 import { clamp, lerp, expApproach } from './math.js';
+import { mainFloorY } from './worldgen.js';
 
 // Depth of the water column (3 reference screens); x is unbounded.
 const WORLD_H = 3240;
@@ -43,7 +46,27 @@ const sparkles = new Sparkles(glowSvg);
 const bgLights = new BgLights(glowSvg);
 const lanterns = new Lanterns(glowSvg);
 const fg = new FrontPlane(svg);
+const rocks = new Rocks(svg, glowSvg);
+const stamBar = new StaminaBar(glowSvg);
+const eelHalo = new EelHalo(glowSvg);
 let uiGreet = false;
+let uiFlare = false;   // the touch ✦ button's held state (docs/10)
+let flare01 = 0;       // eased eel-light flare factor
+
+// Food combos (docs/10): eats within COMBO.WINDOW chain; the counter drives
+// popups, escalating FX, and the (placeholder) reward below.
+let comboN = 0, comboT = 0;
+// The dressing buff (docs/10): greens grants ×ROCKS.BUFF_MUL while > 0.
+let greensBuffT = 0;
+const cssColor = c => `rgb(${c.map(v => Math.round(v * 255)).join(',')})`;
+
+// COMBO REWARD — PLACEHOLDER (docs/10): charge boost stamina. The real reward
+// is TBD (Matt); whatever it becomes, keep it inside this one function.
+function comboReward(n) {
+  eel.stamina = Math.min(1, eel.stamina + COMBO.STAMINA_PER);
+  stamBar.flash();
+  void n;
+}
 
 // Title screen + attract mode (docs/08): the sea plays itself at full dials
 // (EEL MAGIC stays 0 — the powers are the surprise) behind the menu — the
@@ -68,11 +91,14 @@ const ui = initUI({
     hearts.clear();
     sparkles.clear();
     water.clear();
+    rocks.clear();   // every rock back (docs/10)
+    comboN = 0; comboT = 0; greensBuffT = 0;
     const [tx, ty] = cameraTarget();
     cam.x = tx; cam.y = ty;   // snap home — no cross-sea camera sweep
     try { localStorage.removeItem(POS_KEY); } catch { /* private mode */ }
   },
   onGreet: () => { uiGreet = true; },
+  onFlare: held => { uiFlare = held; },
   // Start: leave the attract sea — blank slate, real dials, the eel back
   // where the save left it (the attract cruise moved it).
   onStart: () => {
@@ -148,6 +174,10 @@ function screenFeedback(color, flashPeak, shakePeak) {
 let W = 0, H = 0;             // window, CSS px
 let viewW = 0, viewH = 0;     // visible world span (window / ZOOM)
 const cam = { x: 0, y: 0 };
+
+// The SOLID seafloor (docs/10): the main-plane terrain surface at an x —
+// the eel and the fish collide with this, and flora roots on it.
+const floorAt = x => mainFloorY(x, viewH, WORLD_H);
 
 function cameraTarget() {
   const tx = eel.x + eel.hx * CAM_LOOKAHEAD * eel.speedSm - viewW / 2;
@@ -256,33 +286,63 @@ function frame(now) {
     });
   }
 
-  eel.update(dt, intent, WORLD_H);
+  eel.update(dt, intent, WORLD_H, floorAt);
   // (the boost's electric crackle is emitted inside sparkles.update — glow
   // layer, so it shines through the veil in dark water)
 
+  // Combo window (docs/10): the chain dies when the window closes.
+  comboT = Math.max(0, comboT - dt);
+  if (comboT === 0) comboN = 0;
+  greensBuffT = Math.max(0, greensBuffT - dt);
+
   const eaten = food.update(dt, eel, cam, viewW, WORLD_H, water);
   for (const e of eaten) {
-    water.burst(e.x, e.y);
     const f = FOODS[e.key];
-    if (f) {
-      let mul = 1;
-      if (!titleMode) {   // attract-mode bites are theater — no save writes
-        progress.add(f.axis, f.amount * AMOUNT_SCALE);
-        // Level-ups from this bite (docs/08): chained popups + axis-colored
-        // confetti, and the eat's own flash + shake hit LEVELUP_MUL harder
-        // (applied after the caps so the boost always reads).
-        const ups = progress.consumeLevelUps();
-        for (const lu of ups) {
-          ui.levelUp(lu);
-          sparkles.burst(eel.x, eel.y - 26, AXES[lu.axis].color, LEVELS.SPARKS);
-        }
-        if (ups.length) mul = EAT_FX.LEVELUP_MUL;
-      }
-      water.pulse(eel.x, eel.y, AXES[f.axis].color, f.amount);   // flourish keeps raw scale
-      screenFeedback(AXES[f.axis].color,
-        mul * Math.min(0.22, EAT_FX.FLASH_A + EAT_FX.FLASH_A_AMT * f.amount),
-        mul * Math.min(14, EAT_FX.SHAKE_BASE + EAT_FX.SHAKE_AMT * f.amount));
+    if (!f) continue;
+    // the grant: authored amount × grade (docs/10) × the dressing buff
+    const gradeMul = GRADES.MUL[e.grade] || 1;
+    const buffMul = (e.key === 'greens' && greensBuffT > 0) ? ROCKS.BUFF_MUL : 1;
+    const amt = f.amount * gradeMul * buffMul;
+
+    // Patch grains (docs/10): tiny individual grants and light FX — they
+    // refresh a live combo window but never increment the counter.
+    if (e.grain) {
+      water.burst(e.x, e.y, 2);
+      if (!titleMode) progress.add(f.axis, amt * AMOUNT_SCALE);
+      if (comboN > 0) comboT = COMBO.WINDOW;
+      if (Math.random() < 0.3) water.pulse(e.x, e.y, AXES[f.axis].color, amt * 0.6);
+      continue;
     }
+
+    water.burst(e.x, e.y);
+    let mul = 1;
+    if (!titleMode) {   // attract-mode bites are theater — no save writes
+      progress.add(f.axis, amt * AMOUNT_SCALE);
+      // Level-ups from this bite (docs/08): chained popups + axis-colored
+      // confetti, and the eat's own flash + shake hit LEVELUP_MUL harder
+      // (applied after the caps so the boost always reads).
+      const ups = progress.consumeLevelUps();
+      for (const lu of ups) {
+        ui.levelUp(lu);
+        sparkles.burst(eel.x, eel.y - 26, AXES[lu.axis].color, LEVELS.SPARKS);
+      }
+      if (ups.length) mul = EAT_FX.LEVELUP_MUL;
+      // The combo (docs/10): chain, count, celebrate, reward (placeholder).
+      comboN = comboT > 0 ? comboN + 1 : 1;
+      comboT = COMBO.WINDOW;
+      if (comboN >= 2) {
+        ui.combo(comboN, cssColor(AXES[f.axis].color));
+        sparkles.burst(eel.x, eel.y - 26, AXES[f.axis].color,
+          Math.min(30, COMBO.SPARKS * comboN));
+        eel.excite(COMBO.EXCITE);
+        comboReward(comboN);
+        mul *= Math.min(COMBO.FX_CAP, 1 + COMBO.FX_MUL * (comboN - 1));
+      }
+    }
+    water.pulse(eel.x, eel.y, AXES[f.axis].color, amt);   // flourish rides the graded amount
+    screenFeedback(AXES[f.axis].color,
+      mul * Math.min(0.22, EAT_FX.FLASH_A + EAT_FX.FLASH_A_AMT * amt),
+      mul * Math.min(14, EAT_FX.SHAKE_BASE + EAT_FX.SHAKE_AMT * amt));
   }
 
   // Greeting (I / touch button): eel heart + in-range critter responses.
@@ -296,13 +356,39 @@ function frame(now) {
   if (greetWanted && greetUnlocked && greetCd === 0 && greetable) {
     greetCd = GREET.CD;
     hearts.emit(eel.x + eel.hx * 6, eel.y - 18, EEL_HEART);
-    critters.greet(eel, hearts);
+    const responders = critters.greet(eel, hearts);
     screenFeedback(GREET.COLOR, GREET.FLASH_A, GREET.SHAKE);
+    // LOVE (docs/10): greeting is how the fifth axis earns — per responder,
+    // capped per greet. Level-ups pop like any other axis.
+    if (responders > 0) {
+      progress.add('love', GREET.LOVE_PER * Math.min(responders, GREET.LOVE_CAP));
+      for (const lu of progress.consumeLevelUps()) {
+        ui.levelUp(lu);
+        sparkles.burst(eel.x, eel.y - 26, AXES[lu.axis].color, LEVELS.SPARKS);
+      }
+    }
   }
 
-  critters.update(dt, eel, WORLD_H, water, cam, viewW, viewH, food.positions());
+  critters.update(dt, eel, WORLD_H, water, cam, viewW, viewH, food.positions(), floorAt);
+  // Spontaneous greets (docs/10): as LOVE grows, friends say hello first.
+  critters.spontaneous(dt, eel, hearts, progress.dial(DIALS.spontGreet));
   hearts.update(dt);
   sparkles.update(dt, cam, viewW, viewH, eel, WORLD_H);
+
+  // Rocks + the shaker (docs/10): boost-smash → debris FX → the dressing.
+  const rockEv = rocks.update(dt, eel, cam, viewW, viewH, WORLD_H, progress.sandbox);
+  for (const s of rockEv.shattered) {
+    water.burst(s.x, s.y, 14);
+    water.pulse(s.x, s.y, [1.0, 0.85, 0.55], 1.6);
+    screenFeedback([0.85, 0.90, 1.0], 0.12, 10);
+  }
+  if (rockEv.collected) {
+    greensBuffT = ROCKS.BUFF_T;
+    screenFeedback(AXES.life.color, 0.12, 4);
+    sparkles.burst(rockEv.collected.x, rockEv.collected.y, AXES.life.color, 18);
+    ui.notice('DRESSING!', 'Greens are extra nourishing for a while',
+      cssColor(AXES.life.color));
+  }
 
   const [tx, ty] = cameraTarget();
   cam.x = expApproach(cam.x, tx, dt, CAM_TAU);
@@ -348,7 +434,29 @@ function frame(now) {
     water.setLife(life);
     lastLife = life;
   }
-  veil.update(rcam.y, light);
+
+  // The eel light (docs/10): an ambient soft hole in the veil around the eel,
+  // swelling while the flare is held (J / ✦). The mask hole is the light;
+  // the halo is just the flare's visible flourish.
+  const lightDial = progress.dial(DIALS.eelLight);
+  ui.showFlare(lightDial > 0 && !titleMode);
+  const flareWant = lightDial > 0 && !titleMode && (getFlare() || uiFlare);
+  flare01 = expApproach(flare01, flareWant ? 1 : 0, dt,
+    flareWant ? EEL_LIGHT.TAU_UP : EEL_LIGHT.TAU_DOWN);
+  let hole = null;
+  let holeRWorld = 0;
+  if (lightDial > 0) {
+    holeRWorld = (EEL_LIGHT.R_BASE + EEL_LIGHT.R_RAMP * lightDial)
+      * (1 + (EEL_LIGHT.FLARE_R - 1) * flare01);
+    const ambient = EEL_LIGHT.HOLE_BASE + EEL_LIGHT.HOLE_RAMP * lightDial;
+    hole = {
+      x: (eel.x - rcam.x) * ZOOM,
+      y: eel.y * ZOOM,   // element-local: the veil's top is world y = 0
+      r: holeRWorld * ZOOM,
+      a: lerp(ambient, EEL_LIGHT.FLARE_HOLE, flare01),
+    };
+  }
+  veil.update(rcam.y, light, hole);
 
   water.update(dt, eel, cam);   // sim wrap uses the clean camera
   eel.render();
@@ -360,6 +468,9 @@ function frame(now) {
   lanterns.render(dt, rcam, viewW, viewH, WORLD_H, eel, water.builtLife ?? 0);
   hearts.render();
   sparkles.render();
+  eelHalo.render(eel, flare01, holeRWorld);
+  // stamina readout (docs/10): only meaningful once speed burst is unlocked
+  stamBar.render(dt, eel, burstDial > 0 && !titleMode);
   water.render(rcam);           // all visual layers shake together
 
   requestAnimationFrame(frame);

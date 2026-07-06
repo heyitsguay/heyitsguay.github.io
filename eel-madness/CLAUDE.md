@@ -2,9 +2,9 @@
 
 A vanilla HTML/CSS/JS/WebGL game: an eel with a platinum wig swims through a kelp forest,
 eating falling food to transform a dark barren sea into a bright living one. Progression
-runs on four persistent axes (LIGHT / LIFE / WORLD MAGIC / EEL MAGIC — docs/07), each
-quantized into 30 levels with level-up popups (docs/08); phases P0–P2 and the level
-system are implemented.
+runs on five persistent axes (LIGHT / LIFE / WORLD MAGIC / EEL MAGIC / LOVE — docs/07;
+LOVE is greet-charged, docs/10), each quantized into 30 levels with level-up popups
+(docs/08); phases P0–P3 and the level system are implemented, P4 (docs/10) in progress.
 
 ## Workflow rules
 
@@ -48,6 +48,8 @@ system are implemented.
 | `docs/07-progression.md` | the game: dark→vibrant progression axes, tuning.js plan, critter/FX catalog, phases |
 | `docs/08-levels.md` | discrete level system: 30 levels/axis, chained level-up popups, quantization layer |
 | `docs/09-infinite-sea.md` | the infinite procedural sea: seeded chunks/worldgen, the spawn tensor (bands × hotspots × damping), P3 species, GL precision scheme |
+| `docs/10-p4.md` | the P4 build: food grades, combos + stamina bar, beans & rice patch, LOVE axis, seafloor on all planes (far-plane fog, blur removed), rocks + shaker, kelp types, the eel light |
+| `docs/11-revamp-notes.md` | direction notes (not a spec) for the planned exploration/tunnels/light-management overhaul |
 
 ## Facts you'll want at zero context
 

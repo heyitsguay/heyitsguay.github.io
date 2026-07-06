@@ -220,6 +220,16 @@ waiting out the follow timer. `FOLLOW` block in tuning.js: `T` (9 s), `NEAR`/`FA
   (shaped `sin³` so lanterns dwell at cyan and bloom into color), per-jelly phase
   and period. Replaces the static expanded-range coloring.
 
+## P4 additions (docs/10)
+
+- **Kelp types**: main-plane strands are typed (normal / sinuous / spindle)
+  from a side hash-stream so the chunk-RNG stream — and with it determinism,
+  growth supersets, and seahorse anchors — stays byte-identical.
+- **Rocks**: `worldgen.rocksInChunk` seeds boulders on the main-plane terrain;
+  boost-shatterable, 24 h localStorage respawn, dressing-shaker reveal.
+- **Terrain everywhere**: `tuning.TERRAIN` is keyed per plane
+  (front/main/near/far), heights ordered front-lowest → far-highest.
+
 ## Module impact
 
 ```

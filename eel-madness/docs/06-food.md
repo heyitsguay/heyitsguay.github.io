@@ -1,5 +1,12 @@
 # Food v2: fall from the surface, eat or lose it
 
+> **P4 (docs/10):** every spawned item also rolls a **grade**
+> (common/rare/legendary — amount multiplier + buzz/throb falling tells),
+> quick-succession eats chain into **combos** (counter popups, escalating eat
+> FX, placeholder reward = boost stamina), and the **red beans & rice patch**
+> is the first patch-type food (a cloud of individually-eaten grains). Spec
+> in docs/10; knobs in tuning.js (`GRADES`, `COMBO`, `FOODS.beansrice`).
+
 Food drops in from above the surface, sinks by its nature, and is gone if it falls out
 the bottom of the world — no floor, no pile. **The mouth is automatic:** a probe
 segment off the nose tip (`food.probe(eel)` → `intent.mouth`; see docs/02) opens the

@@ -16,6 +16,7 @@ const pointer = { active: false, x: 0, y: 0 };
 const activePtrs = new Set();
 let greetQueued = false;
 let shiftHeld = false;
+let flareHeld = false;   // J — the eel-light flare (docs/10)
 
 // Edge-triggered greet (I key / the touch button via ui.js → main).
 export function consumeGreet() {
@@ -27,6 +28,12 @@ export function consumeGreet() {
 // Speed-burst want (docs/02): Shift held, or a second finger on touch.
 export function getBoost() {
   return shiftHeld || activePtrs.size >= 2;
+}
+
+// Eel-light flare want (docs/10): J held. The touch ✦ button goes through
+// ui.js → main, same as greet.
+export function getFlare() {
+  return flareHeld;
 }
 
 export function initInput(onFirstInput) {
@@ -43,17 +50,22 @@ export function initInput(onFirstInput) {
     } else if (e.code === 'KeyI') {
       greetQueued = true;
       firstInput();
+    } else if (e.code === 'KeyJ') {
+      flareHeld = true;
+      firstInput();
     } else if (e.key === 'Shift') {
       shiftHeld = true;
     }
   });
   window.addEventListener('keyup', e => {
     keys.delete(e.code);
+    if (e.code === 'KeyJ') flareHeld = false;
     if (e.key === 'Shift') shiftHeld = false;
   });
   window.addEventListener('blur', () => {
     keys.clear();
     shiftHeld = false;
+    flareHeld = false;
     activePtrs.clear();
   });
 

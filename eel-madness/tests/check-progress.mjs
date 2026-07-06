@@ -65,9 +65,17 @@ check('bloom settles on the new step', Math.abs(progress.value('light') - v1) < 
 // scaled eats in-game).
 progress.reset();
 progress.consumeLevelUps();
-const totalRarity = Object.values(FOODS).reduce((s, f) => s + f.rarity, 0);
+// patch foods (docs/10) sit outside the per-eat session model: a patch is
+// many tiny grants, and its LIFE intake is deliberately uncalibrated bonus
+// (Matt retunes K_life if it moves the pacing).
+const eatFoods = Object.values(FOODS).filter(f => !f.patch);
+const totalRarity = eatFoods.reduce((s, f) => s + f.rarity, 0);
 const eatSession = () => {
-  for (const f of Object.values(FOODS)) progress.add(f.axis, f.amount * 37.5 * (f.rarity / totalRarity));
+  for (const f of eatFoods) progress.add(f.axis, f.amount * 37.5 * (f.rarity / totalRarity));
+  // LOVE earns from greeting, not food (docs/10). Its K is defined as
+  // (expected 4-session greet W)/3, so feed exactly that per session — this
+  // asserts the ladder shape; the real greet volume is Matt's tuning.
+  progress.add('love', AXES.love.K * 3 / 4);
 };
 const bandEnds = [16, 24, 28, 30];
 for (let s = 0; s < 4; s++) {
@@ -167,5 +175,14 @@ veil.update(2000, 0.001);   // tiny light change: no rebuild
 check('no rebuild under epsilon', el.style.background === g0);
 veil.update(2000, 0.5);
 check('rebuild past epsilon', el.style.background !== g0);
+
+// the eel light's veil mask hole (docs/10): set while lit, cleared when off
+veil.update(2000, 0.5, { x: 300, y: 2600, r: 250, a: 0.8 });
+check('eel light punches a mask hole', /radial-gradient/.test(el.style.maskImage)
+  && /rgba\(0,0,0,0\.200\)/.test(el.style.maskImage));
+veil.update(2000, 0.5, null);
+check('mask hole cleared when the light is off', el.style.maskImage === '');
+veil.update(2000, 0.5, { x: 0, y: 0, r: 100, a: 0.001 });
+check('near-zero relief keeps the mask off', el.style.maskImage === '');
 
 process.exit(fail ? 1 : 0);

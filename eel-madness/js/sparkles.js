@@ -19,9 +19,9 @@
 // on the glow layer in a counter-transformed group, not in the GL planes.
 
 import { TAU, clamp, lerp, curves } from './math.js';
-import { DIALS, LAYERS, TERRAIN, KELP_GROWTH, SEA } from './tuning.js';
+import { DIALS, LAYERS, TERRAIN, KELP_GROWTH, SEA, EEL_LIGHT } from './tuning.js';
 import { progress } from './progress.js';
-import { hash01, terrainShape, kelpStrands } from './worldgen.js';
+import { hash01, terrainShape, kelpStrands, mainFloorY } from './worldgen.js';
 
 const POOL = 300;
 // ambient sparkles
@@ -438,6 +438,8 @@ export class Lanterns {
         for (let si = 0; si < strands.length && i < this.pool.length; si++) {
           if (hash01(c * 131 + si, LK_SALT) >= LK_FRAC) continue;   // not a lantern
           const s = strands[si];
+          if (s.type && s.type !== 'norm') continue;   // typed strands (docs/10)
+          // are reshaped/offset in GL — bulbs only ride normal strands exactly
           if (s.x < x0 || s.x > x1) continue;
           const h = s.h * REF_H_LK * tall;
           const seed = hash01(c * 131 + si, LK_SALT + 1);
@@ -453,7 +455,8 @@ export class Lanterns {
             // replicate the shader sway so the bulb rides its strand
             let x = s.x + (Math.sin(t * 0.55 + s.ph + f * 2.6) * 14
               + Math.sin(t * 0.23 + s.ph * 1.7 + f * 1.3) * 9) * Math.pow(f, 1.3);
-            const y = worldH + 4 - h * f;
+            // strands root on the terrain now (docs/10) — bulbs ride the same root
+            const y = mainFloorY(s.x, viewH, worldH) + 6 - h * f;
             const dx = x - eel.x, dy = y - eel.y;
             const dl2 = dx * dx + dy * dy;
             x += (dx / (Math.abs(dx) + 24)) * Math.exp(-dl2 / (LK_KELP_PUSH_R * LK_KELP_PUSH_R))
@@ -501,6 +504,104 @@ const BGL_TWINKLE_F = 0.9;     // rad/s
 const BGL_SALT = 41;
 const BGL_HUES = [46, 40, 185, 320, 55];   // mostly warm, a stray cyan/pink
 
+// ---- The eel-light flare halo (P4 follow-up, docs/10) ----------------------
+// The LIGHT itself is the veil mask hole (veil.js) — this is only the flare's
+// visible flourish: a soft icy-cyan halo around the eel while flaring, kept
+// deliberately faint (the old always-on glow blob was cut for looks; the
+// reveal does the work, the halo just says "the eel is doing it").
+const HALO_STOPS = [[0, 0.55], [0.5, 0.22], [1, 0]];
+
+export class EelHalo {
+  constructor(glowRoot) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const group = glowRoot.querySelector('#glows');
+    const grad = document.createElementNS(NS, 'radialGradient');
+    grad.setAttribute('id', 'eelhalo-grad');
+    for (const [off, op] of HALO_STOPS) {
+      const s = document.createElementNS(NS, 'stop');
+      s.setAttribute('offset', `${off * 100}%`);
+      s.setAttribute('stop-opacity', op);
+      s.setAttribute('stop-color', EEL_LIGHT.HALO_COLOR);
+      grad.appendChild(s);
+    }
+    group.appendChild(grad);
+    this.el = document.createElementNS(NS, 'circle');
+    this.el.setAttribute('fill', 'url(#eelhalo-grad)');
+    this.el.setAttribute('display', 'none');
+    group.appendChild(this.el);
+    this.shown = false;
+  }
+
+  // flare01: the eased flare factor from main; rWorld: the hole radius.
+  render(eel, flare01, rWorld) {
+    if (flare01 < 0.03) {
+      if (this.shown) { this.shown = false; this.el.setAttribute('display', 'none'); }
+      return;
+    }
+    this.el.setAttribute('cx', eel.x.toFixed(1));
+    this.el.setAttribute('cy', eel.y.toFixed(1));
+    this.el.setAttribute('r', (rWorld * 0.6).toFixed(1));
+    this.el.setAttribute('opacity', (EEL_LIGHT.HALO_A * flare01).toFixed(3));
+    if (!this.shown) { this.shown = true; this.el.setAttribute('display', 'inline'); }
+  }
+}
+
+// ---- The boost stamina bar (P4, docs/10) -----------------------------------
+// A slim electric-blue bar riding below the eel. GLOW LAYER on purpose: it
+// must read in dark water. Fades in while stamina < 1 (draining/recharging)
+// or briefly when a combo charges it (flash()); fades out when full. No HUD
+// chrome — a track sliver and a fill, nothing else.
+const SB_W = 88, SB_H = 4.5;   // px
+const SB_BELOW = 34;           // px below the eel's head point
+const SB_FADE = 0.35;          // s fade in/out
+const SB_FLASH_T = 1.4;        // s shown after a combo charge (even if full)
+const SB_TRACK = 'rgba(140, 200, 220, 0.22)';
+const SB_FILL = 'hsl(196, 100%, 72%)';   // the boost-crackle electric blue
+
+export class StaminaBar {
+  constructor(glowRoot) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const group = glowRoot.querySelector('#glows');
+    this.g = document.createElementNS(NS, 'g');
+    this.g.setAttribute('display', 'none');
+    this.track = document.createElementNS(NS, 'rect');
+    this.track.setAttribute('width', SB_W);
+    this.track.setAttribute('height', SB_H);
+    this.track.setAttribute('rx', SB_H / 2);
+    this.track.setAttribute('fill', SB_TRACK);
+    this.fill = document.createElementNS(NS, 'rect');
+    this.fill.setAttribute('height', SB_H);
+    this.fill.setAttribute('rx', SB_H / 2);
+    this.fill.setAttribute('fill', SB_FILL);
+    this.g.appendChild(this.track);
+    this.g.appendChild(this.fill);
+    group.appendChild(this.g);
+    this.a = 0;         // eased visibility
+    this.flashT = 0;
+    this.shown = false;
+  }
+
+  // A combo charged the stamina — show the bar briefly even at full.
+  flash() {
+    this.flashT = SB_FLASH_T;
+  }
+
+  render(dt, eel, unlocked) {
+    this.flashT = Math.max(0, this.flashT - dt);
+    const want = unlocked && (eel.stamina < 0.999 || this.flashT > 0);
+    this.a = clamp(this.a + (want ? dt : -dt) / SB_FADE, 0, 1);
+    if (this.a <= 0) {
+      if (this.shown) { this.shown = false; this.g.setAttribute('display', 'none'); }
+      return;
+    }
+    const x = eel.x - SB_W / 2, y = eel.y + SB_BELOW;
+    this.g.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+    this.fill.setAttribute('width', Math.max(0.01, SB_W * eel.stamina).toFixed(1));
+    this.g.setAttribute('opacity', (0.85 * this.a).toFixed(2));
+    if (!this.shown) { this.shown = true; this.g.setAttribute('display', 'inline'); }
+  }
+}
+
 export class BgLights {
   constructor(glowRoot) {
     const NS = 'http://www.w3.org/2000/svg';
@@ -534,8 +635,8 @@ export class BgLights {
         if (on <= 0) continue;
         const x = (cell + 0.2 + 0.6 * hash01(cell, BGL_SALT + 1)) * BGL_STEP;
         // perched on the rolling terrain (same shaped heightfield as the GL)
-        const y = floorY - TERRAIN.BASE[1]
-          - terrainShape(x, TERRAIN.SALT[1]) * TERRAIN.AMP[1] * viewH
+        const y = floorY - TERRAIN.BASE.far
+          - terrainShape(x, TERRAIN.SALT.far, TERRAIN.POW.far) * TERRAIN.AMP.far * viewH
           - 4 - hash01(cell, BGL_SALT + 2) * 26;
         const p = this.pool[i++];
         const tw = 0.7 + 0.3 * Math.sin(t * BGL_TWINKLE_F + h * 40);
