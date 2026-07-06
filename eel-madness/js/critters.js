@@ -139,17 +139,22 @@ const O_TENT_SPREAD = 0.55;     // root splay across the head's underside —
                                 // (half-width O_TENT_W0·R) stays inside the
                                 // head silhouette; the flare fans the arms
                                 // along their length, never the roots
-const O_TENT_STIFF = 0.78;      // tentacles ride the body's motion (advection) —
-                                // an octopus diving takes its arms DOWN with it,
-                                // no jellyfish flail
-const O_TENT_TAU = 0.7;         // s — fast settle toward hanging (stiffness)
+const O_TENT_STIFF = 0.4;       // tentacles half-ride the body's motion — halfway
+                                // between the original stiff arms (0.78) and the
+                                // jelly-style free float (Matt, 2026-07-05)
+const O_TENT_TAU = 1.05;        // s — settle toward hanging; halfway from the old
+                                // fast 0.7 to the jelly's free-float 1.4
 const O_IDLE_SWAY = 6;          // px/s — soft, coordinated idle wiggle
 // the jet animation: arms FLARE outward before each kick, then TUCK inward as
 // the jet fires. Experimental — set O_FLARE and O_TUCK to 0 to remove it.
 const O_FLARE = 0.55;
 const O_TUCK = 0.35;
-const O_PULSE_T = 3.6;          // s per jet cycle
-const O_KICK = 26;              // px/s impulse per contraction
+// locomotion: DRIFT then SPURT (Matt, 2026-07-05) — long becalmed glides
+// punctuated by a single flare→contract jet, replacing the old continuous
+// gentle pulsing. The kick is per-spurt (rarer, so much stronger).
+const O_DRIFT_T = [2.2, 5.0];   // s becalmed between spurts (uniform roll)
+const O_SPURT_T = 1.15;         // s — one flare→contract→glide cycle
+const O_KICK = 90;              // px/s impulse per spurt
 const O_DRAG = 0.5;             // 1/s
 const O_WANDER_F = 0.09;        // rad/s heading wander (horizontal bias)
 const O_HUE = 335;              // deg — pinkish octopus, ±22 per individual
@@ -164,7 +169,7 @@ const O_STARTLE_SPEED = 0.55;   // eel speedSm that startles
 const O_STARTLE_CD = 9;         // s per octopus
 const O_JET_AWAY = 130;         // px/s dodge impulse
 const GIANT_SCALE = 3.4;        // the giant: same rig, majestic
-const GIANT_PULSE_T = 6.5;      // slower jet cycle
+const GIANT_SLOW = 1.8;         // the giant's spurt/drift cycle, statelier
 
 // ---- Roaming fish (docs/09): one spine-fish framework, three species ----
 // Muted organic tones, minnow-style wiggle, greet-and-follow like reef fish.
@@ -790,6 +795,9 @@ export class Critters {
     o.camoT = 0;
     o.startleCd = 0;
     o.lastFill = '';
+    o.prevP = 0;
+    o.spurtT = 0;                             // drift-then-spurt state
+    o.jetT = Math.random() * O_DRIFT_T[1];    // desynced first spurts
     o.tx = []; o.ty = [];
     const R = O_R * o.scale * o.size;
     for (let k = 0; k < O_TENT_N; k++) {
@@ -1278,7 +1286,7 @@ export class Critters {
     for (const [name, list] of [['octopus', this.octos], ['giantOcto', this.giants]]) {
       const bands = octoBands[name];
       const giant = name === 'giantOcto';
-      const pulseT = giant ? GIANT_PULSE_T : O_PULSE_T;
+      const slow = giant ? GIANT_SLOW : 1;
       for (const o of list) {
         if (!o.alive) continue;
         o.greetCd = Math.max(0, o.greetCd - dt);
@@ -1294,9 +1302,21 @@ export class Critters {
           const push = O_JET_AWAY / (ed || 1);
           o.vx += ex * push;
           o.vy += ey * push;
+          o.spurtT = O_SPURT_T;   // the body visibly contracts with the dodge
           if (water) water.burst(o.x, o.y, 5);
         }
-        const p = Math.pow(Math.max(0, Math.sin(t * TAU / pulseT + o.phase)), 2);
+        // drift then spurt: becalmed glide, then one flare→contract jet
+        let p = 0, flareA = 0;
+        if (o.spurtT > 0) {
+          o.spurtT = Math.max(0, o.spurtT - dt);
+          const u = 1 - o.spurtT / (O_SPURT_T * slow);
+          const a = u * (Math.PI + 1.1) - 1.1;   // the flare leads the kick
+          p = Math.pow(Math.max(0, Math.sin(a)), 2);
+          flareA = Math.max(0, Math.sin(a + 1.1)) * (1 - p);
+        } else if ((o.jetT -= dt) <= 0) {
+          o.spurtT = O_SPURT_T * slow;
+          o.jetT = (O_DRIFT_T[0] + Math.random() * (O_DRIFT_T[1] - O_DRIFT_T[0])) * slow;
+        }
         const dp = Math.max(0, p - o.prevP);
         o.prevP = p;
         o.pulse = p;
@@ -1312,14 +1332,13 @@ export class Critters {
         o.x += o.vx * dt;
         o.y = clamp(o.y + o.vy * dt, 60, fl(o.x) - 40);
 
-        // tentacles: STIFF chains — advected with the body's motion (a diving
-        // octopus takes its arms down with it), fast settle toward hanging,
-        // and a soft COORDINATED idle wiggle (small per-arm phase offsets).
-        // Before each jet the arms flare outward, then tuck as the kick fires.
+        // tentacles: half-stiff chains — partly advected with the body's
+        // motion, an unhurried settle toward hanging (halfway to the jelly's
+        // free float), and a soft COORDINATED idle wiggle (small per-arm
+        // phase offsets). During a spurt the arms flare outward, then tuck
+        // as the kick fires; while drifting they just trail.
         const R = O_R * o.scale * (o.size || 1);
         const pull = 1 - Math.exp(-dt / O_TENT_TAU);
-        const theta = t * TAU / pulseT + o.phase;          // the jet cycle
-        const flareA = Math.max(0, Math.sin(theta + 1.1)) * (1 - p);
         const spread = 1 + O_FLARE * flareA - O_TUCK * p;
         for (let k = 0; k < O_TENT_N; k++) {
           const xs = o.tx[k], ys = o.ty[k];

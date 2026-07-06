@@ -48,6 +48,50 @@ Sketches to react to, not decisions:
 - **Getting lost**: no map, landmarks and seeded layout as the navigation
   challenge; light management decides how much you can read.
 
+## Recruiting & the follower volley (notes 2026-07-05)
+
+Recruiting critters should be **meaningful**, not just a greet flourish:
+
+- **Followers stay longer** — recruited critters follow for much longer than
+  the current post-greet follow, up to a **max follower count** that scales
+  with EEL MAGIC from **1 → ~100** (tunable; the exact top is a dial, not a
+  decision).
+- **Shooting followers** — the eel can launch a follower at a target: it
+  flies, **collides** (real or fake physics — food.js's bounce code is again
+  the reference), bounces off, and goes **inactive for a while**: the critter
+  is fine but can't be greeted/recruited during the cooldown, shaded **~30%
+  darker** to read as "spent".
+- **Targets are open** — obvious candidates once tunnels exist: rocks/blocked
+  entrances, shy hazards, brittle formations, switches/secrets.
+- **UI is unsolved** — keyboard and mobile both need a "shoot at what?"
+  answer (aim = heading? pointer? nearest target?). Inputs are getting
+  crowded (swim, boost, greet, flare, now shoot); the mobile scheme needs
+  its own design pass — the two-finger boost gesture already failed in
+  practice (second touch retargeted steering), so the revamp should pick a
+  deliberate mobile layout rather than accreting gestures.
+
+## Power fuel — the ore idea (2026-07-05)
+
+The light stamina meter (docs/10 follow-up 2) makes light a spendable
+resource; Matt's riff (Mistborn-adjacent in spirit, not a copy): some eel
+powers could be **refueled by shattering ore-bearing rocks** — collect the
+ore, it refills a power's stamina bar — with **different powers having
+different max capacities and burn rates**. Ties rock-smashing, tunnels, and
+light management into one loop. The compacting bar stack under the eel was
+built with "N powers, N meters" in mind.
+
+## Mobile controls (2026-07-05) — SHIPPED in the current game
+
+The two-finger boost failed in practice (second touch retargeted steering),
+and holding a finger on the *play field* to steer fights any button-based
+power UI. The joystick scheme shipped same-day (docs/02, docs/10 follow-up
+3): floating-origin stick in a fixed pad, greet/sprint/flare hold-buttons on
+the opposite side, stick side toggleable from the title Settings menu, and
+touch field-taps do nothing. **Left for the revamp**: the freed tap gesture
+is the natural "aim" for the follower volley (tap a target to shoot), and
+the button budget is full at three — "shoot" either rides the tap or
+something has to consolidate.
+
 ## The carry mechanic
 
 The eel's collision physics already *emergently* lets it catch and push items

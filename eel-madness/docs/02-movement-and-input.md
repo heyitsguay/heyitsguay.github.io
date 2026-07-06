@@ -21,9 +21,13 @@ intent = { active, dirX, dirY, throttle, mouth }   # dir unit-length, throttle �
   mouth opens by itself, staying open until the food is eaten or the probe misses.
   The eel's `mouth` state still snaps open (τ ≈ 70 ms) and eases shut (τ ≈ 120 ms);
   an open mouth costs 30% of top speed (drag), so lining up a catch has a real cost.
-- **Speed burst (hold Shift, or a second finger on touch):** `intent.boost`, gated by
-  the `speedBurst` EEL MAGIC dial in main.js. The eel handles stamina/easing itself
-  (see docs/07); input just reports "boost wanted" via `getBoost()`.
+- **Speed burst (hold Shift, or the touch ⚡ sprint button):** `intent.boost`, gated
+  by the `speedBurst` EEL MAGIC dial in main.js. The eel handles stamina/easing
+  itself (see docs/07); `getBoost()` reports Shift only — the ⚡ button rides
+  ui.js → main like greet/flare. (The two-finger gesture is retired, 2026-07-05.)
+- **Eel-light flare (hold J, or the touch ✦ button):** `intent.flare`, gated by the
+  `eelLight` dial in main.js exactly like boost. The eel owns the flare state machine —
+  green light stamina, ignition pulse, hold-to-sustain (docs/10 follow-up 2).
 - **Greet (I, or the touch greet button):** edge-triggered via `consumeGreet()`;
   main.js gates it on the `greet` dial and its cooldown (docs/07).
 - **Esc** toggles the pause menu (ui.js listens for it directly).
@@ -33,8 +37,17 @@ intent = { active, dirX, dirY, throttle, mouth }   # dir unit-length, throttle �
   `throttle = min(1, dist / 150)` — an *arrive* behavior, so the eel decelerates smoothly
   and settles at the held point instead of orbiting it. Within 14 px the intent goes
   inactive (deadzone against jitter).
-- Keyboard wins if both are active. `pointermove` updates the target while held, so dragging
-  leads the eel around. Pointer events cover mouse and touch identically.
+- **Virtual joystick (touch devices, 2026-07-05):** on `pointer: coarse` devices the
+  joystick is the ONE steering authority — field touches do nothing (no accidental
+  darting, and the tap gesture stays free to become the revamp's "aim"). The pad
+  (`#joypad`, bottom corner; side is a title-screen Setting, `body.stick-right`)
+  is a fixed **zone**: the stick origin floats to wherever the touch first lands
+  inside it, direction = the vector from that origin to the drag point, and
+  throttle ramps to full at `JOY_R` px past a small deadzone. Pointer capture
+  keeps the stick tracking off-pad; the nub is pure feedback. Mouse (and pen)
+  press-and-hold steering below is unchanged, locked to one pointer at a time.
+- Keyboard wins over the joystick, which wins over the held mouse pointer.
+  `pointermove` updates the target while held, so dragging leads the eel around.
 
 ## Steering model
 
@@ -99,4 +112,6 @@ All of these are named constants at the top of `eel.js` (steering/speed group) o
 | turn ÷ (1 + `boostAmt`·boost01) | ÷1.5 → ÷2.5 | burst arcs widen with the speed gain (BOOST in tuning.js) |
 | `POINTER_ARRIVE` (input.js) | 150 px | how early it brakes for a held point |
 | `POINTER_DEADZONE` (input.js) | 14 px | jitter deadzone around a held point |
+| `JOY_R` (input.js) | 48 px | stick drag for full throttle |
+| `JOY_DEADZONE` (input.js) | 8 px | stick wobble that still reads as idle |
 | `WALL_MARGIN` / `WALL_PUSH` | 70 px / 1.2 | how soon / how hard it shies from the surface/floor |

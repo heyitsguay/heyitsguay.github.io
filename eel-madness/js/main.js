@@ -7,7 +7,7 @@
 // W/zoom x H/zoom world px. The eel's position persists across sessions.
 
 import { initInput, getIntent, consumeGreet, getBoost, getFlare } from './input.js';
-import { Eel } from './eel.js';
+import { Eel, flarePulseEnv } from './eel.js';
 import { Food } from './food.js';
 import { Water } from './water.js';
 import { Veil } from './veil.js';
@@ -47,11 +47,12 @@ const bgLights = new BgLights(glowSvg);
 const lanterns = new Lanterns(glowSvg);
 const fg = new FrontPlane(svg);
 const rocks = new Rocks(svg, glowSvg);
-const stamBar = new StaminaBar(glowSvg);
+const stamBar = new StaminaBar(glowSvg);                        // boost (blue)
+const lightBar = new StaminaBar(glowSvg, EEL_LIGHT.BAR_COLOR);  // eel light (green)
 const eelHalo = new EelHalo(glowSvg);
 let uiGreet = false;
-let uiFlare = false;   // the touch ✦ button's held state (docs/10)
-let flare01 = 0;       // eased eel-light flare factor
+let uiFlare = false;    // the touch ✦ button's held state (docs/10)
+let uiSprint = false;   // the touch ⚡ button's held state (docs/02)
 
 // Food combos (docs/10): eats within COMBO.WINDOW chain; the counter drives
 // popups, escalating FX, and the (placeholder) reward below.
@@ -99,6 +100,7 @@ const ui = initUI({
   },
   onGreet: () => { uiGreet = true; },
   onFlare: held => { uiFlare = held; },
+  onSprint: held => { uiSprint = held; },
   // Start: leave the attract sea — blank slate, real dials, the eel back
   // where the save left it (the attract cruise moved it).
   onStart: () => {
@@ -229,6 +231,11 @@ window.addEventListener('resize', resize);
 // The control hint fades on first input OR after 5 s regardless — touch
 // players may never trip the input callback (it shipped stuck on mobile).
 const hint = document.getElementById('hint');
+// Touch steers with the joystick now (docs/02) — say so instead of the
+// press-and-hold line, which no longer does anything there.
+if (window.matchMedia && matchMedia('(pointer: coarse)').matches) {
+  hint.textContent = 'steer with the joystick';
+}
 let hintT = -1;
 const showHint = () => {
   hint.classList.remove('hidden');
@@ -270,7 +277,9 @@ function frame(now) {
   }
   intent.mouth = food.probe(eel);   // auto-mouth: food ahead opens the jaw
   const burstDial = progress.dial(DIALS.speedBurst);
-  intent.boost = !titleMode && burstDial > 0 && getBoost();
+  intent.boost = !titleMode && burstDial > 0 && (getBoost() || uiSprint);
+  const lightDial = progress.dial(DIALS.eelLight);
+  intent.flare = !titleMode && lightDial > 0 && (getFlare() || uiFlare);
 
   // EEL MAGIC package (docs/07): lash growth, makeup, burst strength/duration.
   const em = progress.value('eelMagic');
@@ -435,25 +444,29 @@ function frame(now) {
     lastLife = life;
   }
 
-  // The eel light (docs/10): an ambient soft hole in the veil around the eel,
-  // swelling while the flare is held (J / ✦). The mask hole is the light;
-  // the halo is just the flare's visible flourish.
-  const lightDial = progress.dial(DIALS.eelLight);
+  // The eel light (docs/10): an ambient soft hole in the veil around the eel.
+  // The flare (hold J / ✦) runs on the eel's green light stamina (follow-up
+  // 2): ignition fires a radiating pulse — the hole overshoots outward, an
+  // expanding ring rides the glow layer — then the held flare settles at its
+  // brighter-than-ambient steady state until the meter empties. The mask
+  // hole is the light; the halo/ring are the visible flourish.
   ui.showFlare(lightDial > 0 && !titleMode);
-  const flareWant = lightDial > 0 && !titleMode && (getFlare() || uiFlare);
-  flare01 = expApproach(flare01, flareWant ? 1 : 0, dt,
-    flareWant ? EEL_LIGHT.TAU_UP : EEL_LIGHT.TAU_DOWN);
+  ui.showSprint(burstDial > 0 && !titleMode);
+  ui.showJoy(!titleMode);   // the joystick isn't progression-gated
+  const pulseEnv = flarePulseEnv(eel.pulseU);
   let hole = null;
   let holeRWorld = 0;
   if (lightDial > 0) {
     holeRWorld = (EEL_LIGHT.R_BASE + EEL_LIGHT.R_RAMP * lightDial)
-      * (1 + (EEL_LIGHT.FLARE_R - 1) * flare01);
+      * (1 + (EEL_LIGHT.FLARE_R - 1) * eel.flare01
+         + (EEL_LIGHT.PULSE_R - 1) * pulseEnv);
     const ambient = EEL_LIGHT.HOLE_BASE + EEL_LIGHT.HOLE_RAMP * lightDial;
     hole = {
       x: (eel.x - rcam.x) * ZOOM,
       y: eel.y * ZOOM,   // element-local: the veil's top is world y = 0
       r: holeRWorld * ZOOM,
-      a: lerp(ambient, EEL_LIGHT.FLARE_HOLE, flare01),
+      a: lerp(lerp(ambient, EEL_LIGHT.FLARE_HOLE, eel.flare01),
+              EEL_LIGHT.PULSE_HOLE, pulseEnv),
     };
   }
   veil.update(rcam.y, light, hole);
@@ -468,9 +481,13 @@ function frame(now) {
   lanterns.render(dt, rcam, viewW, viewH, WORLD_H, eel, water.builtLife ?? 0);
   hearts.render();
   sparkles.render();
-  eelHalo.render(eel, flare01, holeRWorld);
-  // stamina readout (docs/10): only meaningful once speed burst is unlocked
-  stamBar.render(dt, eel, burstDial > 0 && !titleMode);
+  eelHalo.render(eel, eel.flare01, holeRWorld, eel.pulseU);
+  // Stamina meters (docs/10 follow-up 2): fixed order — boost, then light —
+  // but visible bars always compact from the top slot, no gaps.
+  let barSlot = 0;
+  stamBar.render(dt, eel, burstDial > 0 && !titleMode, eel.stamina, barSlot);
+  if (stamBar.wanted) barSlot++;
+  lightBar.render(dt, eel, lightDial > 0 && !titleMode, eel.lightStam, barSlot);
   water.render(rcam);           // all visual layers shake together
 
   requestAnimationFrame(frame);

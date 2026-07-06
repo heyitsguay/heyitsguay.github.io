@@ -50,7 +50,21 @@
     <div id="title-buttons">
       <button id="t-start">Start</button>
       <button id="t-skip">Skip To The End</button>
+      <button id="t-settings">Settings</button>
       <button id="t-reset" hidden>Reset</button>
+    </div>
+  </div>
+  <div id="settings" hidden>
+    <div id="settings-panel">
+      <h2>Settings</h2>
+      <div class="set-row">
+        <span>Joystick side</span>
+        <div class="set-seg">
+          <button id="set-stick-left">Left</button>
+          <button id="set-stick-right">Right</button>
+        </div>
+      </div>
+      <button id="settings-done">Done</button>
     </div>
   </div>
 </div>
@@ -68,7 +82,9 @@
     </div>
   </div>
   <button id="btn-greet" aria-label="Greet" hidden>&#9825;</button>
+  <button id="btn-sprint" aria-label="Sprint" hidden>&#9889;</button>
   <button id="btn-flare" aria-label="Flare" hidden>&#10022;</button>
+  <div id="joypad" hidden><div id="joynub"></div></div>
 </div>
 <script type="module" src="js/main.js"></script>
 </body>

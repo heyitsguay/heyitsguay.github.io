@@ -77,11 +77,13 @@ LOVE is greet-charged, docs/10), each quantized into 30 levels with level-up pop
   - `js/main.js` top: world size, camera feel
 - Matt tunes constants directly between requests — expect the file to have changed since you
   last saw it; his values are intentional, keep them.
-- **Controls:** WASD/arrows or press-and-hold pointer to swim. The mouth is automatic —
-  food crossing a nose probe opens the jaw (`food.probe`, docs/02 + docs/06). Greet = I
-  (or the touch button), speed burst = hold Shift (or a second finger) — both are EEL
-  MAGIC unlocks (levels 1 and 8), inert before their level and announced by guide
-  popups when they arrive (docs/08). Esc or ⏸ pauses (level meters + reset).
+- **Controls:** WASD/arrows or press-and-hold mouse to swim; touch devices steer ONLY
+  with the virtual joystick (floating-origin pad, side settable from the title
+  Settings menu — docs/02). The mouth is automatic — food crossing a nose probe opens
+  the jaw (`food.probe`, docs/02 + docs/06). Greet = I (or ♡), speed burst = hold
+  Shift (or ⚡), flare = hold J (or ✦) — all EEL MAGIC unlocks (levels 1, 8, 14),
+  inert before their level and announced by guide popups when they arrive (docs/08).
+  Esc or ⏸ pauses (level meters + reset).
 - **Progression persists** in localStorage, quantized into 30 levels per axis
   (docs/08); preview any state with URL params — values > 1 are levels, ≤ 1 raw
   fractions (`?light=21&eelmagic=0.35` — pinned axes show "(preview)" in the pause
@@ -95,9 +97,12 @@ LOVE is greet-charged, docs/10), each quantized into 30 levels with level-up pop
   without pops), the head-wiggle *delta* injection (sinuous path without drift), and the
   bend limit on the spine chain (no hairpin kinks).
 - **Hard-won gotchas from development:**
-  - CSS properties **always beat** SVG presentation attributes. Setting `opacity`/`fill`
-    via `setAttribute` while a stylesheet rule targets the same property silently loses
-    (this shipped two invisible-feature bugs: makeup, jelly-glow color).
+  - CSS properties **always beat** SVG presentation attributes — and HTML attributes:
+    a stylesheet `display:` rule overrides the `hidden` attribute too, so any styled
+    panel needs a `[hidden] { display: none; }` guard (`#ui [hidden]` has a blanket
+    one; other subtrees don't). Setting `opacity`/`fill` via `setAttribute` while a
+    stylesheet rule targets the same property silently loses (this shipped three
+    bugs: makeup, jelly-glow color, the Settings panel stuck open over the title).
   - **The renderer owns pooled-sprite visibility.** Never `display: inline` at spawn —
     reveal only on the element's first in-view attribute write of its current life, and
     hide when it leaves the render pad, or stale geometry from a previous life pops in

@@ -6,6 +6,7 @@
 // chain constraint. The outline path `d` is regenerated from the spine every frame.
 
 import { TAU, clamp, lerp, expApproach, angleDiff } from './math.js';
+import { EEL_LIGHT } from './tuning.js';
 
 // ---- The feel lives here: tune these live ----
 // Decoration geometry constants are in WPROF units (px at REF_LEN, scaled by
@@ -61,6 +62,13 @@ const BOOST_WIG_A = 0.45;     // extra wave amplitude at full burst
 // wiggle-amplitude surge so the eel itself looks thrilled by a food combo.
 const EXCITE_TAU = 0.8;       // s — surge decay
 const EXCITE_WIG_A = 0.5;     // extra wave amplitude at full excitement
+
+// The flare pulse's brightness envelope over its 0→1 progress: fast attack,
+// long decay (peak near u ≈ 0.28). Shared by the veil hole (main) and the
+// expanding ring (sparkles). u < 0 (no pulse) → 0.
+export function flarePulseEnv(u) {
+  return u < 0 ? 0 : Math.sin(Math.PI * Math.pow(u, 0.55));
+}
 
 // Side roll (which side of the spine the face is on)
 const SIDE_FLIP_MIN = 0.15;   // |heading·x| needed before the face picks a side
@@ -264,6 +272,10 @@ export class Eel {
     this.stamina = 1;       // speed-burst fuel, 0..1
     this.boost01 = 0;       // eased burst factor (main reads it for sparks)
     this.boostOn = false;
+    this.lightStam = 1;     // eel-light flare fuel, 0..1 (the green bar)
+    this.flare01 = 0;       // eased flare factor (main feeds the veil hole/halo)
+    this.flareOn = false;
+    this.pulseT = -1;       // s since flare ignition; < 0 = no pulse in flight
     this.makeupOn = false;
     this.excite01 = 0;      // combo excitement (docs/10), eases out on its own
   }
@@ -275,6 +287,12 @@ export class Eel {
   // A combo link landed (docs/10): surge the wiggle briefly.
   excite(amt) {
     this.excite01 = Math.min(1, this.excite01 + amt);
+  }
+
+  // The flare's ignition pulse: progress 0→1 over EEL_LIGHT.PULSE_T, or −1
+  // when no pulse is in flight. Feed it to flarePulseEnv for brightness.
+  get pulseU() {
+    return this.pulseT < 0 ? -1 : Math.min(1, this.pulseT / EEL_LIGHT.PULSE_T);
   }
 
   resize(worldH) {
@@ -345,6 +363,23 @@ export class Eel {
     else this.stamina = Math.min(1, this.stamina + dt / BOOST_RECHARGE);
     const boostF = 1 + this.magic.boostAmt * this.boost01;
     this.excite01 *= Math.exp(-dt / EXCITE_TAU);   // combo surge fades on its own
+
+    // Eel-light flare (docs/10 follow-up 2): the burst grammar on the green
+    // light stamina — ignition fires the radiating pulse, the flare sustains
+    // while held until the meter empties, then eases back to ambient and
+    // recharges. Numbers live in tuning.EEL_LIGHT.
+    const flareFresh = intent.flare && !this.prevFlareIntent;
+    this.prevFlareIntent = !!intent.flare;
+    if (this.flareOn) this.flareOn = !!intent.flare && this.lightStam > 0;
+    else if (flareFresh && this.lightStam > EEL_LIGHT.STAM_MIN) {
+      this.flareOn = true;
+      this.pulseT = 0;      // ignition fires the pulse
+    }
+    this.flare01 = expApproach(this.flare01, this.flareOn ? 1 : 0, dt,
+      this.flareOn ? EEL_LIGHT.TAU_UP : EEL_LIGHT.TAU_DOWN);
+    if (this.flareOn) this.lightStam = Math.max(0, this.lightStam - dt / EEL_LIGHT.STAM_DUR);
+    else this.lightStam = Math.min(1, this.lightStam + dt / EEL_LIGHT.STAM_RECHARGE);
+    if (this.pulseT >= 0 && (this.pulseT += dt) >= EEL_LIGHT.PULSE_T) this.pulseT = -1;
 
     // Rate-limited turning: direction changes are arcs, never snaps. A burst
     // trades agility for speed — turn rate drops by the boost factor (docs/02).

@@ -18,7 +18,7 @@
 // background parallax planes (docs/03, docs/09) — emissive, so it lives here
 // on the glow layer in a counter-transformed group, not in the GL planes.
 
-import { TAU, clamp, lerp, curves } from './math.js';
+import { TAU, clamp, lerp, expApproach, curves } from './math.js';
 import { DIALS, LAYERS, TERRAIN, KELP_GROWTH, SEA, EEL_LIGHT } from './tuning.js';
 import { progress } from './progress.js';
 import { hash01, terrainShape, kelpStrands, mainFloorY } from './worldgen.js';
@@ -530,10 +530,31 @@ export class EelHalo {
     this.el.setAttribute('display', 'none');
     group.appendChild(this.el);
     this.shown = false;
+    // The ignition pulse's expanding ring (docs/10 follow-up 2): a stroked
+    // circle racing outward from the eel and thinning/fading as it goes.
+    this.ring = document.createElementNS(NS, 'circle');
+    this.ring.setAttribute('fill', 'none');
+    this.ring.setAttribute('stroke', EEL_LIGHT.HALO_COLOR);
+    this.ring.setAttribute('display', 'none');
+    group.appendChild(this.ring);
+    this.ringShown = false;
   }
 
-  // flare01: the eased flare factor from main; rWorld: the hole radius.
-  render(eel, flare01, rWorld) {
+  // flare01: the eased flare factor; rWorld: the hole radius; pulseU: the
+  // ignition pulse's 0→1 progress (−1 when idle) — see eel.pulseU.
+  render(eel, flare01, rWorld, pulseU = -1) {
+    if (pulseU >= 0 && rWorld > 0) {
+      const ease = 1 - (1 - pulseU) * (1 - pulseU);   // ease-out travel
+      this.ring.setAttribute('cx', eel.x.toFixed(1));
+      this.ring.setAttribute('cy', eel.y.toFixed(1));
+      this.ring.setAttribute('r', (rWorld * lerp(0.3, EEL_LIGHT.RING_R, ease)).toFixed(1));
+      this.ring.setAttribute('stroke-width', (EEL_LIGHT.RING_W * (1 - 0.6 * pulseU)).toFixed(1));
+      this.ring.setAttribute('opacity', (EEL_LIGHT.RING_A * (1 - pulseU)).toFixed(3));
+      if (!this.ringShown) { this.ringShown = true; this.ring.setAttribute('display', 'inline'); }
+    } else if (this.ringShown) {
+      this.ringShown = false;
+      this.ring.setAttribute('display', 'none');
+    }
     if (flare01 < 0.03) {
       if (this.shown) { this.shown = false; this.el.setAttribute('display', 'none'); }
       return;
@@ -546,20 +567,28 @@ export class EelHalo {
   }
 }
 
-// ---- The boost stamina bar (P4, docs/10) -----------------------------------
-// A slim electric-blue bar riding below the eel. GLOW LAYER on purpose: it
-// must read in dark water. Fades in while stamina < 1 (draining/recharging)
-// or briefly when a combo charges it (flash()); fades out when full. No HUD
+// ---- The stamina bars (P4, docs/10) -----------------------------------------
+// Slim bars riding below the eel — boost (electric blue) and the eel light
+// (green), one instance per pool. GLOW LAYER on purpose: they must read in
+// dark water. Each fades in while its value < 1 (draining/recharging) or
+// briefly when a combo charges it (flash()); fades out when full. No HUD
 // chrome — a track sliver and a fill, nothing else.
+//
+// Stacking (follow-up 2): the caller assigns each bar a row slot per frame —
+// fixed pool ordering, but visible bars always compact from slot 0 (the one
+// position that exists today) with no gaps; a vacated slot's neighbor slides
+// up (eased) rather than popping.
 const SB_W = 88, SB_H = 4.5;   // px
-const SB_BELOW = 34;           // px below the eel's head point
+const SB_BELOW = 34;           // px below the eel's head point (row slot 0)
+const SB_ROW_DY = 8;           // px between stacked row slots
+const SB_ROW_TAU = 0.15;       // s — slide when a bar's slot compacts upward
 const SB_FADE = 0.35;          // s fade in/out
 const SB_FLASH_T = 1.4;        // s shown after a combo charge (even if full)
 const SB_TRACK = 'rgba(140, 200, 220, 0.22)';
 const SB_FILL = 'hsl(196, 100%, 72%)';   // the boost-crackle electric blue
 
 export class StaminaBar {
-  constructor(glowRoot) {
+  constructor(glowRoot, fill = SB_FILL) {
     const NS = 'http://www.w3.org/2000/svg';
     const group = glowRoot.querySelector('#glows');
     this.g = document.createElementNS(NS, 'g');
@@ -572,13 +601,15 @@ export class StaminaBar {
     this.fill = document.createElementNS(NS, 'rect');
     this.fill.setAttribute('height', SB_H);
     this.fill.setAttribute('rx', SB_H / 2);
-    this.fill.setAttribute('fill', SB_FILL);
+    this.fill.setAttribute('fill', fill);
     this.g.appendChild(this.track);
     this.g.appendChild(this.fill);
     group.appendChild(this.g);
     this.a = 0;         // eased visibility
     this.flashT = 0;
     this.shown = false;
+    this.wanted = false;   // this frame's want — the caller stacks on it
+    this.rowSm = 0;        // eased row slot
   }
 
   // A combo charged the stamina — show the bar briefly even at full.
@@ -586,17 +617,22 @@ export class StaminaBar {
     this.flashT = SB_FLASH_T;
   }
 
-  render(dt, eel, unlocked) {
+  // value: the pool 0..1 (defaults to boost stamina for the original caller);
+  // row: the stack slot assigned this frame (0 = topmost).
+  render(dt, eel, unlocked, value = eel.stamina, row = 0) {
     this.flashT = Math.max(0, this.flashT - dt);
-    const want = unlocked && (eel.stamina < 0.999 || this.flashT > 0);
+    const want = unlocked && (value < 0.999 || this.flashT > 0);
+    this.wanted = want;
     this.a = clamp(this.a + (want ? dt : -dt) / SB_FADE, 0, 1);
     if (this.a <= 0) {
+      this.rowSm = row;   // take the new slot invisibly — no slide-in on show
       if (this.shown) { this.shown = false; this.g.setAttribute('display', 'none'); }
       return;
     }
-    const x = eel.x - SB_W / 2, y = eel.y + SB_BELOW;
+    this.rowSm = expApproach(this.rowSm, row, dt, SB_ROW_TAU);
+    const x = eel.x - SB_W / 2, y = eel.y + SB_BELOW + this.rowSm * SB_ROW_DY;
     this.g.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
-    this.fill.setAttribute('width', Math.max(0.01, SB_W * eel.stamina).toFixed(1));
+    this.fill.setAttribute('width', Math.max(0.01, SB_W * value).toFixed(1));
     this.g.setAttribute('opacity', (0.85 * this.a).toFixed(2));
     if (!this.shown) { this.shown = true; this.g.setAttribute('display', 'inline'); }
   }

@@ -9,7 +9,7 @@ import { clamp } from './math.js';
 
 const axisCss = axis => `rgb(${AXES[axis].color.map(c => Math.round(c * 255)).join(',')})`;
 
-export function initUI({ onReset, onGreet, onFlare, onStart, onSkip, onMenu, skipTitle }) {
+export function initUI({ onReset, onGreet, onFlare, onSprint, onStart, onSkip, onMenu, skipTitle }) {
   const menu = document.getElementById('menu');
   const pauseBtn = document.getElementById('pause');
   const resumeBtn = document.getElementById('resume');
@@ -178,6 +178,33 @@ export function initUI({ onReset, onGreet, onFlare, onStart, onSkip, onMenu, ski
       tReset.textContent = 'Really reset?';
     }
   });
+
+  // Settings (title screen, 2026-07-05): the joystick-side toggle, persisted
+  // separately from progress — a progress reset never touches it.
+  const SET_KEY = 'eel-madness:settings:v1';
+  const settings = { stick: 'left' };
+  try {
+    Object.assign(settings, JSON.parse(localStorage.getItem(SET_KEY) || '{}'));
+  } catch { /* private mode / bad JSON */ }
+  const setPanel = document.getElementById('settings');
+  const setLeft = document.getElementById('set-stick-left');
+  const setRight = document.getElementById('set-stick-right');
+  const applySettings = () => {
+    // body class — style.css flips the joypad AND the button column on it
+    document.body.classList.toggle('stick-right', settings.stick === 'right');
+    setLeft.classList.toggle('on', settings.stick !== 'right');
+    setRight.classList.toggle('on', settings.stick === 'right');
+  };
+  applySettings();
+  const setStick = side => {
+    settings.stick = side;
+    applySettings();
+    try { localStorage.setItem(SET_KEY, JSON.stringify(settings)); } catch { /* private mode */ }
+  };
+  setLeft.addEventListener('click', () => setStick('left'));
+  setRight.addEventListener('click', () => setStick('right'));
+  document.getElementById('t-settings').addEventListener('click', () => { setPanel.hidden = false; });
+  document.getElementById('settings-done').addEventListener('click', () => { setPanel.hidden = true; });
   let paused = false;
   const setPaused = p => {
     paused = p;
@@ -244,6 +271,24 @@ export function initUI({ onReset, onGreet, onFlare, onStart, onSkip, onMenu, ski
   flareBtn.addEventListener('pointercancel', flareOff);
   flareBtn.addEventListener('pointerleave', flareOff);
 
+  // The sprint button (docs/02, 2026-07-05) is press-and-HOLD, like Shift —
+  // it replaces the retired two-finger boost gesture.
+  const sprintBtn = document.getElementById('btn-sprint');
+  let sprintShown = false;
+  sprintBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    onSprint && onSprint(true);
+  });
+  const sprintOff = () => { onSprint && onSprint(false); };
+  sprintBtn.addEventListener('pointerup', sprintOff);
+  sprintBtn.addEventListener('pointercancel', sprintOff);
+  sprintBtn.addEventListener('pointerleave', sprintOff);
+
+  // The joystick pad (docs/02, 2026-07-05): interaction lives in input.js;
+  // ui only owns visibility (touch devices, in-game).
+  const joypad = document.getElementById('joypad');
+  let joyShown = false;
+
   return {
     paused: () => paused,
     // v: the dial has unlocked greeting; enabled: someone is actually in
@@ -263,6 +308,22 @@ export function initUI({ onReset, onGreet, onFlare, onStart, onSkip, onMenu, ski
       if (want !== flareShown) {
         flareShown = want;
         flareBtn.hidden = !want;
+      }
+    },
+    // v: the speedBurst dial has unlocked the sprint (touch devices only).
+    showSprint(v) {
+      const want = !!v && coarse;
+      if (want !== sprintShown) {
+        sprintShown = want;
+        sprintBtn.hidden = !want;
+      }
+    },
+    // v: in-game (not the title). The pad isn't progression-gated.
+    showJoy(v) {
+      const want = !!v && coarse;
+      if (want !== joyShown) {
+        joyShown = want;
+        joypad.hidden = !want;
       }
     },
     levelUp(ev) { luQueue.push(ev); },

@@ -387,6 +387,23 @@ export const EEL_LIGHT = {
   TAU_UP: 0.22, TAU_DOWN: 0.55,  // s — flare ease in/out
   HALO_A: 0.16,                  // cool glow-layer halo peak opacity at flare
   HALO_COLOR: 'hsl(190, 90%, 78%)',   // icy cyan — the boost-crackle family
+  // The flare's fuel (release notes 2026-07-05): hold-to-sustain on the green
+  // light stamina, mirroring the boost rules — drains while flaring, steady
+  // recharge while off, a minimum reserve to (re)ignite, holding through
+  // empty never self-retriggers.
+  STAM_DUR: 3.0,        // s of sustained flare from a full meter
+  STAM_RECHARGE: 5.0,   // s to refill from empty
+  STAM_MIN: 0.35,       // reserve needed to (re)ignite
+  BAR_COLOR: 'hsl(135, 85%, 62%)',   // the light-stamina meter green
+  // The ignition pulse: a bright front radiating outward from the eel before
+  // the flare settles at its steady state. The veil hole overshoots (PULSE_R/
+  // PULSE_HOLE at the envelope peak) and a glow ring expands and fades.
+  PULSE_T: 0.6,         // s — pulse lifetime
+  PULSE_R: 2.3,         // hole-radius multiplier at the pulse peak
+  PULSE_HOLE: 1.0,      // veil relief at the pulse peak (fully clear)
+  RING_A: 0.45,         // expanding ring opacity at birth
+  RING_R: 2.4,          // ring travel: end radius as a multiple of the hole radius
+  RING_W: 12,           // ring stroke width at birth (px, thins as it expands)
 };
 
 // ---- Speed burst (docs/07): base values + ramps along the speedBurst dial ----

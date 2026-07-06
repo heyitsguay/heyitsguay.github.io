@@ -398,29 +398,126 @@ body {
    edge lives here (CSS-beats-attributes: keep fill out) */
 #rocks path { stroke: rgba(150, 170, 190, 0.18); stroke-width: 1.2; }
 
-/* Translucent greet button (touch devices; docs/07 — wired in P1).
-   Grays out when nothing is in greet radius (ui.showGreet disables it). */
-#btn-greet {
+/* Touch action buttons (docs/02, 2026-07-05): greet / sprint / flare, a
+   column on the side OPPOSITE the joystick. Default: stick left, buttons
+   right; body.stick-right flips both (the title Settings toggle). Each
+   appears only once its power unlocks. Greet grays out when nothing is in
+   greet radius (ui.showGreet disables it); sprint and flare are hold. */
+#btn-greet, #btn-sprint, #btn-flare {
   position: fixed;
-  bottom: max(18px, env(safe-area-inset-bottom));
-  left: max(18px, env(safe-area-inset-left));
+  right: max(18px, env(safe-area-inset-right));
   width: 64px;
   height: 64px;
-  font-size: 26px;
   transition: opacity 0.25s;
+}
+body.stick-right #btn-greet,
+body.stick-right #btn-sprint,
+body.stick-right #btn-flare {
+  right: auto;
+  left: max(18px, env(safe-area-inset-left));
+}
+#btn-greet {
+  bottom: max(18px, env(safe-area-inset-bottom));
+  font-size: 26px;
 }
 #btn-greet:disabled {
   opacity: 0.3;
   cursor: default;
 }
-
-/* Eel-light flare (docs/10): press-and-HOLD, stacked above the greet button */
-#btn-flare {
-  position: fixed;
+#btn-sprint {
   bottom: max(94px, calc(env(safe-area-inset-bottom) + 76px));
-  left: max(18px, env(safe-area-inset-left));
-  width: 64px;
-  height: 64px;
   font-size: 24px;
-  transition: opacity 0.25s;
+}
+#btn-flare {
+  bottom: max(170px, calc(env(safe-area-inset-bottom) + 152px));
+  font-size: 24px;
+}
+
+/* The virtual joystick (docs/02, 2026-07-05): a fixed pad zone; the stick
+   origin floats to wherever the touch first lands inside it. The nub is
+   pure feedback — input.js drives its transform. */
+#joypad {
+  position: fixed;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: max(18px, env(safe-area-inset-left));
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  background: rgba(160, 205, 220, 0.07);
+  border: 1.5px solid rgba(190, 225, 240, 0.22);
+  touch-action: none;
+}
+body.stick-right #joypad {
+  left: auto;
+  right: max(18px, env(safe-area-inset-right));
+}
+#joynub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border-radius: 50%;
+  background: rgba(190, 230, 250, 0.20);
+  border: 1.5px solid rgba(200, 240, 255, 0.38);
+  transition: transform 0.15s;
+  will-change: transform;
+}
+#joypad.live #joynub {
+  transition: none;   /* tracks the finger raw; the ease is for release */
+}
+
+/* Settings (title screen): the joystick-side toggle, panel styled on the
+   pause menu's pattern. */
+#settings {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 10, 14, 0.55);
+}
+/* the display rule above would beat the hidden ATTRIBUTE (the CLAUDE.md
+   gotcha) and pin the panel open — #title has no #ui-style [hidden] guard */
+#settings[hidden] { display: none; }
+#settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 26px;
+  background: rgba(8, 24, 30, 0.92);
+  border: 1px solid rgba(210, 235, 225, 0.15);
+  border-radius: 14px;
+  color: rgba(210, 235, 225, 0.85);
+  font: 16px system-ui, sans-serif;
+}
+#settings-panel h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: space-between;
+}
+.set-seg {
+  display: flex;
+  gap: 6px;
+}
+#settings-panel button {
+  font: 15px system-ui, sans-serif;
+  color: rgba(210, 235, 225, 0.75);
+  background: rgba(210, 235, 225, 0.08);
+  border: 1px solid rgba(210, 235, 225, 0.22);
+  border-radius: 9px;
+  padding: 7px 14px;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.set-seg button.on {
+  color: rgba(16, 34, 40, 0.95);
+  background: rgba(210, 235, 225, 0.8);
 }
